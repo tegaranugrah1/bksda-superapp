@@ -8,8 +8,23 @@
 .bmn-standard-ui :is(button, a)[data-variant][data-variant="default"]:not(.bmn-secondary):not(.bmn-danger) { background: var(--ds-accent-solid); color: var(--ds-accent-on-solid); border-color: transparent; }
 .bmn-standard-ui :is(button, a)[data-variant][data-variant="default"]:not(.bmn-secondary):not(.bmn-danger):hover { background: var(--ds-accent-hover); }
 .bmn-standard-ui :is(button, a)[data-variant][data-variant="default"]:not(.bmn-secondary):not(.bmn-danger):active { background: var(--ds-accent-active); }
-.bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger) { background: var(--ds-secondary-bg); color: var(--ds-secondary-fg); border-color: transparent; }
-.bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger):hover { background: var(--ds-secondary-hover); border-color: var(--ds-accent-soft-border); }
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger) {
+  background: var(--ds-surface-raised);
+  color: var(--ds-secondary-fg);
+  border: 1px solid var(--ds-border-subtle);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+}
+.bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger):hover {
+  background: var(--ds-surface-muted);
+  border-color: var(--ds-border-control);
+}
+.dark .bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger) {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+}
+.dark .bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger):hover {
+  background: var(--ds-secondary-hover);
+  border-color: var(--ds-border-control);
+}
 .bmn-standard-ui :is(button, a)[data-variant][data-variant="outline"]:not(.bmn-danger):not(.bmn-icon-danger):active { background: var(--ds-secondary-active); }
 .bmn-standard-ui :is(button, a)[data-variant].bmn-icon-danger { color: var(--ds-status-danger-fg); background: transparent; border-color: transparent; }
 .bmn-standard-ui :is(button, a)[data-variant].bmn-icon-danger:hover { background: var(--ds-status-danger-bg); border-color: var(--ds-status-danger-border); }

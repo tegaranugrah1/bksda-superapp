@@ -273,42 +273,42 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
     <div className="space-y-6">
       {/* Quick Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
-          <div>
+        <div className="bg-[var(--ds-surface)] p-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Total Tag
             </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1 tabular-nums">
               {tags.length}
             </p>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               {mainTagsCount} Main Tag, {subTagsCount} Sub-tag
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
+          <div className="w-12 h-12 shrink-0 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <TagIcon className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
-          <div>
+        <div className="bg-[var(--ds-surface)] p-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Asosiasi Aset Terpasang
             </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1 tabular-nums">
               {totalAssetsTagged}
             </p>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Total aset unik ber-tag (tanpa duplikasi)
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
+          <div className="w-12 h-12 shrink-0 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Package className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between sm:col-span-2 lg:col-span-1">
-          <div>
+        <div className="bg-[var(--ds-surface)] p-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between gap-3 sm:col-span-2 lg:col-span-1">
+          <div className="min-w-0">
             <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Hierarki Main &amp; Sub Tag
             </p>
@@ -316,7 +316,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
               Mendukung <b>Main Tag</b> (induk) &amp; <b>Sub Tag</b> (turunan <code>↳</code>). Aset sub-tag otomatis terhitung di bawah Main Tag.
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
+          <div className="w-12 h-12 shrink-0 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Sparkles className="w-6 h-6" />
           </div>
         </div>
@@ -335,7 +335,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
               setTagSearch(e.target.value);
               setTagPage(1);
             }}
-            className="w-full pl-9 pr-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+            className="w-full pl-9 pr-4 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -345,16 +345,16 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
               variant="outline"
               size="sm"
               onClick={collapsedMainTagIds.size > 0 ? expandAllMainTags : collapseAllMainTags}
-              className="rounded-xl gap-1.5 text-xs h-9"
+              className="rounded-lg gap-2 text-xs h-9"
               title={collapsedMainTagIds.size > 0 ? "Tampilkan seluruh sub-tag" : "Sembunyikan seluruh sub-tag"}
             >
               {collapsedMainTagIds.size > 0 ? (
                 <>
-                  <ChevronDown className="w-3.5 h-3.5" /> Rentangkan Semua
+                  <ChevronDown className="w-4 h-4" /> Rentangkan Semua
                 </>
               ) : (
                 <>
-                  <ChevronRight className="w-3.5 h-3.5" /> Ciutkan Semua
+                  <ChevronRight className="w-4 h-4" /> Ciutkan Semua
                 </>
               )}
             </Button>
@@ -363,7 +363,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
             <Button
               onClick={handleOpenCreateTag}
               size="sm"
-              className="rounded-xl gap-2 text-xs bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] h-9"
+              className="rounded-lg gap-2 text-xs h-9"
             >
               <Plus className="w-4 h-4" /> Tambah Tag Baru
             </Button>
@@ -372,34 +372,34 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
       </div>
 
       {/* Tags Table */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className={`${totalTagItems > 0 ? "bmn-wide-table" : ""} w-full text-left`}>
             <thead className={totalTagItems > 0 ? "" : "hidden sm:table-header-group"}>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Badge &amp; Hierarki Tag
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Slug Sistem
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Warna
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Deskripsi
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">
                   Aset Terkait
                 </th>
                 {canManage && (
-                  <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center w-28">
+                  <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center w-28">
                     Aksi
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {isLoading ? (
                 <tr>
                   <td colSpan={canManage ? 6 : 5} className="p-12 text-center">
@@ -419,9 +419,9 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                         onClick={handleOpenCreateTag}
                         variant="outline"
                         size="sm"
-                        className="mt-3 rounded-xl gap-2 text-xs"
+                        className="mt-3 rounded-lg gap-2 text-xs"
                       >
-                        <Plus className="w-3.5 h-3.5" /> Buat Tag Pertama
+                        <Plus className="w-4 h-4" /> Buat Tag Pertama
                       </Button>
                     )}
                   </td>
@@ -437,16 +437,16 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                       key={tag.id}
                       className={cn(
                         "bmn-table-row group",
-                        isSub && "bg-[var(--ds-surface-muted)] "
+                        isSub && "bg-[var(--ds-surface-muted)]"
                       )}
                     >
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         {isSub ? (
                           <div className="flex items-center gap-2 pl-6 sm:pl-8">
                             <span className="font-mono text-[var(--ds-fg-muted)] text-sm font-bold select-none shrink-0">↳</span>
                             <span
                               className={cn(
-                                "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border",
+                                "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border",
                                 colorTheme.bg,
                                 colorTheme.text,
                                 colorTheme.border
@@ -454,7 +454,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                             >
                               {tag.label}
                             </span>
-                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] border border-[var(--ds-border-subtle)] shrink-0">
+                            <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] border border-slate-200/80 dark:border-zinc-800 shrink-0">
                               Sub-tag
                             </span>
                           </div>
@@ -465,21 +465,21 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                                 type="button"
                                 aria-expanded={!isCollapsed}
                                 onClick={() => toggleCollapseMainTag(tag.id)}
-                                className="p-1 -ml-1.5 rounded-md hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] transition-colors shrink-0"
+                                className="p-1 -ml-1 rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] transition-colors shrink-0"
                                 title={isCollapsed ? `Rentangkan ${tag.sub_tags_count} sub-tag` : `Ciutkan ${tag.sub_tags_count} sub-tag`}
                               >
                                 {isCollapsed ? (
-                                  <ChevronRight className="w-3.5 h-3.5" />
+                                  <ChevronRight className="w-4 h-4" />
                                 ) : (
-                                  <ChevronDown className="w-3.5 h-3.5" />
+                                  <ChevronDown className="w-4 h-4" />
                                 )}
                               </button>
                             ) : (
-                              <span className="w-3.5 shrink-0" />
+                              <span className="w-4 shrink-0" />
                             )}
                             <span
                               className={cn(
-                                "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border",
+                                "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold border",
                                 colorTheme.bg,
                                 colorTheme.text,
                                 colorTheme.border
@@ -488,7 +488,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                               <TagIcon className="w-3 h-3" />
                               {tag.label}
                             </span>
-                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-xs font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] shrink-0">
+                            <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] shrink-0">
                               Main Tag
                             </span>
                             {hasSubs && (
@@ -504,23 +504,23 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                           </div>
                         )}
                       </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-1.5">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
                           {isSub && tag.parent && (
                             <span className="text-xs text-[var(--ds-fg-muted)] font-mono">
                               {tag.parent.name} /
                             </span>
                           )}
-                          <code className="text-xs text-[var(--ds-fg-secondary)] font-mono bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded">
+                          <code className="text-xs text-[var(--ds-fg-secondary)] font-mono bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg">
                             {tag.name}
                           </code>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span
                             className={cn(
-                              "w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm",
+                              "w-4 h-4 rounded-full border border-black/10 shadow-xs",
                               AVAILABLE_TAG_COLORS.find((c) => c.key === tag.color)?.class || "bg-emerald-500"
                             )}
                           />
@@ -529,26 +529,26 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3">
                         <p className="text-xs text-[var(--ds-fg-secondary)] max-w-sm truncate">
                           {tag.description || "-"}
                         </p>
                       </td>
-                      <td className="px-5 py-3.5 text-center">
+                      <td className="px-4 py-3 text-center">
                         {isSub ? (
                           <div className="inline-flex flex-col items-center">
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)]">
+                            <span className="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] tabular-nums">
                               {tag.direct_assets_count ?? tag.assets_count ?? 0}
                             </span>
-                            <span className="text-xs text-[var(--ds-fg-muted)] mt-0.5">langsung</span>
+                            <span className="text-xs text-[var(--ds-fg-muted)] mt-1">langsung</span>
                           </div>
                         ) : (
                           <div className="inline-flex flex-col items-center">
-                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+                            <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] tabular-nums">
                               {tag.assets_count || 0}
                             </span>
                             {(tag.sub_tags_count || 0) > 0 && (
-                              <span className="text-xs text-[var(--ds-fg-muted)] mt-0.5" title="Total unik termasuk dari seluruh sub-tag tanpa duplikasi">
+                              <span className="text-xs text-[var(--ds-fg-muted)] mt-1" title="Total unik termasuk dari seluruh sub-tag tanpa duplikasi">
                                 total grup
                               </span>
                             )}
@@ -556,12 +556,12 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                         )}
                       </td>
                       {canManage && (
-                        <td className="px-5 py-3.5 text-center">
+                        <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => handleOpenEditTag(tag)}
                               title="Edit Tag"
-                              className="bmn-icon-action p-1.5 rounded-lg"
+                              className="bmn-icon-action p-2 rounded-lg"
                             >
                               <Pencil className="w-4 h-4" />
                             </button>
@@ -573,7 +573,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                                   ? "Hapus sub-tag terlebih dahulu sebelum menghapus Main Tag ini"
                                   : "Hapus Tag"
                               }
-                              className="p-1.5 rounded-lg bmn-icon-danger transition-colors"
+                              className="p-2 rounded-lg bmn-icon-danger transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -601,10 +601,10 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
 
       {/* DIALOG: CREATE / EDIT TAG */}
       <Dialog open={isTagFormOpen} onOpenChange={setIsTagFormOpen}>
-        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); formTrigger.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl max-h-[90dvh] overflow-y-auto">
+        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); formTrigger.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800 max-h-[90dvh] overflow-y-auto">
           <form onSubmit={handleSubmitTag}>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
                 <TagIcon className="w-5 h-5 text-[var(--ds-accent-fg)]" />
                 {editingTag ? "Edit Tag Aset" : "Tambah Tag Aset Baru"}
               </DialogTitle>
@@ -616,11 +616,11 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
             <div className="space-y-4 py-4">
               {/* Jenis Tag: Main Tag vs Sub Tag */}
               <div>
-                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-2">
                   Tingkat / Jenis Tag <span className="text-[var(--ds-status-danger-fg)]">*</span>
                 </label>
                 {editingTag && tags.some((t) => t.parent_id === editingTag.id) ? (
-                  <div className="p-2.5 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-xl text-xs text-[var(--ds-status-warning-fg)]">
+                  <div className="p-3 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-lg text-xs text-[var(--ds-status-warning-fg)]">
                     Tag ini memiliki <b>{tags.filter((t) => t.parent_id === editingTag.id).length} sub-tag</b> di bawahnya, sehingga harus tetap sebagai <b>Main Tag</b>.
                   </div>
                 ) : (
@@ -633,15 +633,15 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                         setTagParentId("");
                       }}
                       className={cn(
-                        "p-2.5 rounded-xl border text-left transition-colors duration-150 ease-out flex flex-col gap-0.5",
+                        "p-3 rounded-lg border text-left transition-colors duration-150 ease-out flex flex-col gap-1",
                         tagType === "main"
-                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  shadow-xs"
-                          : "border-[var(--ds-border-subtle)]  hover:bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-secondary)] "
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] shadow-xs"
+                          : "border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)]"
                       )}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold">Main Tag (Induk)</span>
-                        {tagType === "main" && <Check className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />}
+                        {tagType === "main" && <Check className="w-4 h-4 text-[var(--ds-accent-fg)]" />}
                       </div>
                       <span className="text-xs text-[var(--ds-fg-muted)]">Contoh: #alat-kebakaran</span>
                     </button>
@@ -656,15 +656,15 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                         }
                       }}
                       className={cn(
-                        "p-2.5 rounded-xl border text-left transition-colors duration-150 ease-out flex flex-col gap-0.5",
+                        "p-3 rounded-lg border text-left transition-colors duration-150 ease-out flex flex-col gap-1",
                         tagType === "sub"
-                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  shadow-xs"
-                          : "border-[var(--ds-border-subtle)]  hover:bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-secondary)] "
+                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] shadow-xs"
+                          : "border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)]"
                       )}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold">Sub Tag (Turunan)</span>
-                        {tagType === "sub" && <Check className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />}
+                        {tagType === "sub" && <Check className="w-4 h-4 text-[var(--ds-accent-fg)]" />}
                       </div>
                       <span className="text-xs text-[var(--ds-fg-muted)]">Contoh: #kendaraan-kebakaran</span>
                     </button>
@@ -679,7 +679,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                     Pilih Main Tag Induk <span className="text-[var(--ds-status-danger-fg)]">*</span>
                   </label>
                   {availableParentTags.length === 0 ? (
-                    <div className="p-3 bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] rounded-xl text-xs text-[var(--ds-status-danger-fg)]">
+                    <div className="p-3 bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] rounded-lg text-xs text-[var(--ds-status-danger-fg)]">
                       Belum ada Main Tag yang tersedia. Harap buat Main Tag terlebih dahulu.
                     </div>
                   ) : (
@@ -689,7 +689,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                   value={tagParentId}
                         onChange={(e) => handleSelectParentTag(e.target.value)}
                         required
-                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm text-[var(--ds-fg)]"
+                        className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm text-[var(--ds-fg)]"
                       >
                         <option value="" disabled>-- Pilih Main Tag Induk --</option>
                         {availableParentTags.map((p) => (
@@ -698,8 +698,8 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                           </option>
                         ))}
                       </select>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <label className="flex items-center gap-1.5 cursor-pointer text-xs text-[var(--ds-fg-secondary)] select-none">
+                      <div className="flex items-center gap-2 mt-2">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-[var(--ds-fg-secondary)] select-none">
                           <input
                             type="checkbox"
                             checked={inheritParentColor}
@@ -711,7 +711,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                                 if (p?.color) setTagColor(p.color);
                               }
                             }}
-                            className="rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)] h-3.5 w-3.5"
+                            className="rounded-lg border-slate-200/80 dark:border-zinc-800 text-[var(--ds-accent-fg)] h-4 w-4"
                           />
                           <span>Samakan tema warna dengan Main Tag induk</span>
                         </label>
@@ -739,7 +739,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                     aria-label="Nama Tag"
                   value={tagName.replace(/^#/, "")}
                     onChange={(e) => setTagName(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "-"))}
-                    className="w-full pl-8 pr-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+                    className="w-full pl-8 pr-4 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm"
                   />
                 </div>
                 <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
@@ -764,12 +764,12 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                         c.class,
                         tagColor === c.key
                           ? "border-[var(--ds-fg)] outline-2 outline-offset-2 outline-[var(--ds-fg)]"
-                          : "border-transparent  "
+                          : "border-transparent"
                       )}
                       title={c.label}
                     >
                       {tagColor === c.key && (
-                        <Check className="w-4 h-4 p-0.5 rounded-full bg-[#0f172a] text-[#ffffff]" />
+                        <Check className="w-4 h-4 p-1 rounded-full bg-[#0f172a] text-[#ffffff]" />
                       )}
                     </button>
                   ))}
@@ -786,7 +786,7 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                   aria-label="Deskripsi Tag"
                   value={tagDescription}
                   onChange={(e) => setTagDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm"
                 />
               </div>
             </div>
@@ -797,14 +797,14 @@ export function TagManagementTab({ tags, isLoading, canManage }: TagManagementTa
                 variant="outline"
                 onClick={() => setIsTagFormOpen(false)}
                 disabled={isSubmittingTag}
-                className="rounded-xl"
+                className="rounded-lg"
               >
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmittingTag || !tagName.trim() || (tagType === "sub" && !tagParentId)}
-                className="rounded-xl gap-2"
+                className="rounded-lg gap-2"
               >
                 {isSubmittingTag ? (
                   <>

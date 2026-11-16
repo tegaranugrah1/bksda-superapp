@@ -103,28 +103,28 @@ export function SkTimPenilaiBuilder({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Menimbang</h3>
+          <h3 className="text-sm font-bold text-[var(--ds-fg)]">Menimbang</h3>
           <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addMenimbang}>
             <Plus className="h-3 w-3" />
             Tambah
           </Button>
         </div>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
           Item akan diberi label a, b, c, ... pada dokumen.
         </p>
         <div className="mt-3 space-y-3">
           {menimbang.map((item, index) => (
-            <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
+            <div key={item.id} className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
                   Menimbang {String.fromCharCode(97 + index)}
                 </span>
                 <Button
                   size="xs"
                   variant="destructive"
-                  className="rounded-md gap-1"
+                  className="rounded-lg gap-1"
                   onClick={() => removeMenimbang(item.id)}
                   disabled={menimbang.length <= 1}
                 >
@@ -136,35 +136,35 @@ export function SkTimPenilaiBuilder({
                 value={item.text}
                 onChange={(e) => updateMenimbang(item.id, e.target.value)}
                 placeholder="Tulis isi menimbang..."
-                className="min-h-[72px] text-xs"
+                className="min-h-18 text-xs"
               />
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Mengingat</h3>
+          <h3 className="text-sm font-bold text-[var(--ds-fg)]">Mengingat</h3>
           <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addMengingat}>
             <Plus className="h-3 w-3" />
             Tambah
           </Button>
         </div>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
           Item akan diberi nomor 1, 2, 3, ... pada dokumen.
         </p>
         <div className="mt-3 space-y-3">
           {mengingat.map((item, index) => (
-            <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
+            <div key={item.id} className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] tabular-nums">
                   Mengingat {index + 1}
                 </span>
                 <Button
                   size="xs"
                   variant="destructive"
-                  className="rounded-md gap-1"
+                  className="rounded-lg gap-1"
                   onClick={() => removeMengingat(item.id)}
                   disabled={mengingat.length <= 1}
                 >
@@ -176,70 +176,70 @@ export function SkTimPenilaiBuilder({
                 value={item.text}
                 onChange={(e) => updateMengingat(item.id, e.target.value)}
                 placeholder="Tulis isi mengingat..."
-                className="min-h-[72px] text-xs"
+                className="min-h-18 text-xs"
               />
             </div>
           ))}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Memutuskan</h3>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <h3 className="text-sm font-bold text-[var(--ds-fg)]">Memutuskan</h3>
+        <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
           Bagian Menetapkan, KESATU, KEDUA, KETIGA, dan KEEMPAT dari keputusan.
         </p>
         <div className="mt-3 space-y-3">
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">Menetapkan</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Menetapkan</label>
             <Textarea
               value={memutuskan.menetapkan}
               onChange={(e) => updateMemutuskan("menetapkan", e.target.value)}
-              className="mt-1 min-h-[80px] text-xs"
+              className="mt-1 min-h-20 text-xs"
             />
           </div>
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">KESATU</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">KESATU</label>
             <Textarea
               value={memutuskan.kesatu}
               onChange={(e) => updateMemutuskan("kesatu", e.target.value)}
-              className="mt-1 min-h-[80px] text-xs"
+              className="mt-1 min-h-20 text-xs"
             />
           </div>
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">KEDUA</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">KEDUA</label>
             <Textarea
               value={memutuskan.kedua}
               onChange={(e) => updateMemutuskan("kedua", e.target.value)}
-              className="mt-1 min-h-[140px] text-xs"
+              className="mt-1 min-h-36 text-xs"
             />
           </div>
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">KETIGA</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">KETIGA</label>
             <Textarea
               value={memutuskan.ketiga}
               onChange={(e) => updateMemutuskan("ketiga", e.target.value)}
-              className="mt-1 min-h-[64px] text-xs"
+              className="mt-1 min-h-16 text-xs"
             />
           </div>
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">KEEMPAT</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">KEEMPAT</label>
             <Textarea
               value={memutuskan.keempat}
               onChange={(e) => updateMemutuskan("keempat", e.target.value)}
-              className="mt-1 min-h-[64px] text-xs"
+              className="mt-1 min-h-16 text-xs"
             />
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Kepala Balai</h3>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <h3 className="text-sm font-bold text-[var(--ds-fg)]">Kepala Balai</h3>
+        <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
           Pilih pegawai untuk mengisi nama dan NIP penandatangan.
         </p>
         <div className="mt-3 space-y-2">
           <select
-            className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+            className="h-9 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft)]"
             onChange={(e) => handleSelectKepalaBalai(e.target.value)}
             defaultValue=""
             disabled={isLoadingEmployees}
@@ -257,41 +257,41 @@ export function SkTimPenilaiBuilder({
               );
             })}
           </select>
-          <div className="rounded-lg bg-zinc-50 p-3 text-xs dark:bg-zinc-950/50">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-400">Nama</p>
-            <p className="mt-0.5 font-semibold text-zinc-900 dark:text-zinc-100">
+          <div className="rounded-lg bg-[var(--ds-surface-muted)] p-3 text-xs">
+            <p className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Nama</p>
+            <p className="mt-1 font-semibold text-[var(--ds-fg)]">
               {kepalaBalai.nama || "—"}
             </p>
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-zinc-400">NIP</p>
-            <p className="mt-0.5 font-mono text-zinc-700 dark:text-zinc-300">
+            <p className="mt-2 text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">NIP</p>
+            <p className="mt-1 font-mono text-[var(--ds-fg-secondary)] tabular-nums">
               {kepalaBalai.nip ? `NIP. ${kepalaBalai.nip}` : "—"}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Tembusan</h3>
+          <h3 className="text-sm font-bold text-[var(--ds-fg)]">Tembusan</h3>
           <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addTembusan}>
             <Plus className="h-3 w-3" />
             Tambah
           </Button>
         </div>
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
           Item akan diberi nomor 1, 2, 3, ... pada dokumen.
         </p>
         <div className="mt-3 space-y-3">
           {tembusan.map((item, index) => (
-            <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-              <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-zinc-500">
+            <div key={item.id} className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] tabular-nums">
                   Tembusan {index + 1}
                 </span>
                 <Button
                   size="xs"
                   variant="destructive"
-                  className="rounded-md gap-1"
+                  className="rounded-lg gap-1"
                   onClick={() => removeTembusan(item.id)}
                 >
                   <Trash2 className="h-3 w-3" />
@@ -302,12 +302,12 @@ export function SkTimPenilaiBuilder({
                 value={item.text}
                 onChange={(e) => updateTembusan(item.id, e.target.value)}
                 placeholder="Tulis isi tembusan..."
-                className="min-h-[48px] text-xs"
+                className="min-h-12 text-xs"
               />
             </div>
           ))}
           {tembusan.length === 0 && (
-            <p className="rounded-lg border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-400">
+            <p className="rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800 p-3 text-center text-xs text-[var(--ds-fg-muted)]">
               Belum ada tembusan. Klik Tambah untuk menambahkan.
             </p>
           )}

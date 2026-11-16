@@ -23,25 +23,25 @@ export function PemeriksaEditor({
   onSelectEmployee,
 }: PemeriksaEditorProps) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Pemeriksa</h3>
+        <h3 className="text-sm font-bold text-[var(--ds-fg)]">Pemeriksa</h3>
         <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={onAdd}>
           <Plus className="h-3 w-3" />
           Tambah
         </Button>
       </div>
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
         Daftar pemeriksa BMN yang akan ditampilkan pada berita acara.
       </p>
       <div className="mt-3 space-y-3">
         {pemeriksaList.map((item) => (
-          <div key={item.id} className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <div key={item.id} className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
             <div className="flex items-center gap-2">
               <select
                 value=""
                 onChange={(e) => onSelectEmployee(item.id, e.target.value, employees)}
-                className="h-8 flex-1 rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                className="h-8 flex-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft)]"
               >
                 <option value="">-- Pilih Pegawai --</option>
                 {employees.map((emp) => (
@@ -53,7 +53,7 @@ export function PemeriksaEditor({
               <Button
                 size="xs"
                 variant="destructive"
-                className="rounded-md gap-1"
+                className="rounded-lg gap-1"
                 onClick={() => onRemove(item.id)}
               >
                 <Trash2 className="h-3 w-3" />
@@ -64,24 +64,24 @@ export function PemeriksaEditor({
               value={item.nama}
               onChange={(e) => onUpdate(item.id, "nama", e.target.value)}
               placeholder="Nama"
-              className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+              className="mt-2 h-8 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft)]"
             />
             <input
               value={item.nip}
               onChange={(e) => onUpdate(item.id, "nip", e.target.value)}
               placeholder="NIP"
-              className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+              className="mt-2 h-8 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] tabular-nums outline-none focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft)]"
             />
             <input
               value={item.jabatan}
               onChange={(e) => onUpdate(item.id, "jabatan", e.target.value)}
               placeholder="Jabatan"
-              className="mt-2 h-8 w-full rounded-lg border border-zinc-200 bg-white px-2 text-xs text-zinc-900 outline-none focus:ring-1 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+              className="mt-2 h-8 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft)]"
             />
           </div>
         ))}
         {pemeriksaList.length === 0 && (
-          <p className="rounded-lg border border-dashed border-zinc-300 p-3 text-center text-xs text-zinc-400">
+          <p className="rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800 p-3 text-center text-xs text-[var(--ds-fg-muted)]">
             Belum ada pemeriksa. Klik Tambah untuk menambahkan.
           </p>
         )}

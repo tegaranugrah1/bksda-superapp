@@ -31,7 +31,7 @@ export function AssetPhotoPreview({ photo, name, nup }: {
           <span className="bmn-photo-affordance"><Eye className="w-4 h-4" aria-hidden="true" /><span className="sr-only">Perbesar foto</span></span>
         </button>
       </DialogTrigger>
-      <DialogContent data-module="bmn" showCloseButton={false} className="bmn-assets-ui bmn-popover bmn-photo-dialog">
+      <DialogContent data-module="bmn" showCloseButton={false} className="bmn-assets-ui bmn-popover bmn-photo-dialog rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800">
         <DialogHeader className="pr-10">
           <DialogTitle>{name}</DialogTitle>
           <DialogDescription className="text-[var(--ds-fg-muted)]">NUP {nup} · {photo.label}</DialogDescription>

@@ -269,25 +269,25 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
   return (
     <div className="space-y-6">
       {/* Overview stats */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-4 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-[var(--ds-fg)] font-sans">
+          <h2 className="text-sm font-bold text-[var(--ds-fg)] font-sans">
             Penetapan Nilai Taksiran
           </h2>
-          <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
             Lengkapi nilai taksiran untuk seluruh aset. Gunakan kalkulator Kertas Kerja untuk melakukan penilaian komparasi.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] px-4 py-2 rounded-xl text-xs font-bold">
-          <DollarSign className="h-4.5 w-4.5" />
+        <div className="flex items-center gap-2 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] px-4 py-2 rounded-lg text-xs font-bold tabular-nums">
+          <DollarSign className="h-4 w-4" />
           <span>Total Taksiran: {formatRupiah(batch.nilai_taksiran_total)}</span>
         </div>
       </div>
 
       {/* Valuation warning */}
       {assets.some((a) => !a.pivot?.nilai_taksiran) && (
-        <div className="flex items-center gap-2 bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] px-4 py-3 rounded-xl text-xs">
-          <AlertTriangle className="h-4.5 w-4.5 shrink-0 text-[var(--ds-status-warning-fg)]" />
+        <div className="flex items-center gap-2 bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] px-4 py-3 rounded-lg text-xs">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--ds-status-warning-fg)]" />
           <span>
             Beberapa aset belum memiliki Nilai Taksiran. Semua aset <strong>wajib</strong> dinilai sebelum paket lelang dapat dikunci dan diajukan.
           </span>
@@ -297,7 +297,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
       {/* Mobile Stacked Cards (< sm) */}
       <div className="sm:hidden space-y-3">
         {assets.length === 0 ? (
-          <div className="p-8 text-center text-[var(--ds-fg-muted)] text-xs bg-[var(--ds-surface)] rounded-2xl border border-[var(--ds-border-subtle)]">
+          <div className="p-8 text-center text-[var(--ds-fg-muted)] text-xs bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800">
             Belum ada aset dalam paket lelang ini.
           </div>
         ) : (
@@ -308,13 +308,13 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
             return (
               <div
                 key={asset.id}
-                className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 space-y-3 shadow-xs"
+                className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 space-y-3 shadow-xs"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="text-xs font-mono font-bold text-[var(--ds-fg-muted)]">#{index + 1}</span>
+                    <span className="text-xs font-mono font-bold text-[var(--ds-fg-muted)] tabular-nums">#{index + 1}</span>
                     <h3 className="font-bold text-sm text-[var(--ds-fg)]">{asset.nama_barang}</h3>
-                    <div className="flex items-center gap-1.5 font-mono text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                    <div className="flex items-center gap-2 font-mono text-xs text-[var(--ds-fg-muted)] mt-1 tabular-nums">
                       <span className="font-bold text-[var(--ds-accent-fg)]">{asset.kode_barang}</span>
                       <span>•</span>
                       <span>NUP: {asset.nup}</span>
@@ -322,23 +322,23 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center text-xs py-1 border-t border-[var(--ds-border-subtle)]">
+                <div className="flex justify-between items-center text-xs py-1 border-t border-slate-200/70 dark:border-zinc-800">
                   <span className="text-[var(--ds-fg-muted)]">Nilai Perolehan:</span>
-                  <span className="font-semibold text-[var(--ds-fg)]">{formatRupiah(asset.nilai_perolehan)}</span>
+                  <span className="font-semibold text-[var(--ds-fg)] tabular-nums">{formatRupiah(asset.nilai_perolehan)}</span>
                 </div>
 
-                <div className="flex justify-between items-center text-xs py-1 border-t border-[var(--ds-border-subtle)]">
+                <div className="flex justify-between items-center text-xs py-1 border-t border-slate-200/70 dark:border-zinc-800">
                   <span className="text-[var(--ds-fg-muted)]">Nilai Taksiran:</span>
                   <div>
                     {isEditing ? (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <Input
                           aria-label={`Nilai taksiran ${asset.nama_barang} NUP ${asset.nup}`}
                           type="text"
                           inputMode="numeric"
                           value={formatThousands(editingValue)}
                           onChange={(e) => setEditingValue(e.target.value.replace(/\D/g, ""))}
-                          className="h-8 rounded-lg text-xs w-28 text-right border-[var(--ds-border-subtle)] font-medium"
+                          className="h-8 rounded-lg text-xs w-28 text-right border-slate-200/80 dark:border-zinc-800 font-medium tabular-nums"
                           placeholder="0"
                           autoFocus
                           onKeyDown={(e) => {
@@ -350,7 +350,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                           size="icon-sm"
                           aria-label={`Simpan taksiran ${asset.nama_barang} NUP ${asset.nup}`}
                           onClick={() => handleSaveValuation(asset.id)}
-                          className="h-8 w-8 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-white rounded-lg"
+                          className="h-8 w-8 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg"
                           disabled={updateValuationMutation.isPending}
                         >
                           <Check className="h-4 w-4" />
@@ -359,10 +359,10 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                     ) : (
                       <button type="button" disabled={readOnly} aria-label={`Ubah taksiran ${asset.nama_barang} NUP ${asset.nup}`}
                         onClick={() => handleStartEditValuation(asset)}
-                        className={`bmn-choice-card font-bold text-xs px-2.5 py-1 rounded-lg border ${
+                        className={`bmn-choice-card font-bold text-xs px-3 py-1 rounded-lg border tabular-nums ${
                           asset.pivot?.nilai_taksiran
-                            ? "bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)]   text-[var(--ds-fg)] "
-                            : "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)]  "
+                            ? "bg-[var(--ds-surface-muted)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)]"
+                            : "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)]"
                         } ${!readOnly ? "cursor-pointer" : ""}`}
                       >
                         {asset.pivot?.nilai_taksiran ? formatRupiah(asset.pivot.nilai_taksiran) : "Belum Dinilai"}
@@ -372,15 +372,15 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                 </div>
 
                 {!readOnly && (
-                  <div className="pt-2 border-t border-[var(--ds-border-subtle)]">
+                  <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-800">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleOpenWorksheet(asset)}
-                      className={`w-full rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 min-h-[36px] ${
+                      className={`w-full rounded-lg text-xs font-semibold flex items-center justify-center gap-2 min-h-[36px] ${
                         hasWorksheet
-                          ? "text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] "
-                          : "text-[var(--ds-fg-secondary)] "
+                          ? "text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)]"
+                          : "text-[var(--ds-fg-secondary)]"
                       }`}
                     >
                       <Calculator className="h-4 w-4" />
@@ -395,31 +395,31 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
       </div>
 
       {/* Desktop Valuation Table (>= sm) */}
-      <div className="hidden sm:block overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs">
+      <div className="hidden sm:block overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-16">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-16">
                   No.
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Identitas Aset
                 </th>
-                <th className="px-5 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Nilai Perolehan
                 </th>
-                <th className="px-5 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-60">
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-60">
                   Nilai Taksiran
                 </th>
                 {!readOnly && (
-                  <th className="px-5 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-36">
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-36">
                     Kertas Kerja
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {assets.length === 0 ? (
                 <tr>
                   <td colSpan={readOnly ? 4 : 5} className="p-10 text-center text-[var(--ds-fg-muted)] text-xs">
@@ -434,34 +434,34 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                   return (
                     <tr
                       key={asset.id}
-                      className="transition-colors hover:bg-[var(--ds-surface-muted)]"
+                      className="transition-colors hover:bg-slate-50/60 dark:hover:bg-zinc-800/30"
                     >
-                      <td className="px-5 py-4 font-mono text-xs font-bold text-[var(--ds-fg-secondary)]">
+                      <td className="px-4 py-4 font-mono text-xs font-bold text-[var(--ds-fg-secondary)] tabular-nums">
                         {index + 1}.
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-4 py-4">
                         <div className="font-semibold text-sm text-[var(--ds-fg)]">
                           {asset.nama_barang}
                         </div>
-                        <div className="mt-1 flex items-center gap-1.5 font-mono text-xs text-[var(--ds-fg-muted)]">
+                        <div className="mt-1 flex items-center gap-2 font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">
                           <span className="font-bold text-[var(--ds-accent-fg)]">{asset.kode_barang}</span>
                           <span>•</span>
                           <span>NUP: {asset.nup}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-right font-semibold text-sm text-[var(--ds-fg)]">
+                      <td className="px-4 py-4 text-right font-semibold text-sm text-[var(--ds-fg)] tabular-nums">
                         {formatRupiah(asset.nilai_perolehan)}
                       </td>
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-4 py-4 text-right">
                         {isEditing ? (
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-2">
                             <Input
                               aria-label={`Nilai taksiran ${asset.nama_barang} NUP ${asset.nup}`}
                               type="text"
                               inputMode="numeric"
                               value={formatThousands(editingValue)}
                               onChange={(e) => setEditingValue(e.target.value.replace(/\D/g, ""))}
-                              className="h-8 rounded-lg text-xs w-36 text-right border-[var(--ds-border-subtle)] font-medium"
+                              className="h-8 rounded-lg text-xs w-36 text-right border-slate-200/80 dark:border-zinc-800 font-medium tabular-nums"
                               placeholder="0"
                               autoFocus
                               onKeyDown={(e) => {
@@ -473,7 +473,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               size="icon-sm"
                               aria-label={`Simpan taksiran ${asset.nama_barang} NUP ${asset.nup}`}
                               onClick={() => handleSaveValuation(asset.id)}
-                              className="h-8 w-8 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-white rounded-lg"
+                              className="h-8 w-8 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg"
                               disabled={updateValuationMutation.isPending}
                             >
                               <Check className="h-4 w-4" />
@@ -482,11 +482,11 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                         ) : (
                           <button type="button" disabled={readOnly} aria-label={`Ubah taksiran ${asset.nama_barang} NUP ${asset.nup}`}
                             onClick={() => handleStartEditValuation(asset)}
-                            className={`bmn-choice-card inline-block font-bold text-sm text-right px-3 py-1 rounded-lg border min-w-36 text-[var(--ds-fg)]  ${
+                            className={`bmn-choice-card inline-block font-bold text-sm text-right px-3 py-1 rounded-lg border min-w-36 text-[var(--ds-fg)] tabular-nums ${
                               asset.pivot?.nilai_taksiran
-                                ? "bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)]  "
-                                : "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)]  "
-                            } ${!readOnly ? "cursor-pointer hover:border-[var(--ds-border-subtle)]" : ""}`}
+                                ? "bg-[var(--ds-surface-muted)] border-slate-200/80 dark:border-zinc-800"
+                                : "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)]"
+                            } ${!readOnly ? "cursor-pointer hover:border-[var(--ds-border-control)]" : ""}`}
                             title={!readOnly ? "Klik untuk mengisi nilai taksiran secara langsung" : undefined}
                           >
                             {asset.pivot?.nilai_taksiran
@@ -496,14 +496,14 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                         )}
                       </td>
                       {!readOnly && (
-                        <td className="px-5 py-4 text-center">
+                        <td className="px-4 py-4 text-center">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenWorksheet(asset)}
                             className={`rounded-lg text-xs font-semibold flex items-center gap-1 mx-auto ${
                               hasWorksheet
-                                ? "text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] "
+                                ? "text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]"
                                 : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]"
                             }`}
                             title="Buka kalkulator komparasi pasar"
@@ -525,7 +525,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
       {/* Worksheet Modal Dialog */}
       {activeAsset && isVehicleAsset(activeAsset) && (
         <Dialog open={!!activeAsset} onOpenChange={() => setActiveAsset(null)}>
-          <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] rounded-2xl max-h-[94vh] overflow-y-auto">
+          <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-3rem)] rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-zinc-800 shadow-lg max-h-[94vh] overflow-y-auto">
             <DialogHeader className="sr-only">
               <DialogTitle>Kertas Kerja Penaksiran Kendaraan</DialogTitle>
               <DialogDescription>
@@ -547,7 +547,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
 
       {activeAsset && !isVehicleAsset(activeAsset) && worksheetData && (
         <Dialog open={!!activeAsset} onOpenChange={() => setActiveAsset(null)}>
-          <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[calc(100vw-2rem)] sm:max-w-6xl rounded-2xl max-h-[92vh] overflow-y-auto">
+          <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[calc(100vw-2rem)] sm:max-w-6xl rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-zinc-800 shadow-lg max-h-[92vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-[var(--ds-fg)]">
                 Kertas Kerja Penaksiran Aset
@@ -559,13 +559,13 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
 
             <div className="space-y-6 py-3 text-sm">
               {/* Asset Info Card */}
-              <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-                <div className="grid grid-cols-1 divide-y divide-[var(--ds-border-subtle)] sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+              <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)]">
+                <div className="grid grid-cols-1 divide-y divide-slate-200/70 dark:divide-zinc-800 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
                   {getAssetSummaryItems(activeAsset).map((item) => (
-                    <div key={item.label} className="min-w-0 px-5 py-4">
+                    <div key={item.label} className="min-w-0 px-4 py-4">
                       <p className="text-xs font-semibold uppercase text-[var(--ds-fg-muted)]">{item.label}</p>
                       <p
-                        className={`mt-1 truncate text-sm text-[var(--ds-fg)]  ${
+                        className={`mt-1 truncate text-sm text-[var(--ds-fg)] tabular-nums ${
                           item.strong ? "font-bold" : "font-semibold"
                         }`}
                         title={String(item.value)}
@@ -579,13 +579,13 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
 
               {/* Comparable Listings */}
               <div className="space-y-4">
-                <h3 className="font-bold text-base text-[var(--ds-fg)] border-b pb-2">
+                <h3 className="font-bold text-sm text-[var(--ds-fg)] border-b border-slate-200/70 dark:border-zinc-800 pb-2">
                   Data Pembanding Pasar
                 </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* Comparable 1 */}
-                  <div className="border border-[var(--ds-border-subtle)] rounded-2xl p-5 space-y-4 bg-[var(--ds-surface)]">
-                    <p className="font-bold text-base text-[var(--ds-fg)]">Listing Pembanding 1</p>
+                  <div className="border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 space-y-4 bg-[var(--ds-surface)]">
+                    <p className="font-bold text-sm text-[var(--ds-fg)]">Listing Pembanding 1</p>
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs text-[var(--ds-fg-muted)] font-medium">Uraian / Sumber</label>
@@ -597,7 +597,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               comparable1: { ...worksheetData.comparable1, name: e.target.value },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800"
                         />
                       </div>
                       <div>
@@ -614,7 +614,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800 tabular-nums"
                         />
                       </div>
                       <div>
@@ -628,15 +628,15 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               comparable1: { ...worksheetData.comparable1, adjustment: e.target.value },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800 tabular-nums"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Comparable 2 */}
-                  <div className="border border-[var(--ds-border-subtle)] rounded-2xl p-5 space-y-4 bg-[var(--ds-surface)]">
-                    <p className="font-bold text-base text-[var(--ds-fg)]">Listing Pembanding 2</p>
+                  <div className="border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 space-y-4 bg-[var(--ds-surface)]">
+                    <p className="font-bold text-sm text-[var(--ds-fg)]">Listing Pembanding 2</p>
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs text-[var(--ds-fg-muted)] font-medium">Uraian / Sumber</label>
@@ -648,7 +648,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               comparable2: { ...worksheetData.comparable2, name: e.target.value },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800"
                         />
                       </div>
                       <div>
@@ -665,7 +665,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800 tabular-nums"
                         />
                       </div>
                       <div>
@@ -679,15 +679,15 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               comparable2: { ...worksheetData.comparable2, adjustment: e.target.value },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800 tabular-nums"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Comparable 3 */}
-                  <div className="border border-[var(--ds-border-subtle)] rounded-2xl p-5 space-y-4 bg-[var(--ds-surface)]">
-                    <p className="font-bold text-base text-[var(--ds-fg)]">Listing Pembanding 3</p>
+                  <div className="border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 space-y-4 bg-[var(--ds-surface)]">
+                    <p className="font-bold text-sm text-[var(--ds-fg)]">Listing Pembanding 3</p>
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs text-[var(--ds-fg-muted)] font-medium">Uraian / Sumber</label>
@@ -699,7 +699,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               comparable3: { ...worksheetData.comparable3, name: e.target.value },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800"
                         />
                       </div>
                       <div>
@@ -716,7 +716,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800 tabular-nums"
                         />
                       </div>
                       <div>
@@ -730,7 +730,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                               comparable3: { ...worksheetData.comparable3, adjustment: e.target.value },
                             })
                           }
-                          className="h-10 text-sm mt-1 rounded-lg border-[var(--ds-border-subtle)]"
+                          className="h-10 text-sm mt-1 rounded-lg border-slate-200/80 dark:border-zinc-800 tabular-nums"
                         />
                       </div>
                     </div>
@@ -739,7 +739,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
               </div>
 
               {/* Factors */}
-              <div className="border border-[var(--ds-border-subtle)] rounded-2xl p-5 bg-[var(--ds-surface-muted)] grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+              <div className="border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 bg-[var(--ds-surface-muted)] grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                 <div>
                   <label className="text-sm font-semibold text-[var(--ds-fg-secondary)]">
                     Faktor Penaksiran / Kondisi Objektif
@@ -756,14 +756,14 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                   max="1.0"
                   value={worksheetData.faktorLimit}
                   onChange={(e) => setWorksheetData({ ...worksheetData, faktorLimit: e.target.value })}
-                  className="h-10 text-sm rounded-lg border-[var(--ds-border-subtle)] max-w-48 md:justify-self-end text-right font-bold"
+                  className="h-10 text-sm rounded-lg border-slate-200/80 dark:border-zinc-800 max-w-48 md:justify-self-end text-right font-bold tabular-nums"
                 />
               </div>
 
               {/* Calculated Result */}
-              <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-2xl p-5 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
+              <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-3xl p-4 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
                 <div>
-                  <h4 className="font-bold text-[var(--ds-accent-fg)] text-base">
+                  <h4 className="font-bold text-[var(--ds-accent-fg)] text-sm">
                     Hasil Penaksiran Nilai
                   </h4>
                   <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
@@ -771,7 +771,7 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
                   </p>
                 </div>
                 <div className="text-left sm:text-right">
-                  <span className="text-2xl font-extrabold text-[var(--ds-accent-fg)]">
+                  <span className="text-2xl font-bold text-[var(--ds-accent-fg)] tabular-nums">
                     {formatRupiah(calculateWorksheetValuation())}
                   </span>
                 </div>
@@ -779,12 +779,12 @@ export function ValuationTab({ batch, readOnly, onRefetch, checklist, onGoToPreD
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setActiveAsset(null)} className="h-10 rounded-xl">
+              <Button variant="outline" onClick={() => setActiveAsset(null)} className="h-10 rounded-lg">
                 Batal
               </Button>
               <Button
                 onClick={handleSaveWorksheet}
-                className="h-10 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-white rounded-xl flex items-center gap-1.5"
+                className="h-10 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg flex items-center gap-2"
                 disabled={updateValuationMutation.isPending}
               >
                 {updateValuationMutation.isPending ? (

@@ -29,9 +29,9 @@ export function AssetSelectionTable<T extends { id: string }>({
 }: AssetSelectionTableProps<T>) {
   const labelId = React.useId();
   return (
-    <div className={`${maxHeightClass} overflow-auto rounded-xl border border-[var(--ds-border-subtle)] `}>
+    <div className={`${maxHeightClass} overflow-auto rounded-lg border border-slate-200/80 dark:border-zinc-800`}>
       <table className={`w-full ${items.length > 0 ? minWidthClass : ""} text-left text-xs`}>
-        <thead className={`${items.length === 0 ? "hidden sm:table-header-group" : ""} sticky top-0 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]`}>
+        <thead className={`${items.length === 0 ? "hidden sm:table-header-group" : ""} sticky top-0 bg-slate-50/70 dark:bg-zinc-800/30 border-b border-slate-200/70 dark:border-zinc-800 text-[var(--ds-fg-muted)]`}>
           <tr>
             <th className="w-10 px-3 py-2"></th>
             {columns.map((col, index) => (
@@ -41,7 +41,7 @@ export function AssetSelectionTable<T extends { id: string }>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--ds-border-subtle)] ">
+        <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
           {items.length === 0 ? (
             <tr>
               <td colSpan={columns.length + 1} className="px-3 py-6 text-center text-[var(--ds-fg-muted)]">

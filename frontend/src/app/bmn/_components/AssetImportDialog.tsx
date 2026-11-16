@@ -79,12 +79,12 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="bmn-button bmn-secondary bmn-lift flex items-center gap-2 px-4 rounded-xl font-semibold text-xs"
+          className="bmn-button bmn-secondary bmn-lift flex items-center gap-2 px-4 rounded-lg font-semibold text-xs"
         >
           <Upload className="w-4 h-4 text-[var(--ds-accent-fg)]" /> Impor Excel
         </Button>
       </DialogTrigger>
-      <DialogContent data-module="bmn" className="bmn-assets-ui bmn-popover sm:max-w-[425px]">
+      <DialogContent data-module="bmn" className="bmn-assets-ui bmn-popover sm:max-w-[425px] rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800">
         <DialogHeader>
           <DialogTitle className="text-xl font-black flex items-center gap-2">
             <Upload className="w-5 h-5 text-[var(--ds-accent-fg)]" /> Impor Massal Aset
@@ -104,11 +104,11 @@ export function AssetImportDialog({ onImportSuccess }: AssetImportDialogProps) {
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={handleFileChange}
-              className="bg-zinc-900 border-zinc-800 focus:border-emerald-500 transition-all cursor-pointer file:text-[var(--ds-accent-fg)] file:font-bold file:mr-4"
+              className="bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 focus:border-[var(--ds-accent-fg)] rounded-lg transition-all cursor-pointer file:text-[var(--ds-accent-fg)] file:font-bold file:mr-4"
             />
           </div>
 
-          <div className="bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] p-4 rounded-xl space-y-2">
+          <div className="bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-lg space-y-2">
             <h4 className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-2 uppercase tracking-widest">
               <AlertCircle className="w-4 h-4" /> Aturan Format
             </h4>

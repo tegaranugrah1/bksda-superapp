@@ -178,7 +178,7 @@ export default function BmnAuctionCandidatesPage() {
           <Button
             onClick={handleOpenCreateDialog}
             disabled={selectedIds.size === 0 || isFetching || createBatchMutation.isPending}
-            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-white font-semibold flex items-center gap-2 rounded-xl transition-colors duration-150 ease-out"
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold flex items-center gap-2 rounded-lg transition-colors duration-150 ease-out tabular-nums"
           >
             <Plus className="h-4 w-4" />
             Buat Paket Lelang ({selectedIds.size})
@@ -188,50 +188,50 @@ export default function BmnAuctionCandidatesPage() {
 
       {/* Summary Tiles */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-5 shadow-xs">
           <p className="text-xs font-medium text-[var(--ds-fg-muted)] uppercase tracking-wider">
             Total Kandidat
           </p>
-          <p className="mt-2 text-3xl font-bold text-[var(--ds-fg)]">
+          <p className="mt-2 text-2xl font-bold text-[var(--ds-fg)] tabular-nums">
             {isLoading ? "-" : totalCandidates.toLocaleString("id-ID")}
           </p>
         </div>
-        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-5 shadow-xs">
           <p className="text-xs font-medium text-[var(--ds-fg-muted)] uppercase tracking-wider">
             Dipilih
           </p>
-          <p className="mt-2 text-3xl font-bold text-[var(--ds-accent-fg)]">
+          <p className="mt-2 text-2xl font-bold text-[var(--ds-accent-fg)] tabular-nums">
             {selectedIds.size.toLocaleString("id-ID")}
           </p>
         </div>
-        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-5 shadow-xs">
           <p className="text-xs font-medium text-[var(--ds-fg-muted)] uppercase tracking-wider">
             Nilai Perolehan Terpilih
           </p>
-          <p className="mt-2 text-2xl font-bold text-[var(--ds-fg)] truncate">
+          <p className="mt-2 text-2xl font-bold text-[var(--ds-fg)] truncate tabular-nums">
             {formatRupiah(selectedTotalValue)}
           </p>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 shadow-xs">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute top-2.5 left-3 h-4 w-4 text-[var(--ds-fg-muted)]" />
+            <Search className="absolute top-3 left-3 h-4 w-4 text-[var(--ds-fg-muted)]" />
             <Input
               aria-label="Cari kandidat aset"
               type="text"
               placeholder="Cari nama aset, nomor register, atau kode barang..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 rounded-xl border-[var(--ds-border-subtle)]"
+              className="pl-9 rounded-lg border-slate-200/80 dark:border-zinc-800"
             />
           </div>
           <Button
             type="submit"
             variant="outline"
-            className="rounded-xl flex items-center gap-1.5"
+            className="rounded-lg flex items-center gap-2"
             disabled={isLoading || isFetching}
           >
             {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Cari"}
@@ -240,11 +240,11 @@ export default function BmnAuctionCandidatesPage() {
       </div>
 
       {/* Candidates Table */}
-      <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs">
         <div className="overflow-x-auto">
           <table className={`${assets.length > 0 ? "bmn-wide-table" : ""} w-full text-left border-collapse`}>
             <thead className={assets.length > 0 ? "" : "hidden sm:table-header-group"}>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
                 {canCreateBatch && (
                   <th className="w-12 px-4 py-3 text-center">
                     <Checkbox
@@ -272,7 +272,7 @@ export default function BmnAuctionCandidatesPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {isLoading ? (
                 <tr>
                   <td colSpan={canCreateBatch ? 6 : 5} className="p-12 text-center">
@@ -281,7 +281,7 @@ export default function BmnAuctionCandidatesPage() {
                   </td>
                 </tr>
               ) : isError ? (
-                <tr><td colSpan={canCreateBatch ? 6 : 5} className="p-8 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Kandidat aset gagal dimuat.</p><Button variant="outline" className="mt-3" onClick={() => refetch()}>Coba lagi</Button></td></tr>
+                <tr><td colSpan={canCreateBatch ? 6 : 5} className="p-8 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Kandidat aset gagal dimuat.</p><Button variant="outline" className="mt-3 rounded-lg" onClick={() => refetch()}>Coba lagi</Button></td></tr>
               ) : assets.length === 0 ? (
                 <tr>
                   <td colSpan={canCreateBatch ? 6 : 5} className="p-12 text-center">
@@ -317,7 +317,7 @@ export default function BmnAuctionCandidatesPage() {
                           <div className="font-semibold text-sm text-[var(--ds-fg)]">
                             {asset.nama_barang}
                           </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-xs text-[var(--ds-fg-muted)]">
+                          <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">
                             <span className="font-bold text-[var(--ds-accent-fg)]">
                               {asset.kode_barang}
                             </span>
@@ -326,27 +326,27 @@ export default function BmnAuctionCandidatesPage() {
                             {asset.no_polisi && (
                               <>
                                 <span>•</span>
-                                <span className="bg-[var(--ds-status-info-bg)] px-1.5 py-0.5 rounded text-[var(--ds-status-info-fg)] font-sans font-semibold">
+                                <span className="bg-[var(--ds-status-info-bg)] px-2 py-1 rounded-lg text-[var(--ds-status-info-fg)] font-sans font-semibold tabular-nums">
                                   {asset.no_polisi}
                                 </span>
                               </>
                             )}
                           </div>
                           {asset.merk_tipe && (
-                            <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">{asset.merk_tipe}</div>
+                            <div className="text-xs text-[var(--ds-fg-muted)] mt-1">{asset.merk_tipe}</div>
                           )}
                         </td>
                         <td className="px-4 py-4">
                           <div className="text-xs font-medium text-[var(--ds-fg)]">
                             {asset.jenis_bmn}
                           </div>
-                          <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                          <div className="text-xs text-[var(--ds-fg-muted)] mt-1">
                             {asset.lokasi_ruang || asset.lokasi_spesifik || "-"}
                           </div>
                         </td>
                         <td className="px-4 py-4">
                           {!isEligible ? (
-                            <Badge data-status="warning" className="bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-xs font-semibold">
+                            <Badge data-status="warning" className="rounded-full bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-xs font-semibold tabular-nums">
                               Aktif di Batch: {asset.active_auction_batch_number}
                             </Badge>
                           ) : hasWarnings ? (
@@ -356,7 +356,7 @@ export default function BmnAuctionCandidatesPage() {
                               aria-expanded={isExpanded}
                               aria-controls={`candidate-warning-${asset.id}`}
                               onClick={() => setExpandedAssetId(isExpanded ? null : asset.id)}
-                              className="bmn-status-toggle inline-flex items-center gap-1 bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] px-2 py-0.5 rounded-full text-xs font-semibold hover:bg-[var(--ds-status-warning-bg)] transition-colors duration-150 ease-out"
+                              className="bmn-status-toggle inline-flex items-center gap-1 bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] px-2 py-1 rounded-full text-xs font-semibold hover:bg-[var(--ds-status-warning-bg)] transition-colors duration-150 ease-out tabular-nums"
                             >
                               <AlertTriangle className="h-3 w-3 shrink-0" />
                               Review Dokumen ({warnings.length})
@@ -367,13 +367,13 @@ export default function BmnAuctionCandidatesPage() {
                               )}
                             </button>
                           ) : (
-                            <span data-status="success" className="inline-flex items-center gap-1 bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)] px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                            <span data-status="success" className="inline-flex items-center gap-1 bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)] px-3 py-1 rounded-full text-xs font-semibold">
                               <CheckCircle className="h-3 w-3 shrink-0" />
                               Ready
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-4 text-right">
+                        <td className="px-4 py-4 text-right tabular-nums">
                           <div className="font-bold text-sm text-[var(--ds-fg)]">
                             {formatRupiah(asset.nilai_perolehan)}
                           </div>
@@ -403,9 +403,9 @@ export default function BmnAuctionCandidatesPage() {
                         <tr className="bg-[var(--ds-status-warning-bg)] border-t border-b border-[var(--ds-status-warning-border)]">
                           {canCreateBatch && <td />}
                           <td id={`candidate-warning-${asset.id}`} colSpan={5} className="px-4 py-3">
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                               <div className="text-xs font-semibold text-[var(--ds-status-warning-fg)] flex items-center gap-1">
-                                <AlertTriangle className="h-3.5 w-3.5" />
+                                <AlertTriangle className="h-4 w-4" />
                                 Peringatan Kelengkapan Dokumen Administrasi:
                               </div>
                               <ul className="list-disc list-inside text-xs text-[var(--ds-status-warning-fg)] pl-1 space-y-1">
@@ -430,9 +430,9 @@ export default function BmnAuctionCandidatesPage() {
 
         {/* Table Pagination footer */}
         {meta && (
-          <div className="flex flex-col gap-3 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-xs text-[var(--ds-fg-muted)]">
+              <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                 {totalCandidates.toLocaleString("id-ID")} item total
               </span>
               <select
@@ -442,7 +442,7 @@ export default function BmnAuctionCandidatesPage() {
                   setPerPage(Number(e.target.value));
                   setPage(1);
                 }}
-                className="h-8 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg-secondary)] outline-none"
+                className="h-8 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg-secondary)] outline-none"
               >
                 <option value={10}>10 / halaman</option>
                 <option value={50}>50 / halaman</option>
@@ -460,7 +460,7 @@ export default function BmnAuctionCandidatesPage() {
               >
                 Sebelumnya
               </Button>
-              <span className="px-2 text-xs text-[var(--ds-fg-muted)]">
+              <span className="px-2 text-xs text-[var(--ds-fg-muted)] tabular-nums">
                 Hal {page} / {meta.last_page || 1}
               </span>
               <Button
@@ -479,18 +479,18 @@ export default function BmnAuctionCandidatesPage() {
 
       {/* Create Batch Dialog Modal */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent data-module="bmn" onCloseAutoFocus={(event) => { event.preventDefault(); createTrigger.current?.focus(); }} className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl">
+        <DialogContent data-module="bmn" onCloseAutoFocus={(event) => { event.preventDefault(); createTrigger.current?.focus(); }} className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-[var(--ds-fg)]">
+            <DialogTitle className="text-sm font-bold text-[var(--ds-fg)]">
               Buat Paket Lelang BMN
             </DialogTitle>
-            <DialogDescription className="text-sm text-[var(--ds-fg-muted)]">
+            <DialogDescription className="text-sm text-[var(--ds-fg-muted)] tabular-nums">
               Kelompokkan {selectedIds.size} aset terpilih ke dalam paket dokumen lelang baru.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-3">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label htmlFor="batchName" className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                 Nama Paket Lelang
               </label>
@@ -501,23 +501,23 @@ export default function BmnAuctionCandidatesPage() {
                 placeholder="Masukkan nama paket lelang..."
                 value={newBatchName}
                 onChange={(e) => setNewBatchName(e.target.value)}
-                className="rounded-xl border-[var(--ds-border-subtle)]"
+                className="rounded-lg border-slate-200/80 dark:border-zinc-800"
               />
             </div>
           </div>
 
-          <DialogFooter className="flex gap-2 sm:gap-0">
+          <DialogFooter className="flex gap-2">
             <Button
               variant="outline"
               onClick={() => setIsCreateDialogOpen(false)}
-              className="rounded-xl"
+              className="rounded-lg"
               disabled={createBatchMutation.isPending}
             >
               Batal
             </Button>
             <Button
               onClick={handleCreateBatchSubmit}
-              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-white font-semibold rounded-xl flex items-center gap-1.5"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold rounded-lg flex items-center gap-2"
               disabled={createBatchMutation.isPending || !newBatchName.trim() || selectedIds.size === 0 || !canCreateBatch || isFetching}
             >
               {createBatchMutation.isPending ? (

@@ -88,26 +88,26 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
   return (
     <div className="space-y-6">
       {/* Title Header */}
-      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl shadow-xs">
-        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs">
+        <h2 className="text-sm font-bold text-[var(--ds-fg)]">
           Penetapan Jadwal Lelang Eksternal
         </h2>
-        <p className="text-xs text-zinc-500 mt-0.5">
+        <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
           Catat nomor dokumen persetujuan/penetapan dan tanggal pelaksanaan lelang resmi yang diterbitkan oleh KPKNL.
         </p>
       </div>
 
       {/* Validity/Revaluation Warning Banner */}
       {hasValidityWarning && (
-        <div className="flex gap-3 bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-350 border border-amber-200 dark:border-amber-900/30 p-4 rounded-2xl shadow-xs">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" />
+        <div className="flex gap-3 bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] p-4 rounded-3xl shadow-xs">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-[var(--ds-status-warning-fg)] mt-1" />
           <div className="text-xs">
             <h4 className="font-bold">Perhatian: Masa Berlaku Penilaian Terlampaui</h4>
-            <p className="mt-0.5 leading-relaxed">
+            <p className="mt-1 leading-relaxed tabular-nums">
               {validity.message ||
                 `Surat persetujuan lelang ini berumur lebih dari ${validity.approval_review_window_months} bulan. Harap tinjau persyaratan peraturan eksternal mengenai kelayakan batas waktu penilaian aset sebelum melanjutkan.`}
             </p>
-            <p className="text-[10px] text-zinc-500 italic mt-1.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] italic mt-2">
               * Peringatan ini bersifat imbauan/advisory administratif internal untuk operator dan tidak memblokir fungsionalitas sistem.
             </p>
           </div>
@@ -116,12 +116,12 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
 
       {/* Form Content */}
       <div className="grid gap-6 md:grid-cols-[1fr_300px]">
-        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-xs">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-5 sm:grid-cols-2">
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               {/* No Surat Persetujuan */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                   Nomor Surat Persetujuan (KPKNL)
                 </label>
                 <Input
@@ -129,13 +129,13 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
                   value={noPersetujuan}
                   onChange={(e) => setNoPersetujuan(e.target.value)}
                   disabled={!isEditable}
-                  className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs focus-visible:ring-emerald-500"
+                  className="rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs focus-visible:ring-[var(--ds-accent-fg)] tabular-nums"
                 />
               </div>
 
               {/* Tanggal Surat Persetujuan */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                   Tanggal Surat Persetujuan
                 </label>
                 <Input
@@ -143,13 +143,13 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
                   value={tglPersetujuan}
                   onChange={(e) => setTglPersetujuan(e.target.value)}
                   disabled={!isEditable}
-                  className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs focus-visible:ring-emerald-500"
+                  className="rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs focus-visible:ring-[var(--ds-accent-fg)] tabular-nums"
                 />
               </div>
 
               {/* No Surat Penetapan Jadwal */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                   Nomor Surat Penetapan Lelang
                 </label>
                 <Input
@@ -157,13 +157,13 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
                   value={noPenetapan}
                   onChange={(e) => setNoPenetapan(e.target.value)}
                   disabled={!isEditable}
-                  className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs focus-visible:ring-emerald-500"
+                  className="rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs focus-visible:ring-[var(--ds-accent-fg)] tabular-nums"
                 />
               </div>
 
               {/* Tanggal Lelang */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
                   Tanggal Pelaksanaan Lelang
                 </label>
                 <Input
@@ -171,7 +171,7 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
                   value={tglLelang}
                   onChange={(e) => setTglLelang(e.target.value)}
                   disabled={!isEditable}
-                  className="rounded-xl border-zinc-200 dark:border-zinc-800 text-xs focus-visible:ring-emerald-500"
+                  className="rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs focus-visible:ring-[var(--ds-accent-fg)] tabular-nums"
                 />
               </div>
             </div>
@@ -181,7 +181,7 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
               <div className="flex justify-end pt-2">
                 <Button
                   type="submit"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs py-2 px-4 shadow-sm flex items-center gap-1.5"
+                  className="bmn-primary font-bold rounded-lg text-xs py-2 px-4 shadow-xs flex items-center gap-2"
                   disabled={saveMutation.isPending}
                 >
                   {saveMutation.isPending ? (
@@ -202,27 +202,27 @@ export function ScheduleTab({ batch, readOnly, onRefetch }: ScheduleTabProps) {
         </div>
 
         {/* Read-only / Permission Info Sidebar */}
-        <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 dark:border-zinc-800 p-5 rounded-2xl text-xs text-zinc-500 space-y-4 self-start">
-          <div className="flex items-center gap-1.5 font-bold text-zinc-800 dark:text-zinc-200 border-b pb-2 dark:border-zinc-800">
-            <Info className="h-4.5 w-4.5 text-zinc-400" />
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs text-xs text-[var(--ds-fg-muted)] space-y-4 self-start">
+          <div className="flex items-center gap-2 font-bold text-[var(--ds-fg)] border-b border-slate-200/70 dark:border-zinc-800 pb-2">
+            <Info className="h-4 w-4 text-[var(--ds-fg-muted)]" />
             Informasi Hak Akses
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge variant={canFinalize ? "secondary" : "outline"} className="text-[10px]">
+              <Badge variant={canFinalize ? "secondary" : "outline"} className="text-xs rounded-full">
                 {canFinalize ? "Memiliki Akses" : "Tidak Ada Akses"}
               </Badge>
-              <span className="font-semibold text-zinc-700 dark:text-zinc-300">Finalisasi</span>
+              <span className="font-semibold text-[var(--ds-fg-secondary)]">Finalisasi</span>
             </div>
-            <p className="text-[10px] leading-relaxed text-zinc-400">
+            <p className="text-xs leading-relaxed text-[var(--ds-fg-muted)]">
               Hanya akun dengan peran verifikator/penandatangan yang memiliki izin <code>bmn.auction.finalize</code> yang dapat menetapkan jadwal lelang eksternal.
             </p>
           </div>
 
           {!isEditable && (
-            <div className="flex gap-1.5 items-start bg-zinc-100 dark:bg-zinc-800 p-2.5 rounded-lg text-[10px] text-zinc-450 border border-zinc-200 dark:border-zinc-700">
-              <Lock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+            <div className="flex gap-2 items-start bg-[var(--ds-surface-muted)] p-3 rounded-lg text-xs text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800">
+              <Lock className="h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
               <span>
                 Formulir ini dikunci karena status paket bukan <strong>DIAJUKAN</strong> atau Anda tidak memiliki hak akses finalisasi.
               </span>

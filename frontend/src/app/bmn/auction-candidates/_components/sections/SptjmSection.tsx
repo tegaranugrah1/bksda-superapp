@@ -18,13 +18,13 @@ interface SptjmSectionProps {
 export function SptjmSection({ number, setNumber, kap, setKap, kepalaBalai, onPrint }: SptjmSectionProps) {
   return (
     <section id="sptjm-preview" className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between print:hidden">
+      <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div>
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Preview Surat Pernyataan Tanggung Jawab Mutlak (SPTJM)</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Pernyataan tanggung jawab mutlak atas usulan pemindahtanganan BMN.</p>
+          <h2 className="text-xl font-bold text-[var(--ds-fg)]">Preview Surat Pernyataan Tanggung Jawab Mutlak (SPTJM)</h2>
+          <p className="text-sm text-[var(--ds-fg-muted)]">Pernyataan tanggung jawab mutlak atas usulan pemindahtanganan BMN.</p>
         </div>
-        <Button className="rounded-xl gap-2 bg-purple-600 text-xs hover:bg-purple-500" onClick={onPrint}>
-          <Printer className="h-3.5 w-3.5" />
+        <Button className="rounded-lg gap-2 bg-[var(--ds-accent-solid)] text-xs text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]" onClick={onPrint}>
+          <Printer className="h-4 w-4" />
           Cetak / Save PDF
         </Button>
       </div>

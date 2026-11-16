@@ -269,7 +269,7 @@ const createInitialState = (asset: AuctionAsset): WorksheetState => {
 };
 
 const inputCls =
-  "h-8 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-danger-border)]   ";
+  "h-8 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-danger-border)]";
 
 function parseMoney(value: string) {
   return Number(value.replace(/[^\d-]/g, "")) || 0;
@@ -418,12 +418,12 @@ function WorksheetCheckbox({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-xs text-[var(--ds-fg-secondary)] ">
+    <label className="flex items-center gap-2 text-xs text-[var(--ds-fg-secondary)]">
       <input
         type="checkbox"
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-4 w-4 rounded border-[var(--ds-border-subtle)] text-[var(--ds-status-danger-fg)] focus:ring-[var(--ds-status-danger-border)]"
+        className="h-4 w-4 border-slate-200/80 dark:border-zinc-800 accent-[var(--ds-accent-solid)]"
       />
       <span>{label}</span>
     </label>
@@ -653,10 +653,10 @@ export function KertasKerjaAssetSection({
 
   return (
     <section id="kertas-kerja-preview" className="space-y-4">
-      <div className="sticky -top-4 z-20 flex flex-col gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]  p-4   sm:flex-row sm:items-center sm:justify-between shadow-xs print:hidden">
+      <div className="sticky -top-4 z-20 flex flex-col gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 sm:flex-row sm:items-center sm:justify-between shadow-xs print:hidden">
         <div>
-          <h2 className="text-lg font-bold text-[var(--ds-fg)] ">Kertas Kerja Analisis Nilai Taksiran BMN</h2>
-          <p className="text-sm text-[var(--ds-fg-muted)] ">
+          <h2 className="text-xl font-bold text-[var(--ds-fg)]">Kertas Kerja Analisis Nilai Taksiran BMN</h2>
+          <p className="text-sm text-[var(--ds-fg-muted)] tabular-nums">
             Nomor kertas kerja #{worksheetNumber} mengikuti urutan aset terpilih.
           </p>
         </div>
@@ -668,45 +668,45 @@ export function KertasKerjaAssetSection({
                 variant="outline"
                 aria-expanded={isCopyOpen}
                 onClick={() => setIsCopyOpen((prev) => !prev)}
-                className="rounded-xl gap-1.5 text-xs border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]     cursor-pointer"
+                className="rounded-lg gap-2 text-xs border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)] cursor-pointer"
                 title="Salin data analisis dari kertas kerja aset lain"
               >
-                <Copy className="h-3.5 w-3.5" />
+                <Copy className="h-4 w-4" />
                 <span>Salin dari Aset Lain</span>
                 <ChevronDown className={`h-3 w-3 opacity-60 transition-transform ${isCopyOpen ? "rotate-180" : ""}`} />
               </Button>
 
               {isCopyOpen && (
-                <div className="absolute right-0 top-full mt-2 z-50 w-84 p-3 rounded-2xl shadow-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]  ">
+                <div className="absolute right-0 top-full mt-2 z-50 w-84 p-4 rounded-3xl shadow-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)]">
                   <div className="mb-2">
-                    <h4 className="text-xs font-bold text-[var(--ds-fg)]  flex items-center gap-1.5">
-                      <Copy className="h-3.5 w-3.5 text-[var(--ds-accent-fg)] " />
+                    <h4 className="text-xs font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                      <Copy className="h-4 w-4 text-[var(--ds-accent-fg)]" />
                       Salin Data Kertas Kerja
                     </h4>
-                    <p className="text-xs text-[var(--ds-fg-muted)]  mt-0.5">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                       Salin data komparasi pasar, panitia, &amp; kondisi dari aset yang sudah dinilai.
                     </p>
                   </div>
 
-                  <div className="max-h-72 overflow-y-auto space-y-1.5 pr-0.5 scrollbar-thin">
+                  <div className="max-h-72 overflow-y-auto space-y-2 scrollbar-thin">
                     {availableSourceAssets.map((src) => (
                       <button
                         key={src.id}
                         type="button"
                         onClick={() => handleApplySourceWorksheet(src)}
-                        className="w-full text-left p-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-muted)]    transition-colors duration-150 ease-out group cursor-pointer"
+                        className="w-full text-left p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface)] transition-colors duration-150 ease-out group cursor-pointer"
                       >
                         <div className="flex items-center justify-between gap-1">
-                          <span className="font-semibold text-xs truncate text-[var(--ds-fg)]  group-hover:text-[var(--ds-fg)]">
+                          <span className="font-semibold text-xs truncate text-[var(--ds-fg)] group-hover:text-[var(--ds-fg)]">
                             {src.nama_barang}
                           </span>
                           {src.nilai_taksiran ? (
-                            <span className="text-xs font-bold text-[var(--ds-accent-fg)]  shrink-0">
+                            <span className="text-xs font-bold text-[var(--ds-accent-fg)] shrink-0 tabular-nums">
                               Rp{formatPlainRupiah(src.nilai_taksiran)}
                             </span>
                           ) : null}
                         </div>
-                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-[var(--ds-fg-muted)] ">
+                        <div className="mt-1 flex items-center gap-2 text-xs text-[var(--ds-fg-muted)] tabular-nums">
                           <span>NUP: {src.nup || "-"}</span>
                           {src.merk_tipe && <span>• {src.merk_tipe}</span>}
                         </div>
@@ -720,29 +720,29 @@ export function KertasKerjaAssetSection({
             <Button
               variant="outline"
               disabled
-              className="rounded-xl gap-1.5 text-xs opacity-50 cursor-not-allowed"
+              className="rounded-lg gap-2 text-xs opacity-50 cursor-not-allowed"
               title="Belum ada aset lain di paket ini yang memiliki kertas kerja tersimpan"
             >
-              <Copy className="h-3.5 w-3.5" />
+              <Copy className="h-4 w-4" />
               <span>Salin dari Aset Lain</span>
             </Button>
           )}
 
-          <Button variant="outline" className="rounded-xl gap-2 text-xs" onClick={onClose}>
-            <X className="h-3.5 w-3.5" />
+          <Button variant="outline" className="rounded-lg gap-2 text-xs" onClick={onClose}>
+            <X className="h-4 w-4" />
             Tutup
           </Button>
           {onSave && (
             <Button
-              className="rounded-xl gap-2 bg-[var(--ds-accent-solid)] text-xs text-white hover:bg-[var(--ds-accent-solid)]"
+              className="rounded-lg gap-2 bg-[var(--ds-accent-solid)] text-xs text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
               onClick={() => onSave({ nilaiTaksiran: pembulatan, worksheet: state })}
               disabled={isSaving}
             >
               {isSaving ? "Menyimpan..." : "Simpan Kertas Kerja & Taksiran"}
             </Button>
           )}
-          <Button variant="outline" className="rounded-xl gap-2 bg-[var(--ds-border-subtle)] text-xs hover:bg-[var(--ds-border-subtle)]" onClick={handlePrintKertasKerjaAsset}>
-            <Printer className="h-3.5 w-3.5" />
+          <Button variant="outline" className="rounded-lg gap-2 border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs hover:bg-[var(--ds-surface-muted)]" onClick={handlePrintKertasKerjaAsset}>
+            <Printer className="h-4 w-4" />
             Cetak / Save PDF
           </Button>
         </div>
@@ -750,8 +750,8 @@ export function KertasKerjaAssetSection({
 
       <div className="grid gap-4 xl:grid-cols-[520px_minmax(0,1fr)] xl:items-start">
         <div className="space-y-4 print:hidden">
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Identitas Aset</h3>
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Identitas Aset</h3>
             <div className="grid gap-2 sm:grid-cols-2">
               <WorksheetInput label="Nama Objek" value={state.namaObjek} onChange={(value) => update("namaObjek", value)} />
               <WorksheetInput label="Lokasi Objek" value={state.lokasiObjek} onChange={(value) => update("lokasiObjek", value)} />
@@ -768,26 +768,26 @@ export function KertasKerjaAssetSection({
                 className="sm:col-span-2"
               />
             </div>
-            <div className="mt-3 grid gap-2 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5  ">
-              <div className="grid gap-1.5 sm:grid-cols-2">
+            <div className="mt-3 grid gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
+              <div className="grid gap-2 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.roda2Atau3} label="Roda 2 atau 3" onChange={(checked) => update("roda2Atau3", checked)} />
                 <WorksheetCheckbox checked={state.roda4AtauLebih} label="Roda 4 atau lebih" onChange={(checked) => update("roda4AtauLebih", checked)} />
               </div>
-              <div className="grid gap-1.5 sm:grid-cols-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.bpkb} label="BPKB" onChange={(checked) => update("bpkb", checked)} />
                 <WorksheetCheckbox checked={state.stnk} label="STNK" onChange={(checked) => update("stnk", checked)} />
                 <WorksheetCheckbox checked={state.lainnya} label="Lainnya" onChange={(checked) => update("lainnya", checked)} />
                 <WorksheetCheckbox checked={state.tidakAda} label="Tidak ada" onChange={(checked) => update("tidakAda", checked)} />
               </div>
-              <div className="grid gap-1.5 sm:grid-cols-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 <WorksheetCheckbox checked={state.masihBerlaku} label="Masih Berlaku" onChange={(checked) => update("masihBerlaku", checked)} />
                 <WorksheetCheckbox checked={state.habisMasa} label="Habis Masa" onChange={(checked) => update("habisMasa", checked)} />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Fisik & Ringkasan</h3>
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Fisik & Ringkasan</h3>
             <div className="grid gap-2">
               <WorksheetInput label="Warna" value={state.warna} onChange={(value) => update("warna", value)} />
               <WorksheetInput label="Tahun Pembuatan" value={state.tahunPembuatan} onChange={(value) => update("tahunPembuatan", value)} />
@@ -802,28 +802,28 @@ export function KertasKerjaAssetSection({
               />
             </div>
 
-            <div className="mt-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5   space-y-2">
+            <div className="mt-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3 space-y-2">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={dateParts.isManualDate}
                   onChange={(e) => handleDatePartChange({ isManualDate: e.target.checked })}
-                  className="h-4 w-4 rounded border-[var(--ds-border-subtle)] text-[var(--ds-status-danger-fg)] focus:ring-[var(--ds-status-danger-border)]"
+                  className="h-4 w-4 border-slate-200/80 dark:border-zinc-800 accent-[var(--ds-accent-solid)]"
                 />
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-[var(--ds-fg)] ">
+                  <span className="text-xs font-semibold text-[var(--ds-fg)]">
                     Kosongkan Tanggal (Diisi Manual / Pulpen)
                   </span>
-                  <span className="text-xs text-[var(--ds-fg-muted)] ">
+                  <span className="text-xs text-[var(--ds-fg-muted)]">
                     Menyisipkan spasi kosong untuk diisi tanggal bertulis tangan saat tanda tangan fisik
                   </span>
                 </div>
               </label>
 
-              <div className={`grid gap-1.5 ${dateParts.isManualDate ? "grid-cols-2" : "grid-cols-3"}`}>
+              <div className={`grid gap-2 ${dateParts.isManualDate ? "grid-cols-2" : "grid-cols-3"}`}>
                 {!dateParts.isManualDate && (
                   <div>
-                    <span className="mb-0.5 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                    <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Tgl
                     </span>
                     <input
@@ -832,14 +832,14 @@ export function KertasKerjaAssetSection({
                       max={31}
                       value={dateParts.day}
                       onChange={(e) => handleDatePartChange({ day: e.target.value })}
-                      className={inputCls}
+                      className={`${inputCls} tabular-nums`}
                       placeholder="Tgl"
                     />
                   </div>
                 )}
 
                 <div>
-                  <span className="mb-0.5 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Bulan
                   </span>
                   <select
@@ -856,7 +856,7 @@ export function KertasKerjaAssetSection({
                 </div>
 
                 <div>
-                  <span className="mb-0.5 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Tahun
                   </span>
                   <input
@@ -865,24 +865,24 @@ export function KertasKerjaAssetSection({
                     max={2100}
                     value={dateParts.year}
                     onChange={(e) => handleDatePartChange({ year: e.target.value })}
-                    className={inputCls}
+                    className={`${inputCls} tabular-nums`}
                     placeholder="Tahun"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="mt-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2.5  ">
+            <div className="mt-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
               <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Kondisi Kendaraan</p>
               <div className="grid gap-2">
                 {kondisiOptions.map((option) => (
-                  <label key={option.value} className="flex items-start gap-2 text-xs text-[var(--ds-fg-secondary)] ">
+                  <label key={option.value} className="flex items-start gap-2 text-xs text-[var(--ds-fg-secondary)]">
                     <input
                       type="radio"
                       name={`kondisi-${asset.id}`}
                       checked={state.kondisiKendaraan === option.value}
                       onChange={() => updateKondisi(option.value)}
-                      className="mt-0.5 h-4 w-4 border-[var(--ds-border-subtle)] text-[var(--ds-status-danger-fg)] focus:ring-[var(--ds-status-danger-border)]"
+                      className="mt-1 h-4 w-4 border-slate-200/80 dark:border-zinc-800 text-[var(--ds-status-danger-fg)] focus:ring-[var(--ds-status-danger-border)]"
                     />
                     <span>{option.label}</span>
                   </label>
@@ -891,26 +891,26 @@ export function KertasKerjaAssetSection({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Data Lelang</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Data Lelang</h3>
               <Button size="xs" variant="outline" className="rounded-lg gap-1" onClick={addLelangRow}>
                 <Plus className="h-3 w-3" />
                 Tambah Baris
               </Button>
             </div>
-            <p className="mt-1 text-xs text-[var(--ds-fg-muted)] ">
+            <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
               Minimal 3 baris. Penyesuaian mengikuti baris data hasil lelang.
             </p>
             <div className="mt-3 space-y-2">
               {state.lelangRows.map((row, index) => (
-                <div key={`lelang-control-${index}`} className="flex items-center justify-between rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs  ">
+                <div key={`lelang-control-${index}`} className="flex items-center justify-between rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-semibold text-[var(--ds-fg-secondary)]  truncate">
+                    <span className="font-semibold text-[var(--ds-fg-secondary)] truncate tabular-nums">
                       Baris {index + 1}: {row.data || "Kosong"}
                     </span>
                     {row.harga && (
-                      <span className="shrink-0 text-xs font-bold text-[var(--ds-accent-fg)] ">
+                      <span className="shrink-0 text-xs font-bold text-[var(--ds-accent-fg)] tabular-nums">
                         • Rp{row.harga}
                       </span>
                     )}
@@ -919,7 +919,7 @@ export function KertasKerjaAssetSection({
                     type="button"
                     onClick={() => removeLelangRow(index)}
                     disabled={state.lelangRows.length <= 3}
-                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-bold text-[var(--ds-status-danger-fg)] transition hover:bg-[var(--ds-status-danger-bg)] disabled:cursor-not-allowed disabled:opacity-30  shrink-0"
+                    className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-bold text-[var(--ds-status-danger-fg)] transition hover:bg-[var(--ds-status-danger-bg)] disabled:cursor-not-allowed disabled:opacity-30 shrink-0"
                   >
                     <Trash2 className="h-3 w-3" />
                     Hapus
@@ -929,8 +929,8 @@ export function KertasKerjaAssetSection({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
-            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] ">Panitia Penaksir</h3>
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Panitia Penaksir</h3>
             <div className="grid gap-3">
               <EmployeeSelectInput label="Ambil Pegawai 1" employees={employeeList} onSelect={(name) => update("panitia1", name)} />
               <WorksheetInput label="Nama Panitia 1" value={state.panitia1} onChange={(value) => update("panitia1", value)} />
@@ -944,7 +944,7 @@ export function KertasKerjaAssetSection({
 
         <div
           id="kertas-kerja-print-root"
-          className="overflow-x-auto xl:sticky xl:top-[76px] xl:max-h-[calc(94vh-100px)] xl:overflow-y-auto rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2   shadow-xs print:border-none print:p-0 print:shadow-none print:overflow-visible scrollbar-thin"
+          className="overflow-x-auto xl:sticky xl:top-20 xl:max-h-[calc(94vh-100px)] xl:overflow-y-auto rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-4 shadow-xs print:border-none print:p-0 print:shadow-none print:overflow-visible scrollbar-thin"
         >
           <div className="kk-page mx-auto min-w-245 border border-zinc-900 bg-white text-black shadow-xl print:shadow-none">
             <style jsx global>{`

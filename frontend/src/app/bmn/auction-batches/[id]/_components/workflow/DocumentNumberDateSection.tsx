@@ -30,10 +30,10 @@ export function DocumentNumberDateSection({
   onDocumentDatesChange,
 }: DocumentNumberDateSectionProps) {
   return (
-    <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
       <div className="flex items-center gap-2">
-        <FileText className="h-4.5 w-4.5 text-zinc-400" />
-        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Nomor & Tanggal Dokumen</h2>
+        <FileText className="h-4 w-4 text-[var(--ds-fg-muted)]" />
+        <h2 className="text-sm font-bold text-[var(--ds-fg)]">Nomor & Tanggal Dokumen</h2>
       </div>
 
       <div className="grid gap-3">
@@ -43,12 +43,12 @@ export function DocumentNumberDateSection({
           return (
             <div
               key={field.key}
-              className="grid gap-3 rounded-xl border border-zinc-100 bg-zinc-50/30 p-3 dark:border-zinc-800 dark:bg-zinc-900/30 md:grid-cols-[minmax(220px,1fr)_180px_160px]"
+              className="grid gap-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3 md:grid-cols-[minmax(220px,1fr)_180px_160px]"
             >
               <div>
-                <p className="text-xs font-semibold text-zinc-850 dark:text-zinc-100">{field.title}</p>
-                <p className="mt-0.5 text-[10px] font-mono text-zinc-400">{field.key}</p>
-                {isLocked && <p className="mt-1 text-[10px] font-semibold text-amber-600">Menunggu nilai taksiran lengkap</p>}
+                <p className="text-xs font-semibold text-[var(--ds-fg)]">{field.title}</p>
+                <p className="mt-1 text-xs font-mono text-[var(--ds-fg-muted)]">{field.key}</p>
+                {isLocked && <p className="mt-1 text-xs font-semibold text-[var(--ds-status-warning-fg)]">Menunggu nilai taksiran lengkap</p>}
               </div>
               {field.numberKey ? (
                 <Input
@@ -61,7 +61,7 @@ export function DocumentNumberDateSection({
                       [field.numberKey as string]: event.target.value || null,
                     })
                   }
-                  className="h-9 rounded-xl border-zinc-200 text-xs focus-visible:ring-emerald-500 dark:border-zinc-800"
+                  className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs focus-visible:ring-[var(--ds-accent-fg)] tabular-nums"
                 />
               ) : (
                 <div />
@@ -77,7 +77,7 @@ export function DocumentNumberDateSection({
                       [field.dateKey as string]: event.target.value || null,
                     })
                   }
-                  className="h-9 rounded-xl border-zinc-200 text-xs focus-visible:ring-emerald-500 dark:border-zinc-800"
+                  className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs focus-visible:ring-[var(--ds-accent-fg)] tabular-nums"
                 />
               ) : (
                 <div />

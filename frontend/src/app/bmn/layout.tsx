@@ -130,23 +130,23 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
         <aside
           id={sidebarId}
           onKeyDown={(event) => { if (event.key === "Escape" && isOpen) { setIsOpen(false); menuTrigger.current?.focus(); } }}
-          className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[var(--ds-surface)]  border-r border-[var(--ds-border-subtle)]  transform transition-[transform,width,visibility] duration-150 ease-out md:relative md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[var(--ds-surface)] border-r border-slate-200/70 dark:border-zinc-800 transform transition-[transform,width,visibility] duration-150 ease-out md:relative md:translate-x-0 ${
             isOpen ? "translate-x-0 w-72" : "-translate-x-full invisible md:visible"
           } ${collapsed ? "md:w-20" : "md:w-72"}`}
         >
           {/* Header Sidebar */}
-          <div className={`border-b border-[var(--ds-border-subtle)]  ${collapsed ? "p-3" : "p-4"}`}>
+          <div className={`border-b border-slate-200/70 dark:border-zinc-800 ${collapsed ? "p-3" : "p-4"}`}>
             <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--ds-accent-solid)] flex items-center justify-center text-[color:var(--ds-accent-on-solid)] shadow-sm shadow-emerald-950/10">
+                <div className="w-10 h-10 shrink-0 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[color:var(--ds-accent-on-solid)] shadow-xs">
                   <Building2 className="w-5 h-5" />
                 </div>
                 {!collapsed && (
                   <div className="min-w-0">
-                    <h2 className="font-bold text-base text-[var(--ds-fg)] leading-tight truncate">
+                    <h2 className="font-bold text-sm text-[var(--ds-fg)] leading-tight truncate">
                       BMN
                     </h2>
-                    <p className="text-xs font-bold text-[var(--ds-accent-fg)] uppercase tracking-widest mt-0.5 truncate">
+                    <p className="text-xs font-bold text-[var(--ds-accent-fg)] uppercase tracking-widest mt-1 truncate">
                       Barang Milik Negara
                     </p>
                   </div>
@@ -169,7 +169,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {collapsed ? (
-              <div className="mt-2 hidden md:flex flex-col items-center gap-1.5">
+              <div className="mt-2 hidden md:flex flex-col items-center gap-2">
                 <ThemeToggle />
                 <button
                   type="button"
@@ -181,7 +181,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
             ) : (
-              <div className="mt-3.5">
+              <div className="mt-4">
                 <ModuleSwitcher />
               </div>
             )}
@@ -213,17 +213,17 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                         onClick={() => setIsOpen(false)}
                         title={collapsed ? item.label : undefined}
                         className={`group relative flex items-center ${
-                          collapsed ? "justify-center px-2.5 py-2.5" : "gap-3 px-3.5 py-2.5"
-                        } rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer ${
+                          collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2"
+                        } rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer ${
                           isActive
                             ? "text-[var(--ds-accent-fg)] font-bold"
-                            : "text-[var(--ds-fg-secondary)]  hover:bg-[var(--ds-surface-muted)]  hover:text-[var(--ds-fg)]"
+                            : "text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
                         }`}
                       >
                         {isActive && (
                           <motion.span
                             layoutId="activeBmnNavIndicator"
-                            className="absolute inset-0 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl shadow-2xs"
+                            className="absolute inset-0 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-lg shadow-xs"
                             transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 450, damping: 35 }}
                           />
                         )}
@@ -231,12 +231,12 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                           className={`w-4 h-4 shrink-0 transition-colors relative z-10 ${
                             isActive
                               ? "text-[var(--ds-accent-fg)]"
-                              : "text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-fg-secondary)] "
+                              : "text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-fg-secondary)]"
                           }`}
                         />
                         {!collapsed && <span className="truncate relative z-10 flex-1">{item.label}</span>}
                         {!collapsed && isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-accent-solid)] shrink-0 relative z-10" />
+                          <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shrink-0 relative z-10" />
                         )}
                       </Link>
                     );
@@ -247,10 +247,10 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Footer User Profile */}
-          <div className="p-3.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
+          <div className="p-4 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)]">
             <div className={`flex items-center ${collapsed ? "justify-center mb-2" : "gap-3 mb-3"}`}>
               <div
-                className="w-9 h-9 shrink-0 rounded-xl bg-[var(--ds-accent-solid)] flex items-center justify-center text-[color:var(--ds-accent-on-solid)] font-bold text-xs shadow-xs"
+                className="w-9 h-9 shrink-0 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[color:var(--ds-accent-on-solid)] font-bold text-xs shadow-xs"
                 title={user?.name || user?.nama_lengkap || "User"}
               >
                 {(user?.name || user?.nama_lengkap || "U").charAt(0)}
@@ -261,7 +261,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                     {user?.name || user?.nama_lengkap || "User"}
                   </p>
                   <div className="mt-1">
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0 font-bold uppercase">
+                    <Badge variant="secondary" className="text-xs px-2 py-0 font-bold uppercase">
                       {role || "Pegawai"}
                     </Badge>
                   </div>
@@ -275,8 +275,8 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
         {/* Area Utama Konten */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
           {/* Header Mobile Bersih (Pengganti FAB Melayang yang Menabrak Pagination) */}
-          <header className="md:hidden flex items-center justify-between px-4 py-3 bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] z-20 shrink-0">
-            <div className="flex items-center gap-2.5">
+          <header className="md:hidden flex items-center justify-between px-4 py-3 bg-[var(--ds-surface)] border-b border-slate-200/70 dark:border-zinc-800 z-20 shrink-0">
+            <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)] shadow-xs">
                 <Building2 className="w-4 h-4" />
               </div>
@@ -296,7 +296,7 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
                 aria-label="Toggle Menu BMN"
                 aria-expanded={isOpen}
                 aria-controls={sidebarId}
-                className="p-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-fg-secondary)] transition-colors cursor-pointer"
+                className="p-2 rounded-lg bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-fg-secondary)] transition-colors cursor-pointer"
               >
                 <Menu className="w-5 h-5" />
               </button>

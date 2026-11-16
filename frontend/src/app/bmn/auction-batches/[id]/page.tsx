@@ -81,14 +81,14 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
     return (
       <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui flex h-[80vh] flex-col items-center justify-center space-y-4 text-center p-6">
         <AlertCircle className="h-12 w-12 text-[var(--ds-status-danger-fg)]" />
-        <h2 className="text-lg font-bold text-[var(--ds-fg)]">Gagal Memuat Paket</h2>
+        <h2 className="text-xl font-bold text-[var(--ds-fg)]">Gagal Memuat Paket</h2>
         <p className="text-sm text-[var(--ds-fg-muted)] max-w-sm">
           Paket lelang tidak ditemukan atau Anda tidak memiliki akses untuk melihat paket ini.
         </p>
-        <Button asChild variant="outline" className="rounded-xl"><Link href="/bmn/auction-batches">
+        <Button asChild variant="outline" className="rounded-lg"><Link href="/bmn/auction-batches">
             Kembali ke Daftar Paket
           </Link></Button>
-        <Button variant="outline" onClick={() => refetch()}>Coba lagi</Button>
+        <Button variant="outline" className="rounded-lg" onClick={() => refetch()}>Coba lagi</Button>
       </div>
     );
   }
@@ -160,40 +160,40 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
   return (
     <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter flex flex-col h-full min-h-screen bg-[var(--ds-surface-muted)]">
       {/* Sticky Header Panel */}
-      <div className="sticky top-0 z-30 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-6 py-4 shadow-xs">
+      <div className="sticky top-0 z-30 border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] px-4 sm:px-6 py-4 shadow-xs">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <Button asChild aria-label="Kembali ke daftar paket lelang" variant="ghost" size="icon-sm" className="rounded-xl"><Link href="/bmn/auction-batches">
+            <Button asChild aria-label="Kembali ke daftar paket lelang" variant="ghost" size="icon-sm" className="rounded-lg"><Link href="/bmn/auction-batches">
                 <ArrowLeft className="h-4 w-4" />
               </Link></Button>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[var(--ds-fg-muted)]">
+                <span className="font-mono text-xs font-bold text-[var(--ds-fg-muted)] tabular-nums">
                   {batch.batch_number}
                 </span>
                 <Badge
                   variant="outline"
                   className={`${getStatusColorClass(
                     batch.status
-                  )} text-xs font-bold px-2 py-0.5 rounded-md`}
+                  )} text-xs font-bold px-2 py-1 rounded-full`}
                 >
                   {getStatusLabel(batch.status)}
                 </Badge>
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-[var(--ds-fg)] mt-0.5">
+              <h1 className="text-xl font-bold tracking-tight text-[var(--ds-fg)] mt-1">
                 {batch.name}
               </h1>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-[var(--ds-fg-muted)]">
-            <div className="flex items-center gap-1.5 bg-[var(--ds-surface-muted)] px-3 py-1.5 rounded-xl border border-[var(--ds-border-subtle)]">
+            <div className="flex items-center gap-2 bg-[var(--ds-surface-muted)] px-3 py-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 tabular-nums">
               <Layers className="h-4 w-4 text-[var(--ds-fg-muted)]" />
               <span>
                 Jumlah Aset: <strong className="text-[var(--ds-fg)]">{batch.assets_count}</strong>
               </span>
             </div>
-            <div className="flex items-center gap-1.5 bg-[var(--ds-surface-muted)] px-3 py-1.5 rounded-xl border border-[var(--ds-border-subtle)]">
+            <div className="flex items-center gap-2 bg-[var(--ds-surface-muted)] px-3 py-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 tabular-nums">
               <DollarSign className="h-4 w-4 text-[var(--ds-fg-muted)]" />
               <span>
                 Total Taksiran: <strong className="text-[var(--ds-fg)]">{formatRupiah(batch.nilai_taksiran_total)}</strong>
@@ -205,13 +205,13 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
                 size="sm"
                 disabled={isDeleting}
                 onClick={handleDeleteBatch}
-                className="bmn-icon-danger border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] hover:border-[var(--ds-status-danger-border)] rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                className="bmn-icon-danger border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] hover:border-[var(--ds-status-danger-border)] rounded-lg text-xs font-semibold flex items-center gap-2"
                 title="Hapus paket lelang ini"
               >
                 {isDeleting ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--ds-status-danger-fg)]" />
+                  <Loader2 className="h-4 w-4 animate-spin text-[var(--ds-status-danger-fg)]" />
                 ) : (
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-4 w-4" />
                 )}
                 Hapus Paket
               </Button>
@@ -220,10 +220,10 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
         </div>
 
         {/* Horizontal Status Timeline */}
-        <div className="mt-6 border-t border-[var(--ds-border-subtle)] pt-5 overflow-x-auto">
+        <div className="mt-6 border-t border-slate-200/70 dark:border-zinc-800 pt-4 overflow-x-auto">
           <div className="flex items-center min-w-175 justify-between px-2">
             {isCancelled ? (
-              <div className="flex items-center w-full justify-center gap-2 text-[var(--ds-status-danger-fg)] font-bold text-sm bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] p-3 rounded-xl">
+              <div className="flex items-center w-full justify-center gap-2 text-[var(--ds-status-danger-fg)] font-bold text-sm bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] p-3 rounded-lg">
                 <AlertCircle className="h-4 w-4" />
                 <span>Paket ini telah dibatalkan (BATAL) dan berstatus read-only.</span>
               </div>
@@ -235,24 +235,24 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
                 const isLast = index === statusesOrder.length - 1;
                 return (
                   <React.Fragment key={statusKey}>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-150 ease-out",
-                          isActive && "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] ring-4 ring-[var(--ds-accent-soft-border)]  shadow-xs",
+                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-150 ease-out tabular-nums",
+                          isActive && "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] ring-4 ring-[var(--ds-accent-soft-border)] shadow-xs",
                           isCompleted && "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]",
-                          !isActive && !isCompleted && "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]  "
+                          !isActive && !isCompleted && "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                         )}
                       >
-                        {isCompleted ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                        {isCompleted ? <Check className="h-4 w-4" /> : index + 1}
                       </div>
                       <div>
                         <p
                           className={cn(
                             "text-xs font-bold leading-tight",
-                            isActive && "text-[var(--ds-accent-fg)] ",
-                            isCompleted && "text-[var(--ds-fg)] ",
-                            !isActive && !isCompleted && "text-[var(--ds-fg-muted)] "
+                            isActive && "text-[var(--ds-accent-fg)]",
+                            isCompleted && "text-[var(--ds-fg)]",
+                            !isActive && !isCompleted && "text-[var(--ds-fg-muted)]"
                           )}
                         >
                           {getStatusLabel(statusKey as AuctionBatchStatus)}
@@ -262,8 +262,8 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
                     {!isLast && (
                       <div
                         className={cn(
-                          "h-0.5 flex-1 mx-3 rounded-full transition-colors duration-150 ease-out",
-                          isCompleted ? "bg-[var(--ds-accent-solid)]" : "bg-[var(--ds-border-subtle)] "
+                          "h-1 flex-1 mx-3 rounded-full transition-colors duration-150 ease-out",
+                          isCompleted ? "bg-[var(--ds-accent-solid)]" : "bg-[var(--ds-border-subtle)]"
                         )}
                       />
                     )}
@@ -277,17 +277,17 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
       </div>
 
       {/* Main Workspace Body with Tabs */}
-      <div className="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto">
+      <div className="flex-1 p-4 md:p-6 max-w-7xl w-full mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Mobile Tab Select Dropdown (< md) */}
           <div className="md:hidden">
-            <label htmlFor="auction-workflow-tab" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-1.5 block">
+            <label htmlFor="auction-workflow-tab" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-2 block">
               Pilih Tahapan Alur Lelang:
             </label>
             <select aria-label="Pilih Tahapan Alur Lelang:"
               value={activeTab}
               onChange={(e) => setActiveTab(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-sm font-semibold text-[var(--ds-fg)] shadow-xs focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:outline-none"
+              className="w-full h-10 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-sm font-semibold text-[var(--ds-fg)] shadow-xs focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:outline-none"
             >
               {workflowTabs.map((tab) => (
                 <option key={tab.value} value={tab.value}>
@@ -298,7 +298,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
           </div>
 
           {/* Desktop Tab Pills (>= md) */}
-          <TabsList className="bmn-workflow-tabs hidden md:flex flex-wrap h-auto bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] rounded-xl p-1.5 gap-1 w-full justify-start overflow-x-auto">
+          <TabsList className="bmn-workflow-tabs hidden md:flex flex-wrap h-auto bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-lg p-1 gap-1 w-full justify-start overflow-x-auto">
             {workflowTabs.map((tab) => (
               <TabsTrigger
                 key={tab.value}
@@ -307,17 +307,17 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
                 className="relative rounded-lg text-xs py-2 px-3 font-semibold"
               >
                 {tab.label}
-                {activeTab === tab.value && <motion.span aria-hidden="true" layoutId={`${highlightId}-workflow`} className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-[var(--ds-accent-fg)]" transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }} />}
+                {activeTab === tab.value && <motion.span aria-hidden="true" layoutId={`${highlightId}-workflow`} className="absolute inset-x-2 bottom-0 h-1 rounded-full bg-[var(--ds-accent-fg)]" transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }} />}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--ds-fg-muted)]">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--ds-fg-muted)] tabular-nums">
                 Langkah {activeTabIndex + 1} dari {workflowTabs.length}
               </p>
-              <p className="mt-0.5 text-sm font-bold text-[var(--ds-fg)]">
+              <p className="mt-1 text-sm font-bold text-[var(--ds-fg)]">
                 {workflowTabs[activeTabIndex]?.label}
               </p>
             </div>
@@ -325,22 +325,22 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl text-xs font-semibold"
+                className="rounded-lg text-xs font-semibold"
                 disabled={!previousTab}
                 onClick={() => previousTab && setActiveTab(previousTab.value)}
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
+                <ArrowLeft className="h-4 w-4" />
                 Sebelumnya
               </Button>
               <Button
                 size="sm"
-                className="rounded-xl bg-[var(--ds-accent-solid)] text-xs font-semibold text-white hover:bg-[var(--ds-accent-hover)]"
+                className="rounded-lg bg-[var(--ds-accent-solid)] text-xs font-semibold text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
                 disabled={!nextTab || Boolean(nextBlockedReason)}
                 title={nextBlockedReason || undefined}
                 onClick={() => nextTab && setActiveTab(nextTab.value)}
               >
                 {nextTab ? `Lanjut ke ${nextTab.label}` : "Selesai"}
-                <ArrowRight className="h-3.5 w-3.5" />
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -351,7 +351,7 @@ export default function BmnAuctionBatchDetailPage({ params }: PageProps) {
               {activeTab === "assets" && <>
 
             <AssetsLotTab formState={assetsForm} batch={batch} readOnly={readOnly} onRefetch={refetchAll} />
-            <div className="pt-4 border-t border-[var(--ds-border-subtle)]">
+            <div className="pt-4 border-t border-slate-200/70 dark:border-zinc-800">
               <ValuationTab
                 formState={valuationForm}
                 batch={batch}

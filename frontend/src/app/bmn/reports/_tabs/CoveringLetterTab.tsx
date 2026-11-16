@@ -369,17 +369,17 @@ export function CoveringLetterTab({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-[var(--ds-fg)]">Generate Surat Pengantar BMN</h2>
-          <p className="text-xs text-[var(--ds-fg-muted)]">
+          <h2 className="text-sm font-bold text-[var(--ds-fg)]">Generate Surat Pengantar BMN</h2>
+          <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
             {coveringHasNumber ? fullCoveringNumber : "Nomor : -"}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button
             variant="outline"
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={saveCoveringLetter}
             disabled={savingCoveringLetter || !canGenerate}
           >
@@ -393,7 +393,7 @@ export function CoveringLetterTab({
               : "Simpan Riwayat"}
           </Button>
           <Button
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={() => handlePrintCoveringLetter()}
           >
             <Printer className="w-4 h-4" />
@@ -402,23 +402,23 @@ export function CoveringLetterTab({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[370px_minmax(0,1fr)] xl:grid-cols-[390px_minmax(0,1fr)] gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[370px_minmax(0,1fr)] xl:grid-cols-[390px_minmax(0,1fr)] gap-6 items-start">
         <div className="space-y-4">
           {/* 1. Detail Surat Pengantar */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)]">
                 1. Detail Surat Pengantar
               </h3>
-              <div className="flex flex-wrap items-center rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-0.5 text-xs font-medium">
+              <div className="flex flex-wrap items-center rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-1 text-xs font-medium">
                 <button
                   type="button"
                   aria-pressed={coveringHeaderMode === "with-number"}
                   onClick={() => setCoveringHeaderMode("with-number")}
-                  className={`rounded-md px-2.5 py-0.5 transition-colors duration-150 ease-out ${
+                  className={`rounded-lg px-3 py-1 transition-colors duration-150 ease-out ${
                     coveringHeaderMode === "with-number"
-                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs   font-semibold"
-                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs font-semibold"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   Ada Nomor
@@ -427,10 +427,10 @@ export function CoveringLetterTab({
                   type="button"
                   aria-pressed={coveringHeaderMode === "dash"}
                   onClick={() => setCoveringHeaderMode("dash")}
-                  className={`rounded-md px-2.5 py-0.5 transition-colors duration-150 ease-out ${
+                  className={`rounded-lg px-3 py-1 transition-colors duration-150 ease-out ${
                     coveringHeaderMode === "dash"
-                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs   font-semibold"
-                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs font-semibold"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   Tanpa Nomor (-)
@@ -439,30 +439,30 @@ export function CoveringLetterTab({
                   type="button"
                   aria-pressed={coveringHeaderMode === "none"}
                   onClick={() => setCoveringHeaderMode("none")}
-                  className={`rounded-md px-2.5 py-0.5 transition-colors duration-150 ease-out ${
+                  className={`rounded-lg px-3 py-1 transition-colors duration-150 ease-out ${
                     coveringHeaderMode === "none"
-                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs   font-semibold"
-                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs font-semibold"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   Tanpa Nomor & Hal
                 </button>
               </div>
             </div>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {coveringHeaderMode === "with-number" && (
                 <>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block">
                       <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">Nomor Urut</span>
-                      <div className="mt-0.5 flex items-center rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2.5 py-1.5 text-xs">
+                      <div className="mt-1 flex items-center rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs">
                         <span className="font-mono text-[var(--ds-fg-muted)] mr-1 select-none">SP.</span>
                         <input
                           aria-label="Nomor Urut Surat Pengantar"
                   value={coveringSequence}
                           onChange={(e) => setCoveringSequence(e.target.value)}
                           placeholder="52"
-                          className="w-full bg-transparent outline-none font-mono"
+                          className="w-full bg-transparent outline-none font-mono tabular-nums"
                         />
                       </div>
                     </label>
@@ -472,12 +472,12 @@ export function CoveringLetterTab({
                         value={coveringKap}
                         onChange={(e) => setCoveringKap(e.target.value)}
                         placeholder="KAP.06.01"
-                        className="mt-0.5 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none font-mono"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none font-mono tabular-nums"
                       />
                     </label>
                   </div>
 
-                  <div className="rounded-lg bg-[var(--ds-surface-muted)] px-3 py-2 text-xs text-[var(--ds-fg-secondary)]">
+                  <div className="rounded-lg bg-[var(--ds-surface-muted)] px-3 py-2 text-xs text-[var(--ds-fg-secondary)] tabular-nums">
                     <span className="text-[var(--ds-fg-muted)]">Hasil Format Nomor: </span>
                     <span className="font-mono font-bold text-[var(--ds-accent-fg)]">{fullCoveringNumber}</span>
                   </div>
@@ -485,7 +485,7 @@ export function CoveringLetterTab({
               )}
 
               {coveringHeaderMode === "dash" && (
-                <div className="rounded-lg border border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-center text-xs text-[var(--ds-fg-secondary)]">
+                <div className="rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 py-2 text-center text-xs text-[var(--ds-fg-secondary)]">
                   Nomor surat diatur: <span className="font-mono font-bold text-[var(--ds-accent-fg)]">Nomor : -</span>
                 </div>
               )}
@@ -504,7 +504,7 @@ export function CoveringLetterTab({
                     value={coveringRegarding}
                     onChange={(e) => setCoveringRegarding(e.target.value)}
                     placeholder="Hal surat pengantar..."
-                    className="mt-0.5 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none"
+                    className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                   />
                 </label>
               )}
@@ -515,18 +515,18 @@ export function CoveringLetterTab({
                   type="date"
                   value={coveringDate}
                   onChange={(e) => setCoveringDate(e.target.value)}
-                  className="mt-0.5 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none tabular-nums"
                 />
               </label>
             </div>
           </div>
 
           {/* 2. Tujuan Surat (Yth) */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)]">
               2. Tujuan Surat (Yth)
             </h3>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <label className="block">
                 <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">Kepada (Yth.)</span>
                 <textarea
@@ -534,7 +534,7 @@ export function CoveringLetterTab({
                   value={coveringRecipientTitle}
                   onChange={(e) => setCoveringRecipientTitle(e.target.value)}
                   placeholder="Kepala Kantor Pelayanan Kekayaan Negara dan Lelang"
-                  className="mt-0.5 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                 />
               </label>
               <label className="block">
@@ -543,26 +543,26 @@ export function CoveringLetterTab({
                   value={coveringRecipientLocation}
                   onChange={(e) => setCoveringRecipientLocation(e.target.value)}
                   placeholder="Samarinda"
-                  className="mt-0.5 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                 />
               </label>
             </div>
           </div>
 
           {/* 3. Daftar Berkas yang Dikirim */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <div className="mb-3 flex flex-wrap gap-2 items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)]">
                 3. Daftar Berkas yang Dikirim
               </h3>
-              <Button type="button" size="sm" variant="outline" className="h-7 rounded-lg px-2 text-xs" onClick={addCoveringItem}>
+              <Button type="button" size="sm" variant="outline" className="h-8 rounded-lg px-2 text-xs" onClick={addCoveringItem}>
                 + Tambah Berkas
               </Button>
             </div>
             <div className="space-y-3">
               {coveringItems.map((item, index) => (
-                <div key={item.id || index} className="rounded-xl border border-[var(--ds-border-subtle)] p-3 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-[var(--ds-fg-muted)]">
+                <div key={item.id || index} className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-[var(--ds-fg-muted)] tabular-nums">
                     <span>Berkas #{index + 1}</span>
                     {coveringItems.length > 1 && (
                       <button
@@ -581,7 +581,7 @@ export function CoveringLetterTab({
                       value={item.title}
                       onChange={(e) => updateCoveringItem(index, "title", e.target.value)}
                       placeholder="Rincian berkas dokumen yang dikirim..."
-                      className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2.5 text-xs leading-relaxed outline-none min-h-22.5 resize-y"
+                      className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-3 text-xs leading-relaxed outline-none min-h-24 resize-y"
                     />
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -591,7 +591,7 @@ export function CoveringLetterTab({
                         value={item.quantity || ""}
                         onChange={(e) => updateCoveringItem(index, "quantity", e.target.value)}
                         placeholder="1 (satu berkas)"
-                        className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
                       />
                     </label>
                     <label className="block">
@@ -600,7 +600,7 @@ export function CoveringLetterTab({
                         value={item.description || ""}
                         onChange={(e) => updateCoveringItem(index, "description", e.target.value)}
                         placeholder="Lelang Non-Eksekusi"
-                        className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
                       />
                     </label>
                   </div>
@@ -610,11 +610,11 @@ export function CoveringLetterTab({
           </div>
 
           {/* 4. Kalimat Penutup & Tanggal Terima */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)]">
               4. Penutup & Tanggal Terima
             </h3>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <label className="block">
                 <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">Kalimat Penutup</span>
                 <textarea
@@ -622,7 +622,7 @@ export function CoveringLetterTab({
                   value={coveringClosingPhrase}
                   onChange={(e) => setCoveringClosingPhrase(e.target.value)}
                   placeholder="Demikian kami sampaikan..."
-                  className="mt-0.5 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                 />
               </label>
               <label className="block">
@@ -642,24 +642,24 @@ export function CoveringLetterTab({
                   type="date"
                   value={coveringReceivedDate || ""}
                   onChange={(e) => setCoveringReceivedDate(e.target.value)}
-                  className="mt-0.5 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-1.5 text-xs outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none tabular-nums"
                 />
               </label>
             </div>
           </div>
 
           {/* 5. Konfigurasi Tanda Tangan */}
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <div className="mb-3 flex flex-wrap gap-2 items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)]">
                 5. Penandatangan
               </h3>
-              <label className="flex items-center gap-1.5 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={coveringShowSignatures}
                   onChange={(e) => setCoveringShowSignatures(e.target.checked)}
-                  className="rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)]"
+                  className="accent-[var(--ds-accent-solid)]"
                 />
                 <span className="text-xs font-medium text-[var(--ds-fg-secondary)]">Tampilkan TTD</span>
               </label>
@@ -667,17 +667,17 @@ export function CoveringLetterTab({
 
             {coveringShowSignatures && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl bg-[var(--ds-surface-muted)] p-2 text-xs">
+                <div className="flex items-center justify-between rounded-lg bg-[var(--ds-surface-muted)] p-2 text-xs">
                   <span className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Pilihan TTD:</span>
-                  <div className="flex flex-wrap items-center rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-0.5 text-xs font-medium">
+                  <div className="flex flex-wrap items-center rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-1 text-xs font-medium">
                     <button
                       type="button"
                       aria-pressed={coveringShowReceiver}
                       onClick={() => setCoveringShowReceiver(true)}
-                      className={`rounded-md px-2.5 py-0.5 transition-colors duration-150 ease-out ${
+                      className={`rounded-lg px-3 py-1 transition-colors duration-150 ease-out ${
                         coveringShowReceiver
-                          ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs   font-semibold"
-                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                          ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs font-semibold"
+                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       }`}
                     >
                       Pengirim & Penerima
@@ -686,10 +686,10 @@ export function CoveringLetterTab({
                       type="button"
                       aria-pressed={!coveringShowReceiver}
                       onClick={() => setCoveringShowReceiver(false)}
-                      className={`rounded-md px-2.5 py-0.5 transition-colors duration-150 ease-out ${
+                      className={`rounded-lg px-3 py-1 transition-colors duration-150 ease-out ${
                         !coveringShowReceiver
-                          ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs   font-semibold"
-                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                          ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs font-semibold"
+                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       }`}
                     >
                       Hanya Pengirim
@@ -698,7 +698,7 @@ export function CoveringLetterTab({
                 </div>
 
                 {/* Pengirim */}
-                <div className="rounded-xl border border-[var(--ds-border-subtle)] p-2.5 space-y-2">
+                <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 space-y-2">
                   <div className="text-xs font-bold text-[var(--ds-fg-secondary)]">Pengirim</div>
                   <label className="block">
                     <span className="text-xs text-[var(--ds-fg-muted)]">Pilih dari Pegawai</span>
@@ -706,7 +706,7 @@ export function CoveringLetterTab({
                       value={coveringSenderEmployeeId}
                       onChange={(e) => handleCoveringSenderEmployeeChange(e.target.value)}
                       disabled={loadingEmployees}
-                      className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs"
+                      className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs"
                     >
                       <option value="">Input Manual</option>
                       {employees.map((employee) => (
@@ -723,7 +723,7 @@ export function CoveringLetterTab({
                         value={coveringSender.name || ""}
                         onChange={(e) => setCoveringSender((p) => ({ ...p, name: e.target.value }))}
                         placeholder="Nama Pengirim"
-                        className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
                       />
                     </label>
                     <label className="block">
@@ -733,7 +733,7 @@ export function CoveringLetterTab({
                         onChange={(e) => setCoveringSender((p) => ({ ...p, nip: e.target.value }))}
                         onBlur={(e) => setCoveringSender((p) => ({ ...p, nip: formatNip(e.target.value) }))}
                         placeholder="NIP Pengirim"
-                        className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none tabular-nums"
                       />
                     </label>
                   </div>
@@ -744,14 +744,14 @@ export function CoveringLetterTab({
                       value={coveringSender.role || ""}
                       onChange={(e) => setCoveringSender((p) => ({ ...p, role: e.target.value }))}
                       placeholder={"Pengirim,\nPenjual Lelang"}
-                      className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                      className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
                     />
                   </label>
                 </div>
 
                 {/* Penerima */}
                 {coveringShowReceiver && (
-                  <div className="rounded-xl border border-[var(--ds-border-subtle)] p-2.5 space-y-2">
+                  <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-[var(--ds-fg-secondary)]">Penerima</span>
@@ -764,14 +764,14 @@ export function CoveringLetterTab({
                           (Kosongkan TTD)
                         </button>
                       </div>
-                      <div className="flex flex-wrap items-center rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-0.5 text-xs font-medium">
+                      <div className="flex flex-wrap items-center rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-1 text-xs font-medium">
                         <button
                           type="button"
                           onClick={() => setCoveringReceiver((p) => ({ ...p, idType: "NIP" }))}
-                          className={`rounded-md px-2.5 py-0.5 transition-colors duration-150 ease-out ${
+                          className={`rounded-lg px-3 py-1 transition-colors duration-150 ease-out ${
                             coveringReceiver.idType !== "NIK"
-                              ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs   font-semibold"
-                              : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                              ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs font-semibold"
+                              : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                           }`}
                         >
                           NIP
@@ -782,10 +782,10 @@ export function CoveringLetterTab({
                             setCoveringReceiver((p) => ({ ...p, idType: "NIK" }));
                             setCoveringReceiverEmployeeId("");
                           }}
-                          className={`rounded-md px-2.5 py-0.5 transition-colors duration-150 ease-out ${
+                          className={`rounded-lg px-3 py-1 transition-colors duration-150 ease-out ${
                             coveringReceiver.idType === "NIK"
-                              ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs   font-semibold"
-                              : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                              ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs font-semibold"
+                              : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                           }`}
                         >
                           NIK
@@ -800,7 +800,7 @@ export function CoveringLetterTab({
                           value={coveringReceiverEmployeeId}
                           onChange={(e) => handleCoveringReceiverEmployeeChange(e.target.value)}
                           disabled={loadingEmployees}
-                          className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs"
+                          className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs"
                         >
                           <option value="">Input Manual</option>
                           {employees.map((employee) => (
@@ -819,7 +819,7 @@ export function CoveringLetterTab({
                           value={coveringReceiver.name || ""}
                           onChange={(e) => setCoveringReceiver((p) => ({ ...p, name: e.target.value }))}
                           placeholder="Nama Pejabat Penerima"
-                          className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                          className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
                         />
                       </label>
                       <label className="block">
@@ -844,7 +844,7 @@ export function CoveringLetterTab({
                               ? "NIK... (spasi untuk NIK kosong)"
                               : "NIP... (spasi untuk NIP kosong)"
                           }
-                          className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                          className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none tabular-nums"
                         />
                       </label>
                     </div>
@@ -855,18 +855,18 @@ export function CoveringLetterTab({
                         value={coveringReceiver.role || ""}
                         onChange={(e) => setCoveringReceiver((p) => ({ ...p, role: e.target.value }))}
                         placeholder={"Penerima,\nPejabat Lelang"}
-                        className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
                       />
                     </label>
 
                     {/* No. Telepon Penerima */}
-                    <div className="pt-2 border-t border-[var(--ds-border-subtle)] space-y-2">
+                    <div className="pt-2 border-t border-slate-200/70 dark:border-zinc-800 space-y-2">
                       <label className="flex items-center gap-2 cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={coveringReceiverIncludePhone}
                           onChange={(e) => setCoveringReceiverIncludePhone(e.target.checked)}
-                          className="rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)]"
+                          className="accent-[var(--ds-accent-solid)]"
                         />
                         <span className="text-xs font-medium text-[var(--ds-fg-secondary)]">
                           Tampilkan No. Telp / HP Penerima di Dokumen
@@ -883,7 +883,7 @@ export function CoveringLetterTab({
                             value={coveringReceiverPhone}
                             onChange={(e) => setCoveringReceiverPhone(e.target.value)}
                             placeholder="Contoh: 081234567890 (atau kosongkan)"
-                            className="mt-0.5 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none"
+                            className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-1 text-xs outline-none tabular-nums"
                           />
                         </label>
                       )}
@@ -896,11 +896,11 @@ export function CoveringLetterTab({
         </div>
 
         {/* Preview Dokumen */}
-        <div className="min-w-0 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 sticky top-4">
+        <div className="min-w-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs sticky top-4">
           <div className="mb-3 flex flex-wrap gap-2 items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-[var(--ds-fg)]">6. Preview Dokumen</h3>
-              <p className="text-xs text-[var(--ds-fg-muted)]">
+              <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                 {coveringHeaderMode === "none"
                   ? "Tanpa Nomor & Hal"
                   : coveringHeaderMode === "dash"
@@ -909,7 +909,7 @@ export function CoveringLetterTab({
               </p>
             </div>
           </div>
-          <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-2 sm:p-4 flex justify-center">
+          <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-4 flex justify-center">
             <CoveringLetterDocument
               number={coveringHeaderMode === "with-number" ? fullCoveringNumber : "-"}
               hasNumber={coveringHeaderMode === "with-number"}

@@ -100,8 +100,8 @@ export default function ImportReviewPage() {
       </div>
 
       {canUpload ? (
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-[var(--ds-fg)] mb-4 flex items-center gap-2">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs">
+        <h2 className="text-sm font-semibold text-[var(--ds-fg)] mb-4 flex items-center gap-2">
           <Upload className="w-4 h-4 text-[var(--ds-accent-fg)]" />
           Upload File Baru
         </h2>
@@ -112,7 +112,7 @@ export default function ImportReviewPage() {
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="border-[var(--ds-border-subtle)] file:text-[var(--ds-accent-fg)] file:font-semibold"
+              className="border-slate-200/80 dark:border-zinc-800 rounded-lg file:text-[var(--ds-accent-fg)] file:font-semibold"
             />
             <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Format: .xlsx / .xls / .csv — Maks 20MB. Kolom wajib: kode_barang, nup, nama_barang.
@@ -121,7 +121,7 @@ export default function ImportReviewPage() {
           <Button
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold px-6"
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg font-semibold px-6"
           >
             {isUploading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Memproses...</>
@@ -132,9 +132,9 @@ export default function ImportReviewPage() {
         </div>
       </div>
       ) : (
-        <div className="rounded-2xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-5 text-[var(--ds-status-warning-fg)]">
+        <div className="rounded-3xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-4 text-[var(--ds-status-warning-fg)]">
           <div className="flex items-start gap-3">
-            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
+            <ShieldAlert className="mt-1 h-5 w-5 shrink-0" />
             <div>
               <h2 className="text-sm font-bold">Upload import hanya untuk admin</h2>
               <p className="mt-1 text-xs leading-relaxed">
@@ -146,8 +146,8 @@ export default function ImportReviewPage() {
       )}
 
       {/* Batch History */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-[var(--ds-fg)] mb-4 flex items-center gap-2">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs">
+        <h2 className="text-sm font-semibold text-[var(--ds-fg)] mb-4 flex items-center gap-2">
           <FileSpreadsheet className="w-4 h-4 text-[var(--ds-accent-fg)]" />
           Riwayat Import
         </h2>
@@ -172,10 +172,10 @@ export default function ImportReviewPage() {
               <div
                 key={batch.id}
                 className={cn(
-                  "flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-xl border",
+                  "flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-lg border",
                   batch.status === "pending"
                     ? "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]"
-                    : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]"
+                    : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)]"
                 )}
               >
                 <div className="flex min-w-0 items-center gap-4">
@@ -195,7 +195,7 @@ export default function ImportReviewPage() {
 
                 <div className="flex flex-wrap items-center gap-3 shrink-0">
                   {statusBadge(batch.status)}
-                  <span className="text-xs text-[var(--ds-fg-muted)]">
+                  <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                     {new Date(batch.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "short",
@@ -205,16 +205,16 @@ export default function ImportReviewPage() {
                     })}
                   </span>
                   {batch.status === "pending" && (
-                    <Button asChild size="sm" className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]">
+                    <Button asChild size="sm" className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg">
                       <Link href={`/bmn/import-review/${batch.id}`}>
-                        <Eye className="w-3.5 h-3.5 mr-1" /> {canUpload ? "Review" : "Lihat"}
+                        <Eye className="w-4 h-4 mr-1" /> {canUpload ? "Review" : "Lihat"}
                       </Link>
                     </Button>
                   )}
                   {batch.status === "approved" && (
-                    <Button asChild size="sm" variant="outline" className="text-[var(--ds-fg-secondary)]">
+                    <Button asChild size="sm" variant="outline" className="text-[var(--ds-fg-secondary)] rounded-lg">
                       <Link href={`/bmn/import-review/${batch.id}`}>
-                        <Eye className="w-3.5 h-3.5 mr-1" /> Lihat
+                        <Eye className="w-4 h-4 mr-1" /> Lihat
                       </Link>
                     </Button>
                   )}

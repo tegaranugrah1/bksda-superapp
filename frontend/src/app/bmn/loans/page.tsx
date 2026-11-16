@@ -47,10 +47,10 @@ const STATUS_OPTIONS = [
 
 const getStatusBadge = (status: string) => {
     switch (status) {
-        case 'dipinjam': return <Badge data-status="info" className="text-xs font-bold">Dipinjam</Badge>;
-        case 'dikembalikan': return <Badge data-status="success" className="text-xs font-bold">Dikembalikan</Badge>;
-        case 'terlambat': return <Badge data-status="danger" className="text-xs font-bold">Terlambat</Badge>;
-        default: return <Badge data-status="neutral" className="text-xs">{status || 'Belum diisi'}</Badge>;
+        case 'dipinjam': return <Badge data-status="info" className="text-xs font-bold rounded-full">Dipinjam</Badge>;
+        case 'dikembalikan': return <Badge data-status="success" className="text-xs font-bold rounded-full">Dikembalikan</Badge>;
+        case 'terlambat': return <Badge data-status="danger" className="text-xs font-bold rounded-full">Terlambat</Badge>;
+        default: return <Badge data-status="neutral" className="text-xs rounded-full">{status || 'Belum diisi'}</Badge>;
     }
 };
 
@@ -189,11 +189,11 @@ export default function LoansPage() {
     };
 
     return (
-        <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 sm:p-5 md:p-7 space-y-5 text-[var(--ds-fg)] ">
+        <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 sm:p-6 space-y-6 text-[var(--ds-fg)]">
             {/* 1. Unified Clean Enterprise Header Bar */}
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:px-6 md:py-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
                         <Handshake className="w-5 h-5" />
                     </div>
                     <div>
@@ -201,7 +201,7 @@ export default function LoansPage() {
                         <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                             Peminjaman Aset
                         </h1>
-                        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                        <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                             Kelola data sirkulasi, peminjaman, dan pengembalian BMN.
                         </p>
                     </div>
@@ -210,15 +210,15 @@ export default function LoansPage() {
                     <Button
                         onClick={() => router.push('/bmn/loans/create')}
                         size="sm"
-                        className="rounded-xl gap-2 text-xs bmn-primary shadow-sm  cursor-pointer"
+                        className="rounded-lg gap-2 text-xs bmn-primary shadow-xs cursor-pointer"
                     >
-                        <Plus className="w-3.5 h-3.5" /> Pinjam Aset
+                        <Plus className="w-4 h-4" /> Pinjam Aset
                     </Button>
                 </div>
             </div>
 
             {/* Sliding Pill Status Filter */}
-            <div className="flex flex-wrap items-center gap-1 bg-[var(--ds-surface-muted)] p-1 rounded-xl w-fit">
+            <div className="flex flex-wrap items-center gap-1 bg-[var(--ds-surface-muted)] p-1 rounded-lg w-fit">
                 {[
                     { value: "all", label: "Semua Status" },
                     ...STATUS_OPTIONS,
@@ -231,7 +231,7 @@ export default function LoansPage() {
                             aria-pressed={isActive}
                             onClick={() => { setFilterStatus(opt.value); setPage(1); }}
                             className={cn(
-                                "relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer select-none",
+                                "relative px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer select-none",
                                 isActive
                                     ? "text-[var(--ds-accent-on-solid)] font-bold"
                                     : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
@@ -252,14 +252,14 @@ export default function LoansPage() {
             </div>
 
             {/* Table */}
-            <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-2xs">
-                <div className="p-4 border-b border-[var(--ds-border-subtle)] flex justify-between items-center">
-                    <h2 className="font-semibold text-[var(--ds-fg)] text-sm">Riwayat Peminjaman ({pagination.total})</h2>
+            <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs">
+                <div className="p-4 border-b border-slate-200/70 dark:border-zinc-800 flex justify-between items-center">
+                    <h2 className="font-semibold text-[var(--ds-fg)] text-sm tabular-nums">Riwayat Peminjaman ({pagination.total})</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className={`${records.length ? "bmn-wide-table" : ""} w-full text-left`}>
                         <thead className={records.length ? "" : "hidden sm:table-header-group"}>
-                            <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
+                            <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
                                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider w-[200px]">Aset</th>
                                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Kode / NUP</th>
                                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Lokasi & Pengguna</th>
@@ -272,12 +272,12 @@ export default function LoansPage() {
                                 )}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                        <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                             {loading ? (
                                 [...Array(5)].map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td colSpan={canManage ? 8 : 7} className="px-4 py-4">
-                                            <div className="h-10 bg-[var(--ds-surface-muted)] rounded-xl" />
+                                            <div className="h-10 bg-[var(--ds-surface-muted)] rounded-lg" />
                                         </td>
                                     </tr>
                                 ))
@@ -291,38 +291,38 @@ export default function LoansPage() {
                                 </tr>
                             ) : (
                                 records.map((r) => (
-                                    <tr key={r.id} className="hover:bg-[var(--ds-surface-muted)] transition-colors group">
+                                    <tr key={r.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors group">
                                         <td className="px-4 py-3">
                                             <div className="font-bold text-[var(--ds-fg)] line-clamp-2 text-sm">{r.asset?.nama_barang || 'Aset Terhapus'}</div>
                                             {(r.asset?.merk || r.asset?.merk_tipe) && <div className="text-xs text-[var(--ds-fg-muted)]">{r.asset.merk_tipe || r.asset.merk}</div>}
-                                            {r.asset?.no_polisi && r.asset.no_polisi !== '-' && <div className="text-xs text-[var(--ds-status-info-fg)] font-medium mt-0.5">No. Polisi: {r.asset.no_polisi}</div>}
+                                            {r.asset?.no_polisi && r.asset.no_polisi !== '-' && <div className="text-xs text-[var(--ds-status-info-fg)] font-medium mt-1">No. Polisi: {r.asset.no_polisi}</div>}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="text-xs font-mono font-bold text-[var(--ds-accent-fg)]">{r.asset?.kode_barang || '-'}</div>
-                                            <div className="text-xs text-[var(--ds-fg-muted)] font-mono tracking-tighter mt-0.5">NUP: {r.asset?.nup || '-'}</div>
-                                            {r.asset?.nup_lama && <div className="text-xs text-[var(--ds-fg-muted)] font-mono tracking-tighter">NUP Lama: {r.asset.nup_lama}</div>}
+                                            <div className="text-xs font-mono font-bold text-[var(--ds-accent-fg)] tabular-nums">{r.asset?.kode_barang || '-'}</div>
+                                            <div className="text-xs text-[var(--ds-fg-muted)] font-mono tracking-tighter mt-1 tabular-nums">NUP: {r.asset?.nup || '-'}</div>
+                                            {r.asset?.nup_lama && <div className="text-xs text-[var(--ds-fg-muted)] font-mono tracking-tighter tabular-nums">NUP Lama: {r.asset.nup_lama}</div>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="text-xs text-[var(--ds-fg-muted)]">{r.asset?.lokasi_ruang || '-'}</div>
-                                            {r.asset?.pengguna && <div className="text-xs text-[var(--ds-status-warning-fg)] mt-0.5">Pengguna: {r.asset.pengguna}</div>}
+                                            {r.asset?.pengguna && <div className="text-xs text-[var(--ds-status-warning-fg)] mt-1">Pengguna: {r.asset.pengguna}</div>}
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="font-medium text-[var(--ds-fg)] text-sm">{r.borrower?.name || '-'}</div>
-                                            {r.borrower?.nip && <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">NIP. {r.borrower.nip}</div>}
+                                            {r.borrower?.nip && <div className="text-xs text-[var(--ds-fg-muted)] mt-1 tabular-nums">NIP. {r.borrower.nip}</div>}
                                         </td>
-                                        <td className="px-4 py-3 text-[var(--ds-fg-muted)] text-sm whitespace-nowrap">
+                                        <td className="px-4 py-3 text-[var(--ds-fg-muted)] text-sm whitespace-nowrap tabular-nums">
                                             {formatDate(r.loan_date)}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div className="text-[var(--ds-fg-muted)] text-sm whitespace-nowrap font-medium">{formatDate(r.due_date)}</div>
+                                            <div className="text-[var(--ds-fg-muted)] text-sm whitespace-nowrap font-medium tabular-nums">{formatDate(r.due_date)}</div>
                                             {r.return_date && (
                                                 <div className="mt-1 flex flex-col gap-1">
-                                                    <div className="text-xs text-[var(--ds-accent-fg)] font-bold bg-[var(--ds-accent-soft)] px-1.5 py-0.5 rounded-md border border-[var(--ds-accent-soft-border)] w-fit">
+                                                    <div className="text-xs text-[var(--ds-accent-fg)] font-bold bg-[var(--ds-accent-soft)] px-2 py-1 rounded-lg border border-[var(--ds-accent-soft-border)] w-fit tabular-nums">
                                                         Kembali: {formatDate(r.return_date)}
                                                     </div>
                                                     {r.return_condition && (
-                                                        <div className="text-xs text-[var(--ds-fg-muted)] italic flex items-center gap-1.5">
-                                                            <div className={cn("w-1.5 h-1.5 rounded-full",
+                                                        <div className="text-xs text-[var(--ds-fg-muted)] italic flex items-center gap-2">
+                                                            <div className={cn("w-2 h-2 rounded-full",
                                                                 r.return_condition === 'Baik' ? 'bg-[var(--ds-status-success-fg)]' :
                                                                 r.return_condition === 'Rusak Ringan' ? 'bg-[var(--ds-status-warning-fg)]' : r.return_condition === 'Rusak Berat' ? 'bg-[var(--ds-status-danger-fg)]' : 'bg-[var(--ds-status-neutral-fg)]'
                                                             )} />
@@ -333,10 +333,10 @@ export default function LoansPage() {
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-center">
-                                            <div className="flex flex-col items-center gap-1.5">
+                                            <div className="flex flex-col items-center gap-2">
                                                 {getStatusBadge(r.status)}
                                                 {r.late_days && r.late_days > 0 && (
-                                                    <span className="text-xs font-bold text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] px-1.5 py-0.5 rounded-md border border-[var(--ds-status-danger-border)] flex items-center gap-1">
+                                                    <span className="text-xs font-bold text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] px-2 py-1 rounded-full border border-[var(--ds-status-danger-border)] flex items-center gap-1 tabular-nums">
                                                         <AlertTriangle className="w-3 h-3" />
                                                         {r.late_days} hari
                                                     </span>
@@ -345,12 +345,12 @@ export default function LoansPage() {
                                         </td>
                                         {canManage && (
                                             <td className="px-4 py-3">
-                                                <div className="flex gap-1.5 justify-center items-center">
+                                                <div className="flex gap-1 justify-center items-center">
                                                     {r.status !== 'dikembalikan' && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="min-h-9 min-w-9 h-9 w-9 text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]  rounded-lg cursor-pointer"
+                                                            className="min-h-9 min-w-9 h-9 w-9 text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg cursor-pointer"
                                                             title="Kembalikan Aset"
                                                             aria-label="Kembalikan Aset"
                                                             onClick={() => openReturnModal(r)}
@@ -361,7 +361,7 @@ export default function LoansPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="min-h-9 min-w-9 h-9 w-9 text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]  rounded-lg cursor-pointer"
+                                                        className="min-h-9 min-w-9 h-9 w-9 text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg cursor-pointer"
                                                         onClick={() => openEditModal(r)}
                                                         disabled={r.status === 'dikembalikan'}
                                                         title="Edit Peminjaman"
@@ -372,7 +372,7 @@ export default function LoansPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="bmn-icon-danger min-h-9 min-w-9 h-9 w-9 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)]  rounded-lg cursor-pointer"
+                                                        className="bmn-icon-danger min-h-9 min-w-9 h-9 w-9 text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg cursor-pointer"
                                                         title="Hapus Catatan"
                                                         aria-label="Hapus Catatan"
                                                         onClick={() => { setDeletingRecord(r); setIsDeleteModalOpen(true); }}
@@ -389,8 +389,8 @@ export default function LoansPage() {
                     </table>
                 </div>
                 {pagination.total > 0 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-[var(--ds-border-subtle)] gap-3">
-                        <p className="text-xs text-[var(--ds-fg-muted)]">Total {pagination.total} transaksi peminjaman (Hal {page} / {pagination.last_page})</p>
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-slate-200/70 dark:border-zinc-800 gap-3">
+                        <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">Total {pagination.total} transaksi peminjaman (Hal {page} / {pagination.last_page})</p>
                         <div className="flex gap-2">
                             <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1 || isFetching} className="text-xs rounded-lg">Sebelumnya</Button>
                             <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page >= pagination.last_page || isFetching} className="text-xs rounded-lg">Selanjutnya</Button>
@@ -413,7 +413,7 @@ export default function LoansPage() {
 
             {/* Edit Modal */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent onOpenAutoFocus={() => { dialogOpener.current = document.activeElement as HTMLElement | null; }} onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-lg">
+                <DialogContent onOpenAutoFocus={() => { dialogOpener.current = document.activeElement as HTMLElement | null; }} onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover rounded-3xl p-4 border border-slate-200/80 dark:border-zinc-800 shadow-lg sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2"><CalendarClock className="w-5 h-5 text-[var(--ds-status-info-fg)]" /> Edit Peminjaman</DialogTitle>
                         <DialogDescription>Perbarui detail peminjaman aset <strong>{editingRecord?.asset?.nama_barang}</strong>.</DialogDescription>
@@ -439,8 +439,8 @@ export default function LoansPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Batal</Button>
-                        <Button onClick={handleEdit} disabled={saving}>
+                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)} className="rounded-lg">Batal</Button>
+                        <Button onClick={handleEdit} disabled={saving} className="rounded-lg">
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Simpan
                         </Button>
                     </DialogFooter>
@@ -449,14 +449,14 @@ export default function LoansPage() {
 
             {/* Delete Modal */}
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent onOpenAutoFocus={() => { dialogOpener.current = document.activeElement as HTMLElement | null; }} onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md">
+                <DialogContent onOpenAutoFocus={() => { dialogOpener.current = document.activeElement as HTMLElement | null; }} onCloseAutoFocus={(event) => { event.preventDefault(); dialogOpener.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover rounded-3xl p-4 border border-slate-200/80 dark:border-zinc-800 shadow-lg sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-[var(--ds-status-danger-fg)]"><Trash2 className="w-5 h-5" /> Hapus Peminjaman?</DialogTitle>
                         <DialogDescription>Hapus data peminjaman aset <strong>{deletingRecord?.asset?.nama_barang}</strong>? Tindakan ini tidak dapat dibatalkan.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Batal</Button>
-                        <Button variant="destructive" onClick={handleDelete} disabled={saving}>
+                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} className="rounded-lg">Batal</Button>
+                        <Button variant="destructive" onClick={handleDelete} disabled={saving} className="rounded-lg">
                             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Hapus
                         </Button>
                     </DialogFooter>

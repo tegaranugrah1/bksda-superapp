@@ -66,7 +66,7 @@ interface NumberRow {
 }
 
 const fieldClass =
-  "h-10 w-full min-w-0 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white";
+  "h-10 w-full min-w-0 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-sm font-semibold text-[var(--ds-fg)] tabular-nums outline-none transition focus:border-[var(--ds-accent-soft-border)] focus:ring-2 focus:ring-[var(--ds-accent-soft)]";
 
 interface DocumentNumberInlineCardProps {
   title?: string;
@@ -100,19 +100,19 @@ export function DocumentNumberInlineCard({
   const showStFields = setStNumber && setStTanggal;
 
   return (
-    <div className="w-full min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="w-full min-w-0 overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
       <div className="mb-3 flex items-start gap-2">
-        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <FileText className="mt-1 h-4 w-4 shrink-0 text-[var(--ds-accent-fg)]" />
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{title}</p>
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-white">{label}</h3>
-          <p className="truncate font-mono text-xs text-zinc-500 dark:text-zinc-400">{preview}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">{title}</p>
+          <h3 className="text-sm font-bold text-[var(--ds-fg)]">{label}</h3>
+          <p className="truncate font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">{preview}</p>
         </div>
       </div>
 
       <div className="grid min-w-0 gap-2 md:grid-cols-2">
         <label className="grid min-w-0 gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Nomor</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Nomor</span>
           <input
             type="text"
             value={number}
@@ -122,7 +122,7 @@ export function DocumentNumberInlineCard({
           />
         </label>
         <label className="grid min-w-0 gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">KAP</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">KAP</span>
           <input
             type="text"
             value={kap}
@@ -134,13 +134,13 @@ export function DocumentNumberInlineCard({
       </div>
 
       {showStFields && (
-        <div className="mt-3 rounded-xl border border-dashed border-zinc-200 p-3 dark:border-zinc-800">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        <div className="mt-3 rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800 p-3">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
             Referensi Surat Tugas
           </p>
           <div className="grid gap-2">
             <label className="grid gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">No. ST</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">No. ST</span>
               <input
                 type="text"
                 value={stNumber || ""}
@@ -150,7 +150,7 @@ export function DocumentNumberInlineCard({
               />
             </label>
             <label className="grid gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Tanggal ST</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Tanggal ST</span>
               <input
                 type="text"
                 value={stTanggal || ""}
@@ -170,16 +170,16 @@ function NumberSettingRow({ row, monthSuffix }: { row: NumberRow; monthSuffix: s
   const preview = `${row.prefix}${row.number || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${row.kap || "____"}/B/${monthSuffix}`;
 
   return (
-    <div className="grid gap-3 rounded-xl border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950 lg:grid-cols-[minmax(0,1fr)_6.5rem_8rem] lg:items-center">
+    <div className="grid gap-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3 lg:grid-cols-[minmax(0,1fr)_6.5rem_8rem] lg:items-center">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-          <p className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">{row.label}</p>
+          <FileText className="h-4 w-4 shrink-0 text-[var(--ds-accent-fg)]" />
+          <p className="truncate text-sm font-bold text-[var(--ds-fg)]">{row.label}</p>
         </div>
-        <p className="mt-1 truncate font-mono text-xs text-zinc-500 dark:text-zinc-400">{preview}</p>
+        <p className="mt-1 truncate font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">{preview}</p>
       </div>
       <label className="grid gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Nomor</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Nomor</span>
         <input
           id={`${row.id}-number`}
           type="text"
@@ -190,7 +190,7 @@ function NumberSettingRow({ row, monthSuffix }: { row: NumberRow; monthSuffix: s
         />
       </label>
       <label className="grid gap-1">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">KAP</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">KAP</span>
         <input
           id={`${row.id}-kap`}
           type="text"
@@ -271,44 +271,44 @@ export function DocumentNumberInputs({
   ];
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-[var(--ds-surface-muted)]"
       >
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
             <Settings2 className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold text-zinc-900 dark:text-white">Pengaturan Nomor Surat</p>
-            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm font-bold text-[var(--ds-fg)]">Pengaturan Nomor Surat</p>
+            <p className="truncate text-xs text-[var(--ds-fg-muted)]">
               Atur nomor dan KAP dokumen lelang dari satu tempat.
             </p>
           </div>
-          <span className="hidden rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-bold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 sm:inline-flex">
+          <span className="hidden rounded-full bg-[var(--ds-surface-muted)] px-3 py-1 text-xs font-bold text-[var(--ds-fg-muted)] tabular-nums sm:inline-flex">
             12 dokumen
           </span>
         </div>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--ds-fg-muted)] transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="space-y-3 border-t border-zinc-100 p-4 dark:border-zinc-800">
+        <div className="space-y-3 border-t border-slate-200/70 dark:border-zinc-800 p-4">
           <div className="grid gap-2">
             {rows.map((row) => (
               <NumberSettingRow key={row.id} row={row} monthSuffix={monthSuffix} />
             ))}
           </div>
 
-          <div className="rounded-xl border border-dashed border-zinc-200 p-3 dark:border-zinc-800">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800 p-3">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
               Referensi Surat Tugas (untuk BA Pemeriksaan)
             </p>
             <div className="grid gap-2 md:grid-cols-2">
               <label className="grid gap-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">No. ST</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">No. ST</span>
                 <input
                   type="text"
                   value={stNumber}
@@ -318,7 +318,7 @@ export function DocumentNumberInputs({
                 />
               </label>
               <label className="grid gap-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Tanggal ST</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">Tanggal ST</span>
                 <input
                   type="text"
                   value={stTanggal}

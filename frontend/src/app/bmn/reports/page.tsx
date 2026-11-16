@@ -153,19 +153,19 @@ export default function BmnReportsPage() {
   ] as const;
 
   return (
-    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-8 space-y-6">
+    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-6 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--ds-fg)]  flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
             <FileText className="w-6 h-6 text-[var(--ds-accent-fg)]" /> Laporan
           </h1>
-          <p className="text-sm text-[var(--ds-fg-muted)]  mt-0.5">
+          <p className="text-sm text-[var(--ds-fg-muted)] mt-1">
             Export laporan dan generate dokumen BMN dari satu workspace.
           </p>
         </div>
       </div>
 
-      <div role="tablist" aria-label="Dokumen dan laporan BMN" className="flex max-w-full overflow-x-auto gap-2 border-b border-[var(--ds-border-subtle)]">
+      <div role="tablist" aria-label="Dokumen dan laporan BMN" className="flex max-w-full overflow-x-auto gap-2 border-b border-slate-200/70 dark:border-zinc-800">
         {tabs.map((tab) => {
           const TabIcon = tab.icon;
           const active = activeTab === tab.id;
@@ -196,7 +196,7 @@ export default function BmnReportsPage() {
                 <motion.span
                   layoutId={`${tabsId}-tab-indicator`}
                   initial={false}
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--ds-accent-fg)]"
+                  className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-[var(--ds-accent-fg)]"
                   transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                 />
               )}
@@ -215,8 +215,8 @@ export default function BmnReportsPage() {
           {activeTab === "exports" && <ExportReportsTab />}
 
           {activeTab === "documents" && (
-            <section className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-5">
-              <aside className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-3  ">
+            <section className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)] gap-6">
+              <aside className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
                 <div className="px-2 pb-3">
                   <p className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Jenis Dokumen</p>
                 </div>
@@ -230,51 +230,51 @@ export default function BmnReportsPage() {
                       aria-pressed={active}
                       aria-controls={`${tabsId}-document-form`}
                       onClick={() => setActiveDocumentType(doc.id)}
-                      className={`relative mt-2 first:mt-0 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors duration-150 cursor-pointer ${
+                      className={`relative mt-2 first:mt-0 flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors duration-150 cursor-pointer ${
                         active
-                          ? "border-[var(--ds-accent-soft-border)] "
-                          : "border-transparent hover:bg-[var(--ds-surface-muted)] "
+                          ? "border-[var(--ds-accent-soft-border)]"
+                          : "border-transparent hover:bg-[var(--ds-surface-muted)]"
                       }`}
                     >
                       {active && (
                         <motion.span
                           layoutId={`${tabsId}-document-type-indicator`}
                           initial={false}
-                          className="absolute inset-0 bg-[var(--ds-accent-soft)]  rounded-xl"
+                          className="absolute inset-0 bg-[var(--ds-accent-soft)] rounded-lg"
                           transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                         />
                       )}
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-sm  relative z-10">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs relative z-10">
                         <Icon className="w-5 h-5" />
                       </span>
                       <span className="relative z-10">
-                        <span className="block text-sm font-bold text-[var(--ds-fg)] ">{doc.title}</span>
-                        <span className="mt-0.5 block text-xs text-[var(--ds-fg-muted)] ">{doc.desc}</span>
+                        <span className="block text-sm font-bold text-[var(--ds-fg)]">{doc.title}</span>
+                        <span className="mt-1 block text-xs text-[var(--ds-fg-muted)]">{doc.desc}</span>
                       </span>
                     </button>
                   );
                 })}
               </aside>
 
-              <div className="space-y-5">
+              <div className="space-y-6">
                 {editingDocument && (
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-4  ">
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-4 shadow-xs">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  ">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-status-warning-fg)] ">
+                          <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-status-warning-fg)]">
                             {editingDocument.isDuplicate
                               ? `Duplikasi dari: ${editingDocument.titleOrNumber}`
                               : `Mode Edit Aktif: ${editingDocument.titleOrNumber}`}
                           </span>
                           <span
-                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                               editingDocument.status === "draft"
-                                ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  "
-                                : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  "
+                                ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]"
+                                : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                             }`}
                           >
                             {editingDocument.isDuplicate
@@ -282,7 +282,7 @@ export default function BmnReportsPage() {
                               : `Status: ${editingDocument.status === "draft" ? "Draf" : "Terbit"}`}
                           </span>
                         </div>
-                        <p className="text-xs text-[var(--ds-status-warning-fg)]  mt-0.5">
+                        <p className="text-xs text-[var(--ds-status-warning-fg)] mt-1">
                           {editingDocument.isDuplicate
                             ? "Data telah disalin ke formulir. Silakan sesuaikan dan simpan sebagai dokumen baru."
                             : "Anda sedang menyunting dokumen yang tersimpan di riwayat. Kosongkan nomor urut jika ingin menyimpan sebagai Draf."}
@@ -293,7 +293,7 @@ export default function BmnReportsPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="rounded-xl border-[var(--ds-status-warning-border)] bg-[var(--ds-surface)] text-xs font-medium text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)]   "
+                      className="rounded-lg border-[var(--ds-status-warning-border)] bg-[var(--ds-surface)] text-xs font-medium text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)]"
                       onClick={cancelEditMode}
                     >
                       {editingDocument.isDuplicate ? "Batal Duplikasi" : "Batal Edit"}

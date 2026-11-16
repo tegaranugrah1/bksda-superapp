@@ -28,7 +28,7 @@ const steps = [
 
 export function WorkflowSteps({ selectedCount, generatedDocumentCount }: WorkflowStepsProps) {
   return (
-    <div className="grid gap-3 rounded-2xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900 md:grid-cols-3">
+    <div className="grid gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs md:grid-cols-3">
       {steps.map(({ key, label, Icon }, index) => {
         const isDone =
           (key === "assets" && selectedCount > 0) ||
@@ -43,24 +43,24 @@ export function WorkflowSteps({ selectedCount, generatedDocumentCount }: Workflo
           <div
             key={key}
             className={cn(
-              "flex min-h-16 items-center gap-3 rounded-xl border px-3 py-2 transition",
+              "flex min-h-16 items-center gap-3 rounded-lg border px-3 py-2 transition",
               isActive
-                ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200"
-                : "border-zinc-100 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300",
+                ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)]",
             )}
           >
             <div
               className={cn(
                 "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
                 isDone
-                  ? "bg-emerald-600 text-white"
-                  : "bg-white text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:ring-zinc-700",
+                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                  : "border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)]",
               )}
             >
               {isDone ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] tabular-nums">
                 Langkah {index + 1}
               </p>
               <p className="text-sm font-bold">{label}</p>

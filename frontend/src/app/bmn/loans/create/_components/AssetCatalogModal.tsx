@@ -234,16 +234,16 @@ export function AssetCatalogModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[96vw] max-w-full sm:max-w-[95vw] md:max-w-[92vw] lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] h-[92vh] max-h-[92vh] p-0 flex flex-col bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-2xl">
+      <DialogContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[96vw] max-w-full sm:max-w-[95vw] md:max-w-[92vw] lg:max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] h-[92vh] max-h-[92vh] p-0 flex flex-col bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-lg">
         {/* Modal Header */}
-        <DialogHeader className="px-6 pt-5 pb-4 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] shrink-0">
+        <DialogHeader className="px-6 py-4 border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)] shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <DialogTitle className="text-lg sm:text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
+              <DialogTitle className="text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
                 <Boxes className="w-5 h-5 text-[var(--ds-accent-fg)]" />
                 <span>Katalog Aset BMN Layak Pinjam</span>
                 {!loading && (
-                  <Badge variant="secondary" className="text-xs font-mono font-medium px-2 py-0.5 ml-1">
+                  <Badge variant="secondary" className="text-xs font-mono font-medium px-2 py-1 ml-1 tabular-nums">
                     {totalCount ? `${assets.length} dari ${totalCount} Aset` : `${assets.length} Aset`}
                   </Badge>
                 )}
@@ -254,20 +254,20 @@ export function AssetCatalogModal({
             </div>
 
             {/* View Switcher */}
-            <div className="flex items-center self-start sm:self-auto bg-[var(--ds-surface-muted)]  p-0.5 rounded-lg border border-[var(--ds-border-subtle)] mr-8">
+            <div className="flex items-center self-start sm:self-auto bg-[var(--ds-surface-muted)] p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 mr-8">
               <button
                 type="button"
                 aria-pressed={viewMode === "grid"}
                 onClick={() => setViewMode("grid")}
                 className={cn(
-                  "px-2.5 py-1.5 rounded-md transition-colors duration-150 text-xs font-medium flex items-center gap-1.5",
+                  "px-3 py-1 rounded-lg transition-colors duration-150 text-xs font-medium flex items-center gap-2",
                   viewMode === "grid"
-                    ? "bg-[var(--ds-surface-raised)] text-[var(--ds-fg)] shadow-sm"
-                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] "
+                    ? "bg-[var(--ds-surface-raised)] text-[var(--ds-fg)] shadow-xs"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)]"
                 )}
                 title="Tampilan Grid Kartu Berfoto"
               >
-                <LayoutGrid className="w-3.5 h-3.5" />
+                <LayoutGrid className="w-4 h-4" />
                 <span>Grid</span>
               </button>
               <button
@@ -275,14 +275,14 @@ export function AssetCatalogModal({
                 aria-pressed={viewMode === "list"}
                 onClick={() => setViewMode("list")}
                 className={cn(
-                  "px-2.5 py-1.5 rounded-md transition-colors duration-150 text-xs font-medium flex items-center gap-1.5",
+                  "px-3 py-1 rounded-lg transition-colors duration-150 text-xs font-medium flex items-center gap-2",
                   viewMode === "list"
-                    ? "bg-[var(--ds-surface-raised)] text-[var(--ds-fg)] shadow-sm"
-                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] "
+                    ? "bg-[var(--ds-surface-raised)] text-[var(--ds-fg)] shadow-xs"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)]"
                 )}
                 title="Tampilan List Baris Kompak"
               >
-                <List className="w-3.5 h-3.5" />
+                <List className="w-4 h-4" />
                 <span>List</span>
               </button>
             </div>
@@ -292,20 +292,20 @@ export function AssetCatalogModal({
           <div className="mt-4 space-y-3">
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
               <Input
                 aria-label="Cari katalog aset"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cari nama barang, merk, tipe, kode barang, NUP, atau nomor polisi..."
-                className="pl-10 pr-9 h-11 bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] rounded-xl text-sm focus-visible:ring-[var(--ds-accent-fg)] shadow-sm"
+                className="pl-10 pr-9 h-10 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm focus-visible:ring-[var(--ds-accent-fg)] shadow-xs"
                 autoFocus
               />
               {search && (
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)]  p-1 rounded-md"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] p-1 rounded-lg"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -329,13 +329,13 @@ export function AssetCatalogModal({
                     type="button"
                     onClick={() => setActiveCategory(tab.id as CategoryType)}
                     className={cn(
-                      "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors duration-150 flex items-center gap-1.5 border",
+                      "px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-colors duration-150 flex items-center gap-2 border",
                       isActive
                         ? "bmn-primary"
-                        : "bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)]"
+                        : "bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)]"
                     )}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-4 h-4" />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -381,27 +381,27 @@ export function AssetCatalogModal({
                     onKeyDown={(event) => { if (!isUnavailable && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggleSelectAsset(asset); } }}
                     onClick={() => { if (!isUnavailable) toggleSelectAsset(asset); }}
                     className={cn(
-                      "bmn-choice-card bg-[var(--ds-surface)] rounded-xl border transition-colors duration-150 flex flex-col overflow-hidden relative group select-none shadow-xs",
+                      "bmn-choice-card bg-[var(--ds-surface)] rounded-lg border transition-colors duration-150 flex flex-col overflow-hidden relative group select-none shadow-xs",
                       isSelected
                         ? "border-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] cursor-pointer"
                         : isUnavailable
-                        ? "opacity-75 cursor-default border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]"
-                        : "border-[var(--ds-border-subtle)] cursor-pointer"
+                        ? "opacity-75 cursor-default border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)]"
+                        : "border-slate-200/80 dark:border-zinc-800 cursor-pointer"
                     )}
                   >
                     {/* Photo Top Container */}
-                    <div className="aspect-[16/10] bg-[var(--ds-surface-muted)] relative flex items-center justify-center overflow-hidden border-b border-[var(--ds-border-subtle)]">
+                    <div className="aspect-[16/10] bg-[var(--ds-surface-muted)] relative flex items-center justify-center overflow-hidden border-b border-slate-200/70 dark:border-zinc-800">
                       {hasValidThumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={photo!.url}
                           alt={asset.nama_barang}
-                          className="w-full h-full object-cover "
+                          className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
                           onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${photo!.label}`]: true }))}
                         />
                       ) : (
-                        <div className="flex flex-col items-center gap-1.5 text-[var(--ds-fg-muted)]">
+                        <div className="flex flex-col items-center gap-2 text-[var(--ds-fg-muted)]">
                           <Camera className="w-7 h-7 stroke-[1.5]" />
                           <span className="text-xs font-bold uppercase tracking-wider">Belum ada foto</span>
                         </div>
@@ -409,21 +409,21 @@ export function AssetCatalogModal({
 
                       {/* Photo Source Badge */}
                       {photo && (
-                        <span className="absolute top-2 left-2 text-xs px-1.5 py-0.2 rounded font-bold uppercase tracking-wider bg-[var(--ds-surface)] text-[var(--ds-fg)] border border-[var(--ds-border-subtle)]">
+                        <span className="absolute top-2 left-2 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider bg-[var(--ds-surface)] text-[var(--ds-fg)] border border-slate-200/80 dark:border-zinc-800">
                           {photo.label}
                         </span>
                       )}
 
                       {/* Plate Badge */}
                       {asset.no_polisi && asset.no_polisi !== "-" && (
-                        <span className="absolute top-2 right-10 text-xs px-2 py-0.5 rounded font-mono font-bold uppercase bg-[var(--ds-fg)] text-[var(--ds-surface)] shadow-sm">
+                        <span className="absolute top-2 right-10 text-xs px-2 py-1 rounded-full font-mono font-bold uppercase bg-[var(--ds-fg)] text-[var(--ds-surface)] shadow-xs tabular-nums">
                           {asset.no_polisi}
                         </span>
                       )}
 
                       {/* Loan Status Banner on Photo */}
                       {isLoaned && (
-                        <span data-status="info" className="absolute bottom-2 left-2 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                        <span data-status="info" className="absolute bottom-2 left-2 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           Sedang Dipinjam
                         </span>
@@ -434,10 +434,10 @@ export function AssetCatalogModal({
                         className={cn(
                           "absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-150 border",
                           isLoaned
-                            ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] shadow-sm"
+                            ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] shadow-xs"
                             : isSelected
                             ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
-                            : "bg-[var(--ds-surface)] border-[var(--ds-border-control)]  text-transparent hover:border-[var(--ds-accent-fg)]"
+                            : "bg-[var(--ds-surface)] border-[var(--ds-border-control)] text-transparent hover:border-[var(--ds-accent-fg)]"
                         )}
                         title={isLoaned ? `Sedang dipinjam oleh ${asset.active_loan?.borrower_name}` : undefined}
                       >
@@ -448,7 +448,7 @@ export function AssetCatalogModal({
                     {/* Card Body */}
                     <div className="p-3 flex-1 flex flex-col justify-between">
                       <div className="min-w-0">
-                        <div className="mb-0.5">
+                        <div className="mb-1">
                           <h4
                             className={cn(
                               "text-xs sm:text-sm font-bold line-clamp-1 leading-snug",
@@ -467,8 +467,8 @@ export function AssetCatalogModal({
                             {formatMerkTipe(asset.merk, asset.tipe, asset.merk_tipe)}
                           </p>
                         )}
-                        <div className="flex items-center gap-1.5 flex-wrap text-xs font-mono text-[var(--ds-fg-muted)]">
-                          <span className="bg-[var(--ds-surface-muted)] px-1.5 py-0.2 rounded text-[var(--ds-fg-muted)] font-semibold">
+                        <div className="flex items-center gap-2 flex-wrap text-xs font-mono text-[var(--ds-fg-muted)] tabular-nums">
+                          <span className="bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full text-[var(--ds-fg-muted)] font-semibold">
                             {asset.kode_barang}
                           </span>
                           <span>•</span>
@@ -479,7 +479,7 @@ export function AssetCatalogModal({
                         {/* Status Pengguna Pegawai */}
                         {userInCharge && (
                           <div
-                            className="flex items-center gap-1.5 text-xs text-[var(--ds-fg-secondary)]  mt-2 bg-[var(--ds-surface-muted)] px-2 py-1 rounded-md border border-[var(--ds-border-subtle)]"
+                            className="flex items-center gap-2 text-xs text-[var(--ds-fg-secondary)] mt-2 bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800"
                             title={`Aset ini ditugaskan/digunakan oleh: ${userInCharge}`}
                           >
                             <User className="w-3 h-3 text-[var(--ds-accent-fg)] shrink-0" />
@@ -492,13 +492,13 @@ export function AssetCatalogModal({
 
                         {/* Status Peminjaman Aktif */}
                         {asset.active_loan && (
-                          <div className="flex items-start gap-1.5 text-xs text-[var(--ds-status-warning-fg)] mt-2 bg-[var(--ds-status-warning-bg)] px-2 py-1 rounded-md border border-[var(--ds-status-warning-border)]">
-                            <Clock className="w-3 h-3 text-[var(--ds-status-warning-fg)] shrink-0 mt-0.5" />
+                          <div className="flex items-start gap-2 text-xs text-[var(--ds-status-warning-fg)] mt-2 bg-[var(--ds-status-warning-bg)] px-2 py-1 rounded-lg border border-[var(--ds-status-warning-border)]">
+                            <Clock className="w-3 h-3 text-[var(--ds-status-warning-fg)] shrink-0 mt-1" />
                             <div className="min-w-0 flex-1 text-xs leading-tight">
                               <span className="font-bold text-[var(--ds-status-warning-fg)]">Sedang Dipinjam:</span>{" "}
                               <span className="font-semibold block truncate">{asset.active_loan.borrower_name}</span>
                               {asset.active_loan.due_date && (
-                                <span className="text-[var(--ds-status-warning-fg)] block text-xs mt-0.5">
+                                <span className="text-[var(--ds-status-warning-fg)] block text-xs mt-1 tabular-nums">
                                   Batas: {asset.active_loan.due_date}
                                 </span>
                               )}
@@ -508,9 +508,9 @@ export function AssetCatalogModal({
                       </div>
 
                       {/* Footer Info */}
-                      <div className="mt-2 pt-2 border-t border-[var(--ds-border-subtle)] flex items-center justify-between">
+                      <div className="mt-2 pt-2 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-between">
                         <span
-                          className="text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                          className="text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider"
                         >
                           {asset.kondisi}
                         </span>
@@ -534,7 +534,7 @@ export function AssetCatalogModal({
             </div>
           ) : (
             /* ================= LIST VIEW ================= */
-            <div className="divide-y divide-[var(--ds-border-subtle)] bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] overflow-hidden">
+            <div className="divide-y divide-slate-200/70 dark:divide-zinc-800 bg-[var(--ds-surface)] rounded-lg border border-slate-200/80 dark:border-zinc-800 overflow-hidden">
               {assets.map((asset) => {
                 const photo = getPrimaryPhoto(asset);
                 const isSelected = Boolean(tempSelectedMap[asset.id]);
@@ -555,37 +555,37 @@ export function AssetCatalogModal({
                     onKeyDown={(event) => { if (!isUnavailable && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); toggleSelectAsset(asset); } }}
                     onClick={() => { if (!isUnavailable) toggleSelectAsset(asset); }}
                     className={cn(
-                      "bmn-choice-card p-3.5 flex flex-wrap sm:flex-nowrap items-center gap-3.5 transition-colors cursor-pointer group",
+                      "bmn-choice-card p-4 flex flex-wrap sm:flex-nowrap items-center gap-4 transition-colors cursor-pointer group",
                       isSelected
                         ? "bg-[var(--ds-accent-soft)]"
                         : isUnavailable
                         ? "opacity-75 cursor-default bg-[var(--ds-surface-muted)]"
-                        : "hover:bg-[var(--ds-surface-muted)]"
+                        : "hover:bg-slate-50/60 dark:hover:bg-zinc-800/30"
                     )}
                   >
                     {/* Checkbox / Loan Lock */}
                     <div
                       className={cn(
-                        "w-5 h-5 rounded-md flex items-center justify-center transition-colors duration-150 border shrink-0",
+                        "w-5 h-5 rounded-lg flex items-center justify-center transition-colors duration-150 border shrink-0",
                         isLoaned
-                          ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] shadow-sm"
+                          ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] shadow-xs"
                           : isSelected
                           ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
-                          : "border-[var(--ds-border-control)]  text-transparent group-hover:border-[var(--ds-accent-fg)]"
+                          : "border-[var(--ds-border-control)] text-transparent group-hover:border-[var(--ds-accent-fg)]"
                       )}
                       title={isLoaned ? `Sedang dipinjam oleh ${asset.active_loan?.borrower_name}` : undefined}
                     >
-                      {isLoaned ? <Clock className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      {isLoaned ? <Clock className="w-4 h-4" /> : <Check className="w-4 h-4 stroke-[3]" />}
                     </div>
 
                     {/* Small Thumbnail */}
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] flex items-center justify-center shrink-0 overflow-hidden relative border border-[var(--ds-border-subtle)] shadow-xs">
+                    <div className="w-16 h-16 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] flex items-center justify-center shrink-0 overflow-hidden relative border border-slate-200/80 dark:border-zinc-800 shadow-xs">
                       {hasValidThumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={photo!.url}
                           alt={asset.nama_barang}
-                          className="w-full h-full object-cover "
+                          className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
                           onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${photo!.label}`]: true }))}
                         />
@@ -593,7 +593,7 @@ export function AssetCatalogModal({
                         <Camera className="w-6 h-6 text-[var(--ds-fg-muted)] stroke-[1.5]" />
                       )}
                       {photo && (
-                        <span className="absolute bottom-1 left-1 text-xs px-1.5 py-0.2 rounded font-bold uppercase tracking-wider bg-[var(--ds-surface)] text-[var(--ds-fg)]">
+                        <span className="absolute bottom-1 left-1 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider bg-[var(--ds-surface)] text-[var(--ds-fg)]">
                           {photo.label}
                         </span>
                       )}
@@ -611,14 +611,14 @@ export function AssetCatalogModal({
                           </span>
                         )}
                         {asset.no_polisi && asset.no_polisi !== "-" && (
-                          <span className="text-xs font-mono font-bold text-[var(--ds-status-info-fg)] bg-[var(--ds-status-info-bg)] px-2 py-0.5 rounded border border-[var(--ds-status-info-border)]">
+                          <span className="text-xs font-mono font-bold text-[var(--ds-status-info-fg)] bg-[var(--ds-status-info-bg)] px-2 py-1 rounded-full border border-[var(--ds-status-info-border)] tabular-nums">
                             No. Polisi: {asset.no_polisi}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs font-mono text-[var(--ds-fg-muted)] flex-wrap">
-                        <span className="bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded text-[var(--ds-fg-muted)] font-semibold">
+                      <div className="flex items-center gap-2 text-xs font-mono text-[var(--ds-fg-muted)] flex-wrap tabular-nums">
+                        <span className="bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full text-[var(--ds-fg-muted)] font-semibold">
                           {asset.kode_barang}
                         </span>
                         <span>•</span>
@@ -632,16 +632,16 @@ export function AssetCatalogModal({
                       </div>
 
                       {/* Status Pengguna & Status Pinjam Tags */}
-                      <div className="flex items-center gap-2 flex-wrap mt-1.5 font-sans">
+                      <div className="flex items-center gap-2 flex-wrap mt-2 font-sans">
                         {userInCharge && (
-                          <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-fg-secondary)]  bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-md border border-[var(--ds-border-subtle)]">
+                          <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-fg-secondary)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800">
                             <User className="w-3 h-3 text-[var(--ds-accent-fg)]" />
                             <span>Pengguna: <strong className="font-semibold">{userInCharge}</strong></span>
                           </span>
                         )}
 
                         {asset.active_loan && (
-                          <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] px-2 py-0.5 rounded-md border border-[var(--ds-status-warning-border)] font-medium">
+                          <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] px-2 py-1 rounded-lg border border-[var(--ds-status-warning-border)] font-medium tabular-nums">
                             <Clock className="w-3 h-3 text-[var(--ds-status-warning-fg)]" />
                             <span>Sedang Dipinjam: <strong className="font-bold">{asset.active_loan.borrower_name}</strong> {asset.active_loan.due_date ? `(s.d. ${asset.active_loan.due_date})` : ''}</span>
                           </span>
@@ -650,20 +650,20 @@ export function AssetCatalogModal({
                     </div>
 
                     {/* Right Condition & Availability Badge */}
-                    <div className="shrink-0 flex flex-col items-end gap-1.5">
+                    <div className="shrink-0 flex flex-col items-end gap-2">
                       <span
                         data-status={asset.kondisi === "Baik" ? "success" : asset.kondisi === "Rusak Ringan" ? "warning" : asset.kondisi === "Rusak Berat" ? "danger" : "neutral"}
-                        className="text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider"
+                        className="text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider"
                       >
                         {asset.kondisi}
                       </span>
 
                       {isLoaned ? (
-                        <span data-status="info" className="text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
+                        <span data-status="info" className="text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
                           Dipinjam
                         </span>
                       ) : (
-                        <span data-status={isUnavailable ? "neutral" : "success"} className="text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        <span data-status={isUnavailable ? "neutral" : "success"} className="text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider">
                           {isUnavailable ? "Tidak tersedia" : "Tersedia"}
                         </span>
                       )}
@@ -682,7 +682,7 @@ export function AssetCatalogModal({
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((p) => p + 1)}
-                className="rounded-xl text-xs h-9 px-5 font-semibold bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] shadow-xs"
+                className="rounded-lg text-xs h-9 px-5 font-semibold bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] shadow-xs tabular-nums"
               >
                 <span>Muat Lebih Banyak (+10 Aset)</span>
               </Button>
@@ -696,9 +696,9 @@ export function AssetCatalogModal({
         </div>
 
         {/* Modal Sticky Bottom Action Bar */}
-        <div className="px-3 sm:px-6 py-3.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between shrink-0 shadow-lg">
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between shrink-0 shadow-lg">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">
+            <span className="text-xs font-semibold text-[var(--ds-fg-muted)] tabular-nums">
               {tempSelectedCount} barang dipilih
             </span>
             {tempSelectedCount > 0 && (
@@ -718,7 +718,7 @@ export function AssetCatalogModal({
               variant="outline"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="text-xs h-9 px-4 rounded-xl"
+              className="text-xs h-9 px-4 rounded-lg"
             >
               Batal
             </Button>
@@ -727,10 +727,10 @@ export function AssetCatalogModal({
               size="sm"
               disabled={tempSelectedCount === 0}
               onClick={handleConfirm}
-              className="text-xs min-h-9 h-auto whitespace-normal px-3 py-2 rounded-xl bmn-primary font-semibold flex items-center gap-1.5"
+              className="text-xs min-h-9 h-auto whitespace-normal px-3 py-2 rounded-lg bmn-primary font-semibold flex items-center gap-2 tabular-nums"
             >
               <span>Masukkan ke Form Pinjam ({tempSelectedCount})</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </div>

@@ -415,17 +415,17 @@ export function UsageAgreementTab({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-[var(--ds-fg)]">Generate BA Pemakaian BMN</h2>
-          <p className="text-xs text-[var(--ds-fg-muted)]">
+          <h2 className="text-sm font-bold text-[var(--ds-fg)]">Generate BA Pemakaian BMN</h2>
+          <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
             {selectedEmployee ? fullBaNumber : "Pilih pegawai untuk mulai membuat dokumen."}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button
             variant="outline"
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={saveUsageAgreement}
             disabled={savingUsageAgreement || !selectedEmployee || !canGenerate}
           >
@@ -439,7 +439,7 @@ export function UsageAgreementTab({
               : "Simpan Riwayat"}
           </Button>
           <Button
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={() => handlePrintUsageAgreement()}
             disabled={!selectedEmployee}
           >
@@ -449,7 +449,7 @@ export function UsageAgreementTab({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-[var(--ds-fg)]">1. Pilih Pegawai</h3>
@@ -462,7 +462,7 @@ export function UsageAgreementTab({
                   value={selectedEmployeeId}
           onChange={(event) => handleEmployeeChange(event.target.value)}
           disabled={loadingEmployees}
-          className="h-12 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-sm outline-none"
+          className="h-10 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-sm outline-none"
         >
           <option value="">{loadingEmployees ? "Memuat pegawai..." : "Pilih pegawai"}</option>
           {employees.map((employee) => (
@@ -474,8 +474,8 @@ export function UsageAgreementTab({
       </div>
 
       {!selectedEmployee ? (
-        <div className="rounded-2xl border border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-10 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+        <div className="rounded-3xl border border-dashed border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-8 text-center shadow-xs">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
             <Archive className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-[var(--ds-fg)]">Belum ada dokumen yang dibuat</h3>
@@ -503,11 +503,11 @@ export function UsageAgreementTab({
             onDelete={deleteHistoryAgreement}
           />
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-[var(--ds-fg)]">2. Pilih Aset Dipakai</h3>
-                <p className="text-xs text-[var(--ds-fg-muted)]">{selectedAssets.length} dari {assets.length} aset dipilih</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{selectedAssets.length} dari {assets.length} aset dipilih</p>
               </div>
             </div>
             <AssetSelectionTable
@@ -523,12 +523,12 @@ export function UsageAgreementTab({
                 {
                   header: "Kode",
                   className: "text-[var(--ds-fg-muted)]",
-                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.kode_barang}</span>,
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)] tabular-nums">{asset.kode_barang}</span>,
                 },
                 {
                   header: "NUP",
                   className: "text-[var(--ds-fg-muted)]",
-                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.nup}</span>,
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)] tabular-nums">{asset.nup}</span>,
                 },
                 {
                   header: "Kondisi",
@@ -539,8 +539,8 @@ export function UsageAgreementTab({
             />
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-5">
-            <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+          <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-6">
+            <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
               <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">3. Detail BA</h3>
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -550,7 +550,7 @@ export function UsageAgreementTab({
                       value={baSequence}
                       onChange={(event) => setBaSequence(event.target.value)}
                       placeholder="contoh: 015"
-                      className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                      className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                     />
                   </label>
                   <label className="block">
@@ -559,7 +559,7 @@ export function UsageAgreementTab({
                       value={kap}
                       onChange={(event) => setKap(event.target.value)}
                       placeholder="KAP.03.02"
-                      className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                      className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                     />
                   </label>
                 </div>
@@ -570,17 +570,17 @@ export function UsageAgreementTab({
                     type="date"
                     value={documentDate}
                     onChange={(event) => setDocumentDate(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                    className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                   />
                 </label>
 
-                <div className="rounded-xl border border-[var(--ds-border-subtle)] p-3 space-y-2">
+                <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 space-y-2">
                   <p className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Pihak Pertama (Kepala Balai)</p>
                   <select
                     aria-label="Pilih pihak pertama"
                   value={firstPartyEmployeeId}
                     onChange={(event) => handleFirstPartyChange(event.target.value)}
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   >
                     <option value="">Default Kepala Balai - M. Ari Wibawanto</option>
                     {employees.map((employee) => (
@@ -593,26 +593,26 @@ export function UsageAgreementTab({
                     aria-label="Nama pihak pertama"
                   value={firstParty.name}
                     onChange={(event) => setFirstParty({ ...firstParty, name: event.target.value })}
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
                     aria-label="NIP pihak pertama"
                   value={firstParty.nip || ""}
                     onChange={(event) => setFirstParty({ ...firstParty, nip: event.target.value })}
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs tabular-nums"
                   />
                   <input
                     aria-label="Pangkat pihak pertama"
                   value={firstParty.rank || ""}
                     onChange={(event) => setFirstParty({ ...firstParty, rank: event.target.value })}
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <textarea
                     aria-label="Jabatan pihak pertama"
                   value={firstParty.position || ""}
                     onChange={(event) => setFirstParty({ ...firstParty, position: event.target.value })}
                     rows={2}
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                 </div>
 
@@ -621,19 +621,19 @@ export function UsageAgreementTab({
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
                   rows={3}
-                  className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
+                  className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                 />
               </div>
             </div>
 
-            <div className="min-w-0 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+            <div className="min-w-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-[var(--ds-fg)]">4. Preview Dokumen</h3>
-                  <p className="text-xs text-[var(--ds-fg-muted)]">{fullBaNumber}</p>
+                  <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{fullBaNumber}</p>
                 </div>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4">
+              <div className="overflow-x-auto rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-4">
                 <UsageAgreementDocument
                   number={fullBaNumber}
                   documentDate={documentDate}

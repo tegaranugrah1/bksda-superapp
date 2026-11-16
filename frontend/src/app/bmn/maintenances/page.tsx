@@ -29,11 +29,11 @@ export default function BmnMaintenancePage() {
   const lastPage = response?.meta?.last_page ?? response?.last_page ?? 1;
 
   return (
-    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 sm:p-5 md:p-7 space-y-5 text-[var(--ds-fg)] ">
+    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 sm:p-6 space-y-6 text-[var(--ds-fg)] ">
       {/* 1. Unified Clean Enterprise Header Bar */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:px-6 md:py-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
             <Wrench className="w-5 h-5" />
           </div>
           <div>
@@ -41,29 +41,29 @@ export default function BmnMaintenancePage() {
             <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
               Pemeliharaan Aset
             </h1>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Riwayat servis, perbaikan teknis, dan catatan biaya pemeliharaan BMN.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className={`${response?.data?.length ? "bmn-wide-table" : ""} w-full text-left`}>
             <thead>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Tanggal & Aset</th>
                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Deskripsi</th>
                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-right">Biaya</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {isLoading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td colSpan={3} className="px-4 py-4">
-                      <div className="h-10 bg-[var(--ds-surface-muted)] rounded-xl" />
+                      <div className="h-10 bg-[var(--ds-surface-muted)] rounded-lg" />
                     </td>
                   </tr>
                 ))
@@ -75,22 +75,22 @@ export default function BmnMaintenancePage() {
                 response?.data?.map((log) => (
                   <tr key={log.id} className="bmn-table-row">
                     <td className="px-4 py-3">
-                      <p className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" /> {log.tanggal_service}
+                      <p className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-2 tabular-nums">
+                        <Calendar className="w-4 h-4 text-[var(--ds-fg-muted)]" /> {log.tanggal_service}
                       </p>
-                      <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">{log.asset?.nama_barang || "Aset Terhapus"}</p>
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1">{log.asset?.nama_barang || "Aset Terhapus"}</p>
                       <p className="text-xs text-[var(--ds-fg-muted)] font-mono">{log.asset?.kode_barang}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm text-[var(--ds-fg-muted)] max-w-sm truncate">{log.deskripsi}</p>
                       {log.kondisi_baru && (
-                        <span data-status={log.kondisi_baru === "Baik" ? "success" : log.kondisi_baru === "Rusak Ringan" ? "warning" : log.kondisi_baru === "Rusak Berat" ? "danger" : "neutral"} className="inline-flex mt-1 text-xs px-2 py-0.5 rounded-full font-bold">
+                        <span data-status={log.kondisi_baru === "Baik" ? "success" : log.kondisi_baru === "Rusak Ringan" ? "warning" : log.kondisi_baru === "Rusak Berat" ? "danger" : "neutral"} className="inline-flex mt-1 text-xs px-2 py-1 rounded-full font-bold">
                           → {log.kondisi_baru}
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <p className="text-sm font-bold text-[var(--ds-fg)]">{formatRupiah(log.biaya)}</p>
+                      <p className="text-sm font-bold text-[var(--ds-fg)] tabular-nums">{formatRupiah(log.biaya)}</p>
                     </td>
                   </tr>
                 ))
@@ -98,8 +98,8 @@ export default function BmnMaintenancePage() {
             </tbody>
           </table>
         </div>
-        <div className="px-4 py-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-between text-sm">
-          <span className="text-xs text-[var(--ds-fg-muted)]">Total {response?.data?.length || 0} catatan servis</span>
+        <div className="px-4 py-3 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-between text-sm">
+          <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">Total {response?.data?.length || 0} catatan servis</span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page <= 1 || isFetching} onClick={() => setPage(p => Math.max(1, p - 1))} className="text-xs rounded-lg">Sebelumnya</Button>
             <Button variant="outline" size="sm" disabled={page >= lastPage || isFetching} onClick={() => setPage(p => p + 1)} className="text-xs rounded-lg">Selanjutnya</Button>

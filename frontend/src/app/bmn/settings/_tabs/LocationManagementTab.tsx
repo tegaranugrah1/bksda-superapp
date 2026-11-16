@@ -280,8 +280,8 @@ export function LocationManagementTab({
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-1">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -292,7 +292,7 @@ export function LocationManagementTab({
                 setPage(1);
               }}
               placeholder="Cari seksi, ruangan, resor, atau kode..."
-              className="w-full h-9 pl-9 pr-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-solid)]/30"
+              className="w-full h-9 pl-9 pr-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-solid)]/30"
             />
           </div>
 
@@ -304,7 +304,7 @@ export function LocationManagementTab({
                 setUnitFilter(e.target.value);
                 setPage(1);
               }}
-              className="h-9 px-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-solid)]/30"
+              className="h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-solid)]/30"
             >
               <option value="all">Semua Unit Induk</option>
               {parentUnits.map((p) => (
@@ -324,9 +324,9 @@ export function LocationManagementTab({
                 variant="outline"
                 size="sm"
                 onClick={() => openCreateModal("seksi")}
-                className="rounded-xl text-xs font-semibold gap-1.5"
+                className="rounded-lg text-xs font-semibold gap-2"
               >
-                <Building2 className="w-3.5 h-3.5" />
+                <Building2 className="w-4 h-4" />
                 Tambah Seksi / Unit Baru
               </Button>
             )}
@@ -335,9 +335,9 @@ export function LocationManagementTab({
               size="sm"
               ref={returnFocusRef}
               onClick={() => openCreateModal("room")}
-              className="rounded-xl text-xs font-semibold gap-1.5"
+              className="rounded-lg text-xs font-semibold gap-2"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               Tambah Lokasi Baru
             </Button>
           </div>
@@ -345,7 +345,7 @@ export function LocationManagementTab({
       </div>
 
       {/* Hierarchical Table */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
         {isLoading ? (
           <div className="p-10 text-center text-xs text-[var(--ds-fg-muted)] flex items-center justify-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -359,7 +359,7 @@ export function LocationManagementTab({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]/60 text-[11px] font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   <th className="py-3 px-4">Lokasi / Penempatan</th>
                   <th className="py-3 px-3">Tipe</th>
                   <th className="py-3 px-3">Akses BKSDA Drive</th>
@@ -368,7 +368,7 @@ export function LocationManagementTab({
                   {canManage && <th className="py-3 px-4 text-right">Aksi</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--ds-border-subtle)] text-xs">
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800 text-xs">
                 {paginatedRows.map(({ item: loc, depth }) => {
                   const isParentUnit = loc.location_type === "balai" || loc.location_type === "seksi";
                   const blockedReason = getDeleteBlockedReason(loc);
@@ -379,26 +379,26 @@ export function LocationManagementTab({
                     <tr
                       key={loc.id}
                       className={cn(
-                        "transition-colors hover:bg-[var(--ds-surface-muted)]/40",
-                        isParentUnit && "bg-[var(--ds-surface-muted)]/25"
+                        "transition-colors hover:bg-slate-50/60 dark:hover:bg-zinc-800/30",
+                        isParentUnit && "bg-slate-50/40 dark:bg-zinc-800/20"
                       )}
                     >
                       <td className="py-3 px-4">
-                        <div className={cn("flex items-start gap-2.5", depth === 1 && "pl-6")}>
+                        <div className={cn("flex items-start gap-3", depth === 1 && "pl-6")}>
                           <div
                             className={cn(
-                              "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5",
+                              "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-1",
                               isParentUnit
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                                 : loc.location_type === "resor"
-                                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                  ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]"
                                   : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                             )}
                           >
                             {isParentUnit ? (
-                              <Building2 className="w-3.5 h-3.5" />
+                              <Building2 className="w-4 h-4" />
                             ) : (
-                              <MapPin className="w-3.5 h-3.5" />
+                              <MapPin className="w-4 h-4" />
                             )}
                           </div>
                           <div>
@@ -412,17 +412,17 @@ export function LocationManagementTab({
                                 {loc.name}
                               </span>
                               {loc.code && (
-                                <span className="px-1.5 py-0.5 rounded bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] font-mono text-[10px] text-[var(--ds-fg-muted)]">
+                                <span className="px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 font-mono text-xs text-[var(--ds-fg-muted)]">
                                   {loc.code}
                                 </span>
                               )}
                               {loc.is_active === false && (
-                                <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-600 text-[10px] font-semibold">
+                                <span className="px-2 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] text-xs font-semibold">
                                   Nonaktif
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-[var(--ds-fg-muted)] mt-0.5">
+                            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                               {loc.unit_kerja}
                               {loc.description ? ` • ${loc.description}` : ""}
                             </p>
@@ -432,19 +432,19 @@ export function LocationManagementTab({
 
                       <td className="py-3 px-3 whitespace-nowrap">
                         {loc.location_type === "balai" ? (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)]">
                             Induk Balai
                           </span>
                         ) : loc.location_type === "seksi" ? (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                             Induk Seksi
                           </span>
                         ) : loc.location_type === "resor" ? (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                             Resor KSDA
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-[var(--ds-border-subtle)]">
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800">
                             Ruangan / Urusan
                           </span>
                         )}
@@ -452,17 +452,17 @@ export function LocationManagementTab({
 
                       <td className="py-3 px-3 whitespace-nowrap">
                         {isParentUnit ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] text-[var(--ds-fg-muted)]">
+                          <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-fg-muted)]">
                             <HardDrive className="w-3 h-3" />
                             {loc.drive_unit?.slug || "Terhubung Unit"}
                           </span>
                         ) : loc.is_restricted ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                             <Lock className="w-3 h-3" />
                             Terisolasi (Khusus Staf)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                             <Globe className="w-3 h-3" />
                             Terbuka se-Unit
                           </span>
@@ -470,14 +470,14 @@ export function LocationManagementTab({
                       </td>
 
                       <td className="py-3 px-3 text-center">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--ds-surface-muted)] text-[11px] font-medium text-[var(--ds-fg)]">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-xs font-medium text-[var(--ds-fg)] tabular-nums">
                           <Users className="w-3 h-3 text-[var(--ds-fg-muted)]" />
                           {loc.active_employees_count ?? 0}
                         </span>
                       </td>
 
                       <td className="py-3 px-3 text-center">
-                        <span className="px-2 py-0.5 rounded-md bg-[var(--ds-surface-muted)] text-[11px] font-medium text-[var(--ds-fg)]">
+                        <span className="px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-xs font-medium text-[var(--ds-fg)] tabular-nums">
                           {loc.assets_count ?? 0}
                         </span>
                       </td>
@@ -494,9 +494,9 @@ export function LocationManagementTab({
                                 onClick={() =>
                                   openCreateModal(loc.location_type === "seksi" ? "resor" : "room", loc.id)
                                 }
-                                className="h-7 px-2 rounded-lg text-[11px] text-emerald-600 hover:text-emerald-700"
+                                className="h-7 px-2 rounded-lg text-xs text-[var(--ds-accent-fg)]"
                               >
-                                <Plus className="w-3.5 h-3.5 mr-0.5" />
+                                <Plus className="w-4 h-4 mr-1" />
                                 Sub
                               </Button>
                             )}
@@ -509,7 +509,7 @@ export function LocationManagementTab({
                                 onClick={() => openEditModal(loc)}
                                 className="h-7 w-7 p-0 rounded-lg"
                               >
-                                <Pencil className="w-3.5 h-3.5" />
+                                <Pencil className="w-4 h-4" />
                               </Button>
                             )}
                             {canDeleteRow && (
@@ -520,9 +520,9 @@ export function LocationManagementTab({
                                 disabled={Boolean(blockedReason)}
                                 title={blockedReason || "Hapus lokasi"}
                                 onClick={() => handleDelete(loc)}
-                                className="h-7 w-7 p-0 rounded-lg text-rose-500 hover:text-rose-600 disabled:opacity-40"
+                                className="h-7 w-7 p-0 rounded-lg text-[var(--ds-status-danger-fg)] disabled:opacity-40"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             )}
                           </div>
@@ -553,14 +553,14 @@ export function LocationManagementTab({
       {/* Create / Edit Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent
-          className="sm:max-w-lg rounded-2xl"
+          className="sm:max-w-lg rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800"
           onCloseAutoFocus={(e) => {
             e.preventDefault();
             returnFocusRef.current?.focus();
           }}
         >
           <DialogHeader>
-            <DialogTitle className="text-base font-bold flex items-center gap-2">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <Shield className="w-4 h-4 text-[var(--ds-accent-fg)]" />
               {editingLoc ? `Edit Lokasi: ${editingLoc.name}` : "Tambah Lokasi Terintegrasi"}
             </DialogTitle>
@@ -573,7 +573,7 @@ export function LocationManagementTab({
             {/* Location Type Selector */}
             {!editingLoc && (
               <div>
-                <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-1.5">
+                <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-2">
                   Jenis Lokasi
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -585,10 +585,10 @@ export function LocationManagementTab({
                       if (!parentId && parentUnits[0]) setParentId(parentUnits[0].id);
                     }}
                     className={cn(
-                      "px-3 py-2 rounded-xl border text-xs font-semibold text-left transition-all",
+                      "px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all",
                       locType === "room"
                         ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
-                        : "border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]"
+                        : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                     )}
                   >
                     Ruangan / Urusan
@@ -601,10 +601,10 @@ export function LocationManagementTab({
                       if (seksiParents[0]) setParentId(seksiParents[0].id);
                     }}
                     className={cn(
-                      "px-3 py-2 rounded-xl border text-xs font-semibold text-left transition-all",
+                      "px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all",
                       locType === "resor"
                         ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
-                        : "border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]"
+                        : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                     )}
                   >
                     Resor KSDA
@@ -618,10 +618,10 @@ export function LocationManagementTab({
                         setIsRestricted(false);
                       }}
                       className={cn(
-                        "px-3 py-2 rounded-xl border text-xs font-semibold text-left transition-all",
+                        "px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all",
                         locType === "seksi"
                           ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
-                          : "border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]"
+                          : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                       )}
                     >
                       Seksi Baru (Lv 1)
@@ -646,7 +646,7 @@ export function LocationManagementTab({
                     const p = availableParents.find((item) => item.id === nextId);
                     if (p) setUnitKerja(p.unit_kerja || p.name);
                   }}
-                  className="w-full h-9 px-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg)]"
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
                 >
                   <option value="">-- Pilih Unit Induk --</option>
                   {availableParents.map((p) => (
@@ -669,7 +669,7 @@ export function LocationManagementTab({
                   value={unitKerja}
                   onChange={(e) => setUnitKerja(e.target.value)}
                   placeholder={locType === "seksi" ? "Contoh: SKW IV Tarakan" : "Unit Kerja"}
-                  className="w-full h-9 px-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg)]"
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
                 />
               </div>
             )}
@@ -695,7 +695,7 @@ export function LocationManagementTab({
                       ? "Resor 15. Nunukan"
                       : "Urusan Kepegawaian & Umum"
                 }
-                className="w-full h-9 px-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg)]"
+                className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
               />
             </div>
 
@@ -710,7 +710,7 @@ export function LocationManagementTab({
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="Otomatis jika kosong"
-                  className="w-full h-9 px-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs font-mono text-[var(--ds-fg)]"
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs font-mono text-[var(--ds-fg)]"
                 />
               </div>
               <div>
@@ -722,25 +722,25 @@ export function LocationManagementTab({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Keterangan singkat lokasi"
-                  className="w-full h-9 px-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg)]"
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
                 />
               </div>
             </div>
 
             {/* Drive Restriction & Active Toggles */}
             {(locType === "room" || locType === "resor") && (
-              <label className="flex items-start gap-2.5 p-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]/40 cursor-pointer">
+              <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isRestricted}
                   onChange={(e) => setIsRestricted(e.target.checked)}
-                  className="mt-0.5 rounded"
+                  className="mt-1 rounded-lg"
                 />
                 <div>
                   <span className="block text-xs font-semibold text-[var(--ds-fg)]">
                     Isolasi Folder di BKSDA Drive (`is_restricted`)
                   </span>
-                  <span className="block text-[11px] text-[var(--ds-fg-muted)]">
+                  <span className="block text-xs text-[var(--ds-fg-muted)]">
                     Jika aktif, hanya pegawai yang ditempatkan di lokasi ini (atau pemilik Share/Manager eksplisit) yang dapat membuka foldernya.
                   </span>
                 </div>
@@ -753,7 +753,7 @@ export function LocationManagementTab({
                   type="checkbox"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
-                  className="rounded"
+                  className="rounded-lg"
                 />
                 Lokasi aktif (tampil di pilihan penempatan pegawai &amp; modul lain)
               </label>
@@ -765,7 +765,7 @@ export function LocationManagementTab({
               type="button"
               variant="outline"
               onClick={() => setModalOpen(false)}
-              className="rounded-xl text-xs"
+              className="rounded-lg text-xs"
             >
               Batal
             </Button>
@@ -773,9 +773,9 @@ export function LocationManagementTab({
               type="button"
               disabled={!canSubmit}
               onClick={handleSave}
-              className="rounded-xl text-xs font-semibold"
+              className="rounded-lg text-xs font-semibold"
             >
-              {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              {isSaving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Simpan Lokasi
             </Button>
           </DialogFooter>

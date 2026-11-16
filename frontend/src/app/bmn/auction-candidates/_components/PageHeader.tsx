@@ -16,12 +16,12 @@ export function PageHeader({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-100 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20">
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]">
           <Gavel className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Aset Akan Di Lelang</h1>
-          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+          <h1 className="text-2xl font-bold text-[var(--ds-fg)]">Aset Akan Di Lelang</h1>
+          <p className="mt-1 text-sm text-[var(--ds-fg-muted)]">
             Kandidat aset kondisi Rusak Berat untuk proses koreksi dan dokumen lelang.
           </p>
         </div>
@@ -29,11 +29,11 @@ export function PageHeader({
       <Button
         size="sm"
         variant="outline"
-        className="rounded-xl gap-2 text-xs"
+        className="rounded-lg gap-2 text-xs"
         onClick={onResetSelection}
         disabled={hasSelection}
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
+        <ArrowLeft className="h-4 w-4" />
         Reset Pilihan
       </Button>
     </div>

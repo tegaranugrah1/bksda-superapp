@@ -31,16 +31,16 @@ export function DocumentWorkflowSection({ documents, canCompletePostValuationDoc
   const phases = Array.from(new Set(definitions.map((definition) => definition.phase)));
 
   return (
-    <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
       <div className="flex items-center gap-2">
-        <ClipboardCheck className="h-4.5 w-4.5 text-zinc-400" />
-        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Status Workflow Dokumen</h2>
+        <ClipboardCheck className="h-4 w-4 text-[var(--ds-fg-muted)]" />
+        <h2 className="text-sm font-bold text-[var(--ds-fg)]">Status Workflow Dokumen</h2>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {phases.map((phase) => (
           <section key={phase} className="space-y-2">
-            <h3 className="text-[11px] font-bold uppercase text-zinc-400">{phaseLabels[phase] || phase}</h3>
+            <h3 className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">{phaseLabels[phase] || phase}</h3>
             <div className="grid gap-2 lg:grid-cols-2">
               {definitions
                 .filter((definition) => definition.phase === phase)
@@ -52,13 +52,13 @@ export function DocumentWorkflowSection({ documents, canCompletePostValuationDoc
                   return (
                     <div
                       key={definition.key}
-                      className="rounded-xl border border-zinc-100 bg-zinc-50/40 p-3 dark:border-zinc-800 dark:bg-zinc-900/30"
+                      className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-zinc-850 dark:text-zinc-100">{definition.title}</p>
-                          <p className="mt-0.5 text-[10px] font-bold uppercase text-zinc-400">{definition.channel}</p>
-                          {isLocked && <p className="mt-1 text-[10px] font-semibold text-amber-600">Menunggu nilai taksiran lengkap</p>}
+                          <p className="text-xs font-semibold text-[var(--ds-fg)]">{definition.title}</p>
+                          <p className="mt-1 text-xs font-bold uppercase text-[var(--ds-fg-muted)]">{definition.channel}</p>
+                          {isLocked && <p className="mt-1 text-xs font-semibold text-[var(--ds-status-warning-fg)]">Menunggu nilai taksiran lengkap</p>}
                         </div>
                         <select
                           value={status}
@@ -72,7 +72,7 @@ export function DocumentWorkflowSection({ documents, canCompletePostValuationDoc
                               },
                             })
                           }
-                          className="h-8 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-semibold text-zinc-800 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:disabled:bg-zinc-900"
+                          className="h-8 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs font-semibold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-ring)] disabled:cursor-not-allowed disabled:bg-[var(--ds-surface-muted)] disabled:text-[var(--ds-fg-muted)]"
                         >
                           {statusOptions.map((option) => (
                             <option key={option.value} value={option.value}>

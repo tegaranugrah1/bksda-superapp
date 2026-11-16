@@ -39,18 +39,18 @@ function ActionButton({ action, disabled }: { action: DocumentAction; disabled: 
       type="button"
       variant="outline"
       className={cn(
-        "h-auto min-h-12 justify-start rounded-xl border-zinc-200 bg-white px-3 py-2 text-left hover:border-emerald-200 hover:bg-emerald-50 dark:border-zinc-700 dark:bg-zinc-950 dark:hover:border-emerald-500/30 dark:hover:bg-emerald-500/10",
+        "h-auto min-h-12 justify-start rounded-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-left hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)]",
         disabled && "cursor-not-allowed opacity-55",
       )}
       onClick={action.onClick}
       disabled={disabled}
     >
-      <FileText className="mr-2 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+      <FileText className="mr-2 h-4 w-4 shrink-0 text-[var(--ds-accent-fg)]" />
       <span className="min-w-0">
-        <span className="block truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">
+        <span className="block truncate text-xs font-bold text-[var(--ds-fg)]">
           {action.label}
         </span>
-        <span className="block truncate text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
+        <span className="block truncate text-xs font-medium text-[var(--ds-fg-muted)]">
           {action.description}
         </span>
       </span>
@@ -109,20 +109,20 @@ export function DocumentActions({
   ];
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          <Sparkles className="h-4 w-4 text-[var(--ds-accent-fg)]" />
           <div>
-            <h2 className="text-sm font-bold text-zinc-900 dark:text-white">Generate Dokumen Lelang</h2>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <h2 className="text-sm font-bold text-[var(--ds-fg)]">Generate Dokumen Lelang</h2>
+            <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
               {orderedIdsLength > 0
                 ? `${orderedIdsLength} aset siap dipakai sebagai lampiran.`
                 : "Beberapa dokumen membutuhkan aset terpilih."}
             </p>
           </div>
         </div>
-        <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+        <span className="w-fit rounded-full bg-[var(--ds-surface-muted)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
           Langkah 3
         </span>
       </div>
@@ -131,15 +131,15 @@ export function DocumentActions({
         {groups.map(({ title, description, Icon, actions }) => (
           <section
             key={title}
-            className="rounded-xl border border-zinc-100 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950"
+            className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3"
           >
             <div className="mb-3 flex items-start gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-600 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:text-emerald-400 dark:ring-zinc-700">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-accent-fg)]">
                 <Icon className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{title}</p>
-                <p className="text-[10px] leading-4 text-zinc-500 dark:text-zinc-400">{description}</p>
+                <p className="text-xs font-bold text-[var(--ds-fg)]">{title}</p>
+                <p className="text-xs leading-4 text-[var(--ds-fg-muted)]">{description}</p>
               </div>
             </div>
             <div className="grid gap-2">

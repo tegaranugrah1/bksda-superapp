@@ -75,14 +75,14 @@ export function SelectedAssetsBanner({
   if (showPermohonanKpknl) printActions.push({ label: "Permohonan KPKNL", onClick: onPrintPermohonanKpknl });
 
   return (
-    <div className="sticky top-4 z-20 flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-white/95 px-4 py-3 shadow-sm shadow-emerald-950/5 backdrop-blur dark:border-emerald-500/20 dark:bg-zinc-900/95 sm:flex-row sm:items-center sm:justify-between">
+    <div className="sticky top-4 z-20 flex flex-col gap-3 rounded-3xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface)] px-4 py-3 shadow-xs backdrop-blur sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]">
           <CheckCircle2 className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{orderedIdsLength} aset dipilih</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm font-bold text-[var(--ds-fg)] tabular-nums">{orderedIdsLength} aset dipilih</p>
+          <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
             {printActions.length > 0
               ? `${printActions.length} dokumen siap dicetak.`
               : "Lengkapi detail, lalu generate dokumen pada langkah 3."}
@@ -97,10 +97,10 @@ export function SelectedAssetsBanner({
               key={action.label}
               size="sm"
               variant="outline"
-              className="h-9 shrink-0 rounded-lg border-emerald-200 bg-white text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/30 dark:bg-zinc-950 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+              className="h-9 shrink-0 rounded-lg border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface)] text-xs font-bold text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)]"
               onClick={action.onClick}
             >
-              <Printer className="mr-1.5 h-3.5 w-3.5" />
+              <Printer className="mr-2 h-4 w-4" />
               Cetak {action.label}
             </Button>
           ))}

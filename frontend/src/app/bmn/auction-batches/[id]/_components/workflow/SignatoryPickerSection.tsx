@@ -43,16 +43,16 @@ function MultiPicker({
 }) {
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">{label}</label>
-      <div className="max-h-40 overflow-y-auto rounded-xl border border-zinc-100 bg-zinc-50/20 p-2.5 dark:border-zinc-800">
-        <div className="space-y-1.5">
+      <label className="block text-xs font-semibold text-[var(--ds-fg-secondary)]">{label}</label>
+      <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
+        <div className="space-y-2">
           {employees.map((employee) => {
             const id = String(employee.id);
             return (
               <button
                 type="button"
                 key={employee.id}
-                className="flex w-full items-center gap-2 rounded-lg p-1 text-left hover:bg-zinc-50/70"
+                className="flex w-full items-center gap-2 rounded-lg p-1 text-left hover:bg-[var(--ds-surface)]"
                 onClick={() => onChange(toggleId(selectedIds, id))}
               >
                 <Checkbox
@@ -60,9 +60,9 @@ function MultiPicker({
                   onClick={(event) => event.stopPropagation()}
                   onCheckedChange={() => onChange(toggleId(selectedIds, id))}
                 />
-                <span className="text-xs">
+                <span className="text-xs text-[var(--ds-fg)]">
                   {getEmployeeName(employee)}{" "}
-                  <span className="font-mono text-[10px] text-zinc-400">(NIP. {employee.nip || "-"})</span>
+                  <span className="font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">(NIP. {employee.nip || "-"})</span>
                 </span>
               </button>
             );
@@ -98,11 +98,11 @@ export function SignatoryPickerSection({
   });
 
   return (
-    <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-      <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Daftar Penandatangan Dokumen</h2>
+    <div className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+      <h2 className="text-sm font-bold text-[var(--ds-fg)]">Daftar Penandatangan Dokumen</h2>
 
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Kepala Balai</label>
+      <div className="space-y-2">
+        <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">Kepala Balai</label>
         <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -110,19 +110,19 @@ export function SignatoryPickerSection({
               variant="outline"
               role="combobox"
               aria-expanded={isPickerOpen}
-              className="h-auto min-h-10 w-full justify-between rounded-xl border-zinc-200 bg-white px-3 py-2 text-left text-xs font-normal dark:border-zinc-800 dark:bg-zinc-900"
+              className="h-auto min-h-10 w-full justify-between rounded-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-left text-xs font-normal"
               disabled={isLoadingEmployees}
             >
               <span className="min-w-0 truncate">
                 {selectedKepalaBalai ? getEmployeeLabel(selectedKepalaBalai) : "-- Pilih Kepala Balai --"}
               </span>
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-zinc-400" />
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[min(560px,calc(100vw-2rem))] p-0" align="start">
-            <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
+          <PopoverContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[min(560px,calc(100vw-2rem))] p-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg" align="start">
+            <div className="border-b border-slate-200/70 dark:border-zinc-800 px-3 py-2">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+                <Search className="h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
                 <Input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
@@ -131,15 +131,15 @@ export function SignatoryPickerSection({
                 />
               </div>
             </div>
-            <div className="max-h-72 overflow-y-auto p-1.5">
+            <div className="max-h-72 overflow-y-auto p-2">
               {filteredEmployees.length === 0 ? (
-                <div className="px-3 py-6 text-center text-xs text-zinc-500">Pegawai tidak ditemukan.</div>
+                <div className="px-3 py-6 text-center text-xs text-[var(--ds-fg-muted)]">Pegawai tidak ditemukan.</div>
               ) : (
                 filteredEmployees.map((employee) => (
                   <button
                     key={employee.id}
                     type="button"
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-[var(--ds-surface-muted)]"
                     onClick={() => {
                       const employeeId = String(employee.id);
                       onKepalaBalaiChange(employeeId);
@@ -148,15 +148,15 @@ export function SignatoryPickerSection({
                     }}
                   >
                     <Check
-                      className={`h-4 w-4 shrink-0 text-emerald-600 ${
+                      className={`h-4 w-4 shrink-0 text-[var(--ds-accent-fg)] ${
                         kepalaBalaiId === String(employee.id) ? "opacity-100" : "opacity-0"
                       }`}
                     />
                     <span className="min-w-0">
-                      <span className="block truncate font-semibold text-zinc-850 dark:text-zinc-100">
+                      <span className="block truncate font-semibold text-[var(--ds-fg)]">
                         {getEmployeeName(employee)}
                       </span>
-                      <span className="block truncate font-mono text-[10px] text-zinc-400">
+                      <span className="block truncate font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">
                         NIP. {employee.nip || "-"}
                         {getEmployeePosition(employee) ? ` - ${getEmployeePosition(employee)}` : ""}
                       </span>
