@@ -26,7 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { Badge } from "@/components/ui/badge";
 import { RouteGuard } from "@/components/RouteGuard";
-import { motion, AnimatePresence, MotionConfig, useReducedMotion } from "framer-motion";
+import { motion, MotionConfig, useReducedMotion } from "framer-motion";
 import "./assets/assets.css";
 import "./bmn-ui.css";
 
@@ -304,18 +304,15 @@ export default function BmnLayout({ children }: { children: React.ReactNode }) {
           </header>
 
           <main className="flex-1 overflow-y-auto bg-[var(--ds-canvas)]">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={pathname}
-                initial={false}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reduced ? 0 : 0.12, ease: "easeOut" }}
-                className="min-h-full w-full"
-              >
-                {isRouteForbidden ? null : children}
-              </motion.div>
-            </AnimatePresence>
+            <motion.div
+              key={pathname}
+              initial={false}
+              animate={{ opacity: 1 }}
+              transition={{ duration: reduced ? 0 : 0.12, ease: "easeOut" }}
+              className="min-h-full w-full"
+            >
+              {isRouteForbidden ? null : children}
+            </motion.div>
           </main>
         </div>
       </div>

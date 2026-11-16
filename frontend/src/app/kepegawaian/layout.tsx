@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useId } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Users,
   UserPlus,
@@ -307,18 +307,15 @@ export default function KepegawaianLayout({
           </header>
 
           <main className="flex-1 overflow-y-auto bg-[var(--ds-canvas)] [scrollbar-gutter:stable]">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={pathname}
-                initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : -4 }}
-                transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
-                className="w-full min-h-full"
-              >
-                {isRouteForbidden ? null : children}
-              </motion.div>
-            </AnimatePresence>
+            <motion.div
+              key={pathname}
+              initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
+              className="w-full min-h-full"
+            >
+              {isRouteForbidden ? null : children}
+            </motion.div>
           </main>
         </div>
       </div>

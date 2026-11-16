@@ -99,6 +99,10 @@ assert(
     layoutSource.includes('menuButton.current?.focus()'),
   'surat/layout.tsx must use single Teal Tua accent color for sidebar matching BMN and Kepegawaian shell standard.'
 );
+for (const layoutFile of ['app/surat/layout.tsx', 'app/kepegawaian/layout.tsx', 'app/bmn/layout.tsx']) {
+  const src = read(layoutFile);
+  assert(!src.includes('<AnimatePresence'), `${layoutFile} must not wrap route children in AnimatePresence (prevents Next.js App Router exit-stuck blank pages).`);
+}
 
 // 4. Hub & Dashboard parity (including canonical Dashboard Kepegawaian header standard across BMN & Persuratan)
 const hubPageSource = read('app/surat/page.tsx');

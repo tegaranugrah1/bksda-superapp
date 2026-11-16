@@ -2060,8 +2060,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/layout.tsx": {
-    "mtime": 1794790788.8017764,
-    "ast_hash": "e211c281b775f3b858ec310cff133013",
+    "mtime": 1794796699.2447443,
+    "ast_hash": "353232a3476512e770ef280efc3d4418",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/create/page.tsx": {
@@ -2340,8 +2340,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/layout.tsx": {
-    "mtime": 1794788772.4255235,
-    "ast_hash": "a63d25a44f78ccf986665b8fa1e8fa06",
+    "mtime": 1794796697.5794706,
+    "ast_hash": "4eb38eb5e636d05f789aae7bf5951f7b",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/page.tsx": {
@@ -2530,8 +2530,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/layout.tsx": {
-    "mtime": 1794788526.4836862,
-    "ast_hash": "ec04a2bd22106df2cc07c57e776361ac",
+    "mtime": 1794796685.7714992,
+    "ast_hash": "0dd424ea74ede9fd87e816ad665f61f7",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/masuk/create/page.tsx": {
@@ -9120,8 +9120,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/persuratan-ui.cjs": {
-    "mtime": 1794441988.3491797,
-    "ast_hash": "b4aa25c8d23b9367bbc06832d3953c52",
+    "mtime": 1794796748.0171473,
+    "ast_hash": "bde6f8cce9805636b0229ccb6f6b3a3f",
     "semantic_hash": ""
   },
   "docs/testing/persuratan-visual-audit.md": {
