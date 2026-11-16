@@ -534,19 +534,19 @@ export default function InboxSuratCutiPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider text-xs">
                 <tr>
-                  <th className="py-3 px-3">Pegawai Pemohon</th>
-                  <th className="py-3 px-3">Surat &amp; Jenis Cuti</th>
-                  <th className="py-3 px-3 whitespace-nowrap">Masa Pelaksanaan</th>
-                  <th className="py-3 px-3">Alasan &amp; Alamat Cuti</th>
-                  <th className="py-3 px-2.5 text-center">Status</th>
-                  <th className="py-3 px-3 text-right whitespace-nowrap">Aksi &amp; Verifikasi</th>
+                  <th className="py-3 px-2">Pegawai Pemohon</th>
+                  <th className="py-3 px-2 min-w-[205px]">Surat &amp; Jenis Cuti</th>
+                  <th className="py-3 px-2 w-[1%] whitespace-nowrap">Masa Pelaksanaan</th>
+                  <th className="py-3 px-2">Alasan &amp; Alamat Cuti</th>
+                  <th className="py-3 px-1.5 w-[1%] text-center whitespace-nowrap">Status</th>
+                  <th className="py-3 px-2 w-[1%] text-center whitespace-nowrap">Aksi &amp; Verifikasi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--ds-border-subtle)]">
                 {list.map((item) => (
                   <tr key={item.id} className="hover:bg-[var(--ds-surface)] transition-colors">
                     {/* Pegawai Pemohon */}
-                    <td className="py-3 px-3 align-top max-w-[180px]">
+                    <td className="py-3 px-2 align-top max-w-[165px]">
                       <div className="font-bold text-[var(--ds-fg)] leading-tight truncate" title={item.employee?.nama_lengkap || "Pegawai"}>
                         {item.employee?.nama_lengkap || "Pegawai"}
                       </div>
@@ -555,7 +555,7 @@ export default function InboxSuratCutiPage() {
                       </div>
                       {item.employee?.satuan_kerja && (
                         <div
-                          className="text-xs text-[var(--ds-fg-muted)] truncate mt-0.5 leading-tight"
+                          className="text-xs text-[var(--ds-fg-muted)] line-clamp-2 mt-0.5 leading-tight break-words"
                           title={item.employee?.satuan_kerja}
                         >
                           {item.employee?.satuan_kerja}
@@ -564,8 +564,8 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Surat & Jenis Cuti */}
-                    <td className="py-3 px-3 align-top max-w-[175px]">
-                      <div className="font-bold text-[var(--ds-accent-fg)] leading-tight whitespace-nowrap truncate">
+                    <td className="py-3 px-2 align-top min-w-[215px] max-w-[280px]">
+                      <div className="font-bold text-[var(--ds-accent-fg)] leading-tight truncate" title={item.jenis_cuti}>
                         {item.jenis_cuti}
                       </div>
                       {item.nomor_pengajuan ? (
@@ -583,7 +583,7 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Masa Pelaksanaan */}
-                    <td className="py-3 px-3 align-top whitespace-nowrap">
+                    <td className="py-3 px-2 align-top w-[1%] whitespace-nowrap">
                       <div className="font-bold text-[var(--ds-fg)] leading-tight">
                         {item.tanggal_mulai} s/d {item.tanggal_selesai}
                       </div>
@@ -593,7 +593,7 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Alasan & Alamat Cuti */}
-                    <td className="py-3 px-3 max-w-[185px] align-top">
+                    <td className="py-3 px-2 max-w-[115px] align-top">
                       {!item.alasan_cuti || item.alasan_cuti.toLowerCase().includes("sisa cuti") ? (
                         <div className="text-[var(--ds-fg-muted)] italic text-xs leading-tight">-</div>
                       ) : (
@@ -612,7 +612,7 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Status Badge */}
-                    <td className="py-3 px-2.5 align-top text-center whitespace-nowrap">
+                    <td className="py-3 px-1.5 w-[1%] align-top text-center whitespace-nowrap">
                       {(() => {
                         const st = (item.status || "PENGAJUAN").toUpperCase();
                         const isApproved = st === "DISETUJUI" || st === "APPROVED";
@@ -638,7 +638,7 @@ export default function InboxSuratCutiPage() {
                             }}
                             disabled={!canWrite || toggleStatusMutation.isPending || approveMutation.isPending}
                             className={cn(
-                              "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-2xs border",
+                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold uppercase tracking-wide transition-colors shadow-2xs border",
                               canWrite && "cursor-pointer  ",
                               isApproved
                                 ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   "
@@ -674,7 +674,7 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Aksi & Verifikasi */}
-                    <td className="py-3 px-3 text-right whitespace-nowrap align-top">
+                    <td className="py-3 px-2 w-[1%] text-right whitespace-nowrap align-top">
                       {(() => {
                         const st = (item.status || "PENGAJUAN").toUpperCase();
                         const isApproved = st === "DISETUJUI" || st === "APPROVED";
@@ -685,7 +685,7 @@ export default function InboxSuratCutiPage() {
                         const uploadedCount = (hasDigitalSurat ? 1 : 0) + (hasSuratIzin ? 1 : 0) + (hasFormulir ? 1 : 0);
 
                         return (
-                          <div data-module="kepegawaian" className="kpg-ui flex items-center justify-end gap-1.5">
+                          <div data-module="kepegawaian" className="kpg-ui inline-flex items-center justify-end gap-1">
                             {/* 1. Berkas Dropdown Menu */}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild
@@ -697,7 +697,7 @@ export default function InboxSuratCutiPage() {
                                   variant="outline"
                                   size="sm"
                                   className={cn(
-                                    "h-8 px-2.5 text-xs font-semibold rounded-xl gap-1.5 shadow-2xs transition-colors cursor-pointer",
+                                    "h-8 px-2 text-xs font-semibold rounded-xl gap-1 shadow-2xs transition-colors cursor-pointer",
                                     hasDigitalSurat
                                       ? "text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)]   "
                                       : uploadedCount > 0
@@ -831,7 +831,7 @@ export default function InboxSuratCutiPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => setPrintItem(item)}
-                              className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] rounded-xl gap-1.5 shadow-2xs cursor-pointer"
+                              className="h-8 px-2 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] rounded-xl gap-1 shadow-2xs cursor-pointer"
                               title="Lihat / Cetak Hasil Formulir Cuti"
                             >
                               <Eye className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
@@ -849,7 +849,7 @@ export default function InboxSuratCutiPage() {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-xl cursor-pointer"
+                                    className="h-8 w-7 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-xl cursor-pointer"
                                     title="Aksi Lainnya"
                                   >
                                     <MoreHorizontal className="w-4 h-4" />

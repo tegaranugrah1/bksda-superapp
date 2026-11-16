@@ -2325,8 +2325,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/page.tsx": {
-    "mtime": 1794806946.5372286,
-    "ast_hash": "25b4514728a1e0e5c2efbc63e78bf3ab",
+    "mtime": 1794809694.4899044,
+    "ast_hash": "c1fbc42878893c52e0492951a748f7a0",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
