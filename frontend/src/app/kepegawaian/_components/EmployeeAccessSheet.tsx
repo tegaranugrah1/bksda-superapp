@@ -16,7 +16,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
@@ -214,50 +213,12 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3.5">
-              {/* Role & Activation Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Peran Sistem (Role)</FormLabel>
-                      <FormControl>
-                        <select
-                          value={field.value}
-                          onChange={(e) => {
-                            const nextRole = e.target.value as "user" | "admin" | "super_admin";
-                            field.onChange(nextRole);
-                            if (nextRole !== "super_admin") {
-                              const currentMods = form.getValues("access_modules") || [];
-                              const batchRoles: Record<string, "user" | "admin"> = {};
-                              for (const modId of currentMods) {
-                                batchRoles[modId] = nextRole;
-                              }
-                              form.setValue("module_roles", batchRoles, { shouldDirty: true });
-                            }
-                          }}
-                          className="w-full h-9 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)]"
-                        >
-                          <option value="user">User (Atur Per Modul / Pegawai)</option>
-                          <option value="admin">Admin (Default Semua Modul Admin)</option>
-                          <option value="super_admin">Super Admin (Akses Penuh)</option>
-                        </select>
-                      </FormControl>
-                      <p className="text-[11px] leading-snug text-[var(--ds-fg-muted)]">
-                        {field.value === "super_admin"
-                          ? "Akses penuh ke seluruh modul & pengaturan."
-                          : "Pilih User/Admin pada masing-masing modul di bawah."}
-                      </p>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-
+              {/* Status & Super Admin Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
                 <FormField control={form.control} name="is_active" render={({ field }) => (
-                  <FormItem className="space-y-1">
+                  <FormItem className="space-y-1 flex flex-col">
                     <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] block">Status Akun</span>
-                    <label className="flex items-start gap-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 cursor-pointer">
+                    <label className="flex-1 flex items-start gap-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2.5 cursor-pointer">
                       <FormControl>
                         <input
                           type="checkbox"
@@ -268,24 +229,80 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                       </FormControl>
                       <div className="min-w-0">
                         <span className="text-sm font-semibold text-[var(--ds-fg)] block leading-tight">Aktifkan akun akses aplikasi</span>
-                        <span className="text-[11px] leading-snug text-[var(--ds-fg-muted)] block mt-0.5">Akun nonaktif tidak dapat login & sesi akses dicabut.</span>
+                        <span className="text-[11px] leading-snug text-[var(--ds-fg-muted)] block mt-0.5">Akun nonaktif tidak dapat login &amp; sesi akses dicabut.</span>
                       </div>
                     </label>
                     <FormMessage />
                   </FormItem>
                 )} />
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => {
+                    const isSuperAdmin = field.value === "super_admin";
+                    return (
+                      <FormItem className="space-y-1 flex flex-col">
+                        <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] block">Wewenang Global</span>
+                        <label
+                          className={cn(
+                            "flex-1 flex items-start gap-2.5 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors",
+                            isSuperAdmin
+                              ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]"
+                              : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]"
+                          )}
+                        >
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={isSuperAdmin}
+                              onChange={(e) => {
+                                field.onChange(e.target.checked ? "super_admin" : "user");
+                              }}
+                              className="mt-0.5 shrink-0"
+                            />
+                          </FormControl>
+                          <div className="min-w-0">
+                            <span className={cn("text-sm font-semibold block leading-tight", isSuperAdmin ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]")}>
+                              Super Admin (Akses Penuh)
+                            </span>
+                            <span className="text-[11px] leading-snug text-[var(--ds-fg-muted)] block mt-0.5">
+                              Akses penuh ke semua modul, pengaturan &amp; IAM.
+                            </span>
+                          </div>
+                        </label>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    );
+                  }}
+                />
               </div>
 
               {/* Module Access */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Akses Modul</label>
-                  <Badge variant="outline" className="text-xs font-bold">{accessModules.length} Terpilih</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Akses Modul</label>
+                    <span className="text-[11px] text-[var(--ds-fg-muted)]">
+                      {selectedRole === "super_admin"
+                        ? "Semua modul otomatis penuh."
+                        : "Centang modul lalu pilih User / Admin."}
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-xs font-bold shrink-0">
+                    {selectedRole === "super_admin" ? "Semua Aktif" : `${accessModules.length} Terpilih`}
+                  </Badge>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div
+                  className={cn(
+                    "grid grid-cols-1 sm:grid-cols-2 gap-2 transition-opacity",
+                    selectedRole === "super_admin" && "opacity-60 pointer-events-none"
+                  )}
+                >
                   {AVAILABLE_MODULES.map((module) => {
-                    const isSelected = accessModules.includes(module.id);
-                    const currentModRole = moduleRoles[module.id] || (selectedRole === "admin" ? "admin" : "user");
+                    const isSuperAdmin = selectedRole === "super_admin";
+                    const isSelected = isSuperAdmin || accessModules.includes(module.id);
+                    const currentModRole = moduleRoles[module.id] || "user";
                     return (
                       <div
                         key={module.id}
@@ -294,6 +311,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                           isSelected ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]" : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:border-[var(--ds-border-subtle)]"
                         )}
                         onClick={() => {
+                          if (isSuperAdmin) return;
                           const current = form.getValues("access_modules") || [];
                           const currentRoles = { ...(form.getValues("module_roles") || {}) };
                           const updated = isSelected
@@ -302,7 +320,7 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                           if (isSelected) {
                             delete currentRoles[module.id];
                           } else {
-                            currentRoles[module.id] = selectedRole === "admin" ? "admin" : "user";
+                            currentRoles[module.id] = "user";
                           }
                           form.setValue("access_modules", updated, { shouldValidate: true });
                           form.setValue("module_roles", currentRoles, { shouldDirty: true });

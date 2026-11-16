@@ -580,8 +580,8 @@ async function runFiveUserRbacE2E() {
       await iamBtn.click();
       await page.waitForTimeout(300);
 
-      // Verify IAM drawer opens and does NOT render legacy 16 BMN granular checkboxes
-      assert.equal(await page.locator('text=Peran Sistem (Role)').isVisible(), true, 'Sheet IAM harus terbuka');
+      // Verify IAM drawer opens without legacy dropdown or 16 BMN granular checkboxes
+      assert.equal(await page.locator('text=Super Admin (Akses Penuh)').isVisible(), true, 'Sheet IAM harus terbuka dengan checkbox Super Admin (Akses Penuh)');
       assert.equal(await page.locator('text=bmn.asset.create').count(), 0, 'Checklist granular BMN lama (bmn.asset.create) harus sudah dihapus dari IAM Sheet');
       totalAssertions += 3;
 
@@ -724,6 +724,17 @@ async function runFiveUserRbacE2E() {
       assert.equal(await suratGroup.locator('button:has-text("Admin")').getAttribute('aria-pressed'), 'true', 'Persuratan harus aktif sebagai Admin');
       assert.equal(await bmnGroup.locator('button:has-text("Admin")').getAttribute('aria-pressed'), 'true', 'BMN harus aktif sebagai Admin');
       totalAssertions += 3;
+
+      // Toggle Super Admin checkbox ON -> per-module toggles disappear; toggle OFF -> mixed roles stay intact
+      const superAdminCheckbox = page.locator('label:has-text("Super Admin (Akses Penuh)") input[type="checkbox"]');
+      await superAdminCheckbox.check();
+      assert.equal(await page.locator('text=Semua modul otomatis penuh.').isVisible(), true, 'Centang Super Admin harus menandai semua modul penuh');
+      assert.equal(await suratGroup.count(), 0, 'Toggle per modul harus tersembunyi saat Super Admin dicentang');
+      await superAdminCheckbox.uncheck();
+      await suratGroup.waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await kpgGroup.locator('button:has-text("User")').getAttribute('aria-pressed'), 'true', 'Uncheck Super Admin tetap mempertahankan role User di Kepegawaian');
+      assert.equal(await suratGroup.locator('button:has-text("Admin")').getAttribute('aria-pressed'), 'true', 'Uncheck Super Admin tetap mempertahankan role Admin di Persuratan');
+      totalAssertions += 4;
 
       await page.locator('button[type="submit"]:has-text("Simpan")').click();
       await page.waitForTimeout(400);
