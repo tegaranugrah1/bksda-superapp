@@ -1,7 +1,7 @@
 :is(.kpg-shell, .psr-shell) { background: var(--ds-canvas); color: var(--ds-fg); }
 :is(.kpg-shell, .psr-shell) main { min-width: 0; background: var(--ds-canvas); }
 :is(.kpg-shell, .psr-shell) :is(button, a[href]) { cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out; }
-:is(.kpg-shell, .psr-shell) :is(button, a[href]):focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; }
+:is(.kpg-shell, .psr-shell) :is(button, a[href]):focus-visible { outline: 2px solid var(--ds-accent-fg); outline-offset: 2px; box-shadow: none; }
 :is(.kpg-shell, .psr-shell) aside { transition: width 200ms ease-in-out, transform 200ms ease-in-out; }
 :is(.kpg-shell, .psr-shell) nav a { min-height: 36px; }
 :is(.kpg-shell, .psr-shell) nav a[aria-current="page"] { color: var(--ds-accent-fg); }

@@ -54,14 +54,28 @@ function setupSandboxData() {
 use App\\Models\\User;
 use App\\Models\\PortalNotification;
 use App\\Modules\\Kepegawaian\\Models\\Employee;
+use App\\Modules\\Kepegawaian\\Models\\EmployeeLeave;
 use App\\Modules\\Kepegawaian\\Models\\EmployeeLeaveRequest;
 use App\\Modules\\SuratTugas\\Models\\AssignmentLetter;
 use App\\Services\\PortalNotificationService;
 use Illuminate\\Support\\Facades\\Hash;
+use Laravel\\Sanctum\\PersonalAccessToken;
 
-// Clean up any leftover aborted sandbox records first
-EmployeeLeaveRequest::withTrashed()->where('alasan_cuti', 'Sandbox E2E Test')->forceDelete();
-User::withTrashed()->where('username', 'like', 'sbx_%')->orWhere('email', 'like', 'sbx_%')->forceDelete();
+// Clean up any leftover aborted sandbox records first (child tables before parent users/employees)
+$oldUserIds = User::withTrashed()->where('username', 'like', 'sbx_%')->orWhere('email', 'like', 'sbx_%')->orWhere('name', 'like', '%Sandbox%')->pluck('id')->all();
+$oldEmpIds = Employee::withTrashed()->where('nama_lengkap', 'like', '%Sandbox%')->pluck('id')->all();
+if (!empty($oldUserIds)) {
+    PortalNotification::whereIn('user_id', $oldUserIds)->delete();
+    AssignmentLetter::withTrashed()->whereIn('created_by', $oldUserIds)->forceDelete();
+    PersonalAccessToken::whereIn('tokenable_id', $oldUserIds)->delete();
+}
+AssignmentLetter::withTrashed()->where('maksud_tujuan', 'Sandbox ST Removed Test')->forceDelete();
+EmployeeLeaveRequest::withTrashed()->where('alasan_cuti', 'like', 'Sandbox E2E Test%')->forceDelete();
+if (!empty($oldEmpIds)) {
+    EmployeeLeaveRequest::withTrashed()->whereIn('employee_id', $oldEmpIds)->forceDelete();
+    EmployeeLeave::whereIn('employee_id', $oldEmpIds)->delete();
+}
+User::withTrashed()->where('username', 'like', 'sbx_%')->orWhere('email', 'like', 'sbx_%')->orWhere('name', 'like', '%Sandbox%')->forceDelete();
 Employee::withTrashed()->where('nama_lengkap', 'like', '%Sandbox%')->forceDelete();
 
 $tag = '${tag}';
@@ -247,13 +261,15 @@ function cleanupSandboxData(cleanup) {
 use App\\Models\\User;
 use App\\Models\\PortalNotification;
 use App\\Modules\\Kepegawaian\\Models\\Employee;
+use App\\Modules\\Kepegawaian\\Models\\EmployeeLeave;
 use App\\Modules\\Kepegawaian\\Models\\EmployeeLeaveRequest;
 use App\\Modules\\SuratTugas\\Models\\AssignmentLetter;
 use Laravel\\Sanctum\\PersonalAccessToken;
 
 $c = json_decode('${payload}', true);
 PortalNotification::whereIn('user_id', $c['user_ids'])->delete();
-EmployeeLeaveRequest::withTrashed()->where('id', $c['leave_id'])->forceDelete();
+EmployeeLeaveRequest::withTrashed()->whereIn('employee_id', $c['employee_ids'])->forceDelete();
+EmployeeLeave::whereIn('employee_id', $c['employee_ids'])->delete();
 AssignmentLetter::withTrashed()->where('id', $c['st_id'])->forceDelete();
 PersonalAccessToken::whereIn('tokenable_id', $c['user_ids'])->delete();
 User::withTrashed()->whereIn('id', $c['user_ids'])->forceDelete();
@@ -429,7 +445,7 @@ async function openPortalAs(browser, user, token) {
       await context.close();
     }
 
-    // E2E-LIVE-07: Live WebSocket / Laravel Reverb check (HONEST BLOCKED CHECK)
+    // E2E-LIVE-07: Live WebSocket / Laravel Reverb two-browser real-time round-trip
     {
       const envLocalPath = path.join(frontendRoot, '.env.local');
       const envLocal = fs.existsSync(envLocalPath) ? fs.readFileSync(envLocalPath, 'utf8') : '';
@@ -442,7 +458,261 @@ async function openPortalAs(browser, user, token) {
           'NEXT_PUBLIC_REVERB_APP_KEY tidak dikonfigurasi di frontend/.env.local; getEcho() mengembalikan null sehingga WebSocket live tidak dapat diuji tanpa mengubah env/konfigurasi.'
         );
       } else {
-        record('E2E-LIVE-07', 'PARTIAL', 'Live WebSocket Reverb', 'Key tersedia, butuh trigger broadcast terpisah');
+        const admCtx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+        const empCtx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+        try {
+        const admPage = await admCtx.newPage();
+        const empPage = await empCtx.newPage();
+
+        let admSubscribed = false;
+        let empSubscribed = false;
+        const attachWsTracker = (page, onFrame) => {
+          page.on('websocket', (ws) => {
+            if (!ws.url().includes(':8080/app/')) return;
+            ws.on('framereceived', (frame) => {
+              try {
+                const msg = JSON.parse(String(frame.payload));
+                onFrame(msg);
+              } catch {}
+            });
+          });
+        };
+        attachWsTracker(admPage, (msg) => {
+          if (msg.event === 'pusher_internal:subscription_succeeded' && String(msg.channel || '').startsWith('private-admin.inbox.kepegawaian.')) {
+            admSubscribed = true;
+          }
+        });
+        attachWsTracker(empPage, (msg) => {
+          if (msg.event === 'pusher_internal:subscription_succeeded' && String(msg.channel || '').startsWith('private-App.Models.User.')) {
+            empSubscribed = true;
+          }
+        });
+
+        await admPage.addInitScript(({ u, t }) => {
+          localStorage.setItem('bksda_token', t);
+          localStorage.setItem('bksda_logged_in', '1');
+          localStorage.setItem('bksda_user', JSON.stringify(u));
+        }, { u: sandbox.users.admin, t: sandbox.tokens.admin });
+
+        await empPage.addInitScript(({ u, t }) => {
+          localStorage.setItem('bksda_token', t);
+          localStorage.setItem('bksda_logged_in', '1');
+          localStorage.setItem('bksda_user', JSON.stringify(u));
+          localStorage.setItem('bksda_portal_nav_tab', 'cuti');
+        }, { u: sandbox.users.pegawai1, t: sandbox.tokens.pegawai1 });
+
+        await Promise.all([
+          admPage.goto(`${FE_BASE}/kepegawaian/cuti`, { waitUntil: 'networkidle', timeout: 30000 }),
+          empPage.goto(`${FE_BASE}/portal?tab=cuti`, { waitUntil: 'networkidle', timeout: 30000 }),
+        ]);
+
+        // Wait up to 6s for BOTH live Reverb private subscriptions
+        const subDeadline = Date.now() + 6000;
+        while ((!admSubscribed || !empSubscribed) && Date.now() < subDeadline) {
+          await admPage.waitForTimeout(100);
+        }
+        assert.equal(admSubscribed, true, 'Admin /kepegawaian/cuti did not subscribe to Reverb admin.inbox.kepegawaian');
+        assert.equal(empSubscribed, true, 'Employee /portal did not subscribe to Reverb App.Models.User');
+
+        // 1) Employee submits new leave request -> Admin inbox updates in < 4s WITHOUT refresh or 10s poll
+        const submitStartedAt = Date.now();
+        const createdLeave = await empPage.evaluate(async ({ beBase, token }) => {
+          const res = await fetch(`${beBase}/api/me/leave-requests`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              jenis_cuti: 'Cuti Karena Alasan Penting',
+              alasan_cuti: 'Sandbox E2E Test Realtime',
+              tanggal_mulai: '2026-12-20',
+              tanggal_selesai: '2026-12-20',
+              alamat_menjalankan_cuti: 'Samarinda',
+              telepon: '081234567890',
+            }),
+          });
+          const body = await res.json();
+          if (!res.ok) throw new Error(`POST /api/me/leave-requests ${res.status}: ${JSON.stringify(body)}`);
+          return body.data;
+        }, { beBase: BE_BASE, token: sandbox.tokens.pegawai1 });
+
+        await admPage.getByText('Cuti Karena Alasan Penting').first().waitFor({ timeout: 4000 });
+        const adminLatencyMs = Date.now() - submitStartedAt;
+        assert.equal(await admPage.getByText('Cuti Karena Alasan Penting').count() >= 1, true);
+
+        // 2) Admin approves leave -> Employee Portal notification + approved badge update in < 4s WITHOUT refresh or 15s/35s poll
+        const approveStartedAt = Date.now();
+        await admPage.evaluate(async ({ beBase, token, id }) => {
+          const res = await fetch(`${beBase}/api/kepegawaian/leave-requests/${id}/status`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              status: 'DISETUJUI',
+              catatan_persetujuan: 'Disetujui Realtime E2E',
+            }),
+          });
+          if (!res.ok) throw new Error(`PUT status ${res.status}: ${await res.text()}`);
+        }, { beBase: BE_BASE, token: sandbox.tokens.admin, id: createdLeave.id });
+
+        await empPage.getByText('Permohonan Cuti Disetujui').first().waitFor({ timeout: 4000 });
+        await empPage.waitForFunction(
+          () => Array.from(document.querySelectorAll('tr, [class*="rounded"]')).some((el) => {
+            const text = (el.innerText || '').trim();
+            return text.length > 0 && text.length < 400 && /Cuti Karena Alasan Penting/i.test(text) && /Disetujui/i.test(text);
+          }),
+          undefined,
+          { timeout: 4000 }
+        );
+        const empLatencyMs = Date.now() - approveStartedAt;
+
+        // 3) Admin deletes that leave request -> old approved notif cleaned, Employee gets live "Permohonan Cuti Dihapus",
+        //    and clicking it opens Cuti tab WITHOUT requesting deleted leave 404 or showing unavailable error toast.
+        let hitDeletedLeaveDetail = false;
+        empPage.on('request', (req) => {
+          if (req.url().includes(`/api/me/leave-requests/${createdLeave.id}`)) hitDeletedLeaveDetail = true;
+        });
+
+        await admPage.evaluate(async ({ beBase, token, id }) => {
+          const res = await fetch(`${beBase}/api/kepegawaian/leave-requests/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          if (!res.ok) throw new Error(`DELETE leave ${res.status}: ${await res.text()}`);
+        }, { beBase: BE_BASE, token: sandbox.tokens.admin, id: createdLeave.id });
+
+        await empPage.getByText('Permohonan Cuti Dihapus').first().waitFor({ timeout: 4000 });
+        await empPage.waitForFunction(
+          () => !(document.querySelector('main')?.innerText || '').includes('Cuti Karena Alasan Penting'),
+          undefined,
+          { timeout: 4000 }
+        );
+
+        await empPage.getByRole('button', { name: 'Lihat Notifikasi', exact: true }).click();
+        const bellPopover = empPage.locator('[data-module="portal"]');
+        await bellPopover.getByText('Pengajuan Cuti Karena Alasan Penting Anda').first().waitFor({ timeout: 5000 });
+        assert.equal(await bellPopover.getByText(/Cuti Karena Alasan Penting.*telah disetujui resmi/i).count(), 0);
+        await bellPopover.getByText('Pengajuan Cuti Karena Alasan Penting Anda').first().click();
+        await empPage.waitForTimeout(400);
+        assert.equal(hitDeletedLeaveDetail, false, 'Clicking deleted leave notification must not request deleted /api/me/leave-requests/{id}');
+        assert.equal(await empPage.getByText('Permohonan cuti tidak tersedia atau tidak dapat diakses.').count(), 0);
+
+        record(
+          'E2E-LIVE-07',
+          'PASS',
+          'Live two-browser Reverb WebSocket bidirectional sync + safe delete cleanup (Employee <-> Admin Cuti)',
+          `Sub: admin=${admSubscribed}, emp=${empSubscribed}; Employee->Admin ${adminLatencyMs}ms, Admin->Employee ${empLatencyMs}ms (<4000ms), deleted leave notif cleaned cleanly`
+        );
+      } finally {
+        await admCtx.close().catch(() => {});
+        await empCtx.close().catch(() => {});
+      }
+      }
+    }
+
+    // E2E-LIVE-08: Mouse-opened ConfirmDialog (DropdownMenu -> Hapus) & Bell Popover must NOT stick :focus-visible or show double green+blue ring
+    {
+      const admCtx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+      const empCtx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+      try {
+        const admPage = await admCtx.newPage();
+        await admPage.addInitScript(({ u, t }) => {
+          localStorage.setItem('bksda_token', t);
+          localStorage.setItem('bksda_logged_in', '1');
+          localStorage.setItem('bksda_user', JSON.stringify(u));
+        }, { u: sandbox.users.admin, t: sandbox.tokens.admin });
+        await admPage.goto(`${FE_BASE}/kepegawaian/cuti`, { waitUntil: 'networkidle', timeout: 30000 });
+        await admPage.getByText('Duriawati Halim Sandbox').first().waitFor({ timeout: 10000 });
+
+        const targetRow = admPage.locator('tr', { hasText: 'Duriawati Halim Sandbox' }).first();
+        const menuTriggerBtn = targetRow.locator('button[title="Aksi Lainnya"]');
+        await menuTriggerBtn.click();
+        await admPage.getByRole('menuitem', { name: /Hapus/i }).first().click();
+
+        const batalBtn = admPage.getByRole('button', { name: 'Batal', exact: true });
+        await batalBtn.waitFor({ timeout: 5000 });
+        const focusOnOpen = await batalBtn.evaluate((el) => ({
+          focusVisible: el.matches(':focus-visible'),
+          boxShadow: getComputedStyle(el).boxShadow,
+        }));
+        assert.equal(focusOnOpen.focusVisible, false, 'ConfirmDialog Batal must not stick :focus-visible when opened by mouse click');
+
+        // 1) Pure mouse close (without any keyboard Tab in between): trigger button MUST NOT get stuck :focus-visible!
+        await batalBtn.click();
+        await batalBtn.waitFor({ state: 'hidden', timeout: 5000 });
+        await admPage.waitForTimeout(250);
+        const menuTriggerAfterMouseClose = await menuTriggerBtn.evaluate((el) => ({
+          focusVisible: el.matches(':focus-visible'),
+          outlineStyle: getComputedStyle(el).outlineStyle,
+          outlineWidth: getComputedStyle(el).outlineWidth,
+        }));
+        assert.equal(menuTriggerAfterMouseClose.focusVisible, false, 'Pure mouse Hapus -> Batal must not leave stuck :focus-visible on row ... trigger');
+
+        // 2) Separate check: keyboard Tab inside ConfirmDialog uses single crisp Kepegawaian focus outline (NOT green border + blue outline)
+        await menuTriggerBtn.click();
+        await admPage.getByRole('menuitem', { name: /Hapus/i }).first().click();
+        await batalBtn.waitFor({ timeout: 5000 });
+        await admPage.keyboard.press('Tab');
+        const focusOnTab = await batalBtn.evaluate((el) => ({
+          active: document.activeElement === el,
+          focusVisible: el.matches(':focus-visible'),
+          borderColor: getComputedStyle(el).borderColor,
+          outlineColor: getComputedStyle(el).outlineColor,
+          boxShadow: getComputedStyle(el).boxShadow,
+        }));
+        assert.equal(focusOnTab.active && focusOnTab.focusVisible, true, 'Keyboard Tab into ConfirmDialog must focus Batal visibly');
+        assert.notEqual(focusOnTab.borderColor, 'rgb(22, 163, 74)', 'Batal focus border must not clash with green default --ring');
+        assert.equal(focusOnTab.outlineColor, 'rgb(37, 99, 235)', 'Kepegawaian focus outline must match module blue (#2563eb)');
+        assert.equal(focusOnTab.boxShadow, 'none', 'Kepegawaian focus ring must not stack box-shadow underneath outline');
+
+        await batalBtn.click();
+        await batalBtn.waitFor({ state: 'hidden', timeout: 5000 });
+        await admPage.waitForTimeout(250);
+        const menuTriggerFocusVisible = await menuTriggerBtn.evaluate((el) => el.matches(':focus-visible'));
+        assert.equal(menuTriggerFocusVisible, false, 'Closing ConfirmDialog via mouse must not leave stuck :focus-visible on row trigger');
+
+        // 3) Check KepegawaianDialog modal opened from DropdownMenu (Edit Pengajuan) -> close via Batal -> zero stuck focus ring!
+        await menuTriggerBtn.click();
+        await admPage.getByRole('menuitem', { name: /Edit Pengajuan/i }).first().click();
+        const editCloseBtn = admPage.getByRole('button', { name: 'Batal', exact: true });
+        await editCloseBtn.waitFor({ timeout: 5000 });
+        const editAnyFocusVisible = await admPage.locator('[data-slot="dialog-content"] button').evaluateAll((els) => els.some((el) => el.matches(':focus-visible')));
+        assert.equal(editAnyFocusVisible, false, 'KepegawaianDialog opened from DropdownMenu must not stick :focus-visible on modal buttons');
+        await editCloseBtn.click();
+        await editCloseBtn.waitFor({ state: 'hidden', timeout: 5000 });
+        await admPage.waitForTimeout(250);
+        assert.equal(await menuTriggerBtn.evaluate((el) => el.matches(':focus-visible')), false, 'Closing KepegawaianDialog via mouse must not stick :focus-visible on row trigger');
+
+        // Verify Portal Bell Popover pointer open/close does not leave stuck :focus-visible on controls
+        const empPage = await empCtx.newPage();
+        await empPage.addInitScript(({ u, t }) => {
+          localStorage.setItem('bksda_token', t);
+          localStorage.setItem('bksda_logged_in', '1');
+          localStorage.setItem('bksda_user', JSON.stringify(u));
+        }, { u: sandbox.users.pegawai1, t: sandbox.tokens.pegawai1 });
+        await empPage.goto(`${FE_BASE}/portal`, { waitUntil: 'networkidle', timeout: 30000 });
+        const bellBtn = empPage.getByRole('button', { name: 'Lihat Notifikasi', exact: true });
+        await bellBtn.waitFor({ timeout: 10000 });
+        await bellBtn.click();
+        await empPage.locator('[data-slot="popover-content"][data-module="portal"]').waitFor({ timeout: 5000 });
+        const anyStuckInsideBell = await empPage.locator('[data-slot="popover-content"][data-module="portal"] button').evaluateAll((els) => els.some((el) => el.matches(':focus-visible')));
+        assert.equal(anyStuckInsideBell, false, 'Opening NotificationBell popover by mouse must not focus-visible internal buttons');
+        await empPage.mouse.click(20, 20);
+        await empPage.waitForTimeout(150);
+        assert.equal(await bellBtn.evaluate((el) => el.matches(':focus-visible')), false, 'Closing Bell popover via mouse must not leave stuck ring on bell button');
+
+        record('E2E-LIVE-08', 'PASS', 'Mouse dialog/popover opens & closes without stuck :focus-visible or double green+blue ring', 'Verified mouse ConfirmDialog open/close, keyboard Tab single #2563eb outline (zero green border / zero box-shadow), and Portal Bell popover');
+      } finally {
+        await admCtx.close().catch(() => {});
+        await empCtx.close().catch(() => {});
       }
     }
   } finally {

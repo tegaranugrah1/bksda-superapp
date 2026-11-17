@@ -564,7 +564,16 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (nextOpen) {
+            clearGetCache();
+            void fetchLatest(true);
+          }
+        }}
+      >
         <PopoverTrigger asChild>
           <motion.button
             type="button"

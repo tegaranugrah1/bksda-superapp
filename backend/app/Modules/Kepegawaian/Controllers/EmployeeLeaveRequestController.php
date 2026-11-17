@@ -109,7 +109,7 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['message' => 'Data pegawai tidak ditemukan untuk akun ini'], 404);
         }
 
-        return DB::transaction(function () use ($employee, $id) {
+        $result = DB::transaction(function () use ($employee, $id) {
             Employee::lockForLeaveUpdate($employee->id);
             $leaveReq = EmployeeLeaveRequest::where('employee_id', $employee->id)->lockForUpdate()->findOrFail($id);
 
@@ -119,12 +119,26 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
+            $deletedId = (string) $leaveReq->id;
             $leaveReq->delete();
 
-            return response()->json([
-                'message' => 'Permohonan cuti berhasil dibatalkan.',
-            ]);
+            return $deletedId;
         });
+
+        if ($result instanceof JsonResponse) {
+            return $result;
+        }
+
+        try {
+            $this->cleanupLeaveNotifications($result);
+            event(new \App\Events\AdminInboxChanged('kepegawaian', 'deleted', $result));
+        } catch (\Throwable $e) {
+            // Non-blocking broadcast/notification cleanup failure
+        }
+
+        return response()->json([
+            'message' => 'Permohonan cuti berhasil dibatalkan.',
+        ]);
     }
 
     /**
@@ -315,6 +329,12 @@ class EmployeeLeaveRequestController extends Controller
             ]);
 
             DB::commit();
+
+            try {
+                event(new \App\Events\AdminInboxChanged('kepegawaian', 'created', (string) $leaveReq->id));
+            } catch (\Throwable $e) {
+                // Non-blocking broadcast failure
+            }
 
             try {
                 app(\App\Services\PortalNotificationService::class)->notifyAdmins(
@@ -1116,12 +1136,45 @@ class EmployeeLeaveRequestController extends Controller
                 }
             }
 
+            $employeeId = (int) $leaveReq->employee_id;
+            $jenisCuti = (string) $leaveReq->jenis_cuti;
+            $tanggalMulai = (string) $leaveReq->tanggal_mulai;
+            $tanggalSelesai = (string) $leaveReq->tanggal_selesai;
+            $deletedId = (string) $leaveReq->id;
             $hadSuratIzin = ! empty($leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path);
             $leaveReq->delete();
             DB::commit();
 
             if ($hadSuratIzin) {
                 $leaveReq->purgeSuratIzinArchive();
+            }
+
+            try {
+                $this->cleanupLeaveNotifications($deletedId);
+                event(new \App\Events\AdminInboxChanged('kepegawaian', 'deleted', $deletedId));
+            } catch (\Throwable $e) {
+                // Non-blocking notification cleanup/broadcast failure
+            }
+
+            try {
+                $periode = ($tanggalSelesai && $tanggalSelesai !== $tanggalMulai)
+                    ? "{$tanggalMulai} s/d {$tanggalSelesai}"
+                    : $tanggalMulai;
+                app(\App\Services\PortalNotificationService::class)->notifyEmployee(
+                    $employeeId,
+                    'Permohonan Cuti Dihapus',
+                    "Pengajuan {$jenisCuti} Anda ({$periode}) telah dihapus oleh admin.",
+                    'cuti',
+                    'cuti',
+                    $deletedId,
+                    [
+                        'status' => 'removed',
+                        'availability' => 'unavailable',
+                        'leave_id' => (int) $deletedId,
+                    ]
+                );
+            } catch (\Throwable $e) {
+                // Non-blocking notification failure
             }
 
             return response()->json(['message' => 'Pengajuan cuti berhasil dihapus']);
@@ -1135,6 +1188,13 @@ class EmployeeLeaveRequestController extends Controller
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menghapus pengajuan cuti.',
             ], 500);
         }
+    }
+
+    private function cleanupLeaveNotifications(string $leaveId): void
+    {
+        \App\Models\PortalNotification::where('type', 'cuti')
+            ->where('reference_id', $leaveId)
+            ->delete();
     }
 
     private function getAtasanLangsung(string $satuanKerja, ?string $resor = null): array

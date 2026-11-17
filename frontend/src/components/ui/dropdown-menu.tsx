@@ -5,6 +5,12 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { CheckIcon, ChevronRightIcon } from "lucide-react"
+import {
+  clearStuckPointerFocusVisible,
+  focusElementRespectingModality,
+  hadKeyboardFocusIntent,
+  rememberDropdownOpener,
+} from "@/components/ui/use-dialog-focus-return"
 
 function DropdownMenu({
   modal = false,
@@ -52,7 +58,15 @@ function DropdownMenuContent({
             document.querySelector('[role="dialog"], [role="alertdialog"], [data-slot="dialog-content"]')
           ) {
             event.preventDefault()
+          } else if (!event.defaultPrevented && !hadKeyboardFocusIntent()) {
+            const triggerId = (event.currentTarget as HTMLElement | null)?.getAttribute("aria-labelledby")
+            const triggerEl = triggerId ? document.getElementById(triggerId) : null
+            if (triggerEl) {
+              event.preventDefault()
+              focusElementRespectingModality(triggerEl, true)
+            }
           }
+          clearStuckPointerFocusVisible()
         }}
         className={cn("z-50 max-h-(--radix-dropdown-menu-content-available-height) w-(--radix-dropdown-menu-trigger-width) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:overflow-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
         {...props}
@@ -85,6 +99,10 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       onClick={(event) => {
+        const triggerId = event.currentTarget
+          .closest('[data-slot="dropdown-menu-content"]')
+          ?.getAttribute("aria-labelledby")
+        rememberDropdownOpener(triggerId ? document.getElementById(triggerId) : null)
         if (
           document.activeElement instanceof HTMLElement &&
           event.currentTarget.contains(document.activeElement)

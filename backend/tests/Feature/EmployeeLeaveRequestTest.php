@@ -346,4 +346,92 @@ class EmployeeLeaveRequestTest extends TestCase
 
         $this->assertNull($leaveReq->fresh()->scan_surat_izin_path);
     }
+
+    public function test_admin_delete_cleans_stale_notifications_notifies_employee_safely_and_marks_orphans_unavailable(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $leaveReq = EmployeeLeaveRequest::create([
+            'employee_id' => $this->employee->id,
+            'nomor_pengajuan' => 'CUTI/2026/099',
+            'tanggal_pengajuan' => '2026-08-01',
+            'jenis_cuti' => 'Cuti Tahunan',
+            'alasan_cuti' => 'Acara Keluarga',
+            'jumlah_hari' => 1,
+            'tanggal_mulai' => '2026-08-20',
+            'tanggal_selesai' => '2026-08-20',
+            'alamat_menjalankan_cuti' => 'Samarinda',
+            'telepon' => '081351458775',
+            'status' => 'DISETUJUI',
+            'sisa_n0' => 12,
+        ]);
+
+        // Legacy orphan leave notification (already soft-deleted previously without notification cleanup)
+        $orphanLeave = EmployeeLeaveRequest::create([
+            'employee_id' => $this->employee->id,
+            'nomor_pengajuan' => 'CUTI/2026/098',
+            'tanggal_pengajuan' => '2026-07-01',
+            'jenis_cuti' => 'Cuti Sakit',
+            'alasan_cuti' => 'Rawat jalan',
+            'jumlah_hari' => 1,
+            'tanggal_mulai' => '2026-07-10',
+            'tanggal_selesai' => '2026-07-10',
+            'alamat_menjalankan_cuti' => 'Samarinda',
+            'telepon' => '081351458775',
+            'status' => 'PENGAJUAN',
+        ]);
+        $orphanLeave->delete();
+
+        $svc = app(\App\Services\PortalNotificationService::class);
+        $oldNotif = $svc->notifyEmployee(
+            $this->employee->id,
+            'Permohonan Cuti Disetujui',
+            'Pengajuan Cuti Tahunan Anda telah disetujui.',
+            'cuti',
+            'cuti',
+            (string) $leaveReq->id,
+            ['status' => 'DISETUJUI', 'leave_id' => $leaveReq->id]
+        );
+        $orphanNotif = $svc->notifyEmployee(
+            $this->employee->id,
+            'Notifikasi Lama Cuti Terhapus',
+            'Notifikasi lama sebelum fitur cleanup.',
+            'cuti',
+            'cuti',
+            (string) $orphanLeave->id,
+            ['status' => 'DISETUJUI', 'leave_id' => $orphanLeave->id]
+        );
+        $this->assertNotNull($oldNotif);
+        $this->assertNotNull($orphanNotif);
+
+        // 1. Admin deletes leave request -> old notification for that leave is removed & safe removal notice is created
+        $this->actingAs($admin, 'sanctum')
+            ->deleteJson('/api/kepegawaian/leave-requests/' . $leaveReq->id)
+            ->assertOk();
+
+        $this->assertDatabaseMissing('portal_notifications', ['id' => $oldNotif->id]);
+
+        $removalNotif = \App\Models\PortalNotification::where('user_id', $this->user->id)
+            ->where('type', 'cuti')
+            ->where('reference_id', (string) $leaveReq->id)
+            ->first();
+        $this->assertNotNull($removalNotif);
+        $this->assertSame('Permohonan Cuti Dihapus', $removalNotif->title);
+        $this->assertSame('unavailable', $removalNotif->data['availability'] ?? null);
+        $this->assertSame('removed', $removalNotif->data['status'] ?? null);
+
+        // 2. Listing notifications as employee marks any pre-existing orphan leave notification as unavailable
+        $listRes = $this->actingAs($this->user, 'sanctum')
+            ->getJson('/api/portal/notifications?per_page=10')
+            ->assertOk();
+
+        $items = collect($listRes->json('data'));
+        $listedOrphan = $items->firstWhere('id', $orphanNotif->id);
+        $this->assertNotNull($listedOrphan);
+        $this->assertSame('unavailable', $listedOrphan['data']['availability'] ?? null);
+        $this->assertNull($items->firstWhere('id', $oldNotif->id));
+    }
 }

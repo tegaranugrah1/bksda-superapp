@@ -214,4 +214,57 @@ class BroadcastChannelAuthTest extends TestCase
                    $event->referenceId === (string) $letter->id;
         });
     }
+
+    /**
+     * Submitting or cancelling an employee leave request immediately dispatches AdminInboxChanged event.
+     */
+    public function test_employee_leave_submission_and_cancellation_dispatch_admin_inbox_changed(): void
+    {
+        Event::fake([AdminInboxChanged::class, PortalNotificationCreated::class]);
+
+        $employee = Employee::create([
+            'nip' => '199102022021011888',
+            'nama_lengkap' => 'Pegawai Uji Cuti Broadcast',
+            'jabatan' => 'Analis SDM',
+            'satuan_kerja' => 'Balai KSDA Kalimantan Timur',
+            'is_active' => true,
+        ]);
+
+        $owner = User::create([
+            'name' => 'Pegawai Uji Cuti Broadcast',
+            'username' => $employee->nip,
+            'email' => 'cuti-owner@broadcast.example.test',
+            'password' => bcrypt('password'),
+            'role' => 'pegawai',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $this->authenticateBearer($owner);
+
+        $resCreate = $this->postJson('/api/me/leave-requests', [
+            'jenis_cuti' => 'Cuti Tahunan',
+            'alasan_cuti' => 'Uji Broadcast Pengajuan Cuti',
+            'tanggal_mulai' => '2026-08-10',
+            'tanggal_selesai' => '2026-08-10',
+            'alamat_menjalankan_cuti' => 'Samarinda',
+            'telepon' => '081234567890',
+        ]);
+        $resCreate->assertStatus(201);
+        $leaveId = (string) $resCreate->json('data.id');
+
+        Event::assertDispatched(AdminInboxChanged::class, function ($event) use ($leaveId) {
+            return $event->module === 'kepegawaian' &&
+                   $event->action === 'created' &&
+                   $event->referenceId === $leaveId;
+        });
+
+        $resDelete = $this->deleteJson("/api/me/leave-requests/{$leaveId}");
+        $resDelete->assertStatus(200);
+
+        Event::assertDispatched(AdminInboxChanged::class, function ($event) use ($leaveId) {
+            return $event->module === 'kepegawaian' &&
+                   $event->action === 'deleted' &&
+                   $event->referenceId === $leaveId;
+        });
+    }
 }

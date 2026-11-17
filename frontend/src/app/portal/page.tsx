@@ -397,35 +397,6 @@ function PortalContent() {
   const [setup2FaOpen, setSetup2FaOpen] = useState(false);
   const [printLeaveData, setPrintLeaveData] = useState<LeaveRequestPrintData | null>(null);
   const leavePrintRequestRef = useRef(0);
-  const handlePrintLeave = useCallback(async (item: LeaveRequestPrintData) => {
-    const request = ++leavePrintRequestRef.current;
-    setPrintLeaveData(null);
-    if (item.id == null) {
-      toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
-      return;
-    }
-    clearGetCache();
-    try {
-      const response = await api.get(`/me/leave-requests/${encodeURIComponent(item.id)}`);
-      if (request !== leavePrintRequestRef.current) return;
-      setPrintLeaveData(response.data.data);
-      setTimeout(() => { if (request === leavePrintRequestRef.current) window.print(); }, 300);
-    } catch {
-      if (request === leavePrintRequestRef.current) toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
-    }
-  }, []);
-
-
-  useEffect(() => {
-    if (!printLeaveData) return;
-    const handleAfterPrint = () => {
-      setPrintLeaveData(null);
-    };
-    window.addEventListener("afterprint", handleAfterPrint);
-    return () => {
-      window.removeEventListener("afterprint", handleAfterPrint);
-    };
-  }, [printLeaveData]);
 
   const fetchMyLeaveRequests = useCallback(async () => {
     if (isMmp) {
@@ -444,6 +415,47 @@ function PortalContent() {
     } catch (e) {}
   }, [currentYear, isMmp]);
 
+  const handleLeaveUnavailable = useCallback(() => {
+    clearGetCache();
+    void fetchMyLeaveRequests();
+  }, [fetchMyLeaveRequests]);
+
+  const handlePrintLeave = useCallback(async (item: LeaveRequestPrintData) => {
+    const request = ++leavePrintRequestRef.current;
+    setPrintLeaveData(null);
+    if (item.id == null) {
+      toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+      return;
+    }
+    clearGetCache();
+    try {
+      const response = await api.get(`/me/leave-requests/${encodeURIComponent(item.id)}`);
+      if (request !== leavePrintRequestRef.current) return;
+      setPrintLeaveData(response.data.data);
+      setTimeout(() => { if (request === leavePrintRequestRef.current) window.print(); }, 300);
+    } catch (error: unknown) {
+      if (request !== leavePrintRequestRef.current) return;
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        handleLeaveUnavailable();
+        toast.info("Permohonan cuti ini sudah dihapus atau tidak lagi tersedia.");
+      } else {
+        toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+      }
+    }
+  }, [handleLeaveUnavailable]);
+
+  useEffect(() => {
+    if (!printLeaveData) return;
+    const handleAfterPrint = () => {
+      setPrintLeaveData(null);
+    };
+    window.addEventListener("afterprint", handleAfterPrint);
+    return () => {
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, [printLeaveData]);
+
   const handleNotificationChange = useCallback((item: PortalNotificationItem) => {
     if (item.type === "surat_tugas") {
       void fetchSuratTugas();
@@ -451,6 +463,7 @@ function PortalContent() {
         void fetchSTDetail(item.reference_id);
       }
     } else if (item.type === "cuti") {
+      clearGetCache();
       leavePrintRequestRef.current++;
       setPrintLeaveData(null);
       void fetchMyLeaveRequests();
@@ -940,6 +953,7 @@ function PortalContent() {
                         }}
                         onPrintLeave={handlePrintLeave}
                         onConsumeActiveLeave={consumeActiveLeave}
+                        onLeaveUnavailable={handleLeaveUnavailable}
                       />
                     </div>
                   ) : activeNavTab === "visum" ? (

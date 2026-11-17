@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\PortalNotification;
+use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -40,13 +41,35 @@ class PortalNotificationController extends Controller
         }
 
         $paginator = $query->paginate($perPage);
+        $items = $paginator->items();
+
+        // Retroactively mark orphaned leave notifications as unavailable so stale history items do not trigger 404 errors.
+        $cutiRefIds = collect($items)
+            ->filter(fn ($n) => $n->type === 'cuti' && is_numeric($n->reference_id))
+            ->map(fn ($n) => (int) $n->reference_id)
+            ->unique()
+            ->values();
+
+        if ($cutiRefIds->isNotEmpty()) {
+            $existingCutiIds = EmployeeLeaveRequest::whereIn('id', $cutiRefIds->all())
+                ->pluck('id')
+                ->flip();
+
+            foreach ($items as $item) {
+                if ($item->type === 'cuti' && is_numeric($item->reference_id) && ! $existingCutiIds->has((int) $item->reference_id)) {
+                    $meta = is_array($item->data) ? $item->data : [];
+                    $meta['availability'] = $meta['availability'] ?? 'unavailable';
+                    $item->setAttribute('data', $meta);
+                }
+            }
+        }
 
         $unreadCount = PortalNotification::where('user_id', $user->id)
             ->whereNull('read_at')
             ->count();
 
         return response()->json([
-            'data' => $paginator->items(),
+            'data' => $items,
             'meta' => [
                 'current_page' => $paginator->currentPage(),
                 'last_page' => $paginator->lastPage(),

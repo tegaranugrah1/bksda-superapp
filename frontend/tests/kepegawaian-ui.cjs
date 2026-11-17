@@ -403,6 +403,78 @@ async function checkPhotoUpload() {
     digitalCutiSrc.includes('hitungHari: payload?.hitungHari || item.hitung_hari') && dinasPageSrc.includes('Satuan Hitung Hari Cuti'),
     'DigitalSuratIzinModal and dinas/page.tsx must propagate and allow overriding hitungHari'
   );
-  console.log('PASS: KepegawaianDialog and Cuti modals free of opaque outer box and double scrollbars.');
+  const cutiPageSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/cuti/page.tsx'), 'utf8');
+  const portalPageSrc = fs.readFileSync(path.join(__dirname, '../src/app/portal/page.tsx'), 'utf8');
+  assert(
+    cutiPageSrc.includes('refetchInterval: 10000') &&
+      cutiPageSrc.includes('refetchOnWindowFocus: true') &&
+      /useAdminInboxLive\("kepegawaian",\s*\(\)\s*=>\s*\{\s*clearGetCache\(\)/.test(cutiPageSrc),
+    'cuti/page.tsx must flush GET cache on AdminInboxChanged and configure fallback inbox polling'
+  );
+  assert(
+    /else if \(item\.type === "cuti"\) \{\s*clearGetCache\(\);/.test(portalPageSrc),
+    'portal/page.tsx must flush GET cache before fetching updated leave status/balance on cuti notification'
+  );
+  const echoSrc = fs.readFileSync(path.join(__dirname, '../src/lib/echo.ts'), 'utf8');
+  const echoOut = ts.transpileModule(echoSrc, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  let echoOptions = null;
+  const echoExports = {};
+  const prevEnv = { ...process.env };
+  process.env.NEXT_PUBLIC_REVERB_APP_KEY = 'unit-reverb-key';
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api';
+  delete process.env.NEXT_PUBLIC_REVERB_HOST;
+  delete process.env.NEXT_PUBLIC_REVERB_PORT;
+  delete process.env.NEXT_PUBLIC_REVERB_SCHEME;
+  try {
+    vm.runInNewContext(echoOut, {
+      exports: echoExports,
+      process,
+      URL,
+      localStorage: { getItem: () => '123|secret' },
+      window: { location: { hostname: '127.0.0.1', protocol: 'http:' } },
+      require: name => {
+        if (name === 'laravel-echo') {
+          return {
+            default: function FakeEcho(opts) {
+              echoOptions = opts;
+              this.disconnect = () => {};
+            },
+          };
+        }
+        if (name === 'pusher-js') return { default: function FakePusher() {} };
+        if (name === '@/lib/auth-store') return { authStore: { getToken: () => '123|secret' } };
+        if (name === '@/lib/api') return { resolveApiUrl: u => u };
+        throw new Error(`Unexpected echo import: ${name}`);
+      },
+    });
+    echoExports.getEcho();
+    assert.equal(echoOptions.wsHost, '127.0.0.1');
+    assert.equal(echoOptions.wsPort, 8080);
+    assert.equal(echoOptions.authEndpoint, 'http://127.0.0.1:8000/api/broadcasting/auth');
+  } finally {
+    process.env = prevEnv;
+  }
+  console.log('PASS: KepegawaianDialog, Cuti modals, and realtime Reverb/GET-cache regression checks passed.');
+  const globalsCss = fs.readFileSync(path.join(__dirname, '../src/app/globals.css'), 'utf8');
+  const kpgCss = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/kepegawaian.css'), 'utf8');
+  const dialogSrc = fs.readFileSync(path.join(__dirname, '../src/components/ui/dialog.tsx'), 'utf8');
+  const confirmSrc = fs.readFileSync(path.join(__dirname, '../src/components/ui/confirm-dialog.tsx'), 'utf8');
+  const focusReturnSrc = fs.readFileSync(path.join(__dirname, '../src/components/ui/use-dialog-focus-return.ts'), 'utf8');
+  assert(
+    globalsCss.includes('--color-ring: var(--ds-accent-fg);') &&
+      globalsCss.includes(':not([data-variant="outline"]):focus-visible') &&
+      globalsCss.includes('[data-variant="outline"]:focus-visible') &&
+      kpgCss.includes('box-shadow: none;'),
+    'globals.css and kepegawaian.css must prevent green border-ring/ring-3 double focus rings under module outlines'
+  );
+  assert(
+    dialogSrc.includes('hadKeyboardFocusIntent') &&
+      dialogSrc.includes('clearStuckPointerFocusVisible') &&
+      confirmSrc.includes('resolveDialogOpener') &&
+      confirmSrc.includes('focusElementRespectingModality') &&
+      focusReturnSrc.includes('focusVisible: false'),
+    'dialog/confirm-dialog/useDialogFocusReturn must suppress pointer-triggered stuck focus-visible rings'
+  );
+  console.log('PASS: Dialog pointer focus-visible suppression and single-ring CSS regression checks passed.');
 }
 checkPhotoUpload().catch(error => { console.error(error); process.exitCode = 1; });

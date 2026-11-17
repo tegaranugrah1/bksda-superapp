@@ -18,6 +18,7 @@ interface MyLeaveTabProps {
   onCancelLeave?: (id: number) => void;
   activeLeaveId?: number | string | null;
   onConsumeActiveLeave?: () => void;
+  onLeaveUnavailable?: () => void;
 }
 
 function getLeaveStatusBadge(item: LeaveRequestPrintData): { label: string; className: string } {
@@ -55,6 +56,7 @@ export function MyLeaveTab({
   onCancelLeave,
   activeLeaveId,
   onConsumeActiveLeave,
+  onLeaveUnavailable,
 }: MyLeaveTabProps) {
   const [selectedYear, setSelectedYear] = React.useState<string>("all");
   const [viewerModal, setViewerModal] = React.useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
@@ -76,13 +78,20 @@ export function MyLeaveTab({
       } else {
         onPrintLeave(target);
       }
-    }).catch(() => {
-      if (active) toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+    }).catch((error: unknown) => {
+      if (!active) return;
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        onLeaveUnavailable?.();
+        toast.info("Permohonan cuti ini sudah dihapus atau tidak lagi tersedia.");
+      } else {
+        toast.error("Permohonan cuti tidak tersedia atau tidak dapat diakses.");
+      }
     }).finally(() => {
       if (active) onConsumeActiveLeave?.();
     });
     return () => { active = false; };
-  }, [activeLeaveId, onPrintLeave, onConsumeActiveLeave]);
+  }, [activeLeaveId, onPrintLeave, onConsumeActiveLeave, onLeaveUnavailable]);
 
   // Extract available years from records dynamically
   const availableYears = React.useMemo(() => {

@@ -186,6 +186,7 @@
   --ds-accent-fg: #047857;
   --ds-accent-soft: #ecfdf5;
   --ds-accent-soft-border: #a7f3d0;
+  --color-ring: var(--ds-accent-fg);
 }
 
 [data-module="surat-tugas"] {
@@ -195,6 +196,7 @@
   --ds-accent-fg: #0369a1;
   --ds-accent-soft: #f0f9ff;
   --ds-accent-soft-border: #bae6fd;
+  --color-ring: var(--ds-accent-fg);
 }
 
 [data-module="kepegawaian"] {
@@ -204,6 +206,7 @@
   --ds-accent-fg: #2563eb;
   --ds-accent-soft: #eff6ff;
   --ds-accent-soft-border: #bfdbfe;
+  --color-ring: var(--ds-accent-fg);
 }
 
 [data-module="persuratan"] {
@@ -213,6 +216,7 @@
   --ds-accent-fg: #0f766e;
   --ds-accent-soft: #f0fdfa;
   --ds-accent-soft-border: #99f6e4;
+  --color-ring: var(--ds-accent-fg);
 }
 
 [data-module="portal"] {
@@ -222,6 +226,7 @@
   --ds-accent-fg: #1e5433;
   --ds-accent-soft: #edf3ee;
   --ds-accent-soft-border: #dce8dd;
+  --color-ring: var(--ds-accent-fg);
 }
 
 .dark[data-module="bmn"],
@@ -336,6 +341,17 @@
 
 [data-module="portal"] :is(button, a)[data-variant="outline"]:hover {
   background: var(--ds-surface-muted);
+  border-color: var(--ds-border-control);
+}
+
+/* Prevent shadcn Button's focus-visible:border-ring/ring-3 from painting a mismatched double inner border under module outlines. */
+:is(.st-ui, .kpg-ui, .psr-ui, .kpg-shell, .psr-shell, .bmn-assets-ui, .bmn-standard-ui, .bmn-shell) :is(button, a)[data-slot="button"]:focus-visible {
+  box-shadow: none;
+}
+:is(.st-ui, .kpg-ui, .psr-ui, .kpg-shell, .psr-shell, .bmn-assets-ui, .bmn-standard-ui, .bmn-shell) :is(button, a)[data-slot="button"]:not([data-variant="outline"]):focus-visible {
+  border-color: transparent;
+}
+:is(.st-ui, .kpg-ui, .psr-ui, .kpg-shell, .psr-shell, .bmn-assets-ui, .bmn-standard-ui, .bmn-shell) :is(button, a)[data-slot="button"][data-variant="outline"]:focus-visible {
   border-color: var(--ds-border-control);
 }
 

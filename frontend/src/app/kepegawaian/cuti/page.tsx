@@ -4,7 +4,7 @@ import { KepegawaianTabContent } from "../_components/KepegawaianTabContent";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, clearGetCache } from "@/lib/api";
 import { toast } from "sonner";
 import {
   Inbox, Search, Eye, Edit2, Trash2, FileText, FileUp, FileCheck,
@@ -114,10 +114,13 @@ export default function InboxSuratCutiPage() {
     },
     placeholderData: keepPreviousData,
     staleTime: 10000,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
 
   // Real-time inbox update via WebSocket
   useAdminInboxLive("kepegawaian", () => {
+    clearGetCache();
     queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
   });
 

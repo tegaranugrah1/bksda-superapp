@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1794903424.6585586,
-    "ast_hash": "c1ee9bd1939a8baed9cb2c277cc852d0",
+    "mtime": 1794906369.6256053,
+    "ast_hash": "f6fecaf634cbc2c89fe1e903e03ccf8f",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -1480,8 +1480,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/EmployeeLeaveRequestTest.php": {
-    "mtime": 1794807796.8496635,
-    "ast_hash": "5758e67687ddabd6c6f1ce7c31e099ef",
+    "mtime": 1794906444.0996647,
+    "ast_hash": "eb47c8f3d2272015cd866a3059ebd644",
     "semantic_hash": ""
   },
   "backend/tests/Feature/EmployeeLeaveTest.php": {
@@ -2115,8 +2115,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/page.tsx": {
-    "mtime": 1794831198.0798807,
-    "ast_hash": "68b47706a5a5e9556ebcb6758cfbab8c",
+    "mtime": 1794905191.2079034,
+    "ast_hash": "41411208582faffb31cb7d53d98a22a3",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
@@ -2265,8 +2265,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/page.tsx": {
-    "mtime": 1794844362.518056,
-    "ast_hash": "27aee3001b0959783169094b3389150a",
+    "mtime": 1794906441.607206,
+    "ast_hash": "82a3c7793f1822b775abda2d873a6ec9",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/surat-tugas/[id]/page.tsx": {
@@ -2410,18 +2410,18 @@
     "semantic_hash": "5a8a65e617dd481437508ff58498d8fb"
   },
   "frontend/src/components/ui/confirm-dialog.tsx": {
-    "mtime": 1794404138.9739716,
-    "ast_hash": "fa7b7f2a9b4b5e77bb4806bb6a75f5d4",
+    "mtime": 1794907427.1551304,
+    "ast_hash": "17b0f6e97721c6344d4fe1a951e02fe9",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/dialog.tsx": {
-    "mtime": 1794810841.4906435,
-    "ast_hash": "74f6ca0b37f3788f9fc65f7a78843668",
+    "mtime": 1794907419.649868,
+    "ast_hash": "0a8c73cdc591f2087114a0c4aa6fc13e",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/dropdown-menu.tsx": {
-    "mtime": 1794810841.4896467,
-    "ast_hash": "d85277ea1fd4582109ff4952fcefe083",
+    "mtime": 1794907663.1319385,
+    "ast_hash": "57698e26a78d9c0e2b4a3664dbdafd94",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/employee-select.tsx": {
@@ -2450,14 +2450,14 @@
     "semantic_hash": "83a4dee523e5fa680b528a13f6cea20f"
   },
   "frontend/src/components/ui/popover.tsx": {
-    "mtime": 1778296612.3110943,
-    "ast_hash": "5bf130d487623ea8c36742def5d50685",
-    "semantic_hash": "5bf130d487623ea8c36742def5d50685"
+    "mtime": 1794907465.1104033,
+    "ast_hash": "0ce50857d521fce86c2df1b8e4290233",
+    "semantic_hash": ""
   },
   "frontend/src/components/ui/select.tsx": {
-    "mtime": 1778296612.3120947,
-    "ast_hash": "e001573d3fe5ba556027572e25536d39",
-    "semantic_hash": "e001573d3fe5ba556027572e25536d39"
+    "mtime": 1794907469.2299159,
+    "ast_hash": "5dd91ebd42e53ac3ad410d8a95b2523c",
+    "semantic_hash": ""
   },
   "frontend/src/components/ui/sonner.tsx": {
     "mtime": 1778141729.7918513,
@@ -5215,8 +5215,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyLeaveTab.tsx": {
-    "mtime": 1794843711.928604,
-    "ast_hash": "551df7ed78ff098c0cd14cd2b8fbe609",
+    "mtime": 1794906377.6002748,
+    "ast_hash": "40a4e10fb845b025637f778961b213fb",
     "semantic_hash": ""
   },
   "frontend/src/app/surat-tugas/_components/EmployeeSelectionStep.tsx": {
@@ -6710,8 +6710,8 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/PortalNotificationController.php": {
-    "mtime": 1794671565.065754,
-    "ast_hash": "cf77691a7f56a8dd6e01aaa83cdde2e9",
+    "mtime": 1794906373.3406627,
+    "ast_hash": "40db4bbdbbe21117f9db330e08322d64",
     "semantic_hash": ""
   },
   "backend/app/Models/PortalNotification.php": {
@@ -6735,8 +6735,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/NotificationBell.tsx": {
-    "mtime": 1794868267.5043359,
-    "ast_hash": "64d5800052a36aa87cc8ccc070a2f69d",
+    "mtime": 1794906599.3236613,
+    "ast_hash": "27af015e22d68f0c8d8d015196f5a990",
     "semantic_hash": ""
   },
   "backend/tests/self_check_public_surat_tugas.php": {
@@ -6910,8 +6910,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/BroadcastChannelAuthTest.php": {
-    "mtime": 1793593288.3337154,
-    "ast_hash": "a4f440398e9acfd2f95738bfbf36ad38",
+    "mtime": 1794905370.0147252,
+    "ast_hash": "a088686d1a0c6faad1b2bb43668acbdd",
     "semantic_hash": ""
   },
   "backend/tests/Feature/DriveShareTest.php": {
@@ -7000,8 +7000,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/echo.ts": {
-    "mtime": 1794671680.905354,
-    "ast_hash": "a26e3ea1339fc1b723b79354c27d371e",
+    "mtime": 1794905195.3756964,
+    "ast_hash": "9913e6ed8e0713710bc5d062393cbec3",
     "semantic_hash": ""
   },
   "docs/websocket-drive-mail-infrastructure/design.md": {
@@ -8770,8 +8770,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ui/use-dialog-focus-return.ts": {
-    "mtime": 1794366611.043038,
-    "ast_hash": "402b5be2c2cca00c2ba7cd35648ad5a6",
+    "mtime": 1794907914.512522,
+    "ast_hash": "4f5bd7d5a3060203e986f0002403141e",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-asset-grid.cjs": {
@@ -8800,8 +8800,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-ui.cjs": {
-    "mtime": 1794903558.316232,
-    "ast_hash": "96014076a7fc7aff31487ff776ac453c",
+    "mtime": 1794907511.630706,
+    "ast_hash": "84b77b31eba033d1f858182f43f9120b",
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
@@ -8890,8 +8890,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/portal-notifications-live-e2e.playwright.cjs": {
-    "mtime": 1794784551.5281198,
-    "ast_hash": "6d9c81ecf817daa1b7eefa73bdd4ea90",
+    "mtime": 1794907916.5002718,
+    "ast_hash": "2b7c96f1d23e1319f131f3cc7782dce6",
     "semantic_hash": ""
   },
   "docs/security/drive-deep-audit-and-remediation-plan-2026-11-13.md": {
