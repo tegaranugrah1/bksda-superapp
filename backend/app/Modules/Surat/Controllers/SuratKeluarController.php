@@ -35,8 +35,9 @@ class SuratKeluarController extends Controller
             $query->where('created_by', (int) $request->user()?->id);
         }
 
-        if ($request->filled('search')) {
-            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim((string) $request->input('search'))) . '%';
+        $search = $request->input('search');
+        if (is_string($search) && trim($search) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($search)) . '%';
             $query->where(function ($q) use ($pattern) {
                 $q->whereRaw("no_surat LIKE ? ESCAPE '!'", [$pattern])
                   ->orWhereRaw("tujuan_surat LIKE ? ESCAPE '!'", [$pattern])

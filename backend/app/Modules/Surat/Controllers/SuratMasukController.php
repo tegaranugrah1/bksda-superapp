@@ -41,8 +41,9 @@ class SuratMasukController extends Controller
         $query = SuratMasuk::with(['disposisi', 'creator'])
             ->orderBy('id', 'desc');
 
-        if ($request->filled('search')) {
-            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim((string) $request->input('search'))) . '%';
+        $search = $request->input('search');
+        if (is_string($search) && trim($search) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($search)) . '%';
             $query->where(function ($q) use ($pattern) {
                 $q->whereRaw("no_surat LIKE ? ESCAPE '!'", [$pattern])
                   ->orWhereRaw("no_agenda LIKE ? ESCAPE '!'", [$pattern])
@@ -87,7 +88,10 @@ class SuratMasukController extends Controller
 
     public function nextAgenda(Request $request): JsonResponse
     {
-        $year = (int) ($request->input('year') ?: date('Y'));
+        $rawYear = $request->input('year');
+        $year = (is_scalar($rawYear) && is_numeric($rawYear))
+            ? max(1900, min(2100, (int) $rawYear))
+            : (int) date('Y');
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
@@ -134,17 +138,25 @@ class SuratMasukController extends Controller
         ]);
     }
 
+    private function storeUploadedFile(SuratMasukRequest $request): ?string
+    {
+        if (! $request->hasFile('file_surat')) {
+            return null;
+        }
+        $file = $request->file('file_surat');
+        $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
+        return $file->storeAs('surat/masuk', uniqid('surat_masuk_') . '.' . $ext, 'local');
+    }
+
     public function store(SuratMasukRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
         DB::beginTransaction();
         try {
-            if ($request->hasFile('file_surat')) {
-                $file = $request->file('file_surat');
-                $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
-                $filename = uniqid('surat_masuk_') . '.' . $ext;
-                $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'local');
+            $newFilePath = $this->storeUploadedFile($request);
+            if ($newFilePath) {
+                $validated['file_path'] = $newFilePath;
             }
 
             $validated['created_by'] = $request->user()?->id;
@@ -205,11 +217,8 @@ class SuratMasukController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($request->hasFile('file_surat')) {
-                $file = $request->file('file_surat');
-                $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
-                $filename = uniqid('surat_masuk_') . '.' . $ext;
-                $newFilePath = $file->storeAs('surat/masuk', $filename, 'local');
+            $newFilePath = $this->storeUploadedFile($request);
+            if ($newFilePath) {
                 $validated['file_path'] = $newFilePath;
             }
 

@@ -78,9 +78,8 @@ class SuratMasukExport implements FromCollection, WithHeadings, WithMapping, Sho
         }
 
         $str = (string) $value;
-        $trimmed = ltrim($str);
 
-        return preg_match('/^[=+\-@\t\r]/', $trimmed) === 1 ? "'{$str}" : $str;
+        return preg_match('/^(?:[\s\x00-\x1F]*[=+\-@]|[\t\r])/', $str) === 1 ? "'{$str}" : $str;
     }
 
     public function map($row): array

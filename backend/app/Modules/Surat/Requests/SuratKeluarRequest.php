@@ -13,23 +13,25 @@ class SuratKeluarRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $payload = $this->input('document_payload');
-        if (is_string($payload)) {
-            $decoded = json_decode($payload, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $payload = $decoded;
+        $merged = [];
+        foreach (['no_surat', 'kode_klasifikasi', 'tujuan_surat', 'perihal', 'sifat', 'lampiran'] as $field) {
+            if ($this->has($field) && is_string($this->input($field))) {
+                $cleaned = strip_tags(trim($this->input($field)));
+                $merged[$field] = $cleaned === '' ? null : $cleaned;
             }
         }
 
-        $this->merge([
-            'no_surat' => $this->no_surat ? strip_tags(trim((string) $this->no_surat)) : null,
-            'kode_klasifikasi' => $this->kode_klasifikasi ? strip_tags(trim((string) $this->kode_klasifikasi)) : null,
-            'tujuan_surat' => $this->tujuan_surat ? strip_tags(trim((string) $this->tujuan_surat)) : null,
-            'perihal' => $this->perihal ? strip_tags(trim((string) $this->perihal)) : null,
-            'sifat' => $this->sifat ? strip_tags(trim((string) $this->sifat)) : null,
-            'lampiran' => $this->lampiran ? strip_tags(trim((string) $this->lampiran)) : null,
-            ...(is_array($payload) ? ['document_payload' => $payload] : []),
-        ]);
+        $payload = $this->input('document_payload');
+        if (is_string($payload)) {
+            $decoded = json_decode($payload, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $merged['document_payload'] = $decoded;
+            }
+        }
+
+        if ($merged !== []) {
+            $this->merge($merged);
+        }
     }
 
     public function rules(): array
@@ -54,7 +56,7 @@ class SuratKeluarRequest extends FormRequest
                     }
                 },
             ],
-            'penandatangan_id' => 'nullable|exists:kpg_employees,id',
+            'penandatangan_id' => 'nullable|integer|exists:kpg_employees,id',
             'file_surat' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|extensions:pdf,jpg,jpeg,png,webp|max:10240',
         ];
     }

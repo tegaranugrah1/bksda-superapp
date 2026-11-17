@@ -133,7 +133,7 @@ function sanitizeWordFragment(el: Element | null): string {
     for (const attr of Array.from(node.attributes)) {
       const name = attr.name.toLowerCase();
       const val = attr.value.trim().toLowerCase();
-      if (name.startsWith("on") || ((name === "href" || name === "src") && (val.startsWith("javascript:") || val.startsWith("data:text/html")))) {
+      if (name.startsWith("on") || ((name === "href" || name === "src") && (val.startsWith("javascript:") || val.startsWith("data:text/html") || val.startsWith("data:image/svg+xml")))) {
         node.removeAttribute(attr.name);
       }
     }
@@ -724,7 +724,7 @@ Content-Type: text/html; charset="utf-8"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head>
   <meta charset="utf-8">
-  <title>${filename.replace(/\.doc$/, "")}</title>
+  <title>${escapeWordHtml(filename.replace(/\.doc$/, ""))}</title>
   <!--[if gte mso 9]>
   <xml>
     <w:WordDocument>

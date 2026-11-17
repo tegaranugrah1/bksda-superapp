@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Modules\Surat\Exports\SuratMasukExport;
 use App\Modules\Surat\Models\SuratMasuk;
 use App\Modules\Surat\Models\SuratKeluar;
 use App\Modules\Surat\Models\SuratDisposisi;
@@ -364,5 +365,52 @@ class SuratModuleTest extends TestCase
         $this->actingAs($superAdmin)
             ->putJson('/api/surat/templates/not-an-id', ['nama' => 'Bypass'])
             ->assertStatus(405);
+    }
+
+    public function test_malformed_array_inputs_non_integer_fk_and_excel_formula_cells_are_handled_safely(): void
+    {
+        // Array search parameters must not trigger Array-to-string HTTP 500
+        $this->actingAs($this->adminUser)->getJson('/api/surat/surat-masuk?search[]=abc')->assertOk();
+        $this->actingAs($this->adminUser)->getJson('/api/surat/surat-keluar?search[]=abc')->assertOk();
+        $this->actingAs($this->adminUser)->getJson('/api/surat/templates?search[]=abc')->assertOk();
+
+        // Array scalar fields & non-integer FK strings must return 422 cleanly (never 500)
+        $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-masuk', [
+                'no_agenda' => '2099',
+                'tanggal_agenda' => '2026-11-17',
+                'no_surat' => ['nested-array'],
+                'isi_ringkas' => str_repeat('x', 10001),
+                'disposisi' => ['kepala_balai_id' => 'not-an-integer'],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['no_surat', 'isi_ringkas', 'disposisi.kepala_balai_id']);
+
+        $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-keluar', [
+                'no_surat' => ['nested-array'],
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji array scalar & FK integer',
+                'penandatangan_id' => 'not-an-integer',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['no_surat', 'penandatangan_id']);
+
+        // Formula injection cells with leading control whitespace or formula triggers are prefixed with apostrophe
+        $export = new SuratMasukExport();
+        $row = new SuratMasuk([
+            'no_agenda' => '=CMD()',
+            'no_surat' => "\tfoo",
+            'asal_surat' => "\n=1+1",
+            'lampiran' => '-',
+            'isi_ringkas' => 'Aman',
+        ]);
+        $mapped = $export->map($row);
+        $this->assertSame("'=CMD()", $mapped[0]);
+        $this->assertSame("'\tfoo", $mapped[2]);
+        $this->assertSame("'\n=1+1", $mapped[4]);
+        $this->assertSame('-', $mapped[5]);
+        $this->assertSame('Aman', $mapped[6]);
     }
 }

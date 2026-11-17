@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
     // Block all non-inline network fetches & active data/blob URIs inside headless Chromium
     await page.route("**/*", (route) => {
       const url = route.request().url();
-      if (url.startsWith("about:") || SAFE_DATA_IMAGE_RE.test(url)) {
+      if (url === "about:blank" || SAFE_DATA_IMAGE_RE.test(url)) {
         return route.continue();
       }
       return route.abort();

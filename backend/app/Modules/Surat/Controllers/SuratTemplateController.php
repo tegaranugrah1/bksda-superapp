@@ -17,8 +17,9 @@ class SuratTemplateController extends Controller
     {
         $query = SuratTemplate::query();
 
-        if ($request->filled('search')) {
-            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim((string) $request->input('search'))) . '%';
+        $search = $request->input('search');
+        if (is_string($search) && trim($search) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($search)) . '%';
             $query->where(function ($q) use ($pattern) {
                 $q->whereRaw("nama LIKE ? ESCAPE '!'", [$pattern])
                   ->orWhereRaw("key LIKE ? ESCAPE '!'", [$pattern])

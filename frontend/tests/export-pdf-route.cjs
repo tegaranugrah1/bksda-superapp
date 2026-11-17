@@ -10,7 +10,7 @@ assert.ok(routeSrc.includes("authorizeSuratRequest"), "Route must verify auth & 
 assert.ok(routeSrc.includes("Referer") && routeSrc.includes("Origin"), "Route must forward Origin/Referer for Sanctum stateful session cookies");
 assert.ok(routeSrc.includes("javaScriptEnabled: false"), "Chromium context must disable JS execution");
 assert.ok(routeSrc.includes("route.abort()"), "Chromium must block external network fetches (SSRF protection)");
-assert.ok(routeSrc.includes("SAFE_DATA_IMAGE_RE") && !routeSrc.includes('url.startsWith("blob:")'), "Chromium must restrict data URIs to raster images and block blob:");
+assert.ok(routeSrc.includes("SAFE_DATA_IMAGE_RE") && routeSrc.includes('url === "about:blank"') && !routeSrc.includes('url.startsWith("blob:")'), "Chromium must restrict allowed URIs to about:blank and raster data images");
 assert.ok(routeSrc.includes("PDF_RENDER_TIMEOUT_MS") && routeSrc.includes("content-length"), "PDF route must cap content-length and timeout slow PDF renders");
 assert.ok(exporterSrc.includes('fetch("/surat/export-pdf"'), "PDF exporter must use /surat/export-pdf vector route");
 assert.ok(!exporterSrc.includes("html2canvas"), "PDF exporter must not fall back to image-only html2canvas");

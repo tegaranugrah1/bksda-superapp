@@ -31,6 +31,23 @@ function formatDateForInput(dateStr?: string | null): string {
   return str;
 }
 
+function loadDefaultRecipients(): string[] {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("bksda_default_penerus");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Fallback to built-in default options on malformed storage value
+      }
+    }
+  }
+  return [...DITERUSKAN_OPTIONS];
+}
+
 function LembarDisposisiCardFields({
   formData,
   setFormData,
@@ -287,20 +304,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
   }));
 
   // Dynamic Diteruskan Options List (Load custom default from localStorage if available)
-  const [diteruskanList1, setDiteruskanList1] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("bksda_default_penerus");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
-        } catch (e) {}
-      }
-    }
-    return [...DITERUSKAN_OPTIONS];
-  });
+  const [diteruskanList1, setDiteruskanList1] = useState<string[]>(loadDefaultRecipients);
   const [newRecipientText, setNewRecipientText] = useState("");
   const [catatanDisposisi1, setCatatanDisposisi1] = useState("");
 
@@ -345,20 +349,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
     lampiran: "",
     catatan: "",
   });
-  const [diteruskanList2, setDiteruskanList2] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("bksda_default_penerus");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
-        } catch (e) {}
-      }
-    }
-    return [...DITERUSKAN_OPTIONS];
-  });
+  const [diteruskanList2, setDiteruskanList2] = useState<string[]>(loadDefaultRecipients);
   const [catatanDisposisi2, setCatatanDisposisi2] = useState("");
 
   // Position 1-Up (Kiri / Kanan) when printing 1 Disposisi
