@@ -21,9 +21,20 @@ class EmployeeIncomingLetterController extends Controller
         return (string) config('filesystems.default');
     }
 
+    private function validatedFilters(Request $request): array
+    {
+        return $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'kategori' => ['nullable', 'string', 'max:50'],
+            'status_balasan' => ['nullable', 'string', 'max:30'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+        ]);
+    }
+
     public function export(Request $request)
     {
-        $filters = $request->only(['search', 'kategori', 'start_date', 'end_date', 'status_balasan']);
+        $filters = $this->validatedFilters($request);
         $filename = 'Arsip_Surat_Masuk_Kepegawaian_' . now()->format('Ymd_His') . '.xlsx';
 
         return Excel::download(new EmployeeIncomingLettersExport($filters), $filename);
@@ -31,7 +42,7 @@ class EmployeeIncomingLetterController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only(['search', 'kategori', 'status_balasan', 'start_date', 'end_date']);
+        $filters = $this->validatedFilters($request);
 
         $items = EmployeeIncomingLetter::query()
             ->with('attachments:id,incoming_letter_id,type,original_name,mime_type,size,note,created_at')
@@ -178,13 +189,6 @@ class EmployeeIncomingLetterController extends Controller
                     'attachment_notes',
                     'delete_attachment_ids',
                 ])->all();
-
-                foreach (['no_agenda', 'no_surat_masuk', 'asal_surat', 'perihal', 'catatan', 'no_surat_balasan'] as $textKey) {
-                    if (array_key_exists($textKey, $fields)) {
-                        $cleaned = $fields[$textKey] !== null ? strip_tags(trim((string) $fields[$textKey])) : null;
-                        $fields[$textKey] = $cleaned !== '' ? $cleaned : null;
-                    }
-                }
 
                 $letter->fill($fields);
                 if ($creating) {

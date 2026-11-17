@@ -26,6 +26,18 @@ export function buildSuratTugasFilename(
   return `ST_${safeNumber}_${safeKegiatan}.${safeExt}`;
 }
 
+const SAFE_WORD_IMG_SRC = /^(?:https?:\/\/|\/(?!\/)|data:image\/(?:png|jpe?g|gif|webp|bmp);base64,)/i;
+const DANGEROUS_URI = /^(?:javascript|vbscript):|^data:(?:text\/html|image\/svg\+xml)/i;
+
+function escapeWordHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function resolveAbsoluteUrl(url: string): string {
   if (!url) return "";
   if (/^https?:\/\//i.test(url) || url.startsWith("data:")) return url;
@@ -99,12 +111,12 @@ export async function exportSuratTugasWord(
   let kopImgHtml = "";
   if (kopEl) {
     const kopImg = kopEl.querySelector("img");
-    if (kopImg) {
+    const rawSrc = kopImg?.getAttribute("src")?.trim() ?? "";
+    if (kopImg && SAFE_WORD_IMG_SRC.test(rawSrc)) {
       // Lebar 189.4mm (716px) dengan indent kiri -25.5pt membuat kop surat mulai 9mm di kiri "Menimbang" (1.1cm dari tepi kertas)
       // dan ujung garis hitam kanan sejajar persis dengan batas margin kanan kata-kata teks Dasar (194.5mm).
-      kopImg.setAttribute("width", "716");
-      kopImg.setAttribute("style", "width: 189.4mm; max-width: 189.4mm; height: auto; display: block;");
-      kopImgHtml = kopImg.outerHTML;
+      const altText = kopImg.getAttribute("alt") ?? "Kop Surat";
+      kopImgHtml = `<img src="${escapeWordHtml(rawSrc)}" alt="${escapeWordHtml(altText)}" width="716" style="width: 189.4mm; max-width: 189.4mm; height: auto; display: block;">`;
     }
     kopEl.remove();
   }
@@ -121,13 +133,18 @@ export async function exportSuratTugasWord(
     "iframe",
     "object",
     "embed",
+    "link",
+    "base",
   ];
   clone.querySelectorAll(removeSelectors.join(",")).forEach((el) => el.remove());
 
-  // 5. Hapus inline event handlers
+  // 5. Hapus inline event handlers dan skema URI berbahaya
   clone.querySelectorAll("*").forEach((el) => {
     Array.from(el.attributes).forEach((attr) => {
-      if (attr.name.toLowerCase().startsWith("on")) {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith("on")) {
+        el.removeAttribute(attr.name);
+      } else if ((name === "href" || name === "src" || name === "xlink:href") && DANGEROUS_URI.test(attr.value.trim())) {
         el.removeAttribute(attr.name);
       }
     });
@@ -253,7 +270,7 @@ Content-Type: text/html; charset="utf-8"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head>
   <meta charset="utf-8">
-  <title>${docTitle}</title>
+  <title>${escapeWordHtml(docTitle)}</title>
   <!--[if gte mso 9]>
   <xml>
     <w:WordDocument>

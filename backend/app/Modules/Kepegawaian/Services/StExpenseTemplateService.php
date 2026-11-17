@@ -17,19 +17,22 @@ class StExpenseTemplateService
             $query->where('is_active', true);
         }
 
-        if (!empty($filters['category'])) {
+        if (!empty($filters['category']) && is_string($filters['category'])) {
             $query->whereRaw('LOWER(category) = ?', [strtolower($filters['category'])]);
         }
 
         $rawSearch = $filters['search'] ?? $filters['q'] ?? null;
-        if (!empty($rawSearch)) {
-            $search = addcslashes(trim($rawSearch), '%_');
-            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($search, $likeOp) {
-                $q->where('name', $likeOp, "%{$search}%")
-                  ->orWhere('code', $likeOp, "%{$search}%")
-                  ->orWhere('biaya_text', $likeOp, "%{$search}%");
-            });
+        if (is_string($rawSearch)) {
+            $trimmed = trim($rawSearch);
+            if ($trimmed !== '') {
+                $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $trimmed) . '%';
+                $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+                $query->where(function ($q) use ($pattern, $likeOp) {
+                    $q->whereRaw("name {$likeOp} ? ESCAPE '!'", [$pattern])
+                        ->orWhereRaw("code {$likeOp} ? ESCAPE '!'", [$pattern])
+                        ->orWhereRaw("biaya_text {$likeOp} ? ESCAPE '!'", [$pattern]);
+                });
+            }
         }
 
         $perPage = min(100, max(1, (int) ($filters['per_page'] ?? 50)));

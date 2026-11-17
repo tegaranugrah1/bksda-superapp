@@ -88,7 +88,9 @@ export function ScanViewerModal({
         } else if (
           resDataUrl &&
           typeof resDataUrl === "string" &&
-          (resDataUrl.startsWith("http://") || resDataUrl.startsWith("https://") || resDataUrl.startsWith("/"))
+          (resDataUrl.startsWith("http://") ||
+            resDataUrl.startsWith("https://") ||
+            (resDataUrl.startsWith("/") && !resDataUrl.startsWith("//")))
         ) {
           setPreviewUrl(resDataUrl);
         } else {

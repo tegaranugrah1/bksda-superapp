@@ -40,17 +40,19 @@ class StTaskTypeController extends Controller
             $query->where('is_active', true);
         }
 
-        if ($search = trim((string) $request->input('search'))) {
-            $escapedSearch = addcslashes($search, '%_');
+        $rawSearch = $request->input('search');
+        if (is_string($rawSearch) && trim($rawSearch) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($rawSearch)) . '%';
             $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($escapedSearch, $likeOp) {
-                $q->where('nama', $likeOp, "%{$escapedSearch}%")
-                  ->orWhere('kode', $likeOp, "%{$escapedSearch}%")
-                  ->orWhere('keterangan', $likeOp, "%{$escapedSearch}%");
+            $query->where(function ($q) use ($pattern, $likeOp) {
+                $q->whereRaw("nama {$likeOp} ? ESCAPE '!'", [$pattern])
+                    ->orWhereRaw("kode {$likeOp} ? ESCAPE '!'", [$pattern])
+                    ->orWhereRaw("keterangan {$likeOp} ? ESCAPE '!'", [$pattern]);
             });
         }
 
-        if ($status = $request->input('status')) {
+        $status = $request->input('status');
+        if (is_string($status)) {
             if ($status === 'active') {
                 $query->where('is_active', true);
             } elseif ($status === 'inactive') {

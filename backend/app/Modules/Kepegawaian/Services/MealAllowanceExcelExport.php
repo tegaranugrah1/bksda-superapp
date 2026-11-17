@@ -443,8 +443,7 @@ class MealAllowanceExcelExport
             return $value ?? '-';
         }
 
-        $trimmed = ltrim($value);
-        return preg_match('/^[=+\-@\t\r]/', $trimmed) === 1 ? "'{$value}" : $value;
+        return preg_match('/^(?:[\s\x00-\x1F]*[=+\-@]|[\t\r])/', $value) === 1 ? "'{$value}" : $value;
     }
 
     protected function namaBulanIndo(int $m): string

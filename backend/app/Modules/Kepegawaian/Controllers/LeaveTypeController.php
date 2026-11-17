@@ -34,13 +34,14 @@ class LeaveTypeController extends Controller
             $query->where('is_active', true);
         }
 
-        if ($request->filled('search')) {
-            $search = addcslashes(strip_tags(trim((string) $request->query('search'))), '%_');
-            $likeOp = config('database.default') === 'pgsql' ? 'ILIKE' : 'LIKE';
-            $query->where(function ($q) use ($search, $likeOp) {
-                $q->where('nama', $likeOp, "%{$search}%")
-                  ->orWhere('kode', $likeOp, "%{$search}%")
-                  ->orWhere('keterangan', $likeOp, "%{$search}%");
+        $rawSearch = $request->query('search');
+        if (is_string($rawSearch) && ($cleaned = $this->cleanString($rawSearch)) !== null) {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $cleaned) . '%';
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+            $query->where(function ($q) use ($pattern, $likeOp) {
+                $q->whereRaw("nama {$likeOp} ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("kode {$likeOp} ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("keterangan {$likeOp} ? ESCAPE '!'", [$pattern]);
             });
         }
 

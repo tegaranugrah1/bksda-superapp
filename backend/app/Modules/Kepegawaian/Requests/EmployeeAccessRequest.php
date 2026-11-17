@@ -50,7 +50,6 @@ class EmployeeAccessRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'access_modules.min' => 'Pengguna wajib diberikan minimal 1 akses modul (contoh: dashboard).',
             'role.in' => 'Peran (Role) tidak valid.',
         ];
     }

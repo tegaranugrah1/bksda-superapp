@@ -79,7 +79,7 @@ export default function KepegawaianLayout({
   const { role, canWrite, isSuperAdmin } = useRole("kepegawaian");
 
   const isRouteForbidden =
-    (pathname.startsWith("/kepegawaian/settings") && user?.role !== "super_admin") ||
+    (pathname.startsWith("/kepegawaian/settings") && !isSuperAdmin) ||
     (!canWrite &&
       (pathname.startsWith("/kepegawaian/employees/create") ||
         pathname.startsWith("/kepegawaian/surat-tugas") ||
@@ -96,7 +96,7 @@ export default function KepegawaianLayout({
   const visibleItems = SIDEBAR_ITEMS.filter((item) => {
     if (item.minRole === "user") return true;
     if (item.minRole === "admin") return canWrite;
-    if (item.minRole === "super_admin") return user?.role === "super_admin";
+    if (item.minRole === "super_admin") return isSuperAdmin;
     return false;
   });
 

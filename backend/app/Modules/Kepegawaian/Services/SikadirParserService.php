@@ -165,8 +165,10 @@ class SikadirParserService
             return [];
         }
 
-        // ponytail: limit entries & stream length to prevent zip bomb / memory exhaustion
+        // ponytail: limit entries, per-entry stream size & cumulative decompressed size to prevent zip bomb / OOM
         $maxFiles = min($zip->numFiles, 200);
+        $totalBytes = 0;
+        $maxTotalBytes = 25 * 1024 * 1024;
         for ($i = 0; $i < $maxFiles; $i++) {
             $filename = $zip->getNameIndex($i);
 
@@ -185,6 +187,14 @@ class SikadirParserService
 
             $content = stream_get_contents($stream, 5 * 1024 * 1024);
             fclose($stream);
+            if ($content === false) {
+                continue;
+            }
+
+            $totalBytes += strlen($content);
+            if ($totalBytes > $maxTotalBytes) {
+                break;
+            }
 
             $parsed = $this->parseHtmlContent($content, basename($filename));
             if ($parsed) {
@@ -207,8 +217,8 @@ class SikadirParserService
 
         libxml_use_internal_errors(true);
         $dom = new DOMDocument();
-        // Prefix xml header menjamin bebas error charset
-        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content);
+        // Prefix xml header menjamin bebas error charset; LIBXML_NONET disables external entity network access
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
         libxml_clear_errors();
 
         $xpath = new DOMXPath($dom);

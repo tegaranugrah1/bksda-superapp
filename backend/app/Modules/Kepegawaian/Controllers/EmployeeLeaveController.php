@@ -8,6 +8,7 @@ use App\Modules\Kepegawaian\Models\EmployeeLeave;
 use App\Modules\Kepegawaian\Models\LeaveType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,14 @@ use Illuminate\Support\Facades\Storage;
 
 class EmployeeLeaveController extends Controller
 {
+    private function storeScanFile(UploadedFile $file, string $directory): array
+    {
+        return [
+            'path' => Storage::disk('local')->putFile($directory, $file),
+            'name' => basename(str_replace('\\', '/', $file->getClientOriginalName())),
+        ];
+    }
+
     /**
      * Get Leave Balance for specific employee and year
      */
@@ -220,24 +229,6 @@ class EmployeeLeaveController extends Controller
                 DB::rollBack();
                 return response()->json(['message' => $msg], 422);
             }
-            $scanFormulirPath = null;
-            $scanFormulirNama = null;
-            $scanSuratIzinPath = null;
-            $scanSuratIzinNama = null;
-
-            if ($request->hasFile('file_scan_formulir')) {
-                $f = $request->file('file_scan_formulir');
-                $scanFormulirPath = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
-                $scanFormulirNama = basename(str_replace('\\', '/', $f->getClientOriginalName()));
-            }
-
-            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
-            if ($suratIzinFile) {
-                $scanSuratIzinPath = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
-                $scanSuratIzinNama = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-            }
-
-            $hasUploaded = $scanFormulirPath || $scanSuratIzinPath;
             $year = $startYear;
             $leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $year);
             $otherApprovedDays = (int) $leaveBalance->cuti_terpakai_n0;
@@ -250,6 +241,28 @@ class EmployeeLeaveController extends Controller
                     'message' => "Saldo cuti tahunan tidak mencukupi (tersedia {$availableQuota} hari, diajukan {$jumlahHari} hari).",
                 ], 422);
             }
+
+            $newlyStored = [];
+            $formulir = $request->hasFile('file_scan_formulir')
+                ? $this->storeScanFile($request->file('file_scan_formulir'), 'cuti_scans/formulir')
+                : null;
+            if ($formulir) {
+                $newlyStored[] = $formulir['path'];
+            }
+
+            $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
+            $suratIzin = $suratIzinFile
+                ? $this->storeScanFile($suratIzinFile, 'cuti_scans/surat_izin')
+                : null;
+            if ($suratIzin) {
+                $newlyStored[] = $suratIzin['path'];
+            }
+
+            $scanFormulirPath = $formulir['path'] ?? null;
+            $scanFormulirNama = $formulir['name'] ?? null;
+            $scanSuratIzinPath = $suratIzin['path'] ?? null;
+            $scanSuratIzinNama = $suratIzin['name'] ?? null;
+            $hasUploaded = $scanFormulirPath || $scanSuratIzinPath;
 
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
                 'employee_id' => $employeeId,
@@ -302,9 +315,15 @@ class EmployeeLeaveController extends Controller
             ], 201);
         } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             return response()->json([
                 'error' => 'Gagal mencatat penetapan cuti',
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menyimpan penetapan cuti.',
@@ -433,23 +452,28 @@ class EmployeeLeaveController extends Controller
                 'catatan_atasan' => isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : null,
             ];
 
+            $newlyStored = [];
+            $oldPathsToDelete = [];
             $hasUploaded = false;
             if ($request->hasFile('file_scan_formulir')) {
-                $f = $request->file('file_scan_formulir');
-                $leaveReq->clearScanSlot('formulir');
-                $updatePayload['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
-                $updatePayload['scan_formulir_nama'] = basename(str_replace('\\', '/', $f->getClientOriginalName()));
+                $oldPathsToDelete[] = $leaveReq->scan_formulir_path;
+                $stored = $this->storeScanFile($request->file('file_scan_formulir'), 'cuti_scans/formulir');
+                $newlyStored[] = $stored['path'];
+                $updatePayload['scan_formulir_path'] = $stored['path'];
+                $updatePayload['scan_formulir_nama'] = $stored['name'];
                 $hasUploaded = true;
             }
 
             $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
             if ($suratIzinFile) {
-                $leaveReq->clearScanSlot('surat_izin');
-                $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
-                $updatePayload['scan_surat_izin_path'] = $path;
-                $updatePayload['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-                $updatePayload['scan_surat_path'] = $path;
-                $updatePayload['scan_surat_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
+                $oldPathsToDelete[] = $leaveReq->scan_surat_izin_path;
+                $oldPathsToDelete[] = $leaveReq->scan_surat_path;
+                $stored = $this->storeScanFile($suratIzinFile, 'cuti_scans/surat_izin');
+                $newlyStored[] = $stored['path'];
+                $updatePayload['scan_surat_izin_path'] = $stored['path'];
+                $updatePayload['scan_surat_izin_nama'] = $stored['name'];
+                $updatePayload['scan_surat_path'] = $stored['path'];
+                $updatePayload['scan_surat_nama'] = $stored['name'];
                 $hasUploaded = true;
             }
 
@@ -477,6 +501,11 @@ class EmployeeLeaveController extends Controller
 
             DB::commit();
 
+            $stalePaths = array_values(array_unique(array_filter(array_diff($oldPathsToDelete, $newlyStored))));
+            if ($stalePaths !== []) {
+                Storage::disk('local')->delete($stalePaths);
+            }
+
             if ($suratIzinFile) {
                 $leaveReq->fresh()?->archiveSuratIzin(Auth::id());
             }
@@ -487,9 +516,15 @@ class EmployeeLeaveController extends Controller
             ]);
         } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             return response()->json([
                 'error' => 'Gagal memperbarui penetapan cuti',
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat memperbarui penetapan cuti.',

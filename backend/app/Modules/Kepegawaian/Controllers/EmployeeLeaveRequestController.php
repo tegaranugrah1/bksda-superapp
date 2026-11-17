@@ -41,8 +41,9 @@ class EmployeeLeaveRequestController extends Controller
             }
         }
 
-        if ($status = $request->input('status')) {
-            $s = strtoupper((string) $status);
+        $status = $request->input('status');
+        if (is_string($status) && trim($status) !== '') {
+            $s = strtoupper(trim($status));
             if ($s !== 'ALL' && $s !== 'SEMUA') {
                 $statuses = match ($s) {
                     'PENDING', 'PENGAJUAN' => ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'],
@@ -212,23 +213,6 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
-            if ($employee->inactive_effective_date && $end->toDateString() >= $employee->inactive_effective_date->toDateString()) {
-                $tmt = $employee->inactive_effective_date->toDateString();
-                DB::rollBack();
-                return response()->json([
-                    'message' => "Pengajuan cuti tidak dapat melintasi tanggal TMT nonaktif ({$tmt}).",
-                ], 422);
-            }
-
-            if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
-                $eligibleDate = $employee->annual_leave_eligible_date;
-                $msg = $eligibleDate
-                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
-                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
-                DB::rollBack();
-                return response()->json(['message' => $msg], 422);
-            }
-
             // Calculate working days or calendar days based on LeaveType configuration
             $jumlahHari = $leaveType->countDays($start, $end);
 
@@ -381,8 +365,9 @@ class EmployeeLeaveRequestController extends Controller
             }
         }
 
-        if ($status = $request->input('status')) {
-            $s = strtoupper((string) $status);
+        $status = $request->input('status');
+        if (is_string($status) && trim($status) !== '') {
+            $s = strtoupper(trim($status));
             if ($s !== 'ALL' && $s !== 'SEMUA') {
                 $statuses = match ($s) {
                     'PENDING', 'PENGAJUAN' => ['PENGAJUAN', 'PENDING', 'pengajuan', 'pending'],
@@ -394,17 +379,18 @@ class EmployeeLeaveRequestController extends Controller
             }
         }
 
-        $search = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
+        $rawSearch = $request->input('search') ?? $request->input('q') ?? '';
+        $search = is_string($rawSearch) ? trim($rawSearch) : '';
         if ($search !== '') {
-            $s = addcslashes($search, '%_');
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search) . '%';
             $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($nested) use ($s, $likeOp) {
-                $nested->whereHas('employee', function ($q) use ($s, $likeOp) {
-                    $q->where('nama_lengkap', $likeOp, "%{$s}%")
-                        ->orWhere('nip', $likeOp, "%{$s}%");
-                })->orWhere('nomor_pengajuan', $likeOp, "%{$s}%")
-                  ->orWhere('jenis_cuti', $likeOp, "%{$s}%")
-                  ->orWhere('alasan_cuti', $likeOp, "%{$s}%");
+            $query->where(function ($nested) use ($pattern, $likeOp) {
+                $nested->whereHas('employee', function ($q) use ($pattern, $likeOp) {
+                    $q->whereRaw("nama_lengkap {$likeOp} ? ESCAPE '!'", [$pattern])
+                        ->orWhereRaw("nip {$likeOp} ? ESCAPE '!'", [$pattern]);
+                })->orWhereRaw("nomor_pengajuan {$likeOp} ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("jenis_cuti {$likeOp} ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("alasan_cuti {$likeOp} ? ESCAPE '!'", [$pattern]);
             });
         }
 

@@ -54,7 +54,8 @@ class EmployeeController extends Controller
             'trashed' => $canViewTrashed ? (clone $baseQuery)->onlyTrashed()->count() : 0,
         ];
 
-        $statusFilter = strtolower(trim((string) $request->input('status', '')));
+        $rawStatus = $request->input('status', '');
+        $statusFilter = is_string($rawStatus) ? strtolower(trim($rawStatus)) : '';
         $wantsTrashed = $statusFilter === 'trashed' || $request->boolean('trashed');
         if ($wantsTrashed && ! $canViewTrashed) {
             abort(403, 'Anda tidak memiliki hak akses untuk melihat data pegawai terhapus.');
@@ -79,13 +80,16 @@ class EmployeeController extends Controller
             $query->effectiveActive();
         }
 
-        $jenisPegawai = strtoupper(trim((string) $request->input('jenis_pegawai', '')));
+        $rawJenis = $request->input('jenis_pegawai', '');
+        $jenisPegawai = is_string($rawJenis) ? strtoupper(trim($rawJenis)) : '';
         if (in_array($jenisPegawai, ['PNS', 'PPPK', 'P3K', 'MMP'], true)) {
             $query->ofJenis($jenisPegawai);
         }
 
         $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-        $wilayah = trim((string) $request->input('wilayah', ''));
+        $escapeLike = static fn (string $value): string => '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value) . '%';
+        $rawWilayah = $request->input('wilayah', '');
+        $wilayah = is_string($rawWilayah) ? trim($rawWilayah) : '';
         if ($wilayah !== '') {
             $slugMap = [
                 'BALAI' => 'balai-samarinda',
@@ -149,40 +153,42 @@ class EmployeeController extends Controller
                     }
                 });
             } else {
-                $escapedWilayah = addcslashes($wilayah, '%_');
-                $resorMatch = null;
+                $wilayahPattern = $escapeLike($wilayah);
+                $resorPatterns = null;
                 if (preg_match('/Resor\s+0*(\d+)\.\s*(.+)$/i', $wilayah, $m)) {
                     $resorNum = $m[1];
-                    $resorName = addcslashes(trim($m[2]), '%_');
-                    $resorMatch = ["Resor KSDA Wilayah {$resorNum}", $resorName];
+                    $resorName = trim($m[2]);
+                    $resorPatterns = [$escapeLike("Resor KSDA Wilayah {$resorNum}"), $escapeLike($resorName)];
                 }
-                $query->where(function ($q) use ($escapedWilayah, $resorMatch, $likeOp) {
-                    $q->where('satuan_kerja', $likeOp, "%{$escapedWilayah}%")
-                        ->orWhere('resor', $likeOp, "%{$escapedWilayah}%")
-                        ->orWhere('jabatan', $likeOp, "%{$escapedWilayah}%");
-                    if ($resorMatch) {
-                        $q->orWhere('jabatan', $likeOp, "%{$resorMatch[0]}%")
-                            ->orWhere('jabatan', $likeOp, "%{$resorMatch[1]}%");
+                $query->where(function ($q) use ($wilayahPattern, $resorPatterns, $likeOp) {
+                    $q->whereRaw("satuan_kerja {$likeOp} ? ESCAPE '!'", [$wilayahPattern])
+                        ->orWhereRaw("resor {$likeOp} ? ESCAPE '!'", [$wilayahPattern])
+                        ->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$wilayahPattern]);
+                    if ($resorPatterns) {
+                        $q->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$resorPatterns[0]])
+                            ->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$resorPatterns[1]]);
                     }
                 });
             }
         }
 
         // Ambil parameter pencarian dari URL (?search=... atau ?q=...)
-        $searchTerm = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
+        $rawSearch = $request->input('search') ?? $request->input('q') ?? '';
+        $searchTerm = is_string($rawSearch) ? trim($rawSearch) : '';
 
         if ($searchTerm !== '') {
-            $escapedTerm = addcslashes($searchTerm, '%_');
-            $query->where(function ($q) use ($escapedTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('jabatan', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('satuan_kerja', $likeOp, "%{$escapedTerm}%");
+            $termPattern = $escapeLike($searchTerm);
+            $query->where(function ($q) use ($termPattern, $likeOp) {
+                $q->whereRaw("nama_lengkap {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("nip {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("satuan_kerja {$likeOp} ? ESCAPE '!'", [$termPattern]);
             });
         }
 
         // Ambil data dengan Pagination (default 10 baris per halaman, 'all' = 500)
-        $rawPerPage = strtolower(trim((string) $request->input('per_page', '10')));
+        $rawPerPageInput = $request->input('per_page', '10');
+        $rawPerPage = is_scalar($rawPerPageInput) ? strtolower(trim((string) $rawPerPageInput)) : '10';
         $requestedPerPage = $rawPerPage === 'all' ? 500 : max(1, (int) $rawPerPage);
         $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
         $perPage = min($requestedPerPage, $isMobile ? 100 : 500);
@@ -559,7 +565,8 @@ class EmployeeController extends Controller
         $request->validate([
             'as_of' => ['nullable', 'date'],
         ]);
-        $searchTerm = trim((string) ($request->input('q') ?? $request->input('search') ?? ''));
+        $rawSearch = $request->input('q') ?? $request->input('search') ?? '';
+        $searchTerm = is_string($rawSearch) ? trim($rawSearch) : '';
         $asOf = ($request->user() && $request->filled('as_of'))
             ? \Illuminate\Support\Carbon::parse($request->input('as_of'))
             : null;
@@ -570,12 +577,12 @@ class EmployeeController extends Controller
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%');
 
-        if (! empty($searchTerm)) {
-            $escapedTerm = addcslashes($searchTerm, '%_');
+        if ($searchTerm !== '') {
+            $termPattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $searchTerm) . '%';
             $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($escapedTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%");
+            $query->where(function ($q) use ($termPattern, $likeOp) {
+                $q->whereRaw("nama_lengkap {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("nip {$likeOp} ? ESCAPE '!'", [$termPattern]);
             });
         }
 
