@@ -63,10 +63,25 @@ export interface ParagrafRincianBlock {
   items: ParagrafRincianRow[];
 }
 
+export interface ParagrafTableSectionRow {
+  kind: "section";
+  text: string;
+}
+
+export interface ParagrafTableMergedRow {
+  kind?: "data";
+  cells: string[];
+  spans?: number[];
+}
+
+export type ParagrafTableRow = string[] | ParagrafTableSectionRow | ParagrafTableMergedRow;
+
 export interface ParagrafTableBlock {
   type: "table";
   headers: string[];
-  rows: string[][];
+  rows: ParagrafTableRow[];
+  showColumnNumbers?: boolean;
+  colWidths?: number[];
 }
 
 export type ParagrafItem = string | ParagrafRincianBlock | ParagrafTableBlock;
@@ -90,6 +105,267 @@ export function isTableBlock(item: ParagrafItem | unknown): item is ParagrafTabl
   );
 }
 
+export function isTableSectionRow(row: ParagrafTableRow | unknown): row is ParagrafTableSectionRow {
+  return (
+    typeof row === "object" &&
+    row !== null &&
+    !Array.isArray(row) &&
+    (row as ParagrafTableSectionRow).kind === "section"
+  );
+}
+
+export function getTableRowCellsAndSpans(
+  row: ParagrafTableRow,
+  colCount: number
+): { cells: string[]; spans: number[] } {
+  const rawCells = Array.isArray(row)
+    ? row
+    : isTableSectionRow(row)
+    ? [row.text]
+    : Array.isArray(row.cells)
+    ? row.cells
+    : [];
+  const cells = Array.from({ length: colCount }, (_, c) => rawCells[c] ?? "");
+  const rawSpans =
+    !Array.isArray(row) && !isTableSectionRow(row) && Array.isArray(row.spans)
+      ? row.spans
+      : null;
+
+  const spans = Array(colCount).fill(1);
+  if (!rawSpans) return { cells, spans };
+
+  let c = 0;
+  while (c < colCount) {
+    const req = Number(rawSpans[c]);
+    if (Number.isFinite(req) && req >= 2) {
+      const span = Math.min(Math.floor(req), colCount - c);
+      spans[c] = span;
+      for (let k = c + 1; k < c + span; k++) spans[k] = 0;
+      c += span;
+    } else {
+      spans[c] = 1;
+      c++;
+    }
+  }
+  return { cells, spans };
+}
+
+export function packTableDataRow(cells: string[], spans: number[]): ParagrafTableRow {
+  return spans.every((s) => s === 1) ? [...cells] : { kind: "data", cells: [...cells], spans: [...spans] };
+}
+
+export function updateTableDataCell(
+  row: ParagrafTableRow,
+  colCount: number,
+  colIndex: number,
+  val: string
+): ParagrafTableRow {
+  if (isTableSectionRow(row)) return row;
+  const { cells, spans } = getTableRowCellsAndSpans(row, colCount);
+  if (colIndex < 0 || colIndex >= colCount) return row;
+  cells[colIndex] = val;
+  return packTableDataRow(cells, spans);
+}
+
+export function mergeTableCellRight(
+  block: ParagrafTableBlock,
+  rowIndex: number,
+  colIndex: number
+): ParagrafTableBlock {
+  const row = block.rows[rowIndex];
+  if (!row || isTableSectionRow(row)) return block;
+  const colCount = block.headers.length;
+  const { cells, spans } = getTableRowCellsAndSpans(row, colCount);
+  const curSpan = spans[colIndex] || 0;
+  if (curSpan <= 0) return block;
+  const nextCol = colIndex + curSpan;
+  if (nextCol >= colCount) return block;
+  const addSpan = Math.max(1, spans[nextCol] || 1);
+  const combined = [cells[colIndex], cells[nextCol]].map((s) => s.trim()).filter(Boolean).join(" ");
+  cells[colIndex] = combined || cells[colIndex];
+  cells[nextCol] = "";
+  spans[colIndex] = curSpan + addSpan;
+  for (let k = colIndex + 1; k < colIndex + spans[colIndex]; k++) spans[k] = 0;
+  return {
+    ...block,
+    rows: block.rows.map((r, i) => (i === rowIndex ? packTableDataRow(cells, spans) : r)),
+  };
+}
+
+export function splitTableCell(
+  block: ParagrafTableBlock,
+  rowIndex: number,
+  colIndex: number
+): ParagrafTableBlock {
+  const row = block.rows[rowIndex];
+  if (!row || isTableSectionRow(row)) return block;
+  const colCount = block.headers.length;
+  const { cells, spans } = getTableRowCellsAndSpans(row, colCount);
+  const curSpan = spans[colIndex] || 1;
+  if (curSpan <= 1) return block;
+  for (let k = colIndex; k < Math.min(colCount, colIndex + curSpan); k++) spans[k] = 1;
+  return {
+    ...block,
+    rows: block.rows.map((r, i) => (i === rowIndex ? packTableDataRow(cells, spans) : r)),
+  };
+}
+
+export function addTableColumnToRow(row: ParagrafTableRow, colCountBefore: number): ParagrafTableRow {
+  if (isTableSectionRow(row)) return row;
+  const { cells, spans } = getTableRowCellsAndSpans(row, colCountBefore);
+  return packTableDataRow([...cells, ""], [...spans, 1]);
+}
+
+export function removeTableColumnFromRow(
+  row: ParagrafTableRow,
+  colIndex: number,
+  colCountBefore: number
+): ParagrafTableRow {
+  if (isTableSectionRow(row)) return row;
+  const { cells, spans } = getTableRowCellsAndSpans(row, colCountBefore);
+  const nextSpans = [...spans];
+  const nextCells = [...cells];
+
+  if (nextSpans[colIndex] === 0) {
+    for (let owner = colIndex - 1; owner >= 0; owner--) {
+      if (nextSpans[owner] > 1 && owner + nextSpans[owner] > colIndex) {
+        nextSpans[owner] -= 1;
+        break;
+      }
+    }
+  } else if (nextSpans[colIndex] > 1 && colIndex + 1 < colCountBefore) {
+    nextSpans[colIndex + 1] = nextSpans[colIndex] - 1;
+    if (!nextCells[colIndex + 1] && nextCells[colIndex]) {
+      nextCells[colIndex + 1] = nextCells[colIndex];
+    }
+  }
+
+  return packTableDataRow(
+    nextCells.filter((_, i) => i !== colIndex),
+    nextSpans.filter((_, i) => i !== colIndex)
+  );
+}
+
+const roundWidth1 = (n: number) => Math.round(n * 10) / 10;
+
+export function normalizeWidthPercents(raw: number[]): number[] {
+  if (raw.length === 0) return [];
+  const positive = raw.map((n) => (Number.isFinite(n) && n > 0 ? n : 1));
+  const total = positive.reduce((s, n) => s + n, 0);
+  if (total <= 0) return positive.map(() => roundWidth1(100 / positive.length));
+  const scaled = positive.map((n) => roundWidth1((n / total) * 100));
+  const sumExceptLast = scaled.slice(0, -1).reduce((s, n) => s + n, 0);
+  scaled[scaled.length - 1] = Math.max(0.1, roundWidth1(100 - sumExceptLast));
+  return scaled;
+}
+
+export function getDefaultTableColWidths(headers: string[]): number[] {
+  if (headers.length === 0) return [];
+  if (headers.length === 1) return [100];
+  if (isNoColumnHeader(headers[0] || "")) {
+    const noWidth = Math.min(12, Math.max(6, Math.round((100 / headers.length) * 0.45)));
+    const rest = (100 - noWidth) / (headers.length - 1);
+    return normalizeWidthPercents([noWidth, ...Array(headers.length - 1).fill(rest)]);
+  }
+  return normalizeWidthPercents(Array(headers.length).fill(100 / headers.length));
+}
+
+export function getNormalizedTableColWidths(
+  block: Pick<ParagrafTableBlock, "headers" | "colWidths">
+): number[] {
+  if (!block.colWidths || block.colWidths.length !== block.headers.length) {
+    return getDefaultTableColWidths(block.headers);
+  }
+  return normalizeWidthPercents(block.colWidths);
+}
+
+export function resizeAdjacentTableCols(
+  widths: number[],
+  colIndex: number,
+  deltaPercent: number,
+  headers: string[]
+): number[] {
+  if (colIndex < 0 || colIndex >= widths.length - 1) return widths;
+  const pairTotal = widths[colIndex] + widths[colIndex + 1];
+  const minCol = (idx: number) =>
+    Math.min(idx === 0 && isNoColumnHeader(headers[idx] || "") ? 5 : 9, pairTotal * 0.45);
+  const nextLeft = Math.min(
+    pairTotal - minCol(colIndex + 1),
+    Math.max(minCol(colIndex), widths[colIndex] + deltaPercent)
+  );
+  const updated = [...widths];
+  updated[colIndex] = nextLeft;
+  updated[colIndex + 1] = pairTotal - nextLeft;
+  return normalizeWidthPercents(updated);
+}
+
+export function rebalanceColWidthsOnAdd(
+  widths: number[] | undefined,
+  prevHeaders: string[]
+): number[] | undefined {
+  if (!widths || widths.length !== prevHeaders.length) return undefined;
+  const newShare = Math.max(10, roundWidth1(100 / (prevHeaders.length + 1)));
+  const factor = (100 - newShare) / 100;
+  return normalizeWidthPercents([...widths.map((w) => w * factor), newShare]);
+}
+
+export function rebalanceColWidthsOnRemove(
+  widths: number[] | undefined,
+  colIndex: number,
+  prevHeaders: string[]
+): number[] | undefined {
+  if (!widths || widths.length !== prevHeaders.length || prevHeaders.length <= 1) return undefined;
+  return normalizeWidthPercents(widths.filter((_, i) => i !== colIndex));
+}
+
+export function startTableColumnDragResize(params: {
+  clientX: number;
+  tableEl: HTMLTableElement | null;
+  colIndex: number;
+  startWidths: number[];
+  headers: string[];
+  onWidthsChange: (widths: number[]) => void;
+  subtractWidthPx?: number;
+  onDragEnd?: () => void;
+}): void {
+  const {
+    clientX,
+    tableEl,
+    colIndex,
+    startWidths,
+    headers,
+    onWidthsChange,
+    subtractWidthPx = 0,
+    onDragEnd,
+  } = params;
+  if (!tableEl || colIndex < 0 || colIndex >= headers.length - 1) return;
+  const tableWidth = tableEl.getBoundingClientRect().width - subtractWidthPx;
+  if (tableWidth <= 0) return;
+
+  const prevCursor = document.body.style.cursor;
+  const prevSelect = document.body.style.userSelect;
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+
+  const onMove = (ev: PointerEvent) => {
+    const deltaPct = ((ev.clientX - clientX) / tableWidth) * 100;
+    onWidthsChange(resizeAdjacentTableCols(startWidths, colIndex, deltaPct, headers));
+  };
+
+  const onUp = () => {
+    document.body.style.cursor = prevCursor;
+    document.body.style.userSelect = prevSelect;
+    onDragEnd?.();
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    window.removeEventListener("pointercancel", onUp);
+  };
+
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", onUp);
+}
+
 export function createDefaultRincianBlock(items?: ParagrafRincianRow[]): ParagrafRincianBlock {
   return {
     type: "rincian",
@@ -110,17 +386,53 @@ export function isNoColumnHeader(header: string): boolean {
 
 export function createDefaultTableBlock(
   headers?: string[],
-  rows?: string[][]
+  rows?: ParagrafTableRow[]
 ): ParagrafTableBlock {
   const hdr =
     headers && headers.length > 0 ? [...headers] : ["No", "Nama", "Keterangan"];
-  const rws =
+  const rws: ParagrafTableRow[] =
     rows && rows.length > 0
-      ? rows.map((r) => hdr.map((_, cIdx) => r[cIdx] ?? ""))
+      ? rows.map((r) => {
+          if (isTableSectionRow(r)) return { kind: "section", text: r.text || "" };
+          const { cells, spans } = getTableRowCellsAndSpans(r, hdr.length);
+          return packTableDataRow(cells, spans);
+        })
       : [1, 2, 3].map((num) =>
           hdr.map((h, cIdx) => (cIdx === 0 && isNoColumnHeader(h) ? String(num) : ""))
         );
   return { type: "table", headers: hdr, rows: rws };
+}
+
+const PDF_LIST_LINE_RE = /^\s*(?:[-*•◦▪▫–—]|\(?\d+[.)]|[a-z][.)])\s+/;
+
+/**
+ * Normalizes accidental line wraps copied from PDF text inside a table cell
+ * while keeping blank-line paragraph splits and explicit list items intact.
+ */
+export function normalizePdfCellText(raw: string): string {
+  const normalized = raw.replace(/\r\n?/g, "\n");
+  if (!normalized.includes("\n")) return normalized.replace(/[ \t]+/g, " ");
+
+  return normalized
+    .split(/\n\s*\n/)
+    .map((para) => {
+      const lines = para
+        .split("\n")
+        .map((line) => line.replace(/[ \t]+/g, " ").trim())
+        .filter((line) => line.length > 0);
+      if (lines.length === 0) return "";
+      const out: string[] = [];
+      for (const line of lines) {
+        if (out.length === 0 || PDF_LIST_LINE_RE.test(line)) {
+          out.push(line);
+        } else {
+          out[out.length - 1] = `${out[out.length - 1]} ${line}`;
+        }
+      }
+      return out.join("\n");
+    })
+    .filter((para) => para.length > 0)
+    .join("\n\n");
 }
 
 function splitTableRowCells(line: string): { cells: string[]; isSeparator: boolean } | null {
@@ -1531,14 +1843,60 @@ export const SURAT_DINAS_BASE_CSS = `
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+  .pkpknl-th-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 18px;
+  }
+  .pkpknl-col-resizer {
+    position: absolute;
+    top: -5px;
+    right: -11px;
+    bottom: -5px;
+    width: 8px;
+    cursor: col-resize;
+    z-index: 10;
+    user-select: none;
+    touch-action: none;
+  }
+  .pkpknl-col-resizer::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: 2px;
+    border-radius: 1px;
+    background: transparent;
+    transition: background-color 120ms ease;
+  }
+  .pkpknl-body-table th:hover .pkpknl-col-resizer::after,
+  .pkpknl-col-resizer:hover::after {
+    background: #0284c7;
+  }
   .pkpknl-body-table td {
     text-align: left;
     white-space: pre-line;
   }
   .pkpknl-body-table th.pkpknl-table-col-no,
   .pkpknl-body-table td.pkpknl-table-col-no {
-    width: 11mm;
     text-align: center;
+  }
+  .pkpknl-body-table th.pkpknl-table-col-num {
+    background-color: #ffffff !important;
+    font-weight: normal;
+    text-align: center !important;
+    padding: 2px 7px !important;
+  }
+  .pkpknl-body-table td.pkpknl-table-section-cell {
+    background-color: #f3f4f6 !important;
+    text-align: center !important;
+    font-weight: normal;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .pkpknl-footer-bsre {
     margin-top: 2rem;
@@ -1553,6 +1911,9 @@ export const SURAT_DINAS_BASE_CSS = `
   }
   @media print {
     .pkpknl-footer-bsre {
+      display: none !important;
+    }
+    .pkpknl-col-resizer {
       display: none !important;
     }
   }
@@ -1626,6 +1987,7 @@ export const SURAT_DINAS_PRINT_CSS = `
   }
   .bsre-placeholder,
   .pkpknl-footer-bsre,
+  .pkpknl-col-resizer,
   .print\\:hidden {
     display: none !important;
   }
@@ -1786,6 +2148,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
     if (isTableBlock(item)) {
       const prevLvl = getPrevTextPointLevel(paragraf, idx);
+      const colWidths = getNormalizedTableColWidths(item);
       const isNoCol = (cIdx: number) => cIdx === 0 && isNoColumnHeader(item.headers[cIdx] || "");
       const updateTable = (updater: (cur: ParagrafTableBlock) => ParagrafTableBlock) => {
         const next = [...(paragraf || [])];
@@ -1801,6 +2164,11 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           data-indent-level={prevLvl}
         >
           <table className="pkpknl-body-table">
+            <colgroup>
+              {colWidths.map((w, cIdx) => (
+                <col key={cIdx} style={{ width: `${w}%` }} />
+              ))}
+            </colgroup>
             <thead>
               <tr>
                 {item.headers.map((header, hIdx) => (
@@ -1808,48 +2176,126 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                     key={hIdx}
                     className={isNoCol(hIdx) ? "pkpknl-table-col-no" : undefined}
                   >
-                    <span
-                      contentEditable
-                      suppressContentEditableWarning
-                      className="pkpknl-edit block w-full"
-                      onBlur={(e) => {
-                        const val = e.currentTarget.innerText;
-                        updateTable((cur) => ({
-                          ...cur,
-                          headers: cur.headers.map((h, i) => (i === hIdx ? val : h)),
-                        }));
-                      }}
-                    >
-                      {header}
-                    </span>
+                    <div className="pkpknl-th-inner">
+                      <span
+                        contentEditable
+                        suppressContentEditableWarning
+                        className="pkpknl-edit block w-full"
+                        onBlur={(e) => {
+                          const val = e.currentTarget.innerText;
+                          updateTable((cur) => ({
+                            ...cur,
+                            headers: cur.headers.map((h, i) => (i === hIdx ? val : h)),
+                          }));
+                        }}
+                      >
+                        {header}
+                      </span>
+                      {onUpdateField && hIdx < item.headers.length - 1 && (
+                        <div
+                          role="separator"
+                          aria-orientation="vertical"
+                          aria-label={`Ubah lebar kolom ${header || hIdx + 1}`}
+                          title="Geser batas kolom kiri/kanan"
+                          className="pkpknl-col-resizer"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            startTableColumnDragResize({
+                              clientX: e.clientX,
+                              tableEl: e.currentTarget.closest("table"),
+                              colIndex: hIdx,
+                              startWidths: colWidths,
+                              headers: item.headers,
+                              onWidthsChange: (widths) =>
+                                updateTable((cur) => ({ ...cur, colWidths: widths })),
+                            });
+                          }}
+                        />
+                      )}
+                    </div>
                   </th>
                 ))}
               </tr>
-            </thead>
-            <tbody>
-              {item.rows.map((row, rIdx) => (
-                <tr key={rIdx}>
+              {item.showColumnNumbers && (
+                <tr className="pkpknl-table-col-numbers">
                   {item.headers.map((_, cIdx) => (
-                    <td
+                    <th
                       key={cIdx}
-                      contentEditable
-                      suppressContentEditableWarning
-                      className={`pkpknl-edit${isNoCol(cIdx) ? " pkpknl-table-col-no" : ""}`}
-                      onBlur={(e) => {
-                        const val = e.currentTarget.innerText;
-                        updateTable((cur) => ({
-                          ...cur,
-                          rows: cur.rows.map((r, ri) =>
-                            ri === rIdx ? cur.headers.map((__, ci) => (ci === cIdx ? val : r[ci] ?? "")) : r
-                          ),
-                        }));
-                      }}
+                      className={`pkpknl-table-col-num${
+                        isNoCol(cIdx) ? " pkpknl-table-col-no" : ""
+                      }`}
                     >
-                      {row[cIdx] ?? ""}
-                    </td>
+                      {cIdx + 1}
+                    </th>
                   ))}
                 </tr>
-              ))}
+              )}
+            </thead>
+            <tbody>
+              {item.rows.map((row, rIdx) => {
+                if (isTableSectionRow(row)) {
+                  return (
+                    <tr key={rIdx}>
+                      <td
+                        colSpan={item.headers.length}
+                        className="pkpknl-table-section-cell"
+                      >
+                        <span
+                          contentEditable
+                          suppressContentEditableWarning
+                          className="pkpknl-edit block w-full"
+                          onBlur={(e) => {
+                            const val = e.currentTarget.innerText;
+                            updateTable((cur) => ({
+                              ...cur,
+                              rows: cur.rows.map((r, ri) =>
+                                ri === rIdx ? { kind: "section", text: val } : r
+                              ),
+                            }));
+                          }}
+                        >
+                          {row.text}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                }
+
+                const { cells, spans } = getTableRowCellsAndSpans(row, item.headers.length);
+                return (
+                  <tr key={rIdx}>
+                    {item.headers.map((_, cIdx) => {
+                      const span = spans[cIdx] ?? 1;
+                      if (span <= 0) return null;
+                      return (
+                        <td
+                          key={cIdx}
+                          colSpan={span > 1 ? span : undefined}
+                          contentEditable
+                          suppressContentEditableWarning
+                          className={`pkpknl-edit${
+                            isNoCol(cIdx) && span === 1 ? " pkpknl-table-col-no" : ""
+                          }`}
+                          onBlur={(e) => {
+                            const val = e.currentTarget.innerText;
+                            updateTable((cur) => ({
+                              ...cur,
+                              rows: cur.rows.map((r, ri) =>
+                                ri === rIdx
+                                  ? updateTableDataCell(r, cur.headers.length, cIdx, val)
+                                  : r
+                              ),
+                            }));
+                          }}
+                        >
+                          {cells[cIdx] ?? ""}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -1976,6 +2422,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           .penutup-ttd-group { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; }
           .bsre-placeholder,
           .pkpknl-footer-bsre,
+          .pkpknl-col-resizer,
           .print\\:hidden {
             display: none !important;
           }

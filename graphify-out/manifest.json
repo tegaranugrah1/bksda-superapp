@@ -6085,13 +6085,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratDinasDocument.tsx": {
-    "mtime": 1794880930.205445,
-    "ast_hash": "afa475d4a9b357a55e32a5776452bd4c",
+    "mtime": 1794886190.5962434,
+    "ast_hash": "191fa31da79b2af8f00f99a5e342da3d",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1794881422.3521361,
-    "ast_hash": "7f3d5f8e44182a3fdd019da28ace0194",
+    "mtime": 1794884324.3827014,
+    "ast_hash": "d7cdc4d6161de6cc442e15e3e8f0cd5e",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -7700,8 +7700,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_lib/export-surat-dinas.ts": {
-    "mtime": 1794881207.2165668,
-    "ast_hash": "7fa59b0110af1d254f272e5cd7971680",
+    "mtime": 1794884775.9236827,
+    "ast_hash": "b24bdf0c5d3a45f36a1100b50e0a68ce",
     "semantic_hash": ""
   },
   "frontend/tests/test-export-transform.cjs": {
@@ -9025,8 +9025,13 @@
     "semantic_hash": ""
   },
   "frontend/tests/rincian-blok-check.cjs": {
-    "mtime": 1794881164.7231781,
-    "ast_hash": "c0ab739a8cb426e1d75c9e34f0315d94",
+    "mtime": 1794886343.3397462,
+    "ast_hash": "4c6c818195126c241c20167ee41779b8",
+    "semantic_hash": ""
+  },
+  "frontend/src/app/surat/_components/TabelBlockEditor.tsx": {
+    "mtime": 1794886303.0493827,
+    "ast_hash": "c3982a8d85359b5f2d57b228b95643e9",
     "semantic_hash": ""
   }
 }

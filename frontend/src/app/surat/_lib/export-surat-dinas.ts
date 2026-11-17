@@ -77,6 +77,7 @@ function sanitizeExportClone(clone: HTMLElement, stripTableChrome: boolean): voi
     ".page-break-indicator",
     ".halaman-divider",
     ".pkpknl-footer-bsre",
+    ".pkpknl-col-resizer",
     ".print\\:hidden",
     ...(stripTableChrome
       ? ["thead.print\\:table-header-group", "tfoot.print\\:table-footer-group"]
@@ -416,35 +417,60 @@ function transformCloneForWord(clone: HTMLElement): void {
     if (!srcTable) return;
     const indentLvl = wrap.getAttribute("data-indent-level") || "0";
     const marginLeft = tableIndents[indentLvl] || "0pt";
-    const headerCells = Array.from(srcTable.querySelectorAll(":scope > thead > tr > th"));
+    const colEls = Array.from(srcTable.querySelectorAll<HTMLTableColElement>(":scope > colgroup > col"));
+    const colPercents = colEls.map((c) => c.style.width || "");
+    const colgroupHtml = colPercents.length
+      ? `<colgroup>${colPercents.map((w) => `<col style="${w ? `width: ${w};` : ""}" />`).join("")}</colgroup>`
+      : "";
+    const headRows = Array.from(srcTable.querySelectorAll(":scope > thead > tr"));
     const bodyRows = Array.from(srcTable.querySelectorAll(":scope > tbody > tr"));
 
     const thBase =
       "border: 1px solid #000; background: #f3f4f6; padding: 4pt 6pt; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; font-weight: bold; color: #000; text-align: center; vertical-align: middle;";
+    const thColNumBase =
+      "border: 1px solid #000; background: #ffffff; padding: 2pt 6pt; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; font-weight: normal; color: #000; text-align: center; vertical-align: middle;";
     const tdBase =
       "border: 1px solid #000; padding: 4pt 6pt; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; color: #000; vertical-align: top;";
 
-    const headRowHtml = headerCells.length
-      ? `<thead><tr style="page-break-inside: avoid;">${headerCells
-          .map((th) => {
-            const isNo = th.classList.contains("pkpknl-table-col-no");
-            const widthStyle = isNo ? "width: 1.1cm;" : "";
-            const text = sanitizeWordFragment(th.querySelector("span") || th);
-            return `<th style="${widthStyle}${thBase}">${text || "&nbsp;"}</th>`;
+    const headRowHtml = headRows.length
+      ? `<thead>${headRows
+          .map((hTr) => {
+            const isColNumRow = hTr.classList.contains("pkpknl-table-col-numbers");
+            const ths = Array.from(hTr.querySelectorAll(":scope > th"));
+            const styleBase = isColNumRow ? thColNumBase : thBase;
+            return `<tr style="page-break-inside: avoid;">${ths
+              .map((th, idx) => {
+                const colWidth = colPercents[idx] ? `width: ${colPercents[idx]};` : "";
+                const text = sanitizeWordFragment(th.querySelector("span.pkpknl-edit") || th);
+                return `<th style="${colWidth}${styleBase}">${text || "&nbsp;"}</th>`;
+              })
+              .join("")}</tr>`;
           })
-          .join("")}</tr></thead>`
+          .join("")}</thead>`
       : "";
 
     const bodyRowsHtml = bodyRows
       .map((tr) => {
-        const tds = Array.from(tr.querySelectorAll(":scope > td"));
+        const tds = Array.from(tr.querySelectorAll<HTMLTableCellElement>(":scope > td"));
+        let logicalCol = 0;
         const cellsHtml = tds
           .map((td) => {
-            const isNo = td.classList.contains("pkpknl-table-col-no");
-            const widthStyle = isNo ? "width: 1.1cm;" : "";
-            const alignStyle = isNo ? "text-align: center;" : "text-align: left;";
-            const text = sanitizeWordFragment(td);
-            return `<td style="${widthStyle}${alignStyle}${tdBase}">${text || "&nbsp;"}</td>`;
+            const isSection = td.classList.contains("pkpknl-table-section-cell");
+            const colSpan = td.colSpan > 1 ? td.colSpan : 1;
+            const spanAttr = colSpan > 1 ? ` colspan="${colSpan}"` : "";
+            const isNo = !isSection && td.classList.contains("pkpknl-table-col-no");
+            const widthStyle =
+              !isSection && colSpan === 1 && colPercents[logicalCol]
+                ? `width: ${colPercents[logicalCol]};`
+                : "";
+            logicalCol += colSpan;
+            const extraStyle = isSection
+              ? "background: #f3f4f6; text-align: center; font-weight: normal;"
+              : isNo
+              ? "text-align: center;"
+              : "text-align: left;";
+            const text = sanitizeWordFragment(td.querySelector("span") || td);
+            return `<td${spanAttr} style="${widthStyle}${extraStyle}${tdBase}">${text || "&nbsp;"}</td>`;
           })
           .join("");
         return `<tr style="page-break-inside: avoid;">${cellsHtml}</tr>`;
@@ -453,7 +479,7 @@ function transformCloneForWord(clone: HTMLElement): void {
 
     const holder = document.createElement("div");
     holder.setAttribute("style", `margin: 4pt 0 8pt ${marginLeft};`);
-    holder.innerHTML = `<table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">${headRowHtml}<tbody>${bodyRowsHtml}</tbody></table>`;
+    holder.innerHTML = `<table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">${colgroupHtml}${headRowHtml}<tbody>${bodyRowsHtml}</tbody></table>`;
     wrap.replaceWith(holder);
   });
 

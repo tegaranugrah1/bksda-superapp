@@ -43,6 +43,19 @@ const {
   createDefaultRincianBlock,
   isTableBlock,
   createDefaultTableBlock,
+  isTableSectionRow,
+  getTableRowCellsAndSpans,
+  updateTableDataCell,
+  mergeTableCellRight,
+  splitTableCell,
+  addTableColumnToRow,
+  removeTableColumnFromRow,
+  getDefaultTableColWidths,
+  getNormalizedTableColWidths,
+  resizeAdjacentTableCols,
+  rebalanceColWidthsOnAdd,
+  rebalanceColWidthsOnRemove,
+  normalizePdfCellText,
   parseDelimitedTableText,
   getPrevTextPointLevel,
   isNoColumnHeader,
@@ -243,5 +256,103 @@ assert(
 );
 assert(pageSrc.includes('handleAddTableCol'), 'Editor must support adding table columns');
 assert(pageSrc.includes('handleApplyTablePaste'), 'Editor must support pasting Excel/Word table data');
+assert(pageSrc.includes('handleAddTableSectionRow'), 'Editor must support adding section divider rows');
+assert(pageSrc.includes('handleMergeTableCellRight'), 'Editor must support merging table cells');
+
+// 8. Table Section Divider Row & Horizontal Merge / Split Cell (Rundown Acara style)
+const rundownBlock = createDefaultTableBlock(
+  ['No', 'Waktu Pelaksanaan', 'Acara', 'Keterangan'],
+  [
+    { kind: 'section', text: 'Senin, 23 November 2026' },
+    ['1', '07.30 - 12.00', 'Perjalanan peserta', 'Peserta dan Narahubung'],
+    ['2', '15.00 - 16.00', 'Break', ''],
+  ]
+);
+assert.equal(isTableSectionRow(rundownBlock.rows[0]), true);
+assert.equal(isTableSectionRow(rundownBlock.rows[1]), false);
+
+// Merge col 2 ('Break') right into col 3 ('Keterangan') -> span = [1, 1, 2, 0]
+const mergedRundown = mergeTableCellRight(rundownBlock, 2, 2);
+const row2Info = getTableRowCellsAndSpans(mergedRundown.rows[2], 4);
+assert.deepEqual(row2Info.spans, [1, 1, 2, 0]);
+assert.equal(row2Info.cells[2], 'Break');
+
+// Update cell text cleanly preserves merge spans
+const updatedMergedCell = updateTableDataCell(mergedRundown.rows[2], 4, 2, 'Ishoma');
+assert.deepEqual(getTableRowCellsAndSpans(updatedMergedCell, 4).spans, [1, 1, 2, 0]);
+assert.equal(getTableRowCellsAndSpans(updatedMergedCell, 4).cells[2], 'Ishoma');
+
+// Add 5th column on table containing section + merged row
+const expandedColRows = mergedRundown.rows.map((r) => addTableColumnToRow(r, 4));
+assert.equal(isTableSectionRow(expandedColRows[0]), true, 'Section row stays intact when column added');
+assert.deepEqual(getTableRowCellsAndSpans(expandedColRows[2], 5).spans, [1, 1, 2, 0, 1]);
+
+// Remove column inside absorbed col (col 3) cleanly shrinks owner span back to 1 and collapses to array
+const shrunkRows = mergedRundown.rows.map((r) => removeTableColumnFromRow(r, 3, 4));
+assert.deepEqual(shrunkRows[2], ['2', '15.00 - 16.00', 'Break']);
+
+// Split cell back to 1,1,1,1 collapses cleanly to string[]
+const unmergedRundown = splitTableCell(mergedRundown, 2, 2);
+assert.equal(Array.isArray(unmergedRundown.rows[2]), true);
+assert.deepEqual(getTableRowCellsAndSpans(unmergedRundown.rows[2], 4).spans, [1, 1, 1, 1]);
+
+assert(SURAT_DINAS_BASE_CSS.includes('.pkpknl-table-section-cell'), 'CSS must style section divider rows');
+assert(SURAT_DINAS_BASE_CSS.includes('.pkpknl-table-col-num'), 'CSS must style optional column number strip');
+assert(SURAT_DINAS_BASE_CSS.includes('.pkpknl-col-resizer'), 'CSS must style drag-to-resize column dividers');
+assert(exportSrc.includes('pkpknl-table-col-numbers'), 'Word export must preserve optional 1|2|3|4 column number header row');
+assert(exportSrc.includes('pkpknl-table-section-cell'), 'Word export must support section divider rows');
+assert(exportSrc.includes('colspan="'), 'Word export must preserve colSpan on merged/section cells');
+assert(exportSrc.includes('<colgroup>'), 'Word export must emit colgroup widths matching preview');
+assert(pageSrc.includes('handleToggleTableColumnNumbers'), 'Editor must support toggling optional column numbers');
+assert(pageSrc.includes('TabelBlockEditor'), 'Editor must use shared DRY TabelBlockEditor component');
+
+// 9. Table Column Widths, Drag Resize Math & Rebalancing
+const autoWidths3 = getDefaultTableColWidths(['No', 'Nama', 'Keterangan']);
+assert.equal(autoWidths3.length, 3);
+const sum3 = Math.round(autoWidths3.reduce((a, b) => a + b, 0) * 10) / 10;
+assert.equal(sum3, 100, 'Default 3-col widths must sum to 100%');
+assert(autoWidths3[0] < autoWidths3[1], 'No column default width must be narrower than Nama');
+
+const autoWidths4 = getDefaultTableColWidths(['No', 'Waktu Pelaksanaan', 'Acara', 'Keterangan']);
+const resized4 = resizeAdjacentTableCols(autoWidths4, 1, -12, ['No', 'Waktu Pelaksanaan', 'Acara', 'Keterangan']);
+assert.equal(Math.round(resized4.reduce((a, b) => a + b, 0) * 10) / 10, 100, 'Resized widths must keep exact 100% sum');
+assert(resized4[1] < autoWidths4[1], 'Dragging col 1 left must narrow col 1');
+assert(resized4[2] > autoWidths4[2], 'Dragging col 1 left must widen col 2 by same delta');
+
+// Clamping min column width so extreme negative drag never collapses column to 0
+const extremeDrag = resizeAdjacentTableCols(autoWidths4, 1, -999, ['No', 'Waktu Pelaksanaan', 'Acara', 'Keterangan']);
+assert(extremeDrag[1] >= 9, `Minimum data column width must clamp >= 9%, got ${extremeDrag[1]}`);
+
+// Rebalance preserves custom proportions on add/remove column
+const afterAdd = rebalanceColWidthsOnAdd(resized4, ['No', 'Waktu Pelaksanaan', 'Acara', 'Keterangan']);
+assert(afterAdd && afterAdd.length === 5);
+assert.equal(Math.round(afterAdd.reduce((a, b) => a + b, 0) * 10) / 10, 100);
+const afterRemove = rebalanceColWidthsOnRemove(afterAdd, 4, ['No', 'Waktu', 'Acara', 'Ket', 'Col5']);
+assert(afterRemove && afterRemove.length === 4);
+assert.equal(Math.round(afterRemove.reduce((a, b) => a + b, 0) * 10) / 10, 100);
+
+// Spreadsheet component craft checks
+const editorCompSrc = fs.readFileSync(
+  path.join(frontendRoot, 'src/app/surat/_components/TabelBlockEditor.tsx'),
+  'utf-8'
+);
+assert(editorCompSrc.includes('resize-none'), 'Spreadsheet cells must suppress ugly browser textarea resize handles');
+assert(editorCompSrc.includes('group-hover/cell:opacity-100'), 'Gabung button must stay hidden at rest and reveal on hover/focus');
+assert(editorCompSrc.includes('handleNormalizedPaste'), 'Table cells must auto-normalize wrapped PDF paste text');
+assert(!editorCompSrc.includes('Geser baris ${rIdx + 1} tabel butir ${blockIdx + 1} ke atas'), 'Row up arrow button should be omitted per user preference');
+
+// 10. normalizePdfCellText (auto-flatten accidental hard line breaks copied from PDF)
+const pdfWrapped = 'Perjalanan peserta dan\nNarasumber menuju\ntempat kegiatan\n(Yogyakarta)\n';
+assert.equal(
+  normalizePdfCellText(pdfWrapped),
+  'Perjalanan peserta dan Narasumber menuju tempat kegiatan (Yogyakarta)',
+  'Copied PDF hard wraps inside a cell must flatten into flowing single-spaced text'
+);
+const pdfWithList = 'Persiapan:\n1. Laptop dan\ncharger resmi\n2. Kamera\n\nCatatan tambahan\nlainnya.';
+assert.equal(
+  normalizePdfCellText(pdfWithList),
+  'Persiapan:\n1. Laptop dan charger resmi\n2. Kamera\n\nCatatan tambahan lainnya.',
+  'PDF normalization must keep list items and paragraph breaks intact'
+);
 
 console.log('✅ rincian-blok-check.cjs: ALL ASSERTIONS PASSED');

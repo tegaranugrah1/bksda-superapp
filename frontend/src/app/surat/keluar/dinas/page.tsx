@@ -47,6 +47,13 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   SuratDinasDocument,
   SuratDinasData,
   PersonItem,
@@ -70,11 +77,21 @@ import {
   createDefaultRincianBlock,
   isTableBlock,
   createDefaultTableBlock,
+  isTableSectionRow,
+  getTableRowCellsAndSpans,
+  updateTableDataCell,
+  mergeTableCellRight,
+  splitTableCell,
+  addTableColumnToRow,
+  removeTableColumnFromRow,
+  rebalanceColWidthsOnAdd,
+  rebalanceColWidthsOnRemove,
   parseDelimitedTableText,
   getPrevTextPointLevel,
   isNoColumnHeader,
   migrateLegacyUndanganPayload,
 } from "../../_components/SuratDinasDocument";
+import { TabelBlockEditor } from "../../_components/TabelBlockEditor";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
 import { exportSuratDinasWord, exportSuratDinasPdf } from "../../_lib/export-surat-dinas";
 
@@ -364,9 +381,7 @@ function GenerateSuratDinasContent() {
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
   const [showSmartPaste, setShowSmartPaste] = useState(false);
   const [smartPasteText, setSmartPasteText] = useState("");
-  const [activeTablePasteIdx, setActiveTablePasteIdx] = useState<number | null>(null);
-  const [tablePasteText, setTablePasteText] = useState("");
-  const [tablePasteHeaderFirst, setTablePasteHeaderFirst] = useState(true);
+  const [expandedTableIdx, setExpandedTableIdx] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState<"word" | "pdf" | null>(null);
 
   const handleExportWord = async () => {
@@ -558,7 +573,7 @@ function GenerateSuratDinasContent() {
     atIndex?: number
   ) => {
     let resolvedIdx = atIndex ?? 0;
-    setActiveTablePasteIdx(null);
+    setExpandedTableIdx(null);
     setData((prev) => {
       const list = [...(prev.paragraf || [])];
       const insertAt = resolveInsertIndex(list, atIndex);
@@ -607,7 +622,7 @@ function GenerateSuratDinasContent() {
   };
 
   const handleMoveParagraph = (index: number, direction: -1 | 1) => {
-    setActiveTablePasteIdx(null);
+    setExpandedTableIdx(null);
     setData((prev) => {
       const list = [...(prev.paragraf || [])];
       const target = index + direction;
@@ -678,20 +693,45 @@ function GenerateSuratDinasContent() {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       rows: block.rows.map((row, rIdx) =>
-        rIdx === rowIndex
-          ? block.headers.map((_, cIdx) => (cIdx === colIndex ? val : row[cIdx] ?? ""))
-          : row
+        rIdx === rowIndex ? updateTableDataCell(row, block.headers.length, colIndex, val) : row
+      ),
+    }));
+  };
+
+  const handleUpdateTableSectionRow = (blockIndex: number, rowIndex: number, val: string) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      rows: block.rows.map((row, rIdx) =>
+        rIdx === rowIndex ? { kind: "section", text: val } : row
       ),
     }));
   };
 
   const handleAddTableRow = (blockIndex: number) => {
     updateTableBlock(blockIndex, (block) => {
-      const nextNo = String(block.rows.length + 1);
+      const dataCount = block.rows.filter((r) => !isTableSectionRow(r)).length;
+      const nextNo = String(dataCount + 1);
       const newRow = block.headers.map((h, cIdx) =>
         cIdx === 0 && isNoColumnHeader(h) ? nextNo : ""
       );
       return { ...block, rows: [...block.rows, newRow] };
+    });
+  };
+
+  const handleAddTableSectionRow = (blockIndex: number) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      rows: [...block.rows, { kind: "section", text: "" }],
+    }));
+  };
+
+  const handleMoveTableRow = (blockIndex: number, rowIndex: number, direction: -1 | 1) => {
+    updateTableBlock(blockIndex, (block) => {
+      const target = rowIndex + direction;
+      if (target < 0 || target >= block.rows.length) return block;
+      const nextRows = [...block.rows];
+      [nextRows[rowIndex], nextRows[target]] = [nextRows[target], nextRows[rowIndex]];
+      return { ...block, rows: nextRows };
     });
   };
 
@@ -700,19 +740,38 @@ function GenerateSuratDinasContent() {
       if (block.rows.length <= 1) return block;
       const filtered = block.rows.filter((_, rIdx) => rIdx !== rowIndex);
       const hasAutoNo = block.headers.length > 0 && isNoColumnHeader(block.headers[0]);
-      const allNumeric = hasAutoNo && filtered.every((r) => /^\d*$/.test((r[0] ?? "").trim()));
-      const normalized = allNumeric
-        ? filtered.map((r, i) => [String(i + 1), ...r.slice(1)])
-        : filtered;
+      const dataOnly = filtered.filter((r) => !isTableSectionRow(r));
+      const allNumeric =
+        hasAutoNo &&
+        dataOnly.every((r) => {
+          const { cells, spans } = getTableRowCellsAndSpans(r, block.headers.length);
+          return spans[0] === 1 && /^\d*$/.test((cells[0] ?? "").trim());
+        });
+      if (!allNumeric) return { ...block, rows: filtered };
+      let seq = 0;
+      const normalized = filtered.map((r) => {
+        if (isTableSectionRow(r)) return r;
+        seq++;
+        return updateTableDataCell(r, block.headers.length, 0, String(seq));
+      });
       return { ...block, rows: normalized };
     });
+  };
+
+  const handleMergeTableCellRight = (blockIndex: number, rowIndex: number, colIndex: number) => {
+    updateTableBlock(blockIndex, (block) => mergeTableCellRight(block, rowIndex, colIndex));
+  };
+
+  const handleSplitTableCell = (blockIndex: number, rowIndex: number, colIndex: number) => {
+    updateTableBlock(blockIndex, (block) => splitTableCell(block, rowIndex, colIndex));
   };
 
   const handleAddTableCol = (blockIndex: number) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       headers: [...block.headers, `Kolom ${block.headers.length + 1}`],
-      rows: block.rows.map((row) => [...row, ""]),
+      rows: block.rows.map((row) => addTableColumnToRow(row, block.headers.length)),
+      colWidths: rebalanceColWidthsOnAdd(block.colWidths, block.headers),
     }));
   };
 
@@ -722,22 +781,70 @@ function GenerateSuratDinasContent() {
       return {
         ...block,
         headers: block.headers.filter((_, i) => i !== colIndex),
-        rows: block.rows.map((row) => row.filter((_, i) => i !== colIndex)),
+        rows: block.rows.map((row) => removeTableColumnFromRow(row, colIndex, block.headers.length)),
+        colWidths: rebalanceColWidthsOnRemove(block.colWidths, colIndex, block.headers),
       };
     });
   };
 
-  const handleApplyTablePaste = (blockIndex: number) => {
-    const parsed = parseDelimitedTableText(tablePasteText, tablePasteHeaderFirst);
+  const handleToggleTableColumnNumbers = (blockIndex: number) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      showColumnNumbers: !block.showColumnNumbers,
+    }));
+  };
+
+  const handleChangeTableColWidths = (blockIndex: number, widths: number[]) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      colWidths: widths,
+    }));
+  };
+
+  const handleResetTableColWidths = (blockIndex: number) => {
+    updateTableBlock(blockIndex, (block) => {
+      const next = { ...block };
+      delete next.colWidths;
+      return next;
+    });
+  };
+
+  const handleApplyTablePaste = (blockIndex: number, rawText: string, firstRowHeader: boolean): boolean => {
+    const parsed = parseDelimitedTableText(rawText, firstRowHeader);
     if (!parsed) {
       toast.error("Format tabel tidak dikenali. Tempel minimal 2 kolom yang dipisah Tab (Excel/Word) atau '|'.");
-      return;
+      return false;
     }
-    updateTableBlock(blockIndex, () => parsed);
-    setActiveTablePasteIdx(null);
-    setTablePasteText("");
+    updateTableBlock(blockIndex, (prev) => ({
+      ...parsed,
+      showColumnNumbers: prev.showColumnNumbers,
+      colWidths:
+        prev.colWidths && prev.colWidths.length === parsed.headers.length
+          ? prev.colWidths
+          : undefined,
+    }));
     toast.success(`Tabel diperbarui (${parsed.headers.length} kolom, ${parsed.rows.length} baris).`);
+    return true;
   };
+
+  const buildTableEditorProps = (blockIdx: number) => ({
+    blockIdx,
+    onUpdateHeader: (cIdx: number, val: string) => handleUpdateTableHeader(blockIdx, cIdx, val),
+    onUpdateCell: (rIdx: number, cIdx: number, val: string) => handleUpdateTableCell(blockIdx, rIdx, cIdx, val),
+    onUpdateSectionRow: (rIdx: number, val: string) => handleUpdateTableSectionRow(blockIdx, rIdx, val),
+    onAddRow: () => handleAddTableRow(blockIdx),
+    onAddSectionRow: () => handleAddTableSectionRow(blockIdx),
+    onMoveRow: (rIdx: number, dir: -1 | 1) => handleMoveTableRow(blockIdx, rIdx, dir),
+    onRemoveRow: (rIdx: number) => handleRemoveTableRow(blockIdx, rIdx),
+    onMergeRight: (rIdx: number, cIdx: number) => handleMergeTableCellRight(blockIdx, rIdx, cIdx),
+    onSplitCell: (rIdx: number, cIdx: number) => handleSplitTableCell(blockIdx, rIdx, cIdx),
+    onAddCol: () => handleAddTableCol(blockIdx),
+    onRemoveCol: (cIdx: number) => handleRemoveTableCol(blockIdx, cIdx),
+    onToggleColumnNumbers: () => handleToggleTableColumnNumbers(blockIdx),
+    onChangeColWidths: (widths: number[]) => handleChangeTableColWidths(blockIdx, widths),
+    onResetColWidths: () => handleResetTableColWidths(blockIdx),
+    onApplyPaste: (raw: string, firstRowHeader: boolean) => handleApplyTablePaste(blockIdx, raw, firstRowHeader),
+  });
 
   // Terapkan Salin-Tempel Teks Utuh
   const handleApplySmartPaste = (rawTextToApply?: string) => {
@@ -751,7 +858,7 @@ function GenerateSuratDinasContent() {
       toast.error("Gagal memecah teks menjadi paragraf.");
       return;
     }
-    setActiveTablePasteIdx(null);
+    setExpandedTableIdx(null);
     setData((prev) => ({
       ...prev,
       paragraf: reindexParagraphMarkers(parsed),
@@ -762,7 +869,7 @@ function GenerateSuratDinasContent() {
   };
 
   const handleRemoveParagraph = (index: number) => {
-    setActiveTablePasteIdx(null);
+    setExpandedTableIdx(null);
     setData((prev) => {
       const p = prev.paragraf || [];
       const updated = p.length > 1 ? p.filter((_, i) => i !== index) : p;
@@ -2240,190 +2347,11 @@ function GenerateSuratDinasContent() {
                           </div>
                         </div>
                       ) : isTable ? (
-                        <div className="space-y-2">
-                          <div className="overflow-x-auto rounded-lg border border-sky-200/80 dark:border-sky-800/70 bg-[var(--ds-surface)] p-2">
-                            <table
-                              className={cn(
-                                "w-full border-collapse text-xs",
-                                pItem.headers.length > 3 && "min-w-max"
-                              )}
-                            >
-                              <thead>
-                                <tr>
-                                  {pItem.headers.map((hdr, cIdx) => {
-                                    const narrowNo = cIdx === 0 && isNoColumnHeader(hdr);
-                                    return (
-                                      <th
-                                        key={cIdx}
-                                        className={cn(
-                                          "p-1 text-left align-top font-semibold",
-                                          narrowNo ? "w-20 min-w-20" : pItem.headers.length > 3 ? "min-w-32" : "min-w-24"
-                                        )}
-                                      >
-                                        <div className="flex items-center gap-1">
-                                          <Input
-                                            value={hdr}
-                                            onChange={(e) => handleUpdateTableHeader(idx, cIdx, e.target.value)}
-                                            placeholder={`Kolom ${cIdx + 1}`}
-                                            aria-label={`Judul kolom ${cIdx + 1} tabel butir ${idx + 1}`}
-                                            className={cn(
-                                              "h-7 px-2 text-xs font-bold bg-slate-50 dark:bg-zinc-800 rounded-lg",
-                                              narrowNo ? "w-12" : "min-w-24"
-                                            )}
-                                          />
-                                          {pItem.headers.length > 1 && (
-                                            <button
-                                              type="button"
-                                              onClick={() => handleRemoveTableCol(idx, cIdx)}
-                                              className="p-1 text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] rounded-lg shrink-0 transition-colors"
-                                              title={`Hapus kolom ${hdr || cIdx + 1}`}
-                                              aria-label={`Hapus kolom ${cIdx + 1} tabel butir ${idx + 1}`}
-                                            >
-                                              ✕
-                                            </button>
-                                          )}
-                                        </div>
-                                      </th>
-                                    );
-                                  })}
-                                  <th className="w-7 p-1" aria-label="Aksi baris" />
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {pItem.rows.map((row, rIdx) => {
-                                  const focusCol = pItem.headers.length > 1 && isNoColumnHeader(pItem.headers[0] || "") ? 1 : 0;
-                                  return (
-                                    <tr key={rIdx}>
-                                      {pItem.headers.map((hdr, cIdx) => {
-                                        const cellVal = row[cIdx] ?? "";
-                                        const isNo = cIdx === 0 && isNoColumnHeader(hdr);
-                                        return (
-                                          <td key={cIdx} className="p-1 align-top">
-                                            <Textarea
-                                              data-paragraf-focus={rIdx === 0 && cIdx === focusCol ? idx : undefined}
-                                              value={cellVal}
-                                              onChange={(e) => handleUpdateTableCell(idx, rIdx, cIdx, e.target.value)}
-                                              rows={Math.min(4, Math.max(1, cellVal.split("\n").length))}
-                                              placeholder={hdr || `Isi`}
-                                              aria-label={`${hdr || `Kolom ${cIdx + 1}`} baris ${rIdx + 1}`}
-                                              className={cn(
-                                                "min-h-8 py-1 px-2 text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg",
-                                                isNo ? "text-center" : ""
-                                              )}
-                                            />
-                                          </td>
-                                        );
-                                      })}
-                                      <td className="p-1 align-top text-center">
-                                        <button
-                                          type="button"
-                                          onClick={() => handleRemoveTableRow(idx, rIdx)}
-                                          disabled={pItem.rows.length <= 1}
-                                          className="mt-1 p-1 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                          title={`Hapus baris ${rIdx + 1}`}
-                                          aria-label={`Hapus baris ${rIdx + 1} tabel butir ${idx + 1}`}
-                                        >
-                                          <Trash2 className="w-3 h-3" />
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-
-                          <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
-                            <div className="flex items-center flex-wrap gap-1">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleAddTableRow(idx)}
-                                className="h-7 text-xs px-2 py-1 gap-1 rounded-lg border-sky-200 dark:border-sky-800 text-sky-800 dark:text-sky-300 bg-white dark:bg-zinc-900 hover:bg-sky-50 dark:hover:bg-sky-950/60"
-                              >
-                                <Plus className="w-3 h-3" />
-                                Baris
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleAddTableCol(idx)}
-                                className="h-7 text-xs px-2 py-1 gap-1 rounded-lg border-sky-200 dark:border-sky-800 text-sky-800 dark:text-sky-300 bg-white dark:bg-zinc-900 hover:bg-sky-50 dark:hover:bg-sky-950/60"
-                              >
-                                <Plus className="w-3 h-3" />
-                                Kolom
-                              </Button>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                if (activeTablePasteIdx === idx) {
-                                  setActiveTablePasteIdx(null);
-                                } else {
-                                  setActiveTablePasteIdx(idx);
-                                  setTablePasteText("");
-                                  setTablePasteHeaderFirst(true);
-                                }
-                              }}
-                              className="h-7 text-xs px-2 py-1 gap-1 rounded-lg bg-white dark:bg-zinc-900 border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]"
-                              title="Salin data langsung dari Excel / Google Sheets / Word ke tabel ini"
-                            >
-                              <ClipboardPaste className="w-3 h-3" />
-                              Tempel Excel/Word
-                            </Button>
-                          </div>
-
-                          {activeTablePasteIdx === idx && (
-                            <div className="p-2 bg-white dark:bg-zinc-900 border border-sky-200 dark:border-sky-800 rounded-lg space-y-2">
-                              <p className="text-xs text-[var(--ds-fg-muted)]">
-                                Salin sel langsung dari Excel, Google Sheets, atau tabel Word (otomatis dipisah Tab), lalu klik Terapkan:
-                              </p>
-                              <Textarea
-                                aria-label="Tempel data tabel dari Excel atau Word"
-                                value={tablePasteText}
-                                onChange={(e) => setTablePasteText(e.target.value)}
-                                rows={4}
-                                placeholder={"No\tNama\tKeterangan\n1\tBudi Santoso\tPeserta\n2\tSiti Aminah\tNarasumber"}
-                                className="text-xs font-mono bg-slate-50 dark:bg-zinc-950 leading-relaxed rounded-lg"
-                              />
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <label className="inline-flex items-center gap-2 text-xs text-[var(--ds-fg-secondary)] cursor-pointer select-none">
-                                  <input
-                                    type="checkbox"
-                                    checked={tablePasteHeaderFirst}
-                                    onChange={(e) => setTablePasteHeaderFirst(e.target.checked)}
-                                    className="rounded border-slate-300"
-                                  />
-                                  Baris pertama adalah judul kolom
-                                </label>
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setActiveTablePasteIdx(null)}
-                                    className="h-7 text-xs px-2 rounded-lg"
-                                  >
-                                    Batal
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    onClick={() => handleApplyTablePaste(idx)}
-                                    className="h-7 text-xs px-2 gap-1 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold"
-                                  >
-                                    <FileCheck className="w-3 h-3" />
-                                    Terapkan Tabel
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <TabelBlockEditor
+                          block={pItem}
+                          {...buildTableEditorProps(idx)}
+                          onOpenExpand={() => setExpandedTableIdx(idx)}
+                        />
                       ) : typeof pItem === "string" ? (
                         <Textarea
                           data-paragraf-focus={idx}
@@ -2799,6 +2727,45 @@ function GenerateSuratDinasContent() {
         onOpenChange={setIsPickerModalOpen}
         onSelectTemplate={(tplId) => handleSwitchTemplate(tplId as TemplateType)}
       />
+
+      {/* Modal Editor Tabel Lebar Penuh */}
+      {expandedTableIdx !== null && (() => {
+        const activeBlock = (data.paragraf || [])[expandedTableIdx];
+        if (!activeBlock || !isTableBlock(activeBlock)) return null;
+        return (
+          <Dialog open onOpenChange={(open) => !open && setExpandedTableIdx(null)}>
+            <DialogContent
+              data-module="persuratan"
+              className="psr-ui sm:max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-2xl space-y-3"
+            >
+              <DialogHeader>
+                <DialogTitle className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                  <Table2 className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+                  Editor Tabel Butir {expandedTableIdx + 1} ({activeBlock.headers.length} Kolom × {activeBlock.rows.length} Baris)
+                </DialogTitle>
+                <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
+                  Geser batas pembatas judul kolom untuk mengatur lebar proporsional pada Pratinjau A4, PDF, dan Word.
+                </DialogDescription>
+              </DialogHeader>
+              <TabelBlockEditor
+                expanded
+                block={activeBlock}
+                {...buildTableEditorProps(expandedTableIdx)}
+              />
+              <div className="flex justify-end pt-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setExpandedTableIdx(null)}
+                  className="h-8 text-xs px-4 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold"
+                >
+                  Selesai
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }

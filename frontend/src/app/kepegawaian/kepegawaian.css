@@ -43,10 +43,10 @@
 :is(.kpg-ui, .psr-ui) :is(button, a).kpg-secondary:active {
   background: var(--ds-secondary-active);
 }
-:is(.kpg-ui, .psr-ui) button:disabled { background: var(--ds-disabled-bg); color: var(--ds-disabled-fg); cursor: default; }
+:is(.kpg-ui, .psr-ui) button:disabled:not([data-plain-icon]) { background: var(--ds-disabled-bg); color: var(--ds-disabled-fg); cursor: default; }
 :is(.kpg-ui, .psr-ui) tr:focus-within { background: var(--ds-surface-muted); }
 :is(.kpg-ui, .psr-ui) .surat-dinas-print-root tr:focus-within { background: transparent; }
-:is(.kpg-ui, .psr-ui) button:is([title], [aria-label]) { min-width: 36px; min-height: 36px; }
+:is(.kpg-ui, .psr-ui) button:is([title], [aria-label]):not([data-plain-icon]) { min-width: 36px; min-height: 36px; }
 :is(.kpg-ui, .psr-ui) .kpg-presence-button,
 :is(.kpg-ui, .psr-ui) .kpg-presence-button:disabled { background: transparent; color: inherit; }
 :is(.kpg-ui, .psr-ui) .kpg-presence-button:enabled:hover { box-shadow: inset 0 0 0 2px var(--ds-accent-fg); }

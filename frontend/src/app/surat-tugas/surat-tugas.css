@@ -23,19 +23,19 @@
 :is(.st-ui, .kpg-ui, .psr-ui) .st-row-actions button { min-width: 36px; }
 :is(.st-ui, .kpg-ui, .psr-ui) .st-status-tabs { scroll-padding-inline: 6px; }
 :is(.st-ui, .kpg-ui, .psr-ui) :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--ds-accent-solid); }
-:is(.st-ui, .kpg-ui, .psr-ui) :is(input:not([type="checkbox"], [type="radio"], [type="file"], [data-plain]), textarea, select) {
+:is(.st-ui, .kpg-ui, .psr-ui) :is(input:not([type="checkbox"], [type="radio"], [type="file"], [data-plain]), textarea:not([data-plain]), select) {
   border-color: var(--ds-border-subtle);
   background-color: var(--ds-surface);
   color: var(--ds-fg);
   caret-color: var(--ds-accent-fg);
   min-height: 36px;
 }
-:is(.st-ui, .kpg-ui, .psr-ui) :is(input:not([type="checkbox"], [type="radio"], [type="file"], [data-plain]), select, textarea):is(:focus, :focus-visible) {
+:is(.st-ui, .kpg-ui, .psr-ui) :is(input:not([type="checkbox"], [type="radio"], [type="file"], [data-plain]), select, textarea:not([data-plain])):is(:focus, :focus-visible) {
   outline: none;
   border-color: var(--ds-accent-fg);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-accent-fg) 15%, transparent);
 }
-:is(.st-ui, .kpg-ui, .psr-ui) input[data-plain]:is(:focus, :focus-visible) {
+:is(.st-ui, .kpg-ui, .psr-ui) :is(input, textarea)[data-plain]:is(:focus, :focus-visible) {
   outline: none;
   box-shadow: none;
 }
