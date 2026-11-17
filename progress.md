@@ -3105,3 +3105,15 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/portal src/components/AuthSync.tsx src/lib/echo.ts src/lib/auth-store.ts` (`0` error, `4` warning bawaan `@next/next/no-img-element` di `SmartPatrolInlineForm.tsx`/`SmartPatrolPrint.tsx`), `node tests/portal-review-check.cjs` (**PASS**), `npm run test:security-cache` (**8/8 passed**), dan `npm run build` (**86/86** rute Next.js).
   - Knowledge Graph & Diff: `git diff --check -- backend frontend` bersih dan `graphify update .` (`15500` nodes, `28946` edges, `1043` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`2e64d2a8`) pada `codex/portal-security-pentest`.
+
+---
+
+## 142. Verifikasi Kesiapan Produksi Next.js `16.4.6` & Persiapan PR `codex/portal-security-pentest` → `production-server` (18 November 2026)
+
+- **Audit Keamanan & Kesiapan Server Produksi Next.js `16.4.6`**:
+  - **Runtime & Build Standalone**: [`frontend/node_modules/next/package.json`](file:///e:/bksda-superapp/frontend/node_modules/next/package.json#L137-L139) mensyaratkan `node >= 20.9.0`, cocok dengan [`frontend/Dockerfile`](file:///e:/bksda-superapp/frontend/Dockerfile#L2-L47) (`FROM node:22-alpine AS builder` & `runner`, Chromium terpasang untuk route PDF [`/surat/export-pdf`](file:///e:/bksda-superapp/frontend/src/app/surat/export-pdf/route.ts), dan `output: "standalone"` + `serverExternalPackages: ["playwright-core"]` di [`next.config.ts`](file:///e:/bksda-superapp/frontend/next.config.ts#L20-L30)).
+  - **Smoke-Test Standalone Production Server (`next@16.4.6`)**: Menjalankan langsung `node server.js` dari `.next/standalone` dengan `NODE_ENV=production` mengembalikan HTTP `200` pada `/login` (`23885B`) dan `/portal` (`16711B`) tanpa stderr error, serta `npm run build` membuild bersih `86/86` rute dan `proxy.ts` (`ƒ Proxy (Middleware)`).
+  - **Catatan Risiko Docker Build Produksi (Harus Dicek Sebelum Merge PR)**:
+    - [`frontend/package.json`](file:///e:/bksda-superapp/frontend/package.json#L31-L55) masih memakai `"react": "latest"`, `"react-dom": "latest"`, `"eslint-config-next": "latest"`, dan `"next": "^16.4.6"` sementara `package-lock.json` mengunci `react@18.3.1`, `react-dom@18.3.1`, `eslint-config-next@16.2.4`, dan `next@16.4.6`.
+    - Karena [`frontend/Dockerfile`](file:///e:/bksda-superapp/frontend/Dockerfile#L6) menjalankan `RUN npm install` (bukan `npm ci`), build Docker baru di server produksi dapat menarik **React 19.x** alih-alih `18.3.1` yang terverifikasi di lokal. Pastikan uji build image Docker di staging atau pin versi `react`/`react-dom` & pakai `npm ci` sebelum merge ke `production-server`.
+- **Status**: ✅ Dicek, Dicatat, & Siap Push + Buka PR ke `production-server` (belum di-merge sesuai instruksi).
