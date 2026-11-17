@@ -3024,3 +3024,22 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/kepegawaian` (`0`), dan `node tests/kepegawaian-ui.cjs` -> **PASS**.
   - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15492` nodes, `28929` edges, `1012` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`ad4af0ac`) pada `codex/portal-security-pentest`.
+
+---
+
+## 138. Verifikasi Akhir `/ponytail-review` & `/security-audit` Modul Kepegawaian: Guard Skalar `normalizeItems()` & `storeBatch()` (17 November 2026)
+
+- **Latar Belakang**:
+  Penyisiran akhir seluruh berkas modul **Kepegawaian** yang belum sempat diperiksa penuh pada putaran keempat (`MealAllowanceController::normalizeItems()`, `KepegawaianServiceProvider`, `StTemplateResource`, `StExpenseTemplateResource`, model `StTemplate`/`StExpenseTemplate`/`StTaskType`/`StTemplateVersion`/`Holiday`/`MealAllowanceBatch`/`MealAllowanceItem`/`EmployeeHistory`/`EmployeeIncomingLetterAttachment`, `Enums/StTemplateType`, `EmployeeController::index`, serta pemindaian DOM/keamanan pada seluruh komponen & halaman `frontend/src/app/kepegawaian/**`).
+- **Temuan & Perbaikan Diterapkan (Commit `bc8a3620`)**:
+  - **Guard Skalar `normalizeItems()` & Validasi `items.*` di `storeBatch()` ([`MealAllowanceController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php))**:
+    - `storeBatch()` memanggil `$this->normalizeItems($input['items'])` **sebelum** `$request->validate(...)`, sementara `normalizeItems()` langsung mengakses `$it['nama_lengkap']` dan offset array lainnya tanpa memeriksa `is_array($it)`. Payload `'items' => ['not-an-array']` pada `POST /api/kepegawaian/uang-makan/batches` melempar `TypeError` HTTP `500` alih-alih HTTP `422`.
+    - Menambahkan `if (! is_array($it)) { continue; }` satu kali di `normalizeItems()` (melindungi `storeBatch()` dan `exportExcel()` sekaligus) serta aturan `'items.*' => 'array'` pada `storeBatch()`.
+  - **Hasil Audit Berkas Tersisa (`Lean already. Ship.`)**:
+    - Seluruh berkas tersisa backend (`KepegawaianServiceProvider`, `StTemplateResource`, `StExpenseTemplateResource`, `StTemplateType`, dan model-model Kepegawaian) serta pemindaian frontend (`frontend/src/app/kepegawaian/**`: `target="_blank"` sudah memakai `rel="noopener noreferrer"` atau rute same-origin Next `<Link>`) bersih tanpa temuan dead code maupun kerentanan baru.
+  - **Penambahan Test Regresi**: [`KepegawaianSecurityAuditTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/KepegawaianSecurityAuditTest.php) (`store_batch_rejects_scalar_items_with_422_instead_of_500`: memastikan payload `items: ['not-an-array']` ditolak dengan HTTP `422` pada `items.0`).
+- **Verifikasi Pasca-Edit Akhir**:
+  - Backend: `php -l` bersih; `14` suite PHPUnit Kepegawaian (**113 tests passed, 1007 assertions**) + `SixModulesSecurityHardeningTest` (**6 tests passed, 44 assertions**; total `15` suite = **119 tests passed, 1051 assertions**); `php backend/tests/EmployeeLeaveSnapshotCheck.php` -> **PASS**.
+  - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/kepegawaian` (`0`), `node tests/kepegawaian-ui.cjs` -> **PASS**, `node tests/test-export-transform.cjs` -> **PASS**, `node tests/diktum-capitalization-check.cjs` -> **PASS**, `node tests/st-legacy-items.cjs` -> **PASS**.
+  - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15494` nodes, `28931` edges, `1018` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`bc8a3620`) pada `codex/portal-security-pentest`.
