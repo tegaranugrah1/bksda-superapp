@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794873317.5624378,
-    "ast_hash": "c7f63effa8a519cfc33a72f74df1e07b",
+    "mtime": 1794874105.614051,
+    "ast_hash": "6e6eab86585fcec1ed24afe94798c451",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794873315.6263518,
-    "ast_hash": "c2aa3a4d402fabd985ca2ca7e7ce1c95",
+    "mtime": 1794874103.4964697,
+    "ast_hash": "d52b3880d912759069124cedac07284b",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794873327.5253823,
-    "ast_hash": "084d8eef288d612dde549929f1350105",
+    "mtime": 1794874120.5902689,
+    "ast_hash": "072f45f97993b7c25bb248c19647f9b8",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6085,13 +6085,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratDinasDocument.tsx": {
-    "mtime": 1794868134.0163376,
-    "ast_hash": "4956f6050508247c91dda138e83aad2f",
+    "mtime": 1794876041.9234238,
+    "ast_hash": "8168125adb02f6d83e854dbd8d146f80",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1794868734.4264145,
-    "ast_hash": "516089dc3b76f2b9f4ba130958c16bb9",
+    "mtime": 1794876045.02264,
+    "ast_hash": "d56e9b4bb3016a90befec169e65001d6",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -7700,8 +7700,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_lib/export-surat-dinas.ts": {
-    "mtime": 1794850351.8659563,
-    "ast_hash": "81c0072a3d0e494b1327023e8b61731d",
+    "mtime": 1794876043.4820218,
+    "ast_hash": "630b2ddc33d16363afcfafc01e182b36",
     "semantic_hash": ""
   },
   "frontend/tests/test-export-transform.cjs": {
@@ -8975,8 +8975,8 @@
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_5_TOKENS.md": {
-    "mtime": 1794847105.219842,
-    "ast_hash": "afc781147c3a6d8ce8865ae47b95aae8",
+    "mtime": 1794874101.7354789,
+    "ast_hash": "1a508af1082f0f14829c50e968a8cf56",
     "semantic_hash": ""
   },
   "backend/app/Http/Middleware/ValidateApiCsrfToken.php": {
@@ -9022,6 +9022,11 @@
   "docs/security/security-audit-6-modules-2026-11-17.md": {
     "mtime": 1794869861.8891296,
     "ast_hash": "a1429769e491690ef1b0711c258d6d1d",
+    "semantic_hash": ""
+  },
+  "frontend/tests/rincian-blok-check.cjs": {
+    "mtime": 1794875853.8934107,
+    "ast_hash": "b6bc9c7b4c24230ee2981b083cc7cf8e",
     "semantic_hash": ""
   }
 }

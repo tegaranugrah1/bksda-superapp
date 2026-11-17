@@ -41,6 +41,11 @@ const { exports: docMod, source: docSource } = loadSuratDinasModule();
 const {
   isRincianBlock,
   createDefaultRincianBlock,
+  isTableBlock,
+  createDefaultTableBlock,
+  parseDelimitedTableText,
+  getPrevTextPointLevel,
+  isNoColumnHeader,
   migrateLegacyUndanganPayload,
   getDefaultDataForTemplate,
   parseRawDocumentText,
@@ -173,5 +178,70 @@ const pageSrc = fs.readFileSync(
 assert(pageSrc.includes('handleMoveParagraph'), 'Editor must support reordering paragraph items');
 assert(pageSrc.includes('migrateLegacyUndanganPayload'), 'Loader must migrate legacy undangan payload');
 assert(!/value=\{data\.acaraHariTanggal/.test(pageSrc), 'Card 2 must not render duplicate legacy acaraHariTanggal input');
+
+// 7. Table Block (No / Nama / Keterangan, 3 default rows, Excel TSV & Markdown paste, CSS/Word invariants)
+const defTable = createDefaultTableBlock();
+assert(isTableBlock(defTable), 'createDefaultTableBlock must produce a valid ParagrafTableBlock');
+assert.deepEqual(defTable.headers, ['No', 'Nama', 'Keterangan']);
+assert.equal(defTable.rows.length, 3, 'Default table must have 3 rows downward');
+assert.deepEqual(defTable.rows, [
+  ['1', '', ''],
+  ['2', '', ''],
+  ['3', '', ''],
+]);
+assert.equal(detectPointLevel(defTable), 0);
+assert.equal(isNoColumnHeader('No'), true);
+assert.equal(isNoColumnHeader('No.'), true);
+assert.equal(isNoColumnHeader('Nama'), false);
+
+// Tab-separated Excel/Word paste (with header & without header)
+const tsvWithHeader = 'No\tNama\tJabatan\n1\tAndi\tPolhut\n2\tBudi\tPEH';
+const parsedTsv = parseDelimitedTableText(tsvWithHeader, true);
+assert(parsedTsv && isTableBlock(parsedTsv));
+assert.deepEqual(parsedTsv.headers, ['No', 'Nama', 'Jabatan']);
+assert.equal(parsedTsv.rows.length, 2);
+
+const tsvNoHeader = '1\tAndi\tPolhut\n2\tBudi\tPEH';
+const parsedNoHdr = parseDelimitedTableText(tsvNoHeader, false);
+assert(parsedNoHdr && isTableBlock(parsedNoHdr));
+assert.deepEqual(parsedNoHdr.headers, ['Kolom 1', 'Kolom 2', 'Kolom 3']);
+assert.equal(parsedNoHdr.rows.length, 2);
+
+// Smart Paste (Tempel Teks Utuh) auto-detects embedded TSV table inside prose & numbered points
+const mixedWithTable = [
+  'Dengan hormat, kami sampaikan daftar pegawai berikut:',
+  '',
+  '1. Daftar Peserta:',
+  'No\tNama\tKeterangan',
+  '1\tAni\tHadir',
+  '2\tBima\tIzin',
+  '3\tCitra\tHadir',
+  '',
+  'Demikian untuk menjadi perhatian.',
+].join('\n');
+const parsedDocWithTable = parseRawDocumentText(mixedWithTable);
+assert.equal(parsedDocWithTable.length, 4, `Expected [pembuka, poin1, table, penutup], got ${parsedDocWithTable.length}`);
+assert(isTableBlock(parsedDocWithTable[2]), 'TSV block inside prose must parse into ParagrafTableBlock');
+assert.equal(parsedDocWithTable[2].rows.length, 3);
+assert.equal(getPrevTextPointLevel(parsedDocWithTable, 2), 1, 'Table below poin 1 must inherit parent level 1');
+
+// Numbering continues across embedded table block
+const mixedTableNumbering = ['Pembuka.', '1. Poin satu:', defTable, '1. Poin dua.', 'Penutup.'];
+const reindexedTable = reindexParagraphMarkers(mixedTableNumbering);
+assert.equal(reindexedTable[1], '1. Poin satu:');
+assert(isTableBlock(reindexedTable[2]));
+assert.equal(reindexedTable[3], '2. Poin dua.');
+
+// CSS & Word export invariants for dynamic table (must preserve content thead!)
+assert(SURAT_DINAS_BASE_CSS.includes('.pkpknl-body-table'), 'CSS must define .pkpknl-body-table');
+assert(SURAT_DINAS_BASE_CSS.includes('.pkpknl-table-col-no'), 'CSS must define compact No column class');
+assert(SURAT_DINAS_BASE_CSS.includes('display: table-header-group !important'), 'CSS must repeat table thead across pages');
+assert(exportSrc.includes('.pkpknl-table-wrap'), 'Word export transform must handle .pkpknl-table-wrap');
+assert(
+  exportSrc.includes('thead.print\\\\:table-header-group'),
+  'sanitizeExportClone must scope thead removal to outer print wrapper so content table thead is preserved'
+);
+assert(pageSrc.includes('handleAddTableCol'), 'Editor must support adding table columns');
+assert(pageSrc.includes('handleApplyTablePaste'), 'Editor must support pasting Excel/Word table data');
 
 console.log('✅ rincian-blok-check.cjs: ALL ASSERTIONS PASSED');

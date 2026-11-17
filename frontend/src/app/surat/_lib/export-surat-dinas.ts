@@ -78,7 +78,9 @@ function sanitizeExportClone(clone: HTMLElement, stripTableChrome: boolean): voi
     ".halaman-divider",
     ".pkpknl-footer-bsre",
     ".print\\:hidden",
-    ...(stripTableChrome ? ["thead", "tfoot"] : []),
+    ...(stripTableChrome
+      ? ["thead.print\\:table-header-group", "tfoot.print\\:table-footer-group"]
+      : []),
     "script",
     "iframe",
   ];
@@ -398,6 +400,61 @@ function transformCloneForWord(clone: HTMLElement): void {
 
     table.innerHTML = rowsHtml;
     wrap.replaceWith(table);
+  });
+
+  // 4c. Transformasi Blok Tabel Dinamis (.pkpknl-table-wrap) ke tabel HTML berbingkai yang kompatibel penuh dengan MS Word
+  const tableIndents: Record<string, string> = {
+    "0": "0pt",
+    "1": "18pt",
+    "2": "32pt",
+    "3": "46pt",
+    "4": "60pt",
+  };
+  const bodyTableBlocks = Array.from(clone.querySelectorAll(".pkpknl-table-wrap"));
+  bodyTableBlocks.forEach((wrap) => {
+    const srcTable = wrap.querySelector(".pkpknl-body-table");
+    if (!srcTable) return;
+    const indentLvl = wrap.getAttribute("data-indent-level") || "0";
+    const marginLeft = tableIndents[indentLvl] || "0pt";
+    const headerCells = Array.from(srcTable.querySelectorAll(":scope > thead > tr > th"));
+    const bodyRows = Array.from(srcTable.querySelectorAll(":scope > tbody > tr"));
+
+    const thBase =
+      "border: 1px solid #000; background: #f3f4f6; padding: 4pt 6pt; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; font-weight: bold; color: #000; text-align: center; vertical-align: middle;";
+    const tdBase =
+      "border: 1px solid #000; padding: 4pt 6pt; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; color: #000; vertical-align: top;";
+
+    const headRowHtml = headerCells.length
+      ? `<thead><tr style="page-break-inside: avoid;">${headerCells
+          .map((th) => {
+            const isNo = th.classList.contains("pkpknl-table-col-no");
+            const widthStyle = isNo ? "width: 1.1cm;" : "";
+            const text = sanitizeWordFragment(th.querySelector("span") || th);
+            return `<th style="${widthStyle}${thBase}">${text || "&nbsp;"}</th>`;
+          })
+          .join("")}</tr></thead>`
+      : "";
+
+    const bodyRowsHtml = bodyRows
+      .map((tr) => {
+        const tds = Array.from(tr.querySelectorAll(":scope > td"));
+        const cellsHtml = tds
+          .map((td) => {
+            const isNo = td.classList.contains("pkpknl-table-col-no");
+            const widthStyle = isNo ? "width: 1.1cm;" : "";
+            const alignStyle = isNo ? "text-align: center;" : "text-align: left;";
+            const text = sanitizeWordFragment(td);
+            return `<td style="${widthStyle}${alignStyle}${tdBase}">${text || "&nbsp;"}</td>`;
+          })
+          .join("");
+        return `<tr style="page-break-inside: avoid;">${cellsHtml}</tr>`;
+      })
+      .join("");
+
+    const holder = document.createElement("div");
+    holder.setAttribute("style", `margin: 4pt 0 8pt ${marginLeft};`);
+    holder.innerHTML = `<table style="width: 100%; border: 1px solid #000; border-collapse: collapse; table-layout: fixed;">${headRowHtml}<tbody>${bodyRowsHtml}</tbody></table>`;
+    wrap.replaceWith(holder);
   });
 
   // 5. Transformasi Paragraf Biasa (.pkpknl-body p yang bukan .poin-item)

@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794874105.614051,
-    "ast_hash": "6e6eab86585fcec1ed24afe94798c451",
+    "mtime": 1794880067.8274562,
+    "ast_hash": "f9e3a63474972919884cfba16a0e5c1a",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794874103.4964697,
-    "ast_hash": "d52b3880d912759069124cedac07284b",
+    "mtime": 1794880065.6448746,
+    "ast_hash": "f83e6e207409edd770f01e8be7be4718",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794874120.5902689,
-    "ast_hash": "072f45f97993b7c25bb248c19647f9b8",
+    "mtime": 1794880085.3289368,
+    "ast_hash": "2eb61eb3ef6246c5aab805ec69142608",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6085,13 +6085,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratDinasDocument.tsx": {
-    "mtime": 1794876041.9234238,
-    "ast_hash": "8168125adb02f6d83e854dbd8d146f80",
+    "mtime": 1794880930.205445,
+    "ast_hash": "afa475d4a9b357a55e32a5776452bd4c",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1794876045.02264,
-    "ast_hash": "d56e9b4bb3016a90befec169e65001d6",
+    "mtime": 1794881422.3521361,
+    "ast_hash": "7f3d5f8e44182a3fdd019da28ace0194",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -7700,8 +7700,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_lib/export-surat-dinas.ts": {
-    "mtime": 1794876043.4820218,
-    "ast_hash": "630b2ddc33d16363afcfafc01e182b36",
+    "mtime": 1794881207.2165668,
+    "ast_hash": "7fa59b0110af1d254f272e5cd7971680",
     "semantic_hash": ""
   },
   "frontend/tests/test-export-transform.cjs": {
@@ -9025,8 +9025,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/rincian-blok-check.cjs": {
-    "mtime": 1794875853.8934107,
-    "ast_hash": "b6bc9c7b4c24230ee2981b083cc7cf8e",
+    "mtime": 1794881164.7231781,
+    "ast_hash": "c0ab739a8cb426e1d75c9e34f0315d94",
     "semantic_hash": ""
   }
 }

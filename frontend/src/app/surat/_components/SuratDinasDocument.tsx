@@ -63,7 +63,13 @@ export interface ParagrafRincianBlock {
   items: ParagrafRincianRow[];
 }
 
-export type ParagrafItem = string | ParagrafRincianBlock;
+export interface ParagrafTableBlock {
+  type: "table";
+  headers: string[];
+  rows: string[][];
+}
+
+export type ParagrafItem = string | ParagrafRincianBlock | ParagrafTableBlock;
 
 export function isRincianBlock(item: ParagrafItem | unknown): item is ParagrafRincianBlock {
   return (
@@ -71,6 +77,16 @@ export function isRincianBlock(item: ParagrafItem | unknown): item is ParagrafRi
     item !== null &&
     (item as ParagrafRincianBlock).type === "rincian" &&
     Array.isArray((item as ParagrafRincianBlock).items)
+  );
+}
+
+export function isTableBlock(item: ParagrafItem | unknown): item is ParagrafTableBlock {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    (item as ParagrafTableBlock).type === "table" &&
+    Array.isArray((item as ParagrafTableBlock).headers) &&
+    Array.isArray((item as ParagrafTableBlock).rows)
   );
 }
 
@@ -86,6 +102,68 @@ export function createDefaultRincianBlock(items?: ParagrafRincianRow[]): Paragra
             { label: "Agenda", value: "" },
           ],
   };
+}
+
+export function isNoColumnHeader(header: string): boolean {
+  return /^no\.?$/i.test(header.trim());
+}
+
+export function createDefaultTableBlock(
+  headers?: string[],
+  rows?: string[][]
+): ParagrafTableBlock {
+  const hdr =
+    headers && headers.length > 0 ? [...headers] : ["No", "Nama", "Keterangan"];
+  const rws =
+    rows && rows.length > 0
+      ? rows.map((r) => hdr.map((_, cIdx) => r[cIdx] ?? ""))
+      : [1, 2, 3].map((num) =>
+          hdr.map((h, cIdx) => (cIdx === 0 && isNoColumnHeader(h) ? String(num) : ""))
+        );
+  return { type: "table", headers: hdr, rows: rws };
+}
+
+function splitTableRowCells(line: string): { cells: string[]; isSeparator: boolean } | null {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  if (trimmed.includes("\t")) {
+    const cells = trimmed.split("\t").map((c) => c.trim());
+    return cells.length >= 2 ? { cells, isSeparator: false } : null;
+  }
+  if (/^\|.+\|$/.test(trimmed)) {
+    const cells = trimmed.slice(1, -1).split("|").map((c) => c.trim());
+    if (cells.length >= 2) {
+      const isSeparator = cells.every((c) => /^:?-{2,}:?$/.test(c));
+      return { cells, isSeparator };
+    }
+  }
+  return null;
+}
+
+export function parseDelimitedTableText(
+  raw: string,
+  firstRowIsHeader = true
+): ParagrafTableBlock | null {
+  if (!raw || !raw.trim()) return null;
+  const parsedRows: string[][] = [];
+  for (const line of raw.split(/\r?\n/)) {
+    const row = splitTableRowCells(line);
+    if (row && !row.isSeparator) parsedRows.push(row.cells);
+  }
+  if (parsedRows.length === 0) return null;
+  const colCount = Math.max(...parsedRows.map((r) => r.length));
+  const normalizeRow = (r: string[]) =>
+    Array.from({ length: colCount }, (_, idx) => r[idx] ?? "");
+  if (!firstRowIsHeader) {
+    const headers = Array.from({ length: colCount }, (_, i) => `Kolom ${i + 1}`);
+    return createDefaultTableBlock(headers, parsedRows.map(normalizeRow));
+  }
+  const headers = normalizeRow(parsedRows[0]).map((h, i) => h || `Kolom ${i + 1}`);
+  const bodyRows = parsedRows.slice(1).map(normalizeRow);
+  return createDefaultTableBlock(
+    headers,
+    bodyRows.length > 0 ? bodyRows : [Array.from({ length: colCount }, () => "")]
+  );
 }
 
 export interface SuratDinasData {
@@ -265,6 +343,14 @@ export function detectPointLevel(text: ParagrafItem): PointLevel {
   return 0;
 }
 
+export function getPrevTextPointLevel(list: ParagrafItem[], idx: number): PointLevel {
+  for (let i = idx - 1; i >= 0; i--) {
+    const item = list[i];
+    if (typeof item === "string") return detectPointLevel(item);
+  }
+  return 0;
+}
+
 export function getPointLevelClassName(level: PointLevel): string {
   switch (level) {
     case 1: return "poin-item poin-level-1";
@@ -279,8 +365,8 @@ const KNOWN_RINCIAN_LABEL_RE =
   /^(?:hari\s*\/\s*tanggal|hari\s*,\s*tanggal|hari|tanggal|waktu|pukul|tempat|lokasi|agenda|acara|kegiatan|pakaian|dress\s*code|narahubung|contact\s*person|link|tautan|meeting\s*id|passcode|catatan|keterangan)$/i;
 
 /**
- * Smart Parser untuk memecah teks mentah salin-tempel naskah dinas menjadi array paragraf bertingkat
- * dan blok Rincian/Jadwal (Hari/Tanggal, Tempat, Agenda, dll.).
+ * Smart Parser untuk memecah teks mentah salin-tempel naskah dinas menjadi array paragraf bertingkat,
+ * blok Rincian/Jadwal (Hari/Tanggal, Tempat, Agenda, dll.), serta tabel tab-separated / Markdown.
  */
 export function parseRawDocumentText(rawText: string): ParagrafItem[] {
   if (!rawText || !rawText.trim()) return [];
@@ -288,6 +374,7 @@ export function parseRawDocumentText(rawText: string): ParagrafItem[] {
   const paragraphs: ParagrafItem[] = [];
   let currentBuffer = "";
   let rincianBuffer: ParagrafRincianRow[] = [];
+  let tableBuffer: string[][] = [];
 
   const flushText = () => {
     if (currentBuffer) {
@@ -308,13 +395,39 @@ export function parseRawDocumentText(rawText: string): ParagrafItem[] {
     }
   };
 
+  const flushTable = () => {
+    if (tableBuffer.length >= 2) {
+      const colCount = Math.max(...tableBuffer.map((r) => r.length));
+      const norm = (r: string[]) => Array.from({ length: colCount }, (_, idx) => r[idx] ?? "");
+      const headers = norm(tableBuffer[0]).map((h, i) => h || `Kolom ${i + 1}`);
+      const rows = tableBuffer.slice(1).map(norm);
+      paragraphs.push(createDefaultTableBlock(headers, rows));
+    } else if (tableBuffer.length === 1) {
+      paragraphs.push(tableBuffer[0].join(" "));
+    }
+    tableBuffer = [];
+  };
+
   for (let i = 0; i < rawLines.length; i++) {
     let line = rawLines[i];
     if (!line) {
       flushText();
       flushRincian();
+      flushTable();
       continue;
     }
+
+    const tableRow = splitTableRowCells(line);
+    if (tableRow) {
+      flushText();
+      flushRincian();
+      if (!tableRow.isSeparator) {
+        tableBuffer.push(tableRow.cells);
+      }
+      continue;
+    }
+
+    flushTable();
 
     // Gabungkan pola salin-tempel Word/PDF ketika label dan ": nilai" terpisah baris ("Tempat\n: Ruang...")
     const nextLine = rawLines[i + 1];
@@ -372,6 +485,7 @@ export function parseRawDocumentText(rawText: string): ParagrafItem[] {
 
   flushText();
   flushRincian();
+  flushTable();
 
   return paragraphs;
 }
@@ -1378,6 +1492,54 @@ export const SURAT_DINAS_BASE_CSS = `
     white-space: pre-line;
     word-break: break-word;
   }
+
+  /* Blok Tabel Dinamis di dalam Batang Tubuh */
+  .pkpknl-table-wrap {
+    margin: 0.45rem 0 0.65rem 0;
+  }
+  .pkpknl-table-wrap.table-indent-1 { margin-left: 1.35rem; }
+  .pkpknl-table-wrap.table-indent-2 { margin-left: 2.45rem; }
+  .pkpknl-table-wrap.table-indent-3 { margin-left: 3.55rem; }
+  .pkpknl-table-wrap.table-indent-4 { margin-left: 4.65rem; }
+  .pkpknl-body-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .pkpknl-body-table thead {
+    display: table-header-group !important;
+  }
+  .pkpknl-body-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .pkpknl-body-table th,
+  .pkpknl-body-table td {
+    border: 1px solid #000 !important;
+    padding: 5px 7px !important;
+    font-size: 11pt;
+    line-height: 1.35;
+    color: #000;
+    vertical-align: top;
+    word-break: break-word;
+  }
+  .pkpknl-body-table th {
+    background-color: #f3f4f6 !important;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .pkpknl-body-table td {
+    text-align: left;
+    white-space: pre-line;
+  }
+  .pkpknl-body-table th.pkpknl-table-col-no,
+  .pkpknl-body-table td.pkpknl-table-col-no {
+    width: 11mm;
+    text-align: center;
+  }
   .pkpknl-footer-bsre {
     margin-top: 2rem;
     padding-top: 0.5rem;
@@ -1576,7 +1738,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
   const renderParagrafItem = (item: ParagrafItem, idx: number) => {
     if (isRincianBlock(item)) {
-      const prevLvl = idx > 0 ? detectPointLevel(paragraf[idx - 1]) : 0;
+      const prevLvl = getPrevTextPointLevel(paragraf, idx);
       const updateRow = (rIdx: number, field: "label" | "value", val: string) => {
         const next = [...(paragraf || [])];
         const cur = next[idx];
@@ -1614,6 +1776,78 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   >
                     {row.value}
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    if (isTableBlock(item)) {
+      const prevLvl = getPrevTextPointLevel(paragraf, idx);
+      const isNoCol = (cIdx: number) => cIdx === 0 && isNoColumnHeader(item.headers[cIdx] || "");
+      const updateTable = (updater: (cur: ParagrafTableBlock) => ParagrafTableBlock) => {
+        const next = [...(paragraf || [])];
+        const cur = next[idx];
+        if (!isTableBlock(cur)) return;
+        next[idx] = updater(cur);
+        onUpdateField?.("paragraf", next);
+      };
+      return (
+        <div
+          key={idx}
+          className={`pkpknl-table-wrap${prevLvl > 0 ? ` table-indent-${prevLvl}` : ""}`}
+          data-indent-level={prevLvl}
+        >
+          <table className="pkpknl-body-table">
+            <thead>
+              <tr>
+                {item.headers.map((header, hIdx) => (
+                  <th
+                    key={hIdx}
+                    className={isNoCol(hIdx) ? "pkpknl-table-col-no" : undefined}
+                  >
+                    <span
+                      contentEditable
+                      suppressContentEditableWarning
+                      className="pkpknl-edit block w-full"
+                      onBlur={(e) => {
+                        const val = e.currentTarget.innerText;
+                        updateTable((cur) => ({
+                          ...cur,
+                          headers: cur.headers.map((h, i) => (i === hIdx ? val : h)),
+                        }));
+                      }}
+                    >
+                      {header}
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {item.rows.map((row, rIdx) => (
+                <tr key={rIdx}>
+                  {item.headers.map((_, cIdx) => (
+                    <td
+                      key={cIdx}
+                      contentEditable
+                      suppressContentEditableWarning
+                      className={`pkpknl-edit${isNoCol(cIdx) ? " pkpknl-table-col-no" : ""}`}
+                      onBlur={(e) => {
+                        const val = e.currentTarget.innerText;
+                        updateTable((cur) => ({
+                          ...cur,
+                          rows: cur.rows.map((r, ri) =>
+                            ri === rIdx ? cur.headers.map((__, ci) => (ci === cIdx ? val : r[ci] ?? "")) : r
+                          ),
+                        }));
+                      }}
+                    >
+                      {row[cIdx] ?? ""}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
