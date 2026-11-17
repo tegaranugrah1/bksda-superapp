@@ -572,8 +572,10 @@ class KepegawaianSecurityAuditTest extends TestCase
         $parser->parse($oversizedHtml);
     }
 
-    /** @test */
-    public function store_batch_rejects_scalar_items_with_422_instead_of_500(): void
+    /**
+     * 13. storeBatch rejects scalar elements inside items array with 422 instead of throwing TypeError 500.
+     */
+    public function test_store_batch_rejects_scalar_items_with_422_instead_of_500(): void
     {
         $this->actingAs($this->adminUser, 'sanctum')
             ->postJson('/api/kepegawaian/uang-makan/batches', [
@@ -583,5 +585,32 @@ class KepegawaianSecurityAuditTest extends TestCase
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['items.0']);
+    }
+
+    /**
+     * 14. destroyHolidaySetting rejects non-integer and overflow IDs with 404 without hitting kpg_holidays.
+     */
+    public function test_destroy_holiday_setting_ignores_non_integer_and_overflow_ids_without_sql_query(): void
+    {
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_holiday_sec',
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $holidayQueries = 0;
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$holidayQueries) {
+            if (str_contains($query->sql, 'kpg_holidays')) {
+                $holidayQueries++;
+            }
+        });
+
+        foreach (['static-2026-08-17', '0', '99999999999999999999999'] as $badId) {
+            $this->actingAs($superAdmin, 'sanctum')
+                ->deleteJson("/api/kepegawaian/settings/holidays/{$badId}")
+                ->assertStatus(404);
+        }
+
+        $this->assertSame(0, $holidayQueries);
     }
 }

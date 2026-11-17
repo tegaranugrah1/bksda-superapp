@@ -520,7 +520,8 @@ class MealAllowanceController extends Controller
      */
     public function destroyHolidaySetting(int|string $id): JsonResponse
     {
-        $holiday = Holiday::find($id);
+        $holidayId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $holiday = $holidayId !== false ? Holiday::find($holidayId) : null;
         if (!$holiday) {
             return response()->json([
                 'success' => false,
