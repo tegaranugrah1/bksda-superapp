@@ -1,6 +1,6 @@
 # Progress — Modernisasi Animate UI (Shadcn Motion Primitives) & Ekspansi Penuh Modul Kepegawaian (04 November 2026)
 
-> **Catatan Arsip (Updated 17 November 2026):** Berkas ini menyimpan arsip log progres hingga 4 November 2026. Untuk progres terbaru (5–17 November 2026, termasuk Bagian 115–126: RBAC per-modul, 5 Design Tokens pada 5 modul utama, `/security-audit` & `/ponytail-audit` lintas 6 modul, upgrade keamanan Next.js ke `16.4.6`, penyempurnaan tipografi `PortalQuickStats.tsx`, Blok Rincian / Jadwal Persuratan, serta Blok Tabel Dinamis & Drag Lebar Kolom Persuratan), rujuk [`progress.md`](../progress.md) di root repository dan [`HANDOFF.md`](HANDOFF.md).
+> **Catatan Arsip (Updated 17 November 2026):** Berkas ini menyimpan arsip log progres hingga 4 November 2026. Untuk progres terbaru (5–17 November 2026, termasuk Bagian 115–127: RBAC per-modul, 5 Design Tokens pada 5 modul utama, `/security-audit` & `/ponytail-audit` lintas 6 modul, upgrade keamanan Next.js ke `16.4.6`, penyempurnaan tipografi `PortalQuickStats.tsx`, Blok Rincian / Jadwal Persuratan, Blok Tabel Dinamis & Drag Lebar Kolom, serta Format Tebal/Miring & Tembusan `11pt` Persuratan), rujuk [`progress.md`](../progress.md) di root repository dan [`HANDOFF.md`](HANDOFF.md).
 
 > Status: **SELESAI PENUH (Pilot Detail Pegawai, Uang Makan, Settings, Surat Tugas Inbox, Cuti, Daftar Pegawai, dan Dashboard Kepegawaian 100% Menggunakan Motion Primitives Berbasis Framer Motion & Shadcn UI)**.  
 > Branch: `codex/portal-security-pentest`  

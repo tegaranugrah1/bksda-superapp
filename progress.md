@@ -2765,3 +2765,24 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - **Chromium Playwright Live `/surat/keluar/dinas`**: verifikasi default 3×3 (`No`, `Nama`, `Keterangan`), simulasi clipboard paste multi-baris PDF (`Perjalanan peserta dan\n...` -> mengalir rata), pemindahan baris via `↓`, drag divider kolom di Pratinjau A4 & modal `Perluas` + `Reset Lebar`, merge/split `Break`, pembatas `Senin, 23 November 2026`, `# Nomor Kolom`, ekspor Word `.doc`, serta `git diff --check` bersih dan inspeksi screenshot inline/modal.
   - `graphify update .`: diperbarui (`15418` nodes, `28703` edges, `1045` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal pada `codex/portal-security-pentest`.
+
+---
+
+## 127. Format Teks Tebal & Miring Lintas Bagian Surat + Penyamaan Ukuran Tembusan ke 11pt (17 November 2026)
+
+- **Latar Belakang**: Pengguna membutuhkan kemampuan menebalkan (`**tebal**`) dan memiringkan (`*miring*`, `***keduanya***`) kata atau frasa tertentu mulai dari **Perihal/Hal**, **Yth./Tujuan**, **Batang Tubuh / Isi** (paragraf, poin, Rincian, dan judul/pemisah/sel Tabel), hingga **Tembusan**, sekaligus menyamakan ukuran huruf **Tembusan** dengan ukuran teks isi surat (`11pt`) baik pada Pratinjau A4, PDF, maupun Word `.doc`.
+- **Perubahan Diterapkan (Commit `0bef27bf`)**:
+  - [`frontend/src/lib/letter-utils.ts`](file:///e:/bksda-superapp/frontend/src/lib/letter-utils.ts): menambahkan `renderFormattedText` (merender `***tebal+miring***`, `**tebal**` beserta nested `*miring*`, dan `*miring*` sebagai elemen React aman dari XSS), `toggleInlineFormat` (menjaga spasi tepi tetap di luar pembungkus `*`/`**`; `toggleItalicInTextarea` kini mendelegasikan ke helper ini), `handleInlineFormatShortcut` (`Ctrl+B` / `Ctrl+I`), serta `serializeEditableToMarkdown` untuk round-trip edit langsung `contentEditable`.
+  - [`frontend/src/app/surat/_components/SuratDinasDocument.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/SuratDinasDocument.tsx): mengekspor `InlineFormatButtons` & `InlineFormatTarget`, memperbarui `.pkpknl-tembusan` dari `10pt` menjadi **`11pt`**, serta menghubungkan `renderFormattedText` dan `serializeEditableToMarkdown` di slot **Perihal/Hal**, **Yth./Tujuan**, **Batang Tubuh / Isi** (paragraf, poin, `Rincian`, `Tabel`), dan **Tembusan** (sedangkan Nomor, Sifat, Lampiran, Tanggal, dan TTD/NIP tetap standar).
+  - [`frontend/src/app/surat/_components/TabelBlockEditor.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/TabelBlockEditor.tsx): menambahkan kontrol `InlineFormatButtons` ringkas di bar aksi tabel (mode inline Kartu 3 & modal `Perluas`) serta pintasan `Ctrl+B`/`Ctrl+I` via `bindFormatField` untuk judul kolom, baris `Judul`, dan sel tabel.
+  - [`frontend/src/app/surat/keluar/dinas/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/dinas/page.tsx): memasang `InlineFormatButtons` dan `registerSectionTarget` (`React.useCallback`) / `bindSectionFormat` pada header **Perihal**, **2. Data Spesifik (Yth/Tujuan)**, **3. Batang Tubuh / Isi**, dan **5. Tembusan**.
+  - [`frontend/src/app/surat/_lib/export-surat-dinas.ts`](file:///e:/bksda-superapp/frontend/src/app/surat/_lib/export-surat-dinas.ts): menyamakan ukuran ekspor Word `.doc` blok & item **Tembusan** ke `11pt` dan mempertahankan tag `<strong>`/`<em>` melalui `sanitizeWordFragment` pada Tembusan, multi-baris `Yth`, label `Rincian`, `Perihal`, poin, paragraf, dan tabel.
+  - [`frontend/tests/rincian-blok-check.cjs`](file:///e:/bksda-superapp/frontend/tests/rincian-blok-check.cjs): menambahkan Bagian 11 yang memvalidasi token `renderFormattedText`, `toggleInlineFormat` (termasuk spasi tepi & tumpuk `**` + `*`), CSS & Word `.pkpknl-tembusan` `11pt`, serta kontrol format di editor.
+- **Verifikasi Pasca-Edit Akhir**:
+  - `npx tsc --noEmit`: `0` error (`exit 0`).
+  - `npx eslint src/app/surat src/lib/letter-utils.ts`: `0` error (`exit 0`).
+  - Unit & Static Checks: `rincian-blok-check.cjs`, `nota-dinas-template-check.cjs`, `persuratan-ui.cjs`, `test-export-transform.cjs`, dan `export-pdf-route.cjs` seluruhnya lulus (`exit 0`).
+  - `npm run build` (`Next.js 16.4.6 (Turbopack)`): `86/86` rute bersih (`exit 0`).
+  - **Chromium Playwright Live `/surat/keluar/dinas`**: simulasi klik `[B]` / `[I]` & `Ctrl+I` pada `Perihal`, `Yth`, paragraf `Batang Tubuh`, sel tabel `*Break*`, dan `Tembusan`, pengecekan ukuran terkomputasi `.pkpknl-tembusan` sama persis dengan paragraf isi (`11pt`), verifikasi konten Word `.doc` (`<strong>`, `<em>`, dan `font-size: 11pt;` di Tembusan), serta `git diff --check` bersih dan `impeccable detect` nihil temuan baru.
+  - `graphify update .`: diperbarui (`15433` nodes, `28749` edges, `1044` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal pada `codex/portal-security-pentest`.
