@@ -129,6 +129,7 @@ try {
     $genData = json_decode($genResp->getContent(), true)['data'];
     $skPayload = $genData['surat_keluar']['document_payload'];
     assert($skPayload['tahunCutiText'] === 'untuk tahun 2025 dan tahun 2026', 'document_payload tahunCutiText should be "untuk tahun 2025 dan tahun 2026"');
+    assert(($skPayload['hitungHari'] ?? null) === 'hari_kerja', 'document_payload hitungHari for Cuti Tahunan should be hari_kerja');
 
     // 6. Test with N-2 and N-1
     $reqN2 = EmployeeLeaveRequest::find($data2['id']);
@@ -146,11 +147,21 @@ try {
     $expectedYearText = 'untuk tahun ' . Carbon::parse($reqN0Only->tanggal_mulai)->year;
     assert($prevData0['tahun_cuti_text'] === $expectedYearText, "previewSuratIzin N only should be \"{$expectedYearText}\"");
 
-    // 7b. Non-Tahunan should remain null
+    // 7b. Non-Tahunan should remain null and follow LeaveType::hitung_hari
     $reqN0Only->update(['jenis_cuti' => 'Cuti Sakit']);
     $prevRespSakit = $reqCtrl->previewSuratIzin($data2['id']);
     $prevDataSakit = json_decode($prevRespSakit->getContent(), true);
     assert($prevDataSakit['tahun_cuti_text'] === null, 'previewSuratIzin non-annual should be null');
+    assert(($prevDataSakit['hitung_hari'] ?? null) === 'hari_kalender', 'Cuti Sakit should follow LeaveType hitung_hari = hari_kalender');
+
+    $capType = LeaveType::where('kode', 'CAP')->first();
+    if ($capType) {
+        $capType->update(['hitung_hari' => 'hari_kerja']);
+        $reqN0Only->update(['jenis_cuti' => $capType->nama]);
+        $prevRespCap = $reqCtrl->previewSuratIzin($data2['id']);
+        $prevDataCap = json_decode($prevRespCap->getContent(), true);
+        assert(($prevDataCap['hitung_hari'] ?? null) === 'hari_kerja', 'CAP updated to hari_kerja must reflect in previewSuratIzin');
+    }
 
     // 8. Test CPNS 1-year tenure rule
     $cpns = Employee::firstOrCreate(

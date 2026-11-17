@@ -72,10 +72,31 @@ class EmployeeLeaveRequest extends Model
         return $this->belongsTo(\App\Modules\Surat\Models\SuratKeluar::class, 'surat_keluar_id');
     }
 
+    public function resolveLeaveType(): ?LeaveType
+    {
+        return LeaveType::withTrashed()->matchingNameOrCode((string) $this->jenis_cuti)->first();
+    }
+
+    public function resolveHitungHari(?\Illuminate\Support\Collection $catalog = null): string
+    {
+        $normalized = mb_strtolower(trim((string) $this->jenis_cuti));
+        $type = $catalog
+            ? $catalog->first(fn (LeaveType $t) => mb_strtolower(trim((string) $t->nama)) === $normalized
+                || ($t->kode !== null && mb_strtolower(trim((string) $t->kode)) === $normalized))
+            : $this->resolveLeaveType();
+
+        if ($type && in_array($type->hitung_hari, ['hari_kerja', 'hari_kalender'], true)) {
+            return $type->hitung_hari;
+        }
+
+        return str_contains($normalized, 'tahunan') || str_contains($normalized, 'bersama')
+            ? 'hari_kerja'
+            : 'hari_kalender';
+    }
+
     public function isAnnual(): bool
     {
-        return (bool) LeaveType::withTrashed()->matchingNameOrCode((string) $this->jenis_cuti)
-            ->first()?->potong_kuota_tahunan;
+        return (bool) $this->resolveLeaveType()?->potong_kuota_tahunan;
     }
 
     public function scopeAnnual(Builder $query): Builder

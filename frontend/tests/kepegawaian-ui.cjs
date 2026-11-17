@@ -393,6 +393,16 @@ async function checkPhotoUpload() {
     digitalCutiSrc.includes('`untuk ${years[0]}`'),
     'DigitalSuratIzinModal must include single current year text ("untuk tahun YYYY") when N-1/N-2 are zero'
   );
+  const suratDocSrc = fs.readFileSync(path.join(__dirname, '../src/app/surat/_components/SuratDinasDocument.tsx'), 'utf8');
+  const dinasPageSrc = fs.readFileSync(path.join(__dirname, '../src/app/surat/keluar/dinas/page.tsx'), 'utf8');
+  assert(
+    suratDocSrc.includes('isSingleDayLeave') && suratDocSrc.includes('hitungHari === "hari_kerja"'),
+    'SuratDinasDocument must omit s.d on 1-day leave and honor LeaveType hitungHari'
+  );
+  assert(
+    digitalCutiSrc.includes('hitungHari: payload?.hitungHari || item.hitung_hari') && dinasPageSrc.includes('Satuan Hitung Hari Cuti'),
+    'DigitalSuratIzinModal and dinas/page.tsx must propagate and allow overriding hitungHari'
+  );
   console.log('PASS: KepegawaianDialog and Cuti modals free of opaque outer box and double scrollbars.');
 }
 checkPhotoUpload().catch(error => { console.error(error); process.exitCode = 1; });

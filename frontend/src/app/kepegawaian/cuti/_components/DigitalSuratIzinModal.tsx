@@ -62,6 +62,7 @@ export function DigitalSuratIzinModal({
     tanggalMulai: payload?.tanggalMulai || item.tanggal_mulai,
     tanggalSelesai: payload?.tanggalSelesai || item.tanggal_selesai,
     tahunCutiText: resolvedTahunCutiText,
+    hitungHari: payload?.hitungHari || item.hitung_hari,
     pegawai: {
       nama: item.employee?.nama_lengkap || "-",
       nip: item.employee?.nip || "-",

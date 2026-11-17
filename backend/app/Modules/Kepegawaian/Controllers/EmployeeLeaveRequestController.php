@@ -390,7 +390,12 @@ class EmployeeLeaveRequestController extends Controller
 
         $requestedPerPage = max(1, (int) $request->input('per_page', 20));
         $perPage = min($requestedPerPage, 100);
-        $paginated = $query->paginate($perPage)->toArray();
+        $paginator = $query->paginate($perPage);
+        $leaveTypeCatalog = LeaveType::withTrashed()->get(['nama', 'kode', 'hitung_hari']);
+        $paginator->getCollection()->each(function (EmployeeLeaveRequest $req) use ($leaveTypeCatalog): void {
+            $req->setAttribute('hitung_hari', $req->resolveHitungHari($leaveTypeCatalog));
+        });
+        $paginated = $paginator->toArray();
 
         $baseCountQuery = EmployeeLeaveRequest::query();
         if ($year = (int) $request->input('year')) {
@@ -1323,6 +1328,7 @@ class EmployeeLeaveRequestController extends Controller
             'terbilang_hari' => $terbilangHari,
             'kepala_balai' => $kepalaBalai,
             'tahun_cuti_text' => $this->resolveTahunCutiText($leaveReq),
+            'hitung_hari' => $leaveReq->resolveHitungHari(),
         ]);
     }
 
@@ -1404,6 +1410,7 @@ class EmployeeLeaveRequestController extends Controller
                 'tanggalMulai' => $tglMulaiFormatted,
                 'tanggalSelesai' => $tglSelesaiFormatted,
                 'tahunCutiText' => $this->resolveTahunCutiText($leaveReq),
+                'hitungHari' => $leaveReq->resolveHitungHari(),
                 'pegawai' => [
                     'nama' => $leaveReq->employee ? $leaveReq->employee->nama_lengkap : '-',
                     'nip' => $leaveReq->employee ? $leaveReq->employee->nip : '-',

@@ -589,6 +589,7 @@ export interface SuratDinasData {
   tanggalMulai?: string;
   tanggalSelesai?: string;
   tahunCutiText?: string | null;
+  hitungHari?: "hari_kerja" | "hari_kalender";
   pegawai?: PersonItem;
 
   // Surat Kuasa
@@ -1818,6 +1819,7 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         tanggalMulai: baseDate,
         tanggalSelesai: baseDate,
         tahunCutiText: `untuk tahun ${new Date().getFullYear()}`,
+        hitungHari: "hari_kerja",
         pegawai: {
           nama: "AGUS PURNOMO, S.Hut.",
           nip: "19850712 201012 1 002",
@@ -2446,6 +2448,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     tanggalMulai,
     tanggalSelesai,
     tahunCutiText,
+    hitungHari,
     pegawai,
     lampiranPage,
   } = data;
@@ -3261,7 +3264,14 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             {(() => {
               const jenisCutiClean = (jenisCuti || "Tahunan").replace(/^Cuti\s+/i, "");
               const isTahunan = jenisCutiClean.toLowerCase().includes("tahunan");
-              const tipeHari = isTahunan ? "hari kerja" : "hari kalender";
+              const isBersama = jenisCutiClean.toLowerCase().includes("bersama");
+              const isHariKerja =
+                hitungHari === "hari_kerja"
+                  ? true
+                  : hitungHari === "hari_kalender"
+                    ? false
+                    : isTahunan || isBersama;
+              const tipeHari = isHariKerja ? "hari kerja" : "hari kalender";
               const fallbackTahunMatch = String(tanggalMulai || kotaTanggal || "").match(/(?:19|20)\d{2}/);
               const displayTahunCutiText =
                 tahunCutiText !== undefined && tahunCutiText !== null
@@ -3269,6 +3279,9 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   : isTahunan
                     ? `untuk tahun ${fallbackTahunMatch ? fallbackTahunMatch[0] : new Date().getFullYear()}`
                     : "";
+              const normStart = (tanggalMulai || "").trim();
+              const normEnd = (tanggalSelesai || "").trim();
+              const isSingleDayLeave = Number(jumlahHari) === 1 || !normEnd || normEnd === normStart;
 
               return (
                 <div className="surat-izin-cuti-body text-justify">
@@ -3307,7 +3320,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   </table>
 
                   <p className="surat-izin-cuti-p">
-                    Selama {jumlahHari || 0} ({terbilangHari || "..."}) {tipeHari} terhitung mulai tanggal {tanggalMulai || "..."} s.d {tanggalSelesai || "..."}, dengan ketentuan sebagai berikut :
+                    Selama {jumlahHari || 0} ({terbilangHari || "..."}) {tipeHari} terhitung mulai tanggal {normStart || "..."}{isSingleDayLeave ? "" : ` s.d ${normEnd}`}, dengan ketentuan sebagai berikut :
                   </p>
 
                   <table className="surat-izin-cuti-subtable">

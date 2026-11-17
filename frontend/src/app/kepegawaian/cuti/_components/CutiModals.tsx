@@ -143,6 +143,7 @@ export interface LeaveRequestItem {
   nomor_pengajuan: string | null;
   tanggal_pengajuan: string;
   jenis_cuti: string;
+  hitung_hari?: "hari_kerja" | "hari_kalender";
   alasan_cuti: string;
   jumlah_hari: number;
   tanggal_mulai: string;

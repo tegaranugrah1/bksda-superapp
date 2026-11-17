@@ -2700,6 +2700,41 @@ function GenerateSuratDinasContent() {
                       />
                     </div>
                   </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-[var(--ds-fg-secondary)] block">
+                      Satuan Hitung Hari Cuti
+                    </label>
+                    <div className="flex items-center gap-1 p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-950/60">
+                      {([
+                        { id: "hari_kerja", label: "Hari Kerja" },
+                        { id: "hari_kalender", label: "Hari Kalender" },
+                      ] as const).map((opt) => {
+                        const lowerJenis = (data.jenisCuti || "Tahunan").toLowerCase();
+                        const effectiveHitungHari =
+                          data.hitungHari ||
+                          (lowerJenis.includes("tahunan") || lowerJenis.includes("bersama")
+                            ? "hari_kerja"
+                            : "hari_kalender");
+                        const active = effectiveHitungHari === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => updateField("hitungHari", opt.id)}
+                            className={cn(
+                              "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                              active
+                                ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
+                                : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <div>
                     <label className="font-semibold text-[var(--ds-fg-secondary)]">Satuan Kerja</label>
                     <Input
