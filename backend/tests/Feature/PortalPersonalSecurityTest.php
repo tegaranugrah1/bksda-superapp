@@ -906,4 +906,31 @@ class PortalPersonalSecurityTest extends TestCase
         Sanctum::actingAs($owner);
         $this->getJson("/api/bmn/assets/{$asset->id}/photo/depan/view")->assertOk();
     }
+
+    public function test_me_endpoints_reject_non_scalar_profile_password_and_ignore_array_query_token(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Scalar Boundary User');
+        $asset = $this->asset($employee);
+        $asset->update(['foto_depan_path' => 'audit-fixtures/portal-front.png']);
+        AssetLoan::create([
+            'asset_id' => $asset->id,
+            'employee_id' => $employee->id,
+            'tanggal_pinjam' => '2026-11-01',
+            'due_date' => '2026-11-10',
+            'status' => 'dipinjam',
+        ]);
+        Sanctum::actingAs($user);
+
+        $dash = $this->getJson('/api/me/dashboard?token[]=bad')->assertOk();
+        $assets = $this->getJson('/api/me/assets?token[]=bad')->assertOk();
+        $this->assertStringNotContainsString('&token=', (string) $dash->json('data.my_assets.0.foto_depan_url'));
+        $this->assertStringNotContainsString('&token=', (string) $assets->json('data.0.foto_depan_url'));
+
+        $this->postJson('/api/me/update-profile', [
+            'email' => 'renamed@example.com',
+            'current_password' => ['not-a-string'],
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password']);
+    }
 }

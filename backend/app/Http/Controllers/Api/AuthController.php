@@ -159,8 +159,7 @@ class AuthController extends Controller
             ] : null,
             'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) use ($request) {
                 $asset = $loan->asset;
-                $token = $request->bearerToken() ?: $request->query('token');
-                $tokenParam = $token ? "&token=" . urlencode($token) : "";
+                $tokenParam = $this->assetQueryTokenParam($request);
                 $v = $asset->updated_at?->timestamp ?: time();
 
                 return [
@@ -282,6 +281,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => ['nullable', 'email', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-\s()]+$/'],
+            'current_password' => ['nullable', 'string'],
         ]);
 
         $employee = Employee::where('nip', $user->username)->first();
@@ -340,9 +340,9 @@ class AuthController extends Controller
         }
 
         $fullName = trim($employee->nama_lengkap ?? '');
-        $escapedName = addcslashes(mb_strtolower($fullName), '%_');
+        $escapedName = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($fullName));
         $cleanName = trim(preg_replace('/,.*$/', '', $fullName));
-        $escapedClean = addcslashes(mb_strtolower($cleanName), '%_');
+        $escapedClean = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($cleanName));
 
         $assets = \App\Modules\Bmn\Models\Asset::where(function ($query) use ($employee, $fullName, $escapedName, $cleanName, $escapedClean) {
             $query->where('employee_id', $employee->id);
@@ -350,12 +350,12 @@ class AuthController extends Controller
                 $fallback->whereNull('employee_id')
                     ->where(function ($q) use ($fullName, $escapedName, $cleanName, $escapedClean) {
                         if (mb_strlen($fullName) >= 3) {
-                            $q->whereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
-                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+                            $q->whereRaw("LOWER(pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedName . '%'])
+                              ->orWhereRaw("LOWER(nama_pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedName . '%']);
                         }
                         if (mb_strlen($cleanName) >= 3 && $cleanName !== $fullName) {
-                            $q->orWhereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedClean . '%'])
-                              ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedClean . '%']);
+                            $q->orWhereRaw("LOWER(pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedClean . '%'])
+                              ->orWhereRaw("LOWER(nama_pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedClean . '%']);
                         }
                     });
             });
@@ -373,8 +373,7 @@ class AuthController extends Controller
         ->map(function ($asset) use ($request) {
             unset($asset->pengguna, $asset->nama_pengguna);
 
-            $token = $request->bearerToken() ?: $request->query('token');
-            $tokenParam = $token ? "&token=" . urlencode($token) : "";
+            $tokenParam = $this->assetQueryTokenParam($request);
             $v = $asset->updated_at?->timestamp ?: time();
 
             if ($asset->foto_geotag_path && ! $asset->foto_geotag_url) {
@@ -720,8 +719,8 @@ class AuthController extends Controller
         }
 
         $validated = $request->validate([
-            'settings' => ['required', 'array'],
-            'settings.*.key' => ['required', 'string'],
+            'settings' => ['required', 'array', 'max:100'],
+            'settings.*.key' => ['required', 'string', 'max:100'],
             'settings.*.enabled' => ['required', 'boolean'],
         ]);
 
@@ -950,5 +949,12 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Autentikasi 2 Langkah berhasil dinonaktifkan.',
         ]);
+    }
+
+    private function assetQueryTokenParam(Request $request): string
+    {
+        $token = $request->bearerToken() ?: $request->query('token');
+
+        return is_string($token) && $token !== '' ? '&token='.urlencode($token) : '';
     }
 }
