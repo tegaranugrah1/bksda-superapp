@@ -3043,3 +3043,23 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/kepegawaian` (`0`), `node tests/kepegawaian-ui.cjs` -> **PASS**, `node tests/test-export-transform.cjs` -> **PASS**, `node tests/diktum-capitalization-check.cjs` -> **PASS**, `node tests/st-legacy-items.cjs` -> **PASS**.
   - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15494` nodes, `28931` edges, `1018` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`bc8a3620`) pada `codex/portal-security-pentest`.
+
+---
+
+## 139. Audit Penyelarasan Akhir `/ponytail-review` & `/security-audit` Modul Kepegawaian: Guard ID Libur PostgreSQL, Pembersihan `EmployeeDates`, & Aktivasi Test `#13–#14` (17 November 2026)
+
+- **Latar Belakang**:
+  Audit lanjutan menyeluruh (`/ponytail-review` dan `/security-audit`) terhadap seluruh rute, controller, helper, serta direktori `frontend/src/app/kepegawaian/**` (termasuk pencarian ekspor TypeScript tak terpakai dan rute tanpa constraint numerik).
+- **Temuan & Perbaikan Diterapkan (Commit `0aa666f0`)**:
+  - **Guard Bilangan Bulat Positif pada `destroyHolidaySetting()` ([`MealAllowanceController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php#L521-L529))**:
+    - Rute `DELETE /api/kepegawaian/settings/holidays/{id}` sengaja tidak memakai `->whereNumber('id')` agar ID non-numerik (seperti ID hari libur statis kalender) menerima respons `404` terstruktur. Namun `Holiday::find($id)` langsung melempar nilai non-numerik atau overflow ke PostgreSQL (`kpg_holidays.id` bertipe `bigint`), berisiko memicu `SQLSTATE[22P02]`/`22003` HTTP `500`.
+    - Memvalidasi `$id` memakai stdlib PHP `filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])` sebelum memanggil `Holiday::find(...)` sehingga ID non-integer, `0`, maupun overflow dikembalikan sebagai `404` JSON tanpa menyentuh database.
+  - **Hapus Tipe Mati (`ponytail-review: delete:`) ([`types.ts`](file:///e:/bksda-superapp/frontend/src/app/kepegawaian/surat-tugas/_lib/types.ts#L98-L103))**:
+    - Menghapus `export type EmployeeDates = Record<string, EmployeeDateRange>;` (`-2` baris) yang memiliki nol pemanggil di seluruh `frontend/src` maupun `frontend/tests`.
+  - **Aktivasi Metode Regresi PHPUnit 11/12 ([`KepegawaianSecurityAuditTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/KepegawaianSecurityAuditTest.php#L575-L616))**:
+    - Menemukan bahwa docblock `/** @test */` tanpa prefiks `test_` diabaikan oleh PHPUnit modern sehingga regresi `#13` belum ikut tereksekusi sebelumnya. Mengubah nama menjadi `test_store_batch_rejects_scalar_items_with_422_instead_of_500()` serta menambahkan Test `#14` `test_destroy_holiday_setting_ignores_non_integer_and_overflow_ids_without_sql_query()` (memverifikasi `DB::listen()` = `0` kueri `kpg_holidays` dan HTTP `404` untuk `static-2026-08-17`, `0`, serta `99999999999999999999999`).
+- **Verifikasi Pasca-Edit Akhir**:
+  - Backend: `php -l` bersih; `KepegawaianSecurityAuditTest` (**14 tests passed, 98 assertions**); total `15` suite PHPUnit Feature (`14` Kepegawaian + `SixModulesSecurityHardeningTest`) -> **121 tests passed (1058 assertions)**; `php backend/tests/EmployeeLeaveSnapshotCheck.php` -> **PASS**.
+  - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/kepegawaian` (`0`), `node tests/kepegawaian-ui.cjs` -> **PASS**, `node tests/test-export-transform.cjs` -> **PASS**, `node tests/diktum-capitalization-check.cjs` -> **PASS**, `node tests/st-legacy-items.cjs` -> **PASS**, serta `npm run build` -> **86/86** rute Next.js sukses.
+  - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15495` nodes, `28933` edges, `1021` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`0aa666f0`) pada `codex/portal-security-pentest`.
