@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (17 November 2026):** Upgrade keamanan **Next.js** (`16.4.2` → `16.4.6`, menutup `GHSA-mfr8-8qww-v76h` dengan `react`/`react-dom` tetap terkunci di `18.3.1`) selesai diverifikasi (`tsc --noEmit` `0`, `npx eslint src` `0` error / `4` warning, `next build` `86/86` rute clean tanpa `SecurityFatalError`, `test:security-cache` `8/8`, dan `next dev` `GET /drive 200`), melengkapi audit keamanan & refactoring (`/security-audit` `SEC-01`–`SEC-11` dan `/ponytail-audit` `P-01`–`P-07`) lintas 6 modul utama (**Surat Tugas**, **Portal**, **Kepegawaian**, **Drive**, **BMN**, dan **Persuratan**) serta penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)) & paritas Light/Dark pada **Persuratan** (`c499257f`, `a41549b4`), **Kepegawaian** (`540fb44b`), **BMN** (`d20bfcaf`), **Surat Tugas Standalone** (`9d7a4ce6`), dan **Portal ASN** (`fc993464`). Verifikasi penuh 6 modul (pra-bump `next`): `phpunit` (`581/583` lulus, `2` skipped, `6023` assertions), `portal_security_check.php` (`PASS`), `EmployeeLeaveSnapshotCheck.php` (`PASS`), `EmployeeLifecycleTest.php` (`10/10`), `9/9` skrip CJS, serta `9/9` suite Playwright E2E (`exit 0`, dengan `E2E-LIVE-07` blocked karena `NEXT_PUBLIC_REVERB_APP_KEY` belum terkonfigurasi). Knowledge Graph (`graphify-out/`): `15331` nodes, `28499` edges, `1032` communities. (Bagian 115–123).
+**Status terbaru (17 November 2026):** Penyempurnaan tipografi & tata letak kartu ringkas [`PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx) di Portal ASN (menghilangkan pemotongan teks pada 4 kartu ringkasan dengan proporsi kompak ala `bksdakaltim.web.id` + mempertahankan token `--ds-*`) serta upgrade keamanan **Next.js** (`16.4.2` → `16.4.6`, menutup `GHSA-mfr8-8qww-v76h` dengan `react`/`react-dom` tetap terkunci di `18.3.1`) selesai diverifikasi (`tsc --noEmit` `0`, `npx eslint src/app/portal` `0` error / `4` warning, `portal-review-check.cjs` `PASS`, `next build` `86/86` rute clean tanpa `SecurityFatalError`, serta inspeksi Chromium live `/portal` nol teks terpotong di 5 viewport Light & Dark). Melengkapi audit keamanan & refactoring (`/security-audit` `SEC-01`–`SEC-11` dan `/ponytail-audit` `P-01`–`P-07`) lintas 6 modul utama (**Surat Tugas**, **Portal**, **Kepegawaian**, **Drive**, **BMN**, dan **Persuratan**) serta penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)). Knowledge Graph (`graphify-out/`): `15333` nodes, `28501` edges, `1043` communities. (Bagian 115–124).
 
 ## Status Update: 2 November 2026
 
@@ -2699,3 +2699,20 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - `npm run test:security-cache`: `8/8 passed`, `0 failed`.
   - **Dev Runtime Check**: Setelah restart `npm run dev` dan membersihkan cache lama `.next/dev`, server dev berjalan pada `Next.js 16.4.6 (Turbopack)` dan melayani `/drive` (`GET /drive 200`).
 - **Status**: ✅ Selesai Dikerjakan & Diverifikasi pada `codex/portal-security-pentest` (PR/merge ke `main` & `production-server` ditunda sesuai arahan pengguna).
+
+---
+
+## 124. Penyesuaian Skala Font & Anti-Truncation Kartu Quick Stats Portal ASN (17 November 2026)
+
+- **Latar Belakang**: Setelah migrasi 5 Design Tokens (`fc993464`), ke-4 kartu ringkas di [`PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx) (`Pangkat / Golongan`, `Sisa Cuti`, `Surat Tugas`, `Aset Saya`) mengalami pemotongan teks (`PANGKAT / GOLO...`, `Non-PNS / Belum...`, `Cuti Tahunan Re...`, `Tidak Ada Penug...`) karena kolom tengah portal di `2xl:col-span-6` (`~724–816px`) hanya menyisakan lebar teks `87–112px` saat memakai `p-4` + `gap-4` + `text-xs`/`text-sm` + `truncate`.
+- **Perubahan Diterapkan**:
+  - [`frontend/src/app/portal/_components/PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx): mengembalikan proporsi kartu ringkas ala produksi (`bksdakaltim.web.id`) dengan `gap-3`, `p-3`, `rounded-2xl`, `gap-2.5`, `space-y-0.5`, serta ukuran font `text-[10px] leading-tight` (label), `text-xs leading-snug break-words` (nilai utama), dan `text-[10px] leading-snug` (sub-label), menghapus `truncate` pada ketiga baris teks, sambil mempertahankan penuh color/border/shadow tokens `--ds-*` untuk Light & Dark Mode.
+  - [`docs/DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md#L115): mencatat pengecualian terarah untuk strip 4 kartu `PortalQuickStats.tsx`.
+- **Verifikasi Pasca-Edit Akhir**:
+  - **Chromium Live `/portal`**: diuji di `1920×1080` (Light & Dark), `1536×864`, `1440×900`, `1366×768`, dan `390×844` → `clipped: []`, `overflow: false` pada seluruh viewport (`wrapped: []` pada `1920`, `1440`, `1366`, `390`; wrap rapi sama tinggi `99px` di titik tersempit `1536`).
+  - `npx tsc --noEmit`: `0` error (`exit 0`).
+  - `npx eslint src/app/portal`: `0` error, `4` warning bawaan `@next/next/no-img-element` (`SmartPatrolInlineForm.tsx` & `SmartPatrolPrint.tsx`).
+  - `node tests/portal-review-check.cjs`: `PASS`.
+  - `npm run build` (`Next.js 16.4.6 (Turbopack)`): `86/86` rute bersih (`exit 0`).
+  - `graphify update .`: diperbarui (`15333` nodes, `28501` edges, `1043` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal pada `codex/portal-security-pentest`.
