@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794920697.7843232,
-    "ast_hash": "4d496ff85d6dbd2bc8557362e7e2f2f0",
+    "mtime": 1794921298.8668752,
+    "ast_hash": "c67efb19a151f2f1269ad32010fb4d95",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794920694.2287712,
-    "ast_hash": "ae53e00ce5ac559fc4f0e3efe76f4b8e",
+    "mtime": 1794921294.844059,
+    "ast_hash": "d73958eed0c82d911164be19a141bee0",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794920692.6441672,
-    "ast_hash": "c69654395dde24d3b2bb70b820ca4125",
+    "mtime": 1794921292.6024878,
+    "ast_hash": "ecd1baef1c21fef9e0030d7b643e0e96",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6455,8 +6455,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeIncomingLetterController.php": {
-    "mtime": 1794919024.8200822,
-    "ast_hash": "942721367e686c72d4dc29a7fe1700f5",
+    "mtime": 1794923373.0955899,
+    "ast_hash": "09da3ae02af493c34c3ee9d7033822c5",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php": {
@@ -7435,8 +7435,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php": {
-    "mtime": 1794919132.0089538,
-    "ast_hash": "017920b838e369db9e1ce35162f2826b",
+    "mtime": 1794923375.7542474,
+    "ast_hash": "510d009931c2d31d3bbaa1f74ab73699",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_11_02_171500_normalize_kpg_pppk_pangkat_golongan.php": {
@@ -7460,8 +7460,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/KepegawaianSecurityAuditTest.php": {
-    "mtime": 1794921105.736153,
-    "ast_hash": "6944c092dfe359a61af2e64447531549",
+    "mtime": 1794923467.4307742,
+    "ast_hash": "d570cb8ce713b9d7c310c4f988ae5432",
     "semantic_hash": ""
   },
   "backend/tests/Feature/MealAllowanceSecurityAndReconciliationTest.php": {

@@ -33,9 +33,17 @@ class SikadirParserService
         }
 
         // .xls exports contain HTML; real .xlsx workbooks use the installed native reader.
-        $parsed = $ext === 'xlsx'
-            ? $this->parseWorkbook($filePath, $originalName)
-            : $this->parseHtmlContent(file_get_contents($filePath), $originalName);
+        if ($ext !== 'xlsx') {
+            $rawHtml = file_get_contents($filePath, false, null, 0, 10 * 1024 * 1024 + 1);
+            if ($rawHtml === false || strlen($rawHtml) > 10 * 1024 * 1024) {
+                throw ValidationException::withMessages(['files' => 'Ukuran berkas presensi HTML/XLS melebihi batas 10 MB.']);
+            }
+            $parsed = $this->parseHtmlContent($rawHtml, $originalName);
+
+            return $parsed ? [$parsed] : [];
+        }
+
+        $parsed = $this->parseWorkbook($filePath, $originalName);
 
         return $parsed ? [$parsed] : [];
     }

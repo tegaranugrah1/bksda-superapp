@@ -530,4 +530,45 @@ class KepegawaianSecurityAuditTest extends TestCase
         ], '2026-05');
         $this->assertSame('199912312025011001', $result['nip']);
     }
+
+    /**
+     * 12. Incoming letter delete cleans up attachments post-DB delete and SIKADIR caps standalone HTML at 10 MB.
+     */
+    public function test_incoming_letter_destroy_cleans_storage_and_sikadir_caps_html_size(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake((string) config('filesystems.default'));
+        $disk = \Illuminate\Support\Facades\Storage::disk((string) config('filesystems.default'));
+
+        $letter = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::create([
+            'no_agenda' => 'AG-001',
+            'tanggal_diterima' => '2026-06-01',
+            'asal_surat' => 'Sekretariat',
+            'kategori' => 'Internal',
+        ]);
+        $path = "private/kepegawaian/surat-masuk/{$letter->id}/doc.pdf";
+        $disk->put($path, '%PDF-1.4 dummy');
+        $att = $letter->attachments()->create([
+            'type' => 'incoming',
+            'original_name' => 'doc.pdf',
+            'storage_path' => $path,
+            'mime_type' => 'application/pdf',
+            'size' => 14,
+        ]);
+
+        $this->actingAs($this->adminUser, 'sanctum')
+            ->deleteJson("/api/kepegawaian/surat-masuk/{$letter->id}")
+            ->assertStatus(200);
+
+        $this->assertSoftDeleted('kpg_incoming_letters', ['id' => $letter->id]);
+        $this->assertDatabaseMissing('kpg_incoming_letter_attachments', ['id' => $att->id]);
+        $this->assertFalse($disk->exists($path));
+
+        $parser = $this->app->make(SikadirParserService::class);
+        $oversizedHtml = \Illuminate\Http\UploadedFile::fake()->createWithContent(
+            'oversized.html',
+            str_repeat('A', 10 * 1024 * 1024 + 16)
+        );
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $parser->parse($oversizedHtml);
+    }
 }
