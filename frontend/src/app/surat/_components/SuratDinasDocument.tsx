@@ -532,6 +532,17 @@ export function parseDelimitedTableText(
   );
 }
 
+export type LampiranOrientation = "portrait" | "landscape";
+
+export interface LampiranPageData {
+  enabled: boolean;
+  orientation: LampiranOrientation;
+  headerTitle: string;
+  bodyTitle?: string;
+  showSignature: boolean;
+  paragraf: ParagrafItem[];
+}
+
 export interface SuratDinasData {
   templateType?: TemplateType;
   nomor: string;
@@ -633,6 +644,7 @@ export interface SuratDinasData {
   namaPenandatangan: string;
   nipPenandatangan: string;
   tembusan: TembusanItem[];
+  lampiranPage?: LampiranPageData;
 }
 
 export function getTodayIndoDate(date?: Date): string {
@@ -673,31 +685,47 @@ export function formatYthList(items: string[]): string {
   return cleaned.map((it, idx) => `${idx + 1}. ${it}`).join("\n");
 }
 
-export type PointLevel = 0 | 1 | 2 | 3 | 4;
+export type PointLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+const UPPER_ROMANS = [
+  "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+  "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX",
+];
+const UPPER_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const UPPER_ROMAN_MARKER_RE = /^(?=[IVX])(?:X{0,3}(?:IX|IV|V?I{0,3}))\.(?:\s|$)/;
+const UPPER_LETTER_MARKER_RE = /^[A-Z]\.(?:\s|$)/;
 
 /**
- * Mendeteksi tingkat hierarki butir poin naskah dinas Permen Kehutanan 1/2025:
+ * Mendeteksi tingkat hierarki butir poin naskah dinas Permen Kehutanan 1/2025 & TOR:
  * Level 0: Paragraf teks biasa
  * Level 1: Angka utama (1., 2., 3., dst.)
- * Level 2: Sub-poin huruf (a., b., c., dst.)
+ * Level 2: Sub-poin huruf kecil (a., b., c., dst.)
  * Level 3: Sub-sub-poin Romawi kecil (i., ii., iii., iv., dst.) ATAU angka kurung (1), 2), 3), dst.)
  * Level 4: Sub-butir huruf kurung (a), b), c), dst.)
+ * Level 5: Bab Romawi Kapital (I., II., III., IV., dst.)
+ * Level 6: Sub-Bab Huruf Kapital (A., B., C., dst.)
  */
 export function detectPointLevel(text: ParagrafItem): PointLevel {
   if (typeof text !== "string") return 0;
   const trimmed = text.trim();
   if (!trimmed) return 0;
 
+  // Level 5: Romawi Besar (I., II., III., IV., ...) - case-sensitive
+  if (UPPER_ROMAN_MARKER_RE.test(trimmed)) return 5;
+
+  // Level 6: Huruf Kapital (A., B., C., ...) - case-sensitive
+  if (UPPER_LETTER_MARKER_RE.test(trimmed)) return 6;
+
   // Level 4: a), b), c)
   if (/^[a-z]\)(?:\s|$)/i.test(trimmed)) return 4;
 
-  // Level 3: i., ii., iii., iv., v., vi., vii., viii., ix., x. ATAU 1), 2), 3)
-  if (/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(trimmed) || /^[0-9]+\)(?:\s|$)/.test(trimmed)) {
+  // Level 3: i., ii., iii., iv., v., vi., vii., viii., ix., x. (huruf kecil) ATAU 1), 2), 3)
+  if (/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/.test(trimmed) || /^[0-9]+\)(?:\s|$)/.test(trimmed)) {
     return 3;
   }
 
-  // Level 2: a., b., c., d., e., f., g., dst. (kecuali romawi 'i.' yang sudah ditangani di Level 3)
-  if (/^[a-z]\.(?:\s|$)/i.test(trimmed)) {
+  // Level 2: a., b., c., d., e., f., g., dst. (huruf kecil, kecuali romawi 'i.' yang sudah ditangani di Level 3)
+  if (/^[a-z]\.(?:\s|$)/.test(trimmed)) {
     return 2;
   }
 
@@ -723,8 +751,47 @@ export function getPointLevelClassName(level: PointLevel): string {
     case 2: return "poin-item poin-level-2";
     case 3: return "poin-item poin-level-3";
     case 4: return "poin-item poin-level-4";
+    case 5: return "poin-item poin-level-5";
+    case 6: return "poin-item poin-level-6";
     default: return "";
   }
+}
+
+function walkTorContext(
+  list: ParagrafItem[],
+  idx: number
+): { hasUpperRoman: boolean; hasUpperLetter: boolean; targetLevel: PointLevel } {
+  let hasUpperRoman = false;
+  let hasUpperLetter = false;
+  let upperLetterCount = 0;
+  const resolveAt = (text: string): PointLevel => {
+    const raw = detectPointLevel(text);
+    return raw === 5 && isAmbiguousUpperLetter(text, upperLetterCount) ? 6 : raw;
+  };
+  for (let i = 0; i < idx; i++) {
+    const item = list[i];
+    if (typeof item !== "string") continue;
+    const lvl = resolveAt(item);
+    if (lvl === 5) {
+      hasUpperRoman = true;
+      hasUpperLetter = false;
+      upperLetterCount = 0;
+    } else if (lvl === 6) {
+      hasUpperLetter = true;
+      upperLetterCount += 1;
+    }
+  }
+  const target = list[idx];
+  const targetLevel = typeof target === "string" ? resolveAt(target) : 0;
+  return { hasUpperRoman, hasUpperLetter, targetLevel };
+}
+
+export function getTorSectionContext(
+  list: ParagrafItem[],
+  idx: number
+): { hasUpperRoman: boolean; hasUpperLetter: boolean } {
+  const { hasUpperRoman, hasUpperLetter } = walkTorContext(list, idx);
+  return { hasUpperRoman, hasUpperLetter };
 }
 
 const KNOWN_RINCIAN_LABEL_RE =
@@ -809,9 +876,11 @@ export function parseRawDocumentText(rawText: string): ParagrafItem[] {
     }
 
     const isNewPoint =
+      UPPER_ROMAN_MARKER_RE.test(line) ||
+      UPPER_LETTER_MARKER_RE.test(line) ||
       /^[0-9]+\.\s/.test(line) ||
-      /^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.\s/i.test(line) ||
-      /^[a-z]\.\s/i.test(line) ||
+      /^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.\s/.test(line) ||
+      /^[a-z]\.\s/.test(line) ||
       /^[0-9]+\)\s/.test(line) ||
       /^[a-z]\)\s/i.test(line) ||
       /^(?:Demikian|Atas perhatian|Wassalamu|Hormat kami)\b/i.test(line);
@@ -843,7 +912,12 @@ export function parseRawDocumentText(rawText: string): ParagrafItem[] {
       const lastRow = rincianBuffer[rincianBuffer.length - 1];
       lastRow.value = lastRow.value ? `${lastRow.value}\n${line}` : line;
     } else if (currentBuffer) {
-      currentBuffer += " " + line;
+      if (detectPointLevel(currentBuffer) >= 5) {
+        flushText();
+        currentBuffer = line;
+      } else {
+        currentBuffer += " " + line;
+      }
     } else {
       currentBuffer = line;
     }
@@ -862,7 +936,7 @@ export function parseRawDocumentText(rawText: string): ParagrafItem[] {
 export function splitPointMarkerAndText(text: string): { marker: string; content: string } {
   const trimmed = text.trim();
   const m = trimmed.match(
-    /^([0-9]+\.|(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.|[a-z]\.|[0-9]+\)|[a-z]\))\s*([\s\S]*)$/i
+    /^((?=[IVX])X{0,3}(?:IX|IV|V?I{0,3})\.|[A-Z]\.|[0-9]+\.|(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.|[a-z]\.|[0-9]+\)|[a-zA-Z]\))\s*([\s\S]*)$/
   );
   if (m) {
     return { marker: m[1], content: m[2] };
@@ -870,41 +944,71 @@ export function splitPointMarkerAndText(text: string): { marker: string; content
   return { marker: "", content: text };
 }
 
-function findLastSubParentIndex(preceding: ParagrafItem[]): number {
+function findLastIndexOfLevels(preceding: ParagrafItem[], levels: PointLevel[]): number {
   for (let i = preceding.length - 1; i >= 0; i--) {
     const item = preceding[i];
     if (typeof item !== "string") continue;
-    const trimmed = item.trim();
-    if (
-      (/^[a-z]\.(?:\s|$)/i.test(trimmed) && !/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(trimmed)) ||
-      /^[0-9]+\.(?:\s|$)/.test(trimmed)
-    ) {
-      return i;
-    }
+    if (levels.includes(detectPointLevel(item))) return i;
   }
   return -1;
 }
 
 /**
- * Menghitung penanda butir berikutnya yang tepat sesuai hierarki tata naskah dinas:
- * - Level 1 ('num'): Berurutan global (1., 2., 3., dst.)
- * - Level 2 ('letter'): Berurutan dalam scope Level 1 saat ini (a., b., c., dst.), SELALU diulang dari 'a.' setiap ada Level 1 baru
- * - Level 3 ('roman'): Berurutan dalam scope Level 2 saat ini (i., ii., iii., dst.), SELALU diulang dari 'i.' setiap di bawah sub-poin baru
- * - Level 3 ('bracket'): Berurutan dalam scope Level 2 saat ini (1), 2), 3), dst.), SELALU diulang dari '1)' setiap di bawah sub-poin baru
+ * Menghitung penanda butir berikutnya yang tepat sesuai hierarki tata naskah dinas & TOR:
+ * - Level 5 ('romanUpper'): I., II., III., dst. (berurutan global)
+ * - Level 6 ('letterUpper'): A., B., C., dst. (reset dari 'A.' setiap ada Level 5 baru)
+ * - Level 1 ('num'): 1., 2., 3., dst. (reset dari '1.' setiap ada Level 5 / Level 6 baru)
+ * - Level 2 ('letter'): a., b., c., dst. (reset dari 'a.' setiap ada Level 5 / 6 / 1 baru)
+ * - Level 3 ('roman'): i., ii., iii., dst. (reset dari 'i.' di dalam sub-poin saat ini)
+ * - Level 3 ('bracket'): 1), 2), 3), dst. (reset dari '1)' di dalam sub-poin saat ini)
  */
 export function getNextMarkerForSection(
   paragraphs: ParagrafItem[],
   insertIndex: number,
-  type: "num" | "letter" | "roman" | "bracket"
+  type: "romanUpper" | "letterUpper" | "num" | "letter" | "roman" | "bracket"
 ): string {
   const alphabet = "abcdefghijklmnopqrstuvwxyz";
   const romans = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii", "xiii", "xiv", "xv"];
 
   const preceding = paragraphs.slice(0, insertIndex);
 
-  if (type === "num") {
-    let maxNum = 0;
+  if (type === "romanUpper") {
+    let count = 0;
+    let upperLetterIdx = 0;
     for (const p of preceding) {
+      if (typeof p !== "string") continue;
+      const lvl = detectPointLevel(p);
+      if (lvl === 5 && !isAmbiguousUpperLetter(p, upperLetterIdx)) {
+        count++;
+        upperLetterIdx = 0;
+      } else if (lvl === 6 || (lvl === 5 && isAmbiguousUpperLetter(p, upperLetterIdx))) {
+        upperLetterIdx++;
+      }
+    }
+    const rom = count < UPPER_ROMANS.length ? UPPER_ROMANS[count] : "I";
+    return `${rom}. `;
+  }
+
+  if (type === "letterUpper") {
+    const lastRomanUpperIdx = findLastIndexOfLevels(preceding, [5]);
+    const scope = lastRomanUpperIdx >= 0 ? preceding.slice(lastRomanUpperIdx + 1) : preceding;
+    let count = 0;
+    for (const p of scope) {
+      if (typeof p !== "string") continue;
+      const lvl = detectPointLevel(p);
+      if (lvl === 6 || (lvl === 5 && isAmbiguousUpperLetter(p, count))) {
+        count++;
+      }
+    }
+    const char = count < UPPER_ALPHABET.length ? UPPER_ALPHABET[count] : "A";
+    return `${char}. `;
+  }
+
+  if (type === "num") {
+    const lastSectionIdx = findLastIndexOfLevels(preceding, [5, 6]);
+    const scope = lastSectionIdx >= 0 ? preceding.slice(lastSectionIdx + 1) : preceding;
+    let maxNum = 0;
+    for (const p of scope) {
       if (typeof p !== "string") continue;
       const m = p.trim().match(/^([0-9]+)\.(?:\s|$)/);
       if (m) {
@@ -916,21 +1020,12 @@ export function getNextMarkerForSection(
   }
 
   if (type === "letter") {
-    let lastLevel1Idx = -1;
-    for (let i = preceding.length - 1; i >= 0; i--) {
-      const item = preceding[i];
-      if (typeof item === "string" && /^[0-9]+\.(?:\s|$)/.test(item.trim())) {
-        lastLevel1Idx = i;
-        break;
-      }
-    }
-
-    const scope = lastLevel1Idx >= 0 ? preceding.slice(lastLevel1Idx + 1) : preceding;
+    const lastParentIdx = findLastIndexOfLevels(preceding, [1, 5, 6]);
+    const scope = lastParentIdx >= 0 ? preceding.slice(lastParentIdx + 1) : preceding;
     let letterCount = 0;
     for (const p of scope) {
       if (typeof p !== "string") continue;
-      const trimmed = p.trim();
-      if (/^[a-z]\.(?:\s|$)/i.test(trimmed) && !/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(trimmed)) {
+      if (detectPointLevel(p) === 2) {
         letterCount++;
       }
     }
@@ -939,13 +1034,13 @@ export function getNextMarkerForSection(
     return `${nextChar}. `;
   }
 
-  const lastParentIdx = findLastSubParentIndex(preceding);
+  const lastParentIdx = findLastIndexOfLevels(preceding, [1, 2, 5, 6]);
   const scope = lastParentIdx >= 0 ? preceding.slice(lastParentIdx + 1) : preceding;
 
   if (type === "roman") {
     let romanCount = 0;
     for (const p of scope) {
-      if (typeof p === "string" && /^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(p.trim())) {
+      if (typeof p === "string" && /^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/.test(p.trim())) {
         romanCount++;
       }
     }
@@ -968,16 +1063,29 @@ export function getNextMarkerForSection(
   return "";
 }
 
+function isAmbiguousUpperLetter(text: string, expectedUpperLetterIdx: number): boolean {
+  const trimmed = text.trim();
+  return (
+    (trimmed.startsWith("I.") && expectedUpperLetterIdx === 8) ||
+    (trimmed.startsWith("V.") && expectedUpperLetterIdx === 21) ||
+    (trimmed.startsWith("X.") && expectedUpperLetterIdx === 23)
+  );
+}
+
 /**
  * Normalisasi dan re-index seluruh butir penomoran dalam paragraf sesuai hierarki resmi
- * Tata Naskah Dinas Permen Kehutanan 1/2025:
- * Level 1: 1., 2., 3., dst. (berurutan global tanpa duplikasi)
+ * Tata Naskah Dinas Permen Kehutanan 1/2025 & TOR:
+ * Level 5: I., II., III., dst. (berurutan global; mereset A. & 1.)
+ * Level 6: A., B., C., dst. (reset dari 'A.' per Bab I.; mereset 1.)
+ * Level 1: 1., 2., 3., dst. (reset dari '1.' per I./A., global pada surat tanpa I./A.)
  * Level 2: a., b., c., dst. (berurutan di dalam scope Level 1 saat ini, selalu reset dari 'a.')
  * Level 3 Romawi: i., ii., iii., dst. (berurutan di dalam scope Level 2 saat ini, reset dari 'i.')
  * Level 3 Kurung: 1), 2), 3), dst. (berurutan di dalam scope Level 2 saat ini, reset dari '1)')
  * Level 4: a), b), c), dst. (berurutan di dalam scope Level 3 saat ini)
  */
 export function reindexParagraphMarkers(paragraphs: ParagrafItem[]): ParagrafItem[] {
+  let currentRomanUpperIdx = 0;
+  let currentLetterUpperIdx = 0;
   let currentNum = 0;
   let currentLetterIdx = 0;
   let currentRomanIdx = 0;
@@ -988,10 +1096,37 @@ export function reindexParagraphMarkers(paragraphs: ParagrafItem[]): ParagrafIte
 
   return paragraphs.map((p) => {
     if (typeof p !== "string") return p;
-    const lvl = detectPointLevel(p);
+    let lvl = detectPointLevel(p);
     if (lvl === 0) return p;
 
+    if (lvl === 5 && isAmbiguousUpperLetter(p, currentLetterUpperIdx)) {
+      lvl = 6;
+    }
+
     const { content } = splitPointMarkerAndText(p);
+
+    if (lvl === 5) {
+      const rom = currentRomanUpperIdx < UPPER_ROMANS.length ? UPPER_ROMANS[currentRomanUpperIdx] : "I";
+      currentRomanUpperIdx++;
+      currentLetterUpperIdx = 0;
+      currentNum = 0;
+      currentLetterIdx = 0;
+      currentRomanIdx = 0;
+      currentBracketIdx = 0;
+      currentLevel4Idx = 0;
+      return `${rom}. ${content}`;
+    }
+
+    if (lvl === 6) {
+      const char = currentLetterUpperIdx < UPPER_ALPHABET.length ? UPPER_ALPHABET[currentLetterUpperIdx] : "A";
+      currentLetterUpperIdx++;
+      currentNum = 0;
+      currentLetterIdx = 0;
+      currentRomanIdx = 0;
+      currentBracketIdx = 0;
+      currentLevel4Idx = 0;
+      return `${char}. ${content}`;
+    }
 
     if (lvl === 1) {
       currentNum++;
@@ -1060,6 +1195,55 @@ export function getDefaultNomorPrefix(type: TemplateType): string {
     default:
       return "S.888";
   }
+}
+
+const LAMPIRAN_HEADER_TITLES: Record<TemplateType, string> = {
+  nota_dinas: "Lampiran Nota Dinas",
+  surat_dinas: "Lampiran Surat",
+  memorandum: "Lampiran Memorandum",
+  undangan: "Lampiran Undangan",
+  surat_pengantar: "Lampiran Surat Pengantar",
+  surat_keterangan: "Lampiran Surat Keterangan",
+  berita_acara: "Lampiran Berita Acara",
+  pengumuman: "Lampiran Pengumuman",
+  surat_pernyataan: "Lampiran Surat Pernyataan",
+  surat_kuasa: "Lampiran Surat Kuasa",
+  surat_izin: "Lampiran Surat Izin",
+  surat_izin_cuti: "Lampiran Surat Izin Cuti",
+  surat_panggilan: "Lampiran Surat Panggilan",
+  surat_edaran: "Lampiran Surat Edaran",
+  instruksi: "Lampiran Instruksi",
+  keputusan: "Lampiran Keputusan",
+  telaah_staf: "Lampiran Telaah Staf",
+  laporan: "Lampiran Laporan",
+  perjanjian: "Lampiran Perjanjian Kerja Sama",
+  piagam: "Lampiran Piagam Penghargaan",
+  sertifikat: "Lampiran Sertifikat",
+};
+
+export function getDefaultLampiranHeaderTitle(type: TemplateType): string {
+  return LAMPIRAN_HEADER_TITLES[type] || "Lampiran Surat";
+}
+
+export function createDefaultLampiranPage(
+  type: TemplateType,
+  existing?: Partial<LampiranPageData> | null
+): LampiranPageData {
+  const defaultTitle = getDefaultLampiranHeaderTitle(type);
+  return {
+    enabled: existing?.enabled ?? true,
+    orientation: existing?.orientation === "landscape" ? "landscape" : "portrait",
+    headerTitle:
+      typeof existing?.headerTitle === "string" && existing.headerTitle.trim()
+        ? existing.headerTitle
+        : defaultTitle,
+    bodyTitle: typeof existing?.bodyTitle === "string" ? existing.bodyTitle : "",
+    showSignature: existing?.showSignature ?? true,
+    paragraf:
+      Array.isArray(existing?.paragraf) && existing.paragraf.length > 0
+        ? existing.paragraf
+        : [""],
+  };
 }
 
 export function getDefaultNomorForTemplate(type: TemplateType, nomorUrut?: string, klasifikasi?: string, date?: Date): string {
@@ -1661,6 +1845,8 @@ interface SuratDinasDocumentProps {
 export const SURAT_DINAS_BASE_CSS = `
   @page { size: A4 portrait; margin: 0; }
   @page :first { margin: 0; }
+  @page lampiranPortrait { size: A4 portrait; margin: 20mm 15.5mm 20mm 20mm; }
+  @page lampiranLandscape { size: A4 landscape; margin: 18mm 15.5mm 18mm 20mm; }
   .surat-dinas-print-root, .surat-dinas-print-root * { box-sizing: border-box; }
   .surat-dinas-print-root {
     font-family: Arial, Helvetica, sans-serif;
@@ -1701,21 +1887,21 @@ export const SURAT_DINAS_BASE_CSS = `
     box-sizing: border-box !important;
   }
 
-  /* thead disembunyikan pada live screen preview, hanya aktif saat @media print */
-  .surat-dinas-print-root thead {
+  /* thead utama disembunyikan pada live screen preview, hanya aktif saat @media print */
+  .surat-dinas-print-root .pkpknl-main-table > thead {
     display: none;
   }
-  .surat-dinas-print-root thead td {
+  .surat-dinas-print-root .pkpknl-main-table > thead td {
     height: 0;
     padding: 0;
     border: none;
   }
 
-  .surat-dinas-print-root tfoot {
+  .surat-dinas-print-root .pkpknl-main-table > tfoot {
     display: table-footer-group;
     height: 25mm;
   }
-  .surat-dinas-print-root tfoot td {
+  .surat-dinas-print-root .pkpknl-main-table > tfoot td {
     height: 25mm;
     padding: 0;
     border: none;
@@ -1737,6 +1923,75 @@ export const SURAT_DINAS_BASE_CSS = `
     font-family: Arial, Helvetica, sans-serif;
     font-size: 11pt;
     color: #000;
+  }
+  .pkpknl-lampiran-page {
+    margin: 0 auto;
+    padding: 2.0cm 1.55cm 2.0cm 2.0cm;
+    background: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11pt;
+    line-height: 1.35;
+    color: #000;
+    text-align: justify;
+    box-sizing: border-box;
+  }
+  .pkpknl-lampiran-portrait {
+    width: 210mm;
+    min-height: 297mm;
+  }
+  .pkpknl-lampiran-landscape {
+    width: 297mm;
+    min-height: 210mm;
+  }
+  .pkpknl-lampiran-meta-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 14px;
+  }
+  .pkpknl-lampiran-meta {
+    min-width: 8.8cm;
+    max-width: 11.5cm;
+    text-align: left;
+    font-size: 11pt;
+    line-height: 1.35;
+  }
+  .pkpknl-lampiran-header-title {
+    margin: 0 0 2px 0;
+    font-weight: normal;
+    text-align: left;
+  }
+  .pkpknl-lampiran-meta-table {
+    width: auto !important;
+    border-collapse: collapse;
+    table-layout: auto;
+  }
+  .pkpknl-lampiran-meta-table td {
+    padding: 1px 0;
+    vertical-align: top;
+    font-size: 11pt;
+    line-height: 1.35;
+    border: none;
+    text-align: left;
+  }
+  .pkpknl-lampiran-meta-label {
+    width: 20mm;
+    white-space: nowrap;
+  }
+  .pkpknl-lampiran-meta-colon {
+    width: 4mm;
+    text-align: center !important;
+  }
+  .pkpknl-lampiran-meta-val {
+    padding-left: 3px !important;
+    white-space: pre-wrap;
+  }
+  .pkpknl-lampiran-title {
+    text-align: center !important;
+    font-weight: bold !important;
+    font-size: 11.5pt;
+    line-height: 1.35;
+    margin: 10px 0 12px 0 !important;
   }
   .pkpknl-meta-container { width: 100%; margin: 14px 0 0; line-height: 1.25; }
   .pkpknl-meta-row { width: 100%; margin: 0; display: flex; align-items: baseline; justify-content: space-between; gap: 6mm; line-height: 1.25; }
@@ -1790,7 +2045,7 @@ export const SURAT_DINAS_BASE_CSS = `
 
   /* Butir Utama Level 1: 1., 2., 3. — spasi marker lebih dekat sesuai gambar acuan */
   .pkpknl-body p.poin-level-1 {
-    margin-left: 0 !important;
+    margin-left: 0;
     margin-bottom: 0.35rem !important;
   }
   .pkpknl-body p.poin-level-1 .poin-marker {
@@ -1799,7 +2054,7 @@ export const SURAT_DINAS_BASE_CSS = `
 
   /* Sub-Poin Level 2: a., b., c. — sejajar dengan teks Level 1, spasi rapat */
   .pkpknl-body p.poin-level-2 {
-    margin-left: 1.35rem !important; /* Sejajar dengan teks awal Level 1 */
+    margin-left: 1.35rem; /* Sejajar dengan teks awal Level 1 */
     margin-bottom: 0.15rem !important; /* Sangat dekat antar-sub-butir seperti gambar acuan */
   }
   .pkpknl-body p.poin-level-2 .poin-marker {
@@ -1808,7 +2063,7 @@ export const SURAT_DINAS_BASE_CSS = `
 
   /* Sub-sub-poin Level 3: 1), i. — sejajar dengan teks Level 2 */
   .pkpknl-body p.poin-level-3 {
-    margin-left: 2.45rem !important; /* Sejajar dengan teks awal Level 2 (1.35rem + 1.1rem) */
+    margin-left: 2.45rem; /* Sejajar dengan teks awal Level 2 (1.35rem + 1.1rem) */
     margin-bottom: 0.15rem !important;
   }
   .pkpknl-body p.poin-level-3 .poin-marker {
@@ -1817,11 +2072,42 @@ export const SURAT_DINAS_BASE_CSS = `
 
   /* Sub-butir Level 4: a) — sejajar dengan teks Level 3 */
   .pkpknl-body p.poin-level-4 {
-    margin-left: 3.55rem !important; /* Sejajar dengan teks awal Level 3 (2.45rem + 1.1rem) */
+    margin-left: 3.55rem; /* Sejajar dengan teks awal Level 3 (2.45rem + 1.1rem) */
     margin-bottom: 0.15rem !important;
   }
   .pkpknl-body p.poin-level-4 .poin-marker {
     width: 1.1rem !important;
+  }
+
+  /* Bab Utama Level 5: I., II., III. (Romawi Besar, Bold) */
+  .pkpknl-body p.poin-level-5 {
+    margin-left: 0;
+    margin-top: 0.45rem;
+    margin-bottom: 0.2rem !important;
+  }
+  .pkpknl-body p.poin-level-5:first-child {
+    margin-top: 0;
+  }
+  .pkpknl-body p.poin-level-5 .poin-marker {
+    width: 1.65rem !important;
+    font-weight: bold !important;
+  }
+  .pkpknl-body p.poin-level-5 .poin-content {
+    font-weight: bold !important;
+  }
+
+  /* Sub-Bab Level 6: A., B., C. (Huruf Kapital, Bold) */
+  .pkpknl-body p.poin-level-6 {
+    margin-left: 0;
+    margin-top: 0.25rem;
+    margin-bottom: 0.15rem !important;
+  }
+  .pkpknl-body p.poin-level-6 .poin-marker {
+    width: 1.25rem !important;
+    font-weight: bold !important;
+  }
+  .pkpknl-body p.poin-level-6 .poin-content {
+    font-weight: bold !important;
   }
 
   /* Blok Rincian / Jadwal (Hari/Tanggal, Tempat, Agenda, dll.) di dalam Batang Tubuh */
@@ -2005,36 +2291,58 @@ export const resolveImageUrl = resolveAbsoluteImageUrl;
 export const SURAT_DINAS_PRINT_CSS = `
   @page { size: A4 portrait; margin: 0; }
   @page :first { margin: 0; }
+  @page lampiranPortrait { size: A4 portrait; margin: 20mm 15.5mm 20mm 20mm; }
+  @page lampiranLandscape { size: A4 landscape; margin: 18mm 15.5mm 18mm 20mm; }
   html, body {
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
   }
-  .surat-dinas-print-root, .pkpknl-page {
+  .surat-dinas-print-root, .pkpknl-page, .pkpknl-main-sheet {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
     box-shadow: none !important;
     border: none !important;
     margin: 0 auto !important;
     min-height: auto !important;
     padding: 0 !important;
   }
+  .pkpknl-lampiran-page {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+  .pkpknl-lampiran-portrait {
+    page: lampiranPortrait;
+  }
+  .pkpknl-lampiran-landscape {
+    page: lampiranLandscape;
+  }
   .kop-surat, .pkpknl-kop {
     width: 210mm !important;
     margin: -7.5mm auto 4mm auto !important;
     text-align: center !important;
   }
-  thead {
+  .pkpknl-main-table > thead {
     display: table-header-group !important;
   }
-  thead td {
+  .pkpknl-main-table > thead td {
     height: 10mm !important;
     padding: 0 !important;
     border: none !important;
   }
-  tfoot {
+  .pkpknl-main-table > tfoot {
     display: table-footer-group !important;
     height: 10mm !important;
   }
-  tfoot td {
+  .pkpknl-main-table > tfoot td {
     height: 10mm !important;
     padding: 0 !important;
     border: none !important;
@@ -2042,6 +2350,7 @@ export const SURAT_DINAS_PRINT_CSS = `
   .bsre-placeholder,
   .pkpknl-footer-bsre,
   .pkpknl-col-resizer,
+  .pkpknl-screen-only,
   .print\\:hidden {
     display: none !important;
   }
@@ -2066,7 +2375,7 @@ export function handlePrintSuratDinas() {
     htmlLang: "id",
     headHtml: headElements,
     styles: `${SURAT_DINAS_BASE_CSS}\n${SURAT_DINAS_PRINT_CSS}`,
-    bodyHtml: `<div class="surat-dinas-print-root" style="width: 210mm; margin: 0 auto; background: white;">${cloneHtmlWithResolvedImages(printContent)}</div>`,
+    bodyHtml: `<div class="surat-dinas-print-root" style="margin: 0 auto; background: white;">${cloneHtmlWithResolvedImages(printContent)}</div>`,
     delayMs: 300,
     waitForImages: true,
   });
@@ -2137,7 +2446,20 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     tanggalSelesai,
     tahunCutiText,
     pegawai,
+    lampiranPage,
   } = data;
+
+  const hasLampiran = Boolean(lampiranPage?.enabled);
+  const lampiranOrientation = lampiranPage?.orientation === "landscape" ? "landscape" : "portrait";
+  const lampiranHeaderTitle =
+    lampiranPage?.headerTitle?.trim() || getDefaultLampiranHeaderTitle(currentTemplate);
+  const lampiranParagraf = Array.isArray(lampiranPage?.paragraf) ? lampiranPage.paragraf : [];
+  const updateLampiran = (patch: Partial<LampiranPageData>) => {
+    onUpdateField?.("lampiranPage", {
+      ...createDefaultLampiranPage(currentTemplate, lampiranPage),
+      ...patch,
+    });
+  };
 
   const nomorText = nomor !== undefined && nomor !== null && nomor !== "" ? nomor : getDefaultNomorForTemplate(currentTemplate);
   const nomorClass = nomorText.length > 52
@@ -2152,24 +2474,52 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     !(paragraf || []).some(isRincianBlock) &&
     Boolean(acaraHariTanggal || acaraWaktu || acaraTempat || acaraNama);
 
-  const renderParagrafItem = (item: ParagrafItem, idx: number) => {
+  const renderParagrafItem = (
+    item: ParagrafItem,
+    idx: number,
+    list: ParagrafItem[] = paragraf,
+    onListChange: (next: ParagrafItem[]) => void = (next) => onUpdateField?.("paragraf", next)
+  ) => {
+    const torCtx = walkTorContext(list, idx);
+    const torBaseRem = (torCtx.hasUpperRoman ? 1.65 : 0) + (torCtx.hasUpperLetter ? 1.25 : 0);
+    const torBasePt = (torCtx.hasUpperRoman ? 20 : 0) + (torCtx.hasUpperLetter ? 15 : 0);
+    const subIndentRem = [0, 1.35, 2.45, 3.55, 4.65];
+
     if (isRincianBlock(item)) {
-      const prevLvl = getPrevTextPointLevel(paragraf, idx);
+      const prevLvl = getPrevTextPointLevel(list, idx);
+      const rincianTorPt =
+        prevLvl === 5 || prevLvl === 6
+          ? torBasePt
+          : prevLvl >= 1 && prevLvl <= 4
+            ? torBasePt
+            : torCtx.hasUpperRoman
+              ? 20
+              : 0;
+      const rincianMarginLeft =
+        prevLvl === 5 || prevLvl === 6
+          ? `${torBaseRem}rem`
+          : prevLvl >= 1 && prevLvl <= 4 && torBaseRem > 0
+            ? `${subIndentRem[prevLvl] + torBaseRem}rem`
+            : prevLvl === 0 && torCtx.hasUpperRoman
+              ? "calc(1.65rem + 2.5em)"
+              : undefined;
       const updateRow = (rIdx: number, field: "label" | "value", val: string) => {
-        const next = [...(paragraf || [])];
+        const next = [...(list || [])];
         const cur = next[idx];
         if (!isRincianBlock(cur)) return;
         next[idx] = {
           ...cur,
           items: cur.items.map((row, i) => (i === rIdx ? { ...row, [field]: val } : row)),
         };
-        onUpdateField?.("paragraf", next);
+        onListChange(next);
       };
       return (
         <div
           key={idx}
-          className={`pkpknl-rincian-wrap${prevLvl > 0 ? ` rincian-indent-${prevLvl}` : ""}`}
+          className={`pkpknl-rincian-wrap${prevLvl >= 1 && prevLvl <= 4 ? ` rincian-indent-${prevLvl}` : ""}`}
           data-indent-level={prevLvl}
+          data-tor-offset-pt={rincianTorPt > 0 ? rincianTorPt : undefined}
+          style={rincianMarginLeft ? { marginLeft: rincianMarginLeft } : undefined}
         >
           <table className="pkpknl-rincian-table">
             <tbody>
@@ -2205,21 +2555,39 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     }
 
     if (isTableBlock(item)) {
-      const prevLvl = getPrevTextPointLevel(paragraf, idx);
+      const prevLvl = getPrevTextPointLevel(list, idx);
+      const tableTorPt =
+        prevLvl === 5 || prevLvl === 6
+          ? torBasePt
+          : prevLvl >= 1 && prevLvl <= 4
+            ? torBasePt
+            : torCtx.hasUpperRoman
+              ? 20
+              : 0;
+      const tableMarginLeft =
+        prevLvl === 5 || prevLvl === 6
+          ? `${torBaseRem}rem`
+          : prevLvl >= 1 && prevLvl <= 4 && torBaseRem > 0
+            ? `${subIndentRem[prevLvl] + torBaseRem}rem`
+            : prevLvl === 0 && torCtx.hasUpperRoman
+              ? "1.65rem"
+              : undefined;
       const colWidths = getNormalizedTableColWidths(item);
       const isNoCol = (cIdx: number) => cIdx === 0 && isNoColumnHeader(item.headers[cIdx] || "");
       const updateTable = (updater: (cur: ParagrafTableBlock) => ParagrafTableBlock) => {
-        const next = [...(paragraf || [])];
+        const next = [...(list || [])];
         const cur = next[idx];
         if (!isTableBlock(cur)) return;
         next[idx] = updater(cur);
-        onUpdateField?.("paragraf", next);
+        onListChange(next);
       };
       return (
         <div
           key={idx}
-          className={`pkpknl-table-wrap${prevLvl > 0 ? ` table-indent-${prevLvl}` : ""}`}
+          className={`pkpknl-table-wrap${prevLvl >= 1 && prevLvl <= 4 ? ` table-indent-${prevLvl}` : ""}`}
           data-indent-level={prevLvl}
+          data-tor-offset-pt={tableTorPt > 0 ? tableTorPt : undefined}
+          style={tableMarginLeft ? { marginLeft: tableMarginLeft } : undefined}
         >
           <table className="pkpknl-body-table">
             <colgroup>
@@ -2361,20 +2729,34 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
     }
 
     const pText = typeof item === "string" ? item : "";
-    const lvl = detectPointLevel(pText);
-    if (lvl > 0) {
-      const { marker, content } = splitPointMarkerAndText(pText);
+    const lvl = torCtx.targetLevel;
+    const parsedPoint = lvl > 0 ? splitPointMarkerAndText(pText) : null;
+    if (lvl > 0 && parsedPoint) {
+      const { marker, content } = parsedPoint;
       const lvlClass = getPointLevelClassName(lvl);
+      const poinTorPt = lvl === 5 ? 0 : lvl === 6 ? (torCtx.hasUpperRoman ? 20 : 0) : torBasePt;
+      const poinMarginLeft =
+        lvl === 5
+          ? undefined
+          : lvl === 6
+            ? torCtx.hasUpperRoman
+              ? "1.65rem"
+              : undefined
+            : torBaseRem > 0
+              ? `${subIndentRem[lvl - 1] + torBaseRem}rem`
+              : undefined;
       return (
         <p
           key={idx}
           contentEditable
           suppressContentEditableWarning
           className={`pkpknl-edit ${lvlClass}`}
+          data-tor-offset-pt={poinTorPt > 0 ? poinTorPt : undefined}
+          style={poinMarginLeft ? { marginLeft: poinMarginLeft } : undefined}
           onBlur={(e) => {
-            const newParas = [...paragraf];
+            const newParas = [...list];
             newParas[idx] = serializeEditableToMarkdown(e.currentTarget);
-            onUpdateField?.("paragraf", newParas);
+            onListChange(newParas);
           }}
         >
           <span className="poin-marker">{marker}</span>
@@ -2388,10 +2770,12 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         contentEditable
         suppressContentEditableWarning
         className="pkpknl-edit"
+        data-tor-offset-pt={torCtx.hasUpperRoman ? 20 : undefined}
+        style={torCtx.hasUpperRoman ? { marginLeft: "1.65rem" } : undefined}
         onBlur={(e) => {
-          const newParas = [...paragraf];
+          const newParas = [...list];
           newParas[idx] = serializeEditableToMarkdown(e.currentTarget);
-          onUpdateField?.("paragraf", newParas);
+          onListChange(newParas);
         }}
       >
         {renderFormattedText(pText)}
@@ -2402,17 +2786,32 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
   return (
     <div
       id="surat-dinas-print-root"
-      className="surat-dinas-print-root pkpknl-page w-[210mm] max-w-[210mm] mx-auto bg-white text-black border border-[var(--ds-border-subtle)] rounded-xs selection:bg-blue-100"
-      style={{
-        padding: "0 0 1.5cm 0",
-        fontFamily: "Arial, Helvetica, sans-serif",
-        fontSize: "11pt",
-        lineHeight: "1.35",
-        color: "#000",
-        textAlign: "justify",
-        boxSizing: "border-box",
-        minHeight: "297mm",
-      }}
+      className={
+        hasLampiran
+          ? "surat-dinas-print-root has-lampiran mx-auto text-black selection:bg-blue-100"
+          : "surat-dinas-print-root pkpknl-page w-[210mm] max-w-[210mm] mx-auto bg-white text-black border border-[var(--ds-border-subtle)] rounded-xs selection:bg-blue-100"
+      }
+      style={
+        hasLampiran
+          ? {
+              fontFamily: "Arial, Helvetica, sans-serif",
+              fontSize: "11pt",
+              lineHeight: "1.35",
+              color: "#000",
+              textAlign: "justify",
+              boxSizing: "border-box",
+            }
+          : {
+              padding: "0 0 1.5cm 0",
+              fontFamily: "Arial, Helvetica, sans-serif",
+              fontSize: "11pt",
+              lineHeight: "1.35",
+              color: "#000",
+              textAlign: "justify",
+              boxSizing: "border-box",
+              minHeight: "297mm",
+            }
+      }
     >
       <style jsx global>{`
         ${SURAT_DINAS_BASE_CSS}
@@ -2423,18 +2822,45 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         @media print {
           @page { size: A4 portrait; margin: 0; }
           @page :first { margin: 0; }
+          @page lampiranPortrait { size: A4 portrait; margin: 20mm 15.5mm 20mm 20mm; }
+          @page lampiranLandscape { size: A4 landscape; margin: 18mm 15.5mm 18mm 20mm; }
           body * { visibility: hidden; }
           .surat-dinas-print-root, .surat-dinas-print-root * { visibility: visible; }
           .surat-dinas-print-root {
             position: absolute;
             left: 0;
             top: 0;
-            width: 210mm !important;
+            width: 100% !important;
             background: white !important;
             color: black !important;
             padding: 0 !important;
             box-shadow: none !important;
             border: none !important;
+          }
+          .pkpknl-main-sheet {
+            width: 210mm !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            min-height: auto !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          .pkpknl-lampiran-page {
+            width: 100% !important;
+            max-width: none !important;
+            min-height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            break-before: page !important;
+            page-break-before: always !important;
+          }
+          .pkpknl-lampiran-portrait {
+            page: lampiranPortrait;
+          }
+          .pkpknl-lampiran-landscape {
+            page: lampiranLandscape;
           }
           .kop-surat, .pkpknl-kop {
             width: 210mm !important;
@@ -2454,19 +2880,19 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             padding: 0 1.55cm 0 2.0cm !important;
             box-sizing: border-box !important;
           }
-          thead {
+          .pkpknl-main-table > thead {
             display: table-header-group !important;
           }
-          thead td {
+          .pkpknl-main-table > thead td {
             height: 10mm !important;
             padding: 0 !important;
             border: none !important;
           }
-          tfoot {
+          .pkpknl-main-table > tfoot {
             display: table-footer-group !important;
             height: 10mm !important;
           }
-          tfoot td {
+          .pkpknl-main-table > tfoot td {
             height: 10mm !important;
             padding: 0 !important;
             border: none !important;
@@ -2481,14 +2907,33 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           .bsre-placeholder,
           .pkpknl-footer-bsre,
           .pkpknl-col-resizer,
+          .pkpknl-screen-only,
           .print\\:hidden {
             display: none !important;
           }
         }
       `}</style>
 
+      <div
+        className={
+          hasLampiran
+            ? "pkpknl-main-sheet w-[210mm] mx-auto bg-white text-black border border-[var(--ds-border-subtle)] rounded-xs"
+            : "pkpknl-main-sheet"
+        }
+        style={
+          hasLampiran
+            ? {
+                width: "210mm",
+                margin: "0 auto",
+                padding: "0 0 1.5cm 0",
+                minHeight: "297mm",
+                boxSizing: "border-box",
+              }
+            : undefined
+        }
+      >
       {/* ─── Tabel Pembungkus Multi-Halaman A4 Resmi (Persis STBuilderPreview) ─── */}
-      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+      <table className="pkpknl-main-table" style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
         <colgroup>
           <col style={{ width: "100%" }} />
         </colgroup>
@@ -3293,6 +3738,128 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           </tr>
         </tbody>
       </table>
+      </div>
+
+      {/* ─── HALAMAN LAMPIRAN (Halaman Baru, Tanpa Kop Surat) ─────────────── */}
+      {hasLampiran && (
+        <>
+          <div className="pkpknl-screen-only my-4 flex items-center gap-3 select-none">
+            <div className="flex-1 border-t border-dashed border-slate-300 dark:border-zinc-700" />
+            <span className="px-3 py-1 rounded-full border border-slate-200/80 dark:border-zinc-700 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg-secondary)] shadow-xs">
+              Halaman Baru • Lampiran ({lampiranOrientation === "landscape" ? "A4 Landscape" : "A4 Portrait"})
+            </span>
+            <div className="flex-1 border-t border-dashed border-slate-300 dark:border-zinc-700" />
+          </div>
+
+          <div
+            data-orientation={lampiranOrientation}
+            className={`pkpknl-lampiran-page ${
+              lampiranOrientation === "landscape"
+                ? "pkpknl-lampiran-landscape"
+                : "pkpknl-lampiran-portrait"
+            } bg-white text-black border border-[var(--ds-border-subtle)] rounded-xs`}
+            style={{
+              pageBreakBefore: "always",
+              breakBefore: "page",
+            }}
+          >
+            <div className="pkpknl-lampiran-meta-wrap">
+              <div className="pkpknl-lampiran-meta">
+                <p
+                  contentEditable
+                  suppressContentEditableWarning
+                  className="pkpknl-edit pkpknl-lampiran-header-title"
+                  onBlur={(e) =>
+                    updateLampiran({ headerTitle: serializeEditableToMarkdown(e.currentTarget) })
+                  }
+                >
+                  {renderFormattedText(lampiranHeaderTitle)}
+                </p>
+                <table className="pkpknl-lampiran-meta-table">
+                  <tbody>
+                    <tr>
+                      <td className="pkpknl-lampiran-meta-label">Nomor</td>
+                      <td className="pkpknl-lampiran-meta-colon">:</td>
+                      <td
+                        contentEditable
+                        suppressContentEditableWarning
+                        className="pkpknl-edit pkpknl-lampiran-meta-val"
+                        onBlur={(e) => onUpdateField?.("nomor", e.currentTarget.innerText)}
+                      >
+                        {nomorText}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="pkpknl-lampiran-meta-label">Tanggal</td>
+                      <td className="pkpknl-lampiran-meta-colon">:</td>
+                      <td
+                        contentEditable
+                        suppressContentEditableWarning
+                        className="pkpknl-edit pkpknl-lampiran-meta-val"
+                        onBlur={(e) => onUpdateField?.("kotaTanggal", e.currentTarget.innerText)}
+                      >
+                        {kotaTanggal}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {lampiranPage?.bodyTitle?.trim() && (
+              <p
+                contentEditable
+                suppressContentEditableWarning
+                className="pkpknl-edit pkpknl-lampiran-title"
+                onBlur={(e) =>
+                  updateLampiran({ bodyTitle: serializeEditableToMarkdown(e.currentTarget) })
+                }
+              >
+                {renderFormattedText(lampiranPage.bodyTitle)}
+              </p>
+            )}
+
+            <div className="pkpknl-body">
+              {lampiranParagraf.length > 0 &&
+              !(lampiranParagraf.length === 1 && lampiranParagraf[0] === "") ? (
+                lampiranParagraf.map((item, idx) =>
+                  renderParagrafItem(item, idx, lampiranParagraf, (next) =>
+                    updateLampiran({ paragraf: next })
+                  )
+                )
+              ) : (
+                <p className="pkpknl-screen-only no-indent text-slate-400 italic">
+                  Ketik isi lampiran di editor atau sisipkan tabel/rincian...
+                </p>
+              )}
+            </div>
+
+            {lampiranPage?.showSignature && (
+              <div style={{ display: "block", breakInside: "avoid", pageBreakInside: "avoid" }}>
+                <div className="pkpknl-ttd pkpknl-lampiran-ttd">
+                  {currentTemplate !== "nota_dinas" && currentTemplate !== "memorandum" && (
+                    <p className="pkpknl-edit font-normal">
+                      {currentTemplate === "surat_pernyataan"
+                        ? "Yang membuat pernyataan,"
+                        : jabatanPenandatangan || DEFAULT_KEPALA_BALAI.jabatan}
+                    </p>
+                  )}
+                  <div className="pkpknl-ttd-placeholder pkpknl-edit">
+                    {"${ttd_pengirim}"}
+                  </div>
+                  <p className="pkpknl-ttd-name pkpknl-edit font-bold">
+                    {namaPenandatangan || DEFAULT_KEPALA_BALAI.nama}
+                  </p>
+                  <p className="pkpknl-edit">
+                    {formatNipLabel(nipPenandatangan, true)}{" "}
+                    {nipPenandatangan || DEFAULT_KEPALA_BALAI.nip}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

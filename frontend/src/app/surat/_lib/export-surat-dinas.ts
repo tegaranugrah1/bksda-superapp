@@ -78,6 +78,7 @@ function sanitizeExportClone(clone: HTMLElement, stripTableChrome: boolean): voi
     ".halaman-divider",
     ".pkpknl-footer-bsre",
     ".pkpknl-col-resizer",
+    ".pkpknl-screen-only",
     ".print\\:hidden",
     ...(stripTableChrome
       ? ["thead.print\\:table-header-group", "tfoot.print\\:table-footer-group"]
@@ -327,34 +328,51 @@ function transformCloneForWord(clone: HTMLElement): void {
     const contentEl = p.querySelector(".poin-content");
     const marker = escapeWordHtml(markerEl ? markerEl.textContent?.trim() || "" : "");
     const content = sanitizeWordFragment(contentEl || p);
+    const torPt = parseInt(p.getAttribute("data-tor-offset-pt") || "0", 10) || 0;
 
-    let col1Width = "18pt";
-    let col1Indent = "0";
+    let col1WNum = 18;
+    let col1IndentNum = 0;
 
-    const isSub = p.classList.contains("poin-level-2") || p.classList.contains("poin-level-3") || p.classList.contains("poin-level-4");
-    const cellPaddingBottom = isSub ? "2pt" : "4pt";
+    const isBoldHeading = p.classList.contains("poin-level-5") || p.classList.contains("poin-level-6");
+    const isSub =
+      p.classList.contains("poin-level-2") ||
+      p.classList.contains("poin-level-3") ||
+      p.classList.contains("poin-level-4") ||
+      p.classList.contains("poin-level-6");
+    const cellPaddingBottom = p.classList.contains("poin-level-5") ? "3pt" : isSub ? "2pt" : "4pt";
 
-    if (p.classList.contains("poin-level-2")) {
-      col1Width = "32pt";
-      col1Indent = "18pt";
+    if (p.classList.contains("poin-level-5")) {
+      col1WNum = 20;
+      col1IndentNum = 0;
+    } else if (p.classList.contains("poin-level-6")) {
+      col1WNum = 15;
+      col1IndentNum = 0;
+    } else if (p.classList.contains("poin-level-2")) {
+      col1WNum = 32;
+      col1IndentNum = 18;
     } else if (p.classList.contains("poin-level-3")) {
-      col1Width = "46pt";
-      col1Indent = "32pt";
+      col1WNum = 46;
+      col1IndentNum = 32;
     } else if (p.classList.contains("poin-level-4")) {
-      col1Width = "60pt";
-      col1Indent = "46pt";
+      col1WNum = 60;
+      col1IndentNum = 46;
     }
+
+    const col1Width = `${col1WNum + torPt}pt`;
+    const col1Indent = col1IndentNum + torPt > 0 ? `${col1IndentNum + torPt}pt` : "0";
+    const boldStyle = isBoldHeading ? " font-weight: bold;" : "";
+    const topMarginStyle = p.classList.contains("poin-level-5") ? "margin-top: 6pt; " : "";
 
     const table = document.createElement("table");
     table.setAttribute(
       "style",
-      "width: 100%; border: none; border-collapse: collapse; margin-bottom: 1.5pt; table-layout: fixed;"
+      `width: 100%; border: none; border-collapse: collapse; ${topMarginStyle}margin-bottom: 1.5pt; table-layout: fixed;`
     );
     // Note: padding-bottom dan line-height: 135% menjamin Word merender butir-butir rapat dan proporsional seperti acuan
     table.innerHTML = `
       <tr style="border: none;">
-        <td style="width: ${col1Width}; padding: 0 0 ${cellPaddingBottom} 0; padding-left: ${col1Indent}; vertical-align: top; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; color: #000;">${marker}</td>
-        <td style="padding: 0 0 ${cellPaddingBottom} 0; vertical-align: top; text-align: justify; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; color: #000;">${content}</td>
+        <td style="width: ${col1Width}; padding: 0 0 ${cellPaddingBottom} 0; padding-left: ${col1Indent}; vertical-align: top; font-family: Arial, sans-serif; font-size: 11pt;${boldStyle} line-height: 135%; color: #000;">${marker}</td>
+        <td style="padding: 0 0 ${cellPaddingBottom} 0; vertical-align: top; text-align: justify; font-family: Arial, sans-serif; font-size: 11pt;${boldStyle} line-height: 135%; color: #000;">${content}</td>
       </tr>
     `;
     p.replaceWith(table);
@@ -371,7 +389,11 @@ function transformCloneForWord(clone: HTMLElement): void {
   const rincianBlocks = Array.from(clone.querySelectorAll(".pkpknl-rincian-wrap"));
   rincianBlocks.forEach((wrap) => {
     const indentLvl = wrap.getAttribute("data-indent-level") || "0";
-    const leftIndent = rincianIndents[indentLvl] || "24pt";
+    const torPt = parseInt(wrap.getAttribute("data-tor-offset-pt") || "0", 10) || 0;
+    const leftIndent =
+      indentLvl === "5" || indentLvl === "6"
+        ? `${torPt}pt`
+        : `${parseInt(rincianIndents[indentLvl] || "24pt", 10) + torPt}pt`;
     const rows = Array.from(wrap.querySelectorAll("tr"));
     if (rows.length === 0) return;
 
@@ -416,7 +438,11 @@ function transformCloneForWord(clone: HTMLElement): void {
     const srcTable = wrap.querySelector(".pkpknl-body-table");
     if (!srcTable) return;
     const indentLvl = wrap.getAttribute("data-indent-level") || "0";
-    const marginLeft = tableIndents[indentLvl] || "0pt";
+    const torPt = parseInt(wrap.getAttribute("data-tor-offset-pt") || "0", 10) || 0;
+    const marginLeft =
+      indentLvl === "5" || indentLvl === "6"
+        ? `${torPt}pt`
+        : `${parseInt(tableIndents[indentLvl] || "0pt", 10) + torPt}pt`;
     const colEls = Array.from(srcTable.querySelectorAll<HTMLTableColElement>(":scope > colgroup > col"));
     const colPercents = colEls.map((c) => c.style.width || "");
     const colgroupHtml = colPercents.length
@@ -491,6 +517,8 @@ function transformCloneForWord(clone: HTMLElement): void {
     const text = p.textContent?.trim() || "";
     const isPenutup = /^(?:demikian|atas perhatian|wassalamu|hormat)/i.test(text);
     const indent = "24pt"; // Baik pembuka maupun penutup menjorok ~24pt sesuai gambar acuan
+    const torPt = parseInt(p.getAttribute("data-tor-offset-pt") || "0", 10) || 0;
+    const marginLeft = torPt > 0 ? `${torPt}pt` : "0";
 
     // Space lega untuk paragraf pertama setelah tanggal
     // Space lega untuk paragraf terakhir setelah butir-butir penomoran selesai
@@ -500,15 +528,98 @@ function transformCloneForWord(clone: HTMLElement): void {
 
     p.setAttribute(
       "style",
-      `margin: ${marginTop} 0 ${marginBottom} 0; text-indent: ${indent}; text-align: justify; line-height: 135%; font-family: Arial, sans-serif; font-size: 11pt; color: #000;`
+      `margin: ${marginTop} 0 ${marginBottom} ${marginLeft}; text-indent: ${indent}; text-align: justify; line-height: 135%; font-family: Arial, sans-serif; font-size: 11pt; color: #000;`
     );
   });
 
-  // 6. Transformasi Tembusan (kiri) & Tanda Tangan (kanan)
-  const ttdEl = clone.querySelector(".pkpknl-ttd") as HTMLElement | null;
-  const tembusanEl = clone.querySelector(".pkpknl-tembusan") as HTMLElement | null;
+  // 5b. Transformasi Kepala & Judul Halaman Lampiran untuk MS Word
+  clone.querySelectorAll(".pkpknl-lampiran-meta-wrap").forEach((metaWrap) => {
+    const parentLampiran = metaWrap.closest(".pkpknl-lampiran-page");
+    const isLandscape = parentLampiran?.getAttribute("data-orientation") === "landscape";
+    const leftPct = isLandscape ? "60%" : "48%";
+    const rightPct = isLandscape ? "40%" : "52%";
 
-  if (ttdEl) {
+    const titleEl = metaWrap.querySelector(".pkpknl-lampiran-header-title");
+    const headerTitleHtml = sanitizeWordFragment(titleEl).trim() || "Lampiran Surat";
+    const rows = Array.from(metaWrap.querySelectorAll(".pkpknl-lampiran-meta-table tr"));
+    const metaCellBase =
+      "vertical-align: top; padding: 1.5pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.35; color: #000; border: none;";
+
+    const subRowsHtml = rows
+      .map((tr) => {
+        const label = escapeWordHtml(tr.querySelector(".pkpknl-lampiran-meta-label")?.textContent?.trim() || "");
+        const colon = escapeWordHtml(tr.querySelector(".pkpknl-lampiran-meta-colon")?.textContent?.trim() || ":");
+        const val = sanitizeWordFragment(tr.querySelector(".pkpknl-lampiran-meta-val"));
+        return `
+          <tr style="border: none;">
+            <td style="width: 2.0cm; text-align: left; ${metaCellBase}">${label}</td>
+            <td style="width: 0.4cm; text-align: center; ${metaCellBase}">${colon}</td>
+            <td style="text-align: left; ${metaCellBase}">${val || "&nbsp;"}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const outerTable = document.createElement("table");
+    outerTable.setAttribute(
+      "style",
+      "width: 100%; border: none; border-collapse: collapse; margin: 0 0 12pt 0; table-layout: fixed;"
+    );
+    outerTable.innerHTML = `
+      <tr style="border: none;">
+        <td style="width: ${leftPct}; border: none; padding: 0;">&nbsp;</td>
+        <td style="width: ${rightPct}; vertical-align: top; text-align: left; border: none; padding: 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.35; color: #000;">
+          <p style="margin: 0 0 2pt 0; padding: 0; text-align: left; font-weight: normal; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.35; color: #000;">${headerTitleHtml}</p>
+          <table style="width: 100%; border: none; border-collapse: collapse; table-layout: fixed;">
+            ${subRowsHtml}
+          </table>
+        </td>
+      </tr>
+    `;
+    metaWrap.replaceWith(outerTable);
+  });
+
+  clone.querySelectorAll(".pkpknl-lampiran-title").forEach((titleEl) => {
+    titleEl.setAttribute(
+      "style",
+      "margin: 10pt 0 12pt 0; padding: 0; text-align: center; font-weight: bold; font-family: Arial, sans-serif; font-size: 11.5pt; line-height: 1.35; color: #000;"
+    );
+  });
+
+  // 6. Transformasi Tembusan (kiri) & Tanda Tangan (kanan) untuk surat utama maupun Lampiran
+  const tembusanEl = clone.querySelector(".pkpknl-tembusan") as HTMLElement | null;
+  let tembusanHtml = "&nbsp;";
+  if (tembusanEl) {
+    const titleEl = tembusanEl.querySelector(".pkpknl-tembusan-title");
+    const title = escapeWordHtml(titleEl ? titleEl.textContent?.trim() || "Tembusan:" : "Tembusan:");
+    const items = Array.from(tembusanEl.querySelectorAll(".pkpknl-tembusan-item"));
+    let itemsHtml = "";
+    if (items.length <= 1) {
+      const editTarget = items[0]?.querySelector(".pkpknl-edit") || items[0] || null;
+      const text = editTarget
+        ? sanitizeWordFragment(editTarget).trim()
+        : escapeWordHtml(tembusanEl.textContent?.replace(/^tembusan:\s*/i, "").trim() || "");
+      itemsHtml = `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000;">${text}</p>`;
+    } else {
+      items.forEach((item, idx) => {
+        const spans = Array.from(item.querySelectorAll(":scope > span"));
+        const num = escapeWordHtml((spans.length > 1 ? spans[0]?.textContent?.trim() : `${idx + 1}.`) || "");
+        const editTarget = item.querySelector(".pkpknl-edit") || spans[spans.length - 1] || item;
+        const text = sanitizeWordFragment(editTarget).trim();
+        itemsHtml += `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000;">${num} ${text}</p>`;
+      });
+    }
+    tembusanHtml = `
+        <p style="margin: 0 0 4pt 0; font-weight: normal; font-family: Arial, sans-serif; font-size: 11pt; color: #000;">${title}</p>
+        ${itemsHtml}
+      `;
+    tembusanEl.remove();
+  }
+
+  const penutupTtdGroup = clone.querySelector(".penutup-ttd-group");
+  const ttdList = Array.from(clone.querySelectorAll<HTMLElement>(".pkpknl-ttd"));
+
+  ttdList.forEach((ttdEl) => {
     const allP = Array.from(ttdEl.querySelectorAll("p"));
     const placeholderEl = ttdEl.querySelector(".pkpknl-ttd-placeholder");
     const placeholderText = escapeWordHtml((placeholderEl ? placeholderEl.textContent?.trim() : "${ttd_pengirim}") || "");
@@ -520,35 +631,6 @@ function transformCloneForWord(clone: HTMLElement): void {
     const hasJabatan = allP.length >= 3 || (allP.length >= 2 && allP[0] !== nameEl && !allP[0].classList.contains("pkpknl-ttd-name"));
     const jabatanText = escapeWordHtml(hasJabatan ? allP[0]?.textContent?.trim() || "" : "");
 
-    let tembusanHtml = "&nbsp;";
-    if (tembusanEl) {
-      const titleEl = tembusanEl.querySelector(".pkpknl-tembusan-title");
-      const title = escapeWordHtml(titleEl ? titleEl.textContent?.trim() || "Tembusan:" : "Tembusan:");
-      const items = Array.from(tembusanEl.querySelectorAll(".pkpknl-tembusan-item"));
-      let itemsHtml = "";
-      if (items.length <= 1) {
-        const editTarget = items[0]?.querySelector(".pkpknl-edit") || items[0] || null;
-        const text = editTarget
-          ? sanitizeWordFragment(editTarget).trim()
-          : escapeWordHtml(tembusanEl.textContent?.replace(/^tembusan:\s*/i, "").trim() || "");
-        itemsHtml = `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000;">${text}</p>`;
-      } else {
-        items.forEach((item, idx) => {
-          const spans = Array.from(item.querySelectorAll(":scope > span"));
-          const num = escapeWordHtml((spans.length > 1 ? spans[0]?.textContent?.trim() : `${idx + 1}.`) || "");
-          const editTarget = item.querySelector(".pkpknl-edit") || spans[spans.length - 1] || item;
-          const text = sanitizeWordFragment(editTarget).trim();
-          itemsHtml += `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000;">${num} ${text}</p>`;
-        });
-      }
-      tembusanHtml = `
-        <p style="margin: 0 0 4pt 0; font-weight: normal; font-family: Arial, sans-serif; font-size: 11pt; color: #000;">${title}</p>
-        ${itemsHtml}
-      `;
-      tembusanEl.remove();
-    }
-
-    // Tabel Tanda Tangan: Posisi penandatangan di sebelah kanan (kolom 50% kanan)
     const ttdTable = document.createElement("table");
     ttdTable.setAttribute(
       "style",
@@ -566,13 +648,12 @@ function transformCloneForWord(clone: HTMLElement): void {
       </tr>
     `;
 
-    // Tembusan ditempatkan di BAWAH tanda tangan rata kiri sesuai tata naskah dinas resmi
-    const tembusanBlockHtml = tembusanHtml && tembusanHtml !== "&nbsp;"
+    const isMainGroup = Boolean(penutupTtdGroup && penutupTtdGroup.contains(ttdEl));
+    const tembusanBlockHtml = isMainGroup && tembusanHtml && tembusanHtml !== "&nbsp;"
       ? `<div style="margin-top: 24pt; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; text-align: left;">${tembusanHtml}</div>`
       : "";
 
-    const penutupTtdGroup = clone.querySelector(".penutup-ttd-group");
-    if (penutupTtdGroup && penutupTtdGroup.contains(ttdEl)) {
+    if (isMainGroup && penutupTtdGroup) {
       const closingBody = penutupTtdGroup.querySelector(".pkpknl-body");
       const closingHtml = sanitizeWordFragment(closingBody);
       penutupTtdGroup.innerHTML = closingHtml + ttdTable.outerHTML + tembusanBlockHtml;
@@ -581,7 +662,7 @@ function transformCloneForWord(clone: HTMLElement): void {
       wrapper.innerHTML = ttdTable.outerHTML + tembusanBlockHtml;
       ttdEl.replaceWith(wrapper);
     }
-  }
+  });
 }
 
 /**
@@ -617,6 +698,11 @@ export async function exportSuratDinasWord(
 
   // Terapkan transformasi layout tabel khusus MS Word
   transformCloneForWord(clone);
+
+  const lampiranPageEl = clone.querySelector(".pkpknl-lampiran-page") as HTMLElement | null;
+  const isLampiranLandscape = lampiranPageEl?.getAttribute("data-orientation") === "landscape";
+  const lampiranSectionHtml = lampiranPageEl ? lampiranPageEl.innerHTML : "";
+  lampiranPageEl?.remove();
 
   const suratContent = clone.querySelector(".surat-content");
   const bodyContentHtml = suratContent ? suratContent.innerHTML : clone.innerHTML;
@@ -658,6 +744,17 @@ Content-Type: text/html; charset="utf-8"
     div.Section1 {
       page: Section1;
     }
+    ${lampiranSectionHtml ? `
+    @page Section2 {
+      size: ${isLampiranLandscape ? "297mm 210mm" : "210mm 297mm"};
+      ${isLampiranLandscape ? "mso-page-orientation: landscape;" : ""}
+      margin: 2.0cm 1.55cm 2.0cm 2.0cm;
+      mso-header-margin: 0.8cm;
+      mso-header: url("file:///C:/header.htm") h1;
+    }
+    div.Section2 {
+      page: Section2;
+    }` : ""}
     body {
       font-family: Arial, Helvetica, sans-serif;
       font-size: 11pt;
@@ -682,6 +779,10 @@ Content-Type: text/html; charset="utf-8"
   <div class="Section1">
     ${bodyContentHtml}
   </div>
+  ${lampiranSectionHtml ? `<br clear="all" style="page-break-before: always; mso-break-type: section-break;" />
+  <div class="Section2">
+    ${lampiranSectionHtml}
+  </div>` : ""}
 </body>
 </html>
 
@@ -778,7 +879,7 @@ export async function exportSuratDinasPdf(
     </style>
   </head>
   <body>
-    <div class="surat-dinas-print-root" style="width: 210mm; margin: 0 auto; background: white;">
+    <div class="surat-dinas-print-root" style="margin: 0 auto; background: white;">
       ${clone.innerHTML}
     </div>
   </body>

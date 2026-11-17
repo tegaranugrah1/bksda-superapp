@@ -2505,8 +2505,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/letter-utils.ts": {
-    "mtime": 1793584952.1165104,
-    "ast_hash": "320ba640562f7a3a1a3e587eb6b9e36c",
+    "mtime": 1794892381.3525324,
+    "ast_hash": "df40dfc7577573f1520e65ec575154f5",
     "semantic_hash": ""
   },
   "frontend/src/lib/utils.ts": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794880067.8274562,
-    "ast_hash": "f9e3a63474972919884cfba16a0e5c1a",
+    "mtime": 1794893773.674743,
+    "ast_hash": "3d610faa59ee2a0afac3a01288213258",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794880065.6448746,
-    "ast_hash": "f83e6e207409edd770f01e8be7be4718",
+    "mtime": 1794893768.892068,
+    "ast_hash": "90412f93354b02bc4c2f035ec9a7d6b0",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794880085.3289368,
-    "ast_hash": "2eb61eb3ef6246c5aab805ec69142608",
+    "mtime": 1794893766.898531,
+    "ast_hash": "84b398de53e2dfac8aad23d74795a7e7",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6085,13 +6085,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratDinasDocument.tsx": {
-    "mtime": 1794886190.5962434,
-    "ast_hash": "191fa31da79b2af8f00f99a5e342da3d",
+    "mtime": 1794899243.7981431,
+    "ast_hash": "a0371ced1ba97c2eac0c414be479c76e",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1794884324.3827014,
-    "ast_hash": "d7cdc4d6161de6cc442e15e3e8f0cd5e",
+    "mtime": 1794898939.1535532,
+    "ast_hash": "8b197d071195996c26cd4f049208af1a",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -7700,8 +7700,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_lib/export-surat-dinas.ts": {
-    "mtime": 1794884775.9236827,
-    "ast_hash": "b24bdf0c5d3a45f36a1100b50e0a68ce",
+    "mtime": 1794898845.2703576,
+    "ast_hash": "68698f0d54043b97e381e9c57d361d89",
     "semantic_hash": ""
   },
   "frontend/tests/test-export-transform.cjs": {
@@ -9025,13 +9025,13 @@
     "semantic_hash": ""
   },
   "frontend/tests/rincian-blok-check.cjs": {
-    "mtime": 1794886343.3397462,
-    "ast_hash": "4c6c818195126c241c20167ee41779b8",
+    "mtime": 1794899130.5913892,
+    "ast_hash": "31bdb5c52b8ebf04698b16492e2bd2d5",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/TabelBlockEditor.tsx": {
-    "mtime": 1794886303.0493827,
-    "ast_hash": "c3982a8d85359b5f2d57b228b95643e9",
+    "mtime": 1794892604.4075913,
+    "ast_hash": "9d1f6a2580dcd75766a43d1df37f7189",
     "semantic_hash": ""
   }
 }

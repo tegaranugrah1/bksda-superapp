@@ -451,4 +451,180 @@ assert(
   'TabelBlockEditor.tsx must expose bold/italic formatting controls inside spreadsheet toolbar'
 );
 
+// 12. Lampiran Page (Default Titles per Template, Portrait/Landscape, Sync Meta, Word Section2)
+const { getDefaultLampiranHeaderTitle, createDefaultLampiranPage, SURAT_DINAS_PRINT_CSS } = docMod;
+assert.equal(getDefaultLampiranHeaderTitle('nota_dinas'), 'Lampiran Nota Dinas');
+assert.equal(getDefaultLampiranHeaderTitle('surat_dinas'), 'Lampiran Surat');
+assert.equal(getDefaultLampiranHeaderTitle('memorandum'), 'Lampiran Memorandum');
+assert.equal(getDefaultLampiranHeaderTitle('undangan'), 'Lampiran Undangan');
+
+const defLampNota = createDefaultLampiranPage('nota_dinas');
+assert.equal(defLampNota.enabled, true);
+assert.equal(defLampNota.orientation, 'portrait');
+assert.equal(defLampNota.headerTitle, 'Lampiran Nota Dinas');
+assert.equal(defLampNota.showSignature, true);
+assert.deepEqual(defLampNota.paragraf, ['']);
+
+const customLamp = createDefaultLampiranPage('surat_dinas', {
+  orientation: 'landscape',
+  headerTitle: 'Lampiran Surat Kepala Balai',
+  bodyTitle: 'SUSUNAN ACARA',
+  showSignature: false,
+});
+assert.equal(customLamp.orientation, 'landscape');
+assert.equal(customLamp.headerTitle, 'Lampiran Surat Kepala Balai');
+assert.equal(customLamp.bodyTitle, 'SUSUNAN ACARA');
+assert.equal(customLamp.showSignature, false);
+
+assert(
+  SURAT_DINAS_BASE_CSS.includes('@page lampiranPortrait') &&
+    SURAT_DINAS_BASE_CSS.includes('@page lampiranLandscape') &&
+    SURAT_DINAS_PRINT_CSS.includes('page: lampiranLandscape'),
+  'CSS must declare named @page rules for Portrait and Landscape Lampiran pages'
+);
+assert(
+  docSource.includes('pkpknl-lampiran-page') &&
+    docSource.includes('currentTemplate !== "nota_dinas" && currentTemplate !== "memorandum"'),
+  'Lampiran preview must render .pkpknl-lampiran-page and hide Jabatan above TTD on Nota Dinas/Memorandum'
+);
+assert(
+  exportSrc.includes('@page Section2') &&
+    exportSrc.includes('mso-page-orientation: landscape') &&
+    exportSrc.includes('mso-break-type: section-break') &&
+    exportSrc.includes('.pkpknl-lampiran-meta-wrap'),
+  'Word export must emit Section2 (Portrait/Landscape without KOP) and transform Lampiran meta block'
+);
+assert(
+  pageSrc.includes('role="tablist"') &&
+    pageSrc.includes('handleAddLampiran') &&
+    /renderParagrafBlocksCard\(\s*"lampiran"/.test(pageSrc) &&
+    pageSrc.includes('"1 Berkas"'),
+  'dinas/page.tsx must provide Lampiran tab, shared ParagrafBlocksCard, and "1 Berkas" meta auto-fill'
+);
+
+// =========================================================================
+// 13. TOR Hierarchy (I. Romawi Besar Tebal & A. Huruf Kapital Tebal)
+// =========================================================================
+assert.equal(detectPointLevel('I. PENDAHULUAN'), 5);
+assert.equal(detectPointLevel('II. DASAR PELAKSANAAN'), 5);
+assert.equal(detectPointLevel('IV. PENUTUP'), 5);
+assert.equal(detectPointLevel('i. butir romawi kecil'), 3);
+assert.equal(detectPointLevel('A. LATAR BELAKANG'), 6);
+assert.equal(detectPointLevel('B. TUJUAN'), 6);
+assert.equal(detectPointLevel('a. sub poin kecil'), 2);
+assert.equal(detectPointLevel('1. poin utama'), 1);
+assert.equal(detectPointLevel('1) butir kurung'), 3);
+assert.equal(detectPointLevel('a) kurung huruf'), 4);
+
+assert.equal(docMod.getPointLevelClassName(5), 'poin-item poin-level-5');
+assert.equal(docMod.getPointLevelClassName(6), 'poin-item poin-level-6');
+
+const torReindexed = reindexParagraphMarkers([
+  'I. PENDAHULUAN',
+  'I. DASAR PELAKSANAAN',
+  'A. LATAR BELAKANG',
+  'A. MAKSUD',
+  '1. Pertama',
+  '1. Kedua',
+  'A. TUJUAN',
+  '1. Ketiga',
+  'I. METODE',
+  '1. Keempat',
+]);
+assert.deepEqual(torReindexed, [
+  'I. PENDAHULUAN',
+  'II. DASAR PELAKSANAAN',
+  'A. LATAR BELAKANG',
+  'B. MAKSUD',
+  '1. Pertama',
+  '2. Kedua',
+  'C. TUJUAN',
+  '1. Ketiga',
+  'III. METODE',
+  '1. Keempat',
+]);
+
+// Disambiguasi H. -> I. -> J. di dalam Bab I.
+const torLetterI = reindexParagraphMarkers([
+  'I. BAB SATU',
+  'A. Satu',
+  'B. Dua',
+  'C. Tiga',
+  'D. Empat',
+  'E. Lima',
+  'F. Enam',
+  'G. Tujuh',
+  'H. Delapan',
+  'I. Sembilan',
+  'J. Sepuluh',
+  'II. BAB DUA',
+]);
+assert.equal(torLetterI[9], 'I. Sembilan');
+assert.equal(torLetterI[10], 'J. Sepuluh');
+assert.equal(torLetterI[11], 'II. BAB DUA');
+
+// Surat biasa tanpa I./A. tetap melanjutkan 1., 2., 3. secara global
+const plainLetter = reindexParagraphMarkers([
+  'Dengan hormat,',
+  '1. Kesatu',
+  'a. Rincian a',
+  '1. Kedua',
+]);
+assert.deepEqual(plainLetter, [
+  'Dengan hormat,',
+  '1. Kesatu',
+  'a. Rincian a',
+  '2. Kedua',
+]);
+
+// getTorSectionContext checks
+const sampleTorList = ['I. PENDAHULUAN', 'A. LATAR BELAKANG', 'Isi paragraf biasa', '1. Butir satu'];
+assert.deepEqual(docMod.getTorSectionContext(sampleTorList, 1), { hasUpperRoman: true, hasUpperLetter: false });
+assert.deepEqual(docMod.getTorSectionContext(sampleTorList, 2), { hasUpperRoman: true, hasUpperLetter: true });
+assert.deepEqual(docMod.getTorSectionContext(sampleTorList, 3), { hasUpperRoman: true, hasUpperLetter: true });
+assert.deepEqual(docMod.getTorSectionContext(['Pembuka', '1. Satu'], 1), { hasUpperRoman: false, hasUpperLetter: false });
+
+// parseRawDocumentText must preserve uppercase I. & A. as Level 5 & Level 6
+const parsedTor = parseRawDocumentText(
+  [
+    'I. PENDAHULUAN',
+    'A. LATAR BELAKANG',
+    'Perkembangan teknologi informasi sangat pesat.',
+    'II. DASAR PELAKSANAAN',
+    'A. DASAR HUKUM',
+    '1. UU Nomor 5 Tahun 1990',
+  ].join('\n')
+);
+assert.equal(detectPointLevel(parsedTor[0]), 5);
+assert.equal(detectPointLevel(parsedTor[1]), 6);
+assert.equal(detectPointLevel(parsedTor[2]), 0);
+assert.equal(detectPointLevel(parsedTor[3]), 5);
+assert.equal(detectPointLevel(parsedTor[4]), 6);
+assert.equal(detectPointLevel(parsedTor[5]), 1);
+
+assert(
+  SURAT_DINAS_BASE_CSS.includes('.poin-level-5') &&
+    SURAT_DINAS_BASE_CSS.includes('.poin-level-6') &&
+    SURAT_DINAS_BASE_CSS.includes('font-weight: bold !important'),
+  'Base CSS must style .poin-level-5 and .poin-level-6 with bold marker & content'
+);
+assert(
+  exportSrc.includes('poin-level-5') &&
+    exportSrc.includes('poin-level-6') &&
+    exportSrc.includes('data-tor-offset-pt'),
+  'Word export must support TOR poin-level-5/6 and data-tor-offset-pt indentation'
+);
+assert(
+  pageSrc.includes('+ Bab I.') &&
+    pageSrc.includes('+ Sub A.') &&
+    pageSrc.includes('"romanUpper"') &&
+    pageSrc.includes('"letterUpper"'),
+  'dinas/page.tsx must expose + Bab I. and + Sub A. TOR controls'
+);
+assert(
+  pageSrc.includes('lg:self-stretch') &&
+    pageSrc.includes('lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto'),
+  'dinas/page.tsx must keep 2. Isi Halaman Lampiran sticky when scrolling'
+);
+
 console.log('✅ rincian-blok-check.cjs: ALL ASSERTIONS PASSED');

@@ -31,6 +31,7 @@ import {
   Download,
   FileDown,
   Loader2,
+  Paperclip,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -66,15 +67,20 @@ import {
   ParagrafItem,
   ParagrafRincianRow,
   ParagrafTableBlock,
+  LampiranOrientation,
+  LampiranPageData,
   getDefaultDataForTemplate,
   getDefaultNomorForTemplate,
   getDefaultNomorPrefix,
+  getDefaultLampiranHeaderTitle,
+  createDefaultLampiranPage,
   handlePrintSuratDinas,
   getTodayIndoDate,
   formatIsoDateToIndo,
   parseYthList,
   formatYthList,
   detectPointLevel,
+  splitPointMarkerAndText,
   parseRawDocumentText,
   getNextMarkerForSection,
   reindexParagraphMarkers,
@@ -112,13 +118,29 @@ const RINCIAN_QUICK_PRESETS = [
 ] as const;
 
 const LEVEL_SWITCH_CONTROLS: {
-  level: "num" | "letter" | "roman" | "bracket" | "plain";
+  level: "romanUpper" | "letterUpper" | "num" | "letter" | "roman" | "bracket" | "plain";
   label: string;
   title: string;
   isActive: (lvl: number, text: string) => boolean;
   activeClass: string;
   hoverClass: string;
 }[] = [
+  {
+    level: "romanUpper",
+    label: "I.",
+    title: "Jadikan Bab Romawi I. (Huruf Besar Tebal)",
+    isActive: (lvl) => lvl === 5,
+    activeClass: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-700 font-bold",
+    hoverClass: "hover:border-blue-300 dark:hover:border-blue-700",
+  },
+  {
+    level: "letterUpper",
+    label: "A.",
+    title: "Jadikan Sub-Bab Kapital A. (Tebal)",
+    isActive: (lvl) => lvl === 6,
+    activeClass: "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950/60 dark:text-teal-200 dark:border-teal-700 font-bold",
+    hoverClass: "hover:border-teal-300 dark:hover:border-teal-700",
+  },
   {
     level: "num",
     label: "1.",
@@ -381,6 +403,8 @@ function GenerateSuratDinasContent() {
   const deferredData = useDeferredValue(data);
   const activeTemplate = data.templateType || templateParam || "surat_dinas";
 
+  type EditorTab = "main" | "lampiran";
+  const [editorTab, setEditorTab] = useState<EditorTab>("main");
   const [editingSuratKeluarId, setEditingSuratKeluarId] = useState<string | null>(idParam);
   const [editingSuratKeluarStatus, setEditingSuratKeluarStatus] = useState<string>("terdaftar");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -388,10 +412,10 @@ function GenerateSuratDinasContent() {
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
   const [showSmartPaste, setShowSmartPaste] = useState(false);
   const [smartPasteText, setSmartPasteText] = useState("");
-  const [expandedTableIdx, setExpandedTableIdx] = useState<number | null>(null);
+  const [expandedTableTarget, setExpandedTableTarget] = useState<{ scope: EditorTab; idx: number } | null>(null);
   const [isExporting, setIsExporting] = useState<"word" | "pdf" | null>(null);
 
-  type FormatSection = "perihal" | "yth" | "body" | "tembusan";
+  type FormatSection = "perihal" | "yth" | "body" | "tembusan" | "lampiranHeader" | "lampiranTitle";
   const formatTargetsRef = useRef<Partial<Record<FormatSection, InlineFormatTarget>>>({});
   const sectionContainerRefs = useRef<Partial<Record<FormatSection, HTMLElement | null>>>({});
 
@@ -532,6 +556,11 @@ function GenerateSuratDinasContent() {
           if (item.document_payload) {
             const loadedTemplate = (item.document_payload.templateType || item.template_type || templateParam) as TemplateType;
             const defData = getDefaultDataForTemplate(loadedTemplate);
+            const rawLampiran = item.document_payload.lampiranPage;
+            const normalizedLampiran =
+              rawLampiran && rawLampiran.enabled
+                ? createDefaultLampiranPage(loadedTemplate, rawLampiran)
+                : undefined;
             setData(
               migrateLegacyUndanganPayload({
                 ...defData,
@@ -542,6 +571,7 @@ function GenerateSuratDinasContent() {
                 ythList: Array.isArray(item.document_payload.ythList)
                   ? item.document_payload.ythList
                   : parseYthList(item.document_payload.yth || defData.yth),
+                lampiranPage: normalizedLampiran,
               })
             );
           } else {
@@ -582,6 +612,7 @@ function GenerateSuratDinasContent() {
   // Switch template
   const handleSwitchTemplate = (newTpl: TemplateType) => {
     if (newTpl === activeTemplate) return;
+    setExpandedTableTarget(null);
     const newData = getDefaultDataForTemplate(newTpl);
     setData(newData);
     const newUrl = editingSuratKeluarId
@@ -589,6 +620,95 @@ function GenerateSuratDinasContent() {
       : `/surat/keluar/dinas?template=${newTpl}`;
     window.history.replaceState(null, "", newUrl);
     toast.info(`Format dialihkan ke: ${newTpl.replace("_", " ").toUpperCase()}`);
+  };
+
+  const hasLampiran = Boolean(data.lampiranPage?.enabled);
+  const lampiranData = data.lampiranPage;
+  const defaultLampiranTitle = getDefaultLampiranHeaderTitle(activeTemplate);
+
+  const handleSwitchEditorTab = (tab: EditorTab) => {
+    setEditorTab(tab);
+    setShowSmartPaste(false);
+    formatTargetsRef.current.body = undefined;
+    if (tab === "lampiran" && data.lampiranPage?.enabled) {
+      requestAnimationFrame(() => {
+        document.querySelector(".pkpknl-lampiran-page")?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      });
+    }
+  };
+
+  const updateLampiranField = <K extends keyof LampiranPageData>(
+    field: K,
+    value: LampiranPageData[K]
+  ) => {
+    setData((prev) => ({
+      ...prev,
+      lampiranPage: {
+        ...createDefaultLampiranPage(prev.templateType || activeTemplate, prev.lampiranPage),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleAddLampiran = () => {
+    setData((prev) => {
+      const tpl = prev.templateType || activeTemplate;
+      const currentLamp = prev.lampiran?.trim() ?? "";
+      const nextLampiranMeta = !currentLamp || currentLamp === "-" ? "1 Berkas" : prev.lampiran;
+      return {
+        ...prev,
+        lampiran: nextLampiranMeta,
+        lampiranPage: createDefaultLampiranPage(
+          tpl,
+          prev.lampiranPage ? { ...prev.lampiranPage, enabled: true } : undefined
+        ),
+      };
+    });
+    setEditorTab("lampiran");
+    requestAnimationFrame(() => {
+      document.querySelector(".pkpknl-lampiran-page")?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  };
+
+  const handleRemoveLampiran = () => {
+    setExpandedTableTarget((cur) => (cur?.scope === "lampiran" ? null : cur));
+    setShowSmartPaste(false);
+    setData((prev) => {
+      const next = { ...prev };
+      delete next.lampiranPage;
+      return next;
+    });
+  };
+
+  const updateParagrafByScope = (
+    scope: EditorTab,
+    updater: (list: ParagrafItem[]) => ParagrafItem[]
+  ) => {
+    setData((prev) => {
+      if (scope === "lampiran") {
+        const currentLampiran = createDefaultLampiranPage(
+          prev.templateType || activeTemplate,
+          prev.lampiranPage
+        );
+        return {
+          ...prev,
+          lampiranPage: {
+            ...currentLampiran,
+            paragraf: updater([...(currentLampiran.paragraf || [])]),
+          },
+        };
+      }
+      return {
+        ...prev,
+        paragraf: updater([...(prev.paragraf || [])]),
+      };
+    });
   };
 
   const handleSelectEmployee = (empId: string) => {
@@ -609,8 +729,9 @@ function GenerateSuratDinasContent() {
     toast.success(`Pejabat penandatangan dipilih: ${empName}`);
   };
 
-  const resolveInsertIndex = (list: ParagrafItem[], atIndex?: number) => {
+  const resolveInsertIndex = (list: ParagrafItem[], atIndex?: number, scope: EditorTab = "main") => {
     if (atIndex !== undefined) return atIndex;
+    if (scope === "lampiran") return list.length;
     const lastItem = list[list.length - 1];
     const endsWithClosingText =
       typeof lastItem === "string" && detectPointLevel(lastItem) === 0 && list.length > 1;
@@ -619,14 +740,14 @@ function GenerateSuratDinasContent() {
 
   // Ponytail unified helper: Tambah / sisipkan butir dengan auto-scroll dan auto-focus
   const handleInsertPoint = (
-    type: "plain" | "num" | "letter" | "roman" | "bracket" | "rincian" | "table",
-    atIndex?: number
+    type: "plain" | "romanUpper" | "letterUpper" | "num" | "letter" | "roman" | "bracket" | "rincian" | "table",
+    atIndex?: number,
+    scope: EditorTab = editorTab
   ) => {
     let resolvedIdx = atIndex ?? 0;
-    setExpandedTableIdx(null);
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
-      const insertAt = resolveInsertIndex(list, atIndex);
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, (list) => {
+      const insertAt = resolveInsertIndex(list, atIndex, scope);
       resolvedIdx = insertAt;
       const newItem: ParagrafItem =
         type === "rincian"
@@ -637,7 +758,7 @@ function GenerateSuratDinasContent() {
           ? ""
           : getNextMarkerForSection(list, insertAt, type);
       list.splice(insertAt, 0, newItem);
-      return { ...prev, paragraf: reindexParagraphMarkers(list) };
+      return reindexParagraphMarkers(list);
     });
     setTimeout(() => {
       const target = document.querySelector<HTMLTextAreaElement | HTMLInputElement>(
@@ -655,109 +776,111 @@ function GenerateSuratDinasContent() {
   };
 
   // Ubah Level Poin pada Baris Tertentu
-  const handleChangeParagraphLevel = (index: number, targetType: "plain" | "num" | "letter" | "roman" | "bracket") => {
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
+  const handleChangeParagraphLevel = (
+    index: number,
+    targetType: "plain" | "romanUpper" | "letterUpper" | "num" | "letter" | "roman" | "bracket",
+    scope: EditorTab = editorTab
+  ) => {
+    updateParagrafByScope(scope, (list) => {
       const current = list[index];
-      if (typeof current !== "string") return prev;
-      const cleaned = current
-        .replace(/^(?:[0-9]+[.)]|[a-z][.)]|(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.)\s*/i, "")
-        .trim();
+      if (typeof current !== "string") return list;
+      const cleaned = splitPointMarkerAndText(current).content.trim();
 
       const prefix = targetType === "plain" ? "" : getNextMarkerForSection(list, index, targetType);
 
       list[index] = prefix + cleaned;
-      return { ...prev, paragraf: reindexParagraphMarkers(list) };
+      return reindexParagraphMarkers(list);
     });
   };
 
-  const handleMoveParagraph = (index: number, direction: -1 | 1) => {
-    setExpandedTableIdx(null);
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
+  const handleMoveParagraph = (index: number, direction: -1 | 1, scope: EditorTab = editorTab) => {
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, (list) => {
       const target = index + direction;
-      if (target < 0 || target >= list.length) return prev;
+      if (target < 0 || target >= list.length) return list;
       [list[index], list[target]] = [list[target], list[index]];
-      return { ...prev, paragraf: reindexParagraphMarkers(list) };
+      return reindexParagraphMarkers(list);
     });
   };
 
   const updateRincianItems = (
     blockIndex: number,
-    updater: (items: ParagrafRincianRow[]) => ParagrafRincianRow[]
+    updater: (items: ParagrafRincianRow[]) => ParagrafRincianRow[],
+    scope: EditorTab = editorTab
   ) => {
-    setData((prev) => ({
-      ...prev,
-      paragraf: (prev.paragraf || []).map((p, i) =>
-        i === blockIndex && isRincianBlock(p) ? { ...p, items: updater(p.items) } : p
-      ),
-    }));
+    updateParagrafByScope(scope, (list) =>
+      list.map((p, i) => (i === blockIndex && isRincianBlock(p) ? { ...p, items: updater(p.items) } : p))
+    );
   };
 
   const handleUpdateRincianRow = (
     blockIndex: number,
     rowIndex: number,
     field: keyof ParagrafRincianRow,
-    val: string
+    val: string,
+    scope: EditorTab = editorTab
   ) => {
-    updateRincianItems(blockIndex, (items) =>
-      items.map((row, rIdx) => (rIdx === rowIndex ? { ...row, [field]: val } : row))
+    updateRincianItems(
+      blockIndex,
+      (items) => items.map((row, rIdx) => (rIdx === rowIndex ? { ...row, [field]: val } : row)),
+      scope
     );
   };
 
-  const handleAddRincianRow = (blockIndex: number, presetLabel = "") => {
-    updateRincianItems(blockIndex, (items) => [...items, { label: presetLabel, value: "" }]);
+  const handleAddRincianRow = (blockIndex: number, presetLabel = "", scope: EditorTab = editorTab) => {
+    updateRincianItems(blockIndex, (items) => [...items, { label: presetLabel, value: "" }], scope);
   };
 
-  const handleRemoveRincianRow = (blockIndex: number, rowIndex: number) => {
-    updateRincianItems(blockIndex, (items) =>
-      items.length > 1 ? items.filter((_, rIdx) => rIdx !== rowIndex) : items
+  const handleRemoveRincianRow = (blockIndex: number, rowIndex: number, scope: EditorTab = editorTab) => {
+    updateRincianItems(
+      blockIndex,
+      (items) => (items.length > 1 ? items.filter((_, rIdx) => rIdx !== rowIndex) : items),
+      scope
     );
   };
 
   const updateTableBlock = (
     blockIndex: number,
-    updater: (block: ParagrafTableBlock) => ParagrafTableBlock
+    updater: (block: ParagrafTableBlock) => ParagrafTableBlock,
+    scope: EditorTab = editorTab
   ) => {
-    setData((prev) => ({
-      ...prev,
-      paragraf: (prev.paragraf || []).map((p, i) =>
-        i === blockIndex && isTableBlock(p) ? updater(p) : p
-      ),
-    }));
+    updateParagrafByScope(scope, (list) =>
+      list.map((p, i) => (i === blockIndex && isTableBlock(p) ? updater(p) : p))
+    );
   };
 
-  const handleUpdateTableHeader = (blockIndex: number, colIndex: number, val: string) => {
+  const handleUpdateTableHeader = (blockIndex: number, colIndex: number, val: string, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       headers: block.headers.map((h, i) => (i === colIndex ? val : h)),
-    }));
+    }), scope);
   };
 
   const handleUpdateTableCell = (
     blockIndex: number,
     rowIndex: number,
     colIndex: number,
-    val: string
+    val: string,
+    scope: EditorTab = editorTab
   ) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       rows: block.rows.map((row, rIdx) =>
         rIdx === rowIndex ? updateTableDataCell(row, block.headers.length, colIndex, val) : row
       ),
-    }));
+    }), scope);
   };
 
-  const handleUpdateTableSectionRow = (blockIndex: number, rowIndex: number, val: string) => {
+  const handleUpdateTableSectionRow = (blockIndex: number, rowIndex: number, val: string, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       rows: block.rows.map((row, rIdx) =>
         rIdx === rowIndex ? { kind: "section", text: val } : row
       ),
-    }));
+    }), scope);
   };
 
-  const handleAddTableRow = (blockIndex: number) => {
+  const handleAddTableRow = (blockIndex: number, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => {
       const dataCount = block.rows.filter((r) => !isTableSectionRow(r)).length;
       const nextNo = String(dataCount + 1);
@@ -765,27 +888,27 @@ function GenerateSuratDinasContent() {
         cIdx === 0 && isNoColumnHeader(h) ? nextNo : ""
       );
       return { ...block, rows: [...block.rows, newRow] };
-    });
+    }, scope);
   };
 
-  const handleAddTableSectionRow = (blockIndex: number) => {
+  const handleAddTableSectionRow = (blockIndex: number, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       rows: [...block.rows, { kind: "section", text: "" }],
-    }));
+    }), scope);
   };
 
-  const handleMoveTableRow = (blockIndex: number, rowIndex: number, direction: -1 | 1) => {
+  const handleMoveTableRow = (blockIndex: number, rowIndex: number, direction: -1 | 1, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => {
       const target = rowIndex + direction;
       if (target < 0 || target >= block.rows.length) return block;
       const nextRows = [...block.rows];
       [nextRows[rowIndex], nextRows[target]] = [nextRows[target], nextRows[rowIndex]];
       return { ...block, rows: nextRows };
-    });
+    }, scope);
   };
 
-  const handleRemoveTableRow = (blockIndex: number, rowIndex: number) => {
+  const handleRemoveTableRow = (blockIndex: number, rowIndex: number, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => {
       if (block.rows.length <= 1) return block;
       const filtered = block.rows.filter((_, rIdx) => rIdx !== rowIndex);
@@ -805,27 +928,27 @@ function GenerateSuratDinasContent() {
         return updateTableDataCell(r, block.headers.length, 0, String(seq));
       });
       return { ...block, rows: normalized };
-    });
+    }, scope);
   };
 
-  const handleMergeTableCellRight = (blockIndex: number, rowIndex: number, colIndex: number) => {
-    updateTableBlock(blockIndex, (block) => mergeTableCellRight(block, rowIndex, colIndex));
+  const handleMergeTableCellRight = (blockIndex: number, rowIndex: number, colIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => mergeTableCellRight(block, rowIndex, colIndex), scope);
   };
 
-  const handleSplitTableCell = (blockIndex: number, rowIndex: number, colIndex: number) => {
-    updateTableBlock(blockIndex, (block) => splitTableCell(block, rowIndex, colIndex));
+  const handleSplitTableCell = (blockIndex: number, rowIndex: number, colIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => splitTableCell(block, rowIndex, colIndex), scope);
   };
 
-  const handleAddTableCol = (blockIndex: number) => {
+  const handleAddTableCol = (blockIndex: number, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       headers: [...block.headers, `Kolom ${block.headers.length + 1}`],
       rows: block.rows.map((row) => addTableColumnToRow(row, block.headers.length)),
       colWidths: rebalanceColWidthsOnAdd(block.colWidths, block.headers),
-    }));
+    }), scope);
   };
 
-  const handleRemoveTableCol = (blockIndex: number, colIndex: number) => {
+  const handleRemoveTableCol = (blockIndex: number, colIndex: number, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => {
       if (block.headers.length <= 1) return block;
       return {
@@ -834,32 +957,32 @@ function GenerateSuratDinasContent() {
         rows: block.rows.map((row) => removeTableColumnFromRow(row, colIndex, block.headers.length)),
         colWidths: rebalanceColWidthsOnRemove(block.colWidths, colIndex, block.headers),
       };
-    });
+    }, scope);
   };
 
-  const handleToggleTableColumnNumbers = (blockIndex: number) => {
+  const handleToggleTableColumnNumbers = (blockIndex: number, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       showColumnNumbers: !block.showColumnNumbers,
-    }));
+    }), scope);
   };
 
-  const handleChangeTableColWidths = (blockIndex: number, widths: number[]) => {
+  const handleChangeTableColWidths = (blockIndex: number, widths: number[], scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => ({
       ...block,
       colWidths: widths,
-    }));
+    }), scope);
   };
 
-  const handleResetTableColWidths = (blockIndex: number) => {
+  const handleResetTableColWidths = (blockIndex: number, scope: EditorTab = editorTab) => {
     updateTableBlock(blockIndex, (block) => {
       const next = { ...block };
       delete next.colWidths;
       return next;
-    });
+    }, scope);
   };
 
-  const handleApplyTablePaste = (blockIndex: number, rawText: string, firstRowHeader: boolean): boolean => {
+  const handleApplyTablePaste = (blockIndex: number, rawText: string, firstRowHeader: boolean, scope: EditorTab = editorTab): boolean => {
     const parsed = parseDelimitedTableText(rawText, firstRowHeader);
     if (!parsed) {
       toast.error("Format tabel tidak dikenali. Tempel minimal 2 kolom yang dipisah Tab (Excel/Word) atau '|'.");
@@ -872,35 +995,35 @@ function GenerateSuratDinasContent() {
         prev.colWidths && prev.colWidths.length === parsed.headers.length
           ? prev.colWidths
           : undefined,
-    }));
+    }), scope);
     toast.success(`Tabel diperbarui (${parsed.headers.length} kolom, ${parsed.rows.length} baris).`);
     return true;
   };
 
-  const buildTableEditorProps = (blockIdx: number) => ({
+  const buildTableEditorProps = (blockIdx: number, scope: EditorTab = editorTab) => ({
     blockIdx,
-    onUpdateHeader: (cIdx: number, val: string) => handleUpdateTableHeader(blockIdx, cIdx, val),
-    onUpdateCell: (rIdx: number, cIdx: number, val: string) => handleUpdateTableCell(blockIdx, rIdx, cIdx, val),
-    onUpdateSectionRow: (rIdx: number, val: string) => handleUpdateTableSectionRow(blockIdx, rIdx, val),
-    onAddRow: () => handleAddTableRow(blockIdx),
-    onAddSectionRow: () => handleAddTableSectionRow(blockIdx),
-    onMoveRow: (rIdx: number, dir: -1 | 1) => handleMoveTableRow(blockIdx, rIdx, dir),
-    onRemoveRow: (rIdx: number) => handleRemoveTableRow(blockIdx, rIdx),
-    onMergeRight: (rIdx: number, cIdx: number) => handleMergeTableCellRight(blockIdx, rIdx, cIdx),
-    onSplitCell: (rIdx: number, cIdx: number) => handleSplitTableCell(blockIdx, rIdx, cIdx),
-    onAddCol: () => handleAddTableCol(blockIdx),
-    onRemoveCol: (cIdx: number) => handleRemoveTableCol(blockIdx, cIdx),
-    onToggleColumnNumbers: () => handleToggleTableColumnNumbers(blockIdx),
-    onChangeColWidths: (widths: number[]) => handleChangeTableColWidths(blockIdx, widths),
-    onResetColWidths: () => handleResetTableColWidths(blockIdx),
-    onApplyPaste: (raw: string, firstRowHeader: boolean) => handleApplyTablePaste(blockIdx, raw, firstRowHeader),
+    onUpdateHeader: (cIdx: number, val: string) => handleUpdateTableHeader(blockIdx, cIdx, val, scope),
+    onUpdateCell: (rIdx: number, cIdx: number, val: string) => handleUpdateTableCell(blockIdx, rIdx, cIdx, val, scope),
+    onUpdateSectionRow: (rIdx: number, val: string) => handleUpdateTableSectionRow(blockIdx, rIdx, val, scope),
+    onAddRow: () => handleAddTableRow(blockIdx, scope),
+    onAddSectionRow: () => handleAddTableSectionRow(blockIdx, scope),
+    onMoveRow: (rIdx: number, dir: -1 | 1) => handleMoveTableRow(blockIdx, rIdx, dir, scope),
+    onRemoveRow: (rIdx: number) => handleRemoveTableRow(blockIdx, rIdx, scope),
+    onMergeRight: (rIdx: number, cIdx: number) => handleMergeTableCellRight(blockIdx, rIdx, cIdx, scope),
+    onSplitCell: (rIdx: number, cIdx: number) => handleSplitTableCell(blockIdx, rIdx, cIdx, scope),
+    onAddCol: () => handleAddTableCol(blockIdx, scope),
+    onRemoveCol: (cIdx: number) => handleRemoveTableCol(blockIdx, cIdx, scope),
+    onToggleColumnNumbers: () => handleToggleTableColumnNumbers(blockIdx, scope),
+    onChangeColWidths: (widths: number[]) => handleChangeTableColWidths(blockIdx, widths, scope),
+    onResetColWidths: () => handleResetTableColWidths(blockIdx, scope),
+    onApplyPaste: (raw: string, firstRowHeader: boolean) => handleApplyTablePaste(blockIdx, raw, firstRowHeader, scope),
     onRegisterFormatTarget: (target: InlineFormatTarget) => {
       formatTargetsRef.current.body = target;
     },
   });
 
   // Terapkan Salin-Tempel Teks Utuh
-  const handleApplySmartPaste = (rawTextToApply?: string) => {
+  const handleApplySmartPaste = (rawTextToApply?: string, scope: EditorTab = editorTab) => {
     const text = rawTextToApply || smartPasteText;
     if (!text.trim()) {
       toast.error("Teks naskah dinas masih kosong.");
@@ -911,33 +1034,23 @@ function GenerateSuratDinasContent() {
       toast.error("Gagal memecah teks menjadi paragraf.");
       return;
     }
-    setExpandedTableIdx(null);
-    setData((prev) => ({
-      ...prev,
-      paragraf: reindexParagraphMarkers(parsed),
-    }));
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, () => reindexParagraphMarkers(parsed));
     setShowSmartPaste(false);
     setSmartPasteText("");
-    toast.success(`Berhasil menerapkan ${parsed.length} butir paragraf ke naskah dinas!`);
+    toast.success(`Berhasil menerapkan ${parsed.length} butir paragraf ke ${scope === "lampiran" ? "halaman lampiran" : "naskah dinas"}!`);
   };
 
-  const handleRemoveParagraph = (index: number) => {
-    setExpandedTableIdx(null);
-    setData((prev) => {
-      const p = prev.paragraf || [];
+  const handleRemoveParagraph = (index: number, scope: EditorTab = editorTab) => {
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, (p) => {
       const updated = p.length > 1 ? p.filter((_, i) => i !== index) : p;
-      return {
-        ...prev,
-        paragraf: reindexParagraphMarkers(updated),
-      };
+      return reindexParagraphMarkers(updated);
     });
   };
 
-  const handleParagraphChange = (index: number, val: string) => {
-    setData((prev) => ({
-      ...prev,
-      paragraf: (prev.paragraf || []).map((p, i) => (i === index ? val : p)),
-    }));
+  const handleParagraphChange = (index: number, val: string, scope: EditorTab = editorTab) => {
+    updateParagrafByScope(scope, (list) => list.map((p, i) => (i === index ? val : p)));
   };
 
   // Surat Pengantar row management
@@ -1109,6 +1222,8 @@ function GenerateSuratDinasContent() {
   const handleCreateNew = () => {
     setEditingSuratKeluarId(null);
     setEditingSuratKeluarStatus("terdaftar");
+    setExpandedTableTarget(null);
+    setEditorTab("main");
     window.history.replaceState(null, "", `/surat/keluar/dinas?template=${activeTemplate}`);
     setData(getDefaultDataForTemplate(activeTemplate));
     toast.info(`Membuat ${activeTemplate.replace("_", " ")} baru.`);
@@ -1116,6 +1231,7 @@ function GenerateSuratDinasContent() {
 
   // Blank form
   const handleBlankForm = () => {
+    setExpandedTableTarget(null);
     setData((prev) => ({
       ...prev,
       nomor: getDefaultNomorForTemplate(activeTemplate),
@@ -1130,17 +1246,638 @@ function GenerateSuratDinasContent() {
       dari: "",
       paragraf: [""],
       tembusan: [],
+      lampiranPage: undefined,
     }));
     toast.info("Form telah dikosongkan.");
   };
 
   // Reset template
   const handleResetTemplate = () => {
+    setExpandedTableTarget(null);
     setData(getDefaultDataForTemplate(activeTemplate));
     toast.info(`Template di-reset ke format baku ${activeTemplate.replace("_", " ").toUpperCase()}.`);
   };
 
   const activeTabMeta = ALL_TEMPLATES.find((t) => t.id === activeTemplate) || ALL_TEMPLATES[0];
+
+  const renderParagrafBlocksCard = (scope: EditorTab, cardTitle: string) => {
+    const pList = scope === "lampiran" ? lampiranData?.paragraf || [] : data.paragraf || [];
+    const isMainScope = scope === "main";
+    const labelContext = isMainScope ? "Batang Tubuh" : "Isi Lampiran";
+
+    return (
+      <div
+        className={cn(
+          "rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-0 shadow-xs",
+          !isMainScope && "lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto"
+        )}
+      >
+        {/* Sticky Top Toolbar */}
+        <div
+          className={cn(
+            "sticky z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md p-4 rounded-t-3xl border-b border-slate-200/70 dark:border-zinc-800 flex flex-col gap-2",
+            isMainScope ? "top-2" : "top-2 lg:top-0"
+          )}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+              <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+              {cardTitle}
+            </h2>
+            <InlineFormatButtons
+              compact
+              labelContext={labelContext}
+              onTrigger={(f) => triggerSectionFormat("body", f)}
+            />
+          </div>
+          <div className="flex items-center flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("plain", undefined, scope)}
+              className="kpg-secondary h-7 text-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah paragraf biasa ke akhir"
+            >
+              <Plus className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+              Paragraf
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("romanUpper", undefined, scope)}
+              className="h-7 text-xs border-blue-300 text-blue-800 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-200 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-bold rounded-lg"
+              title="Tambah Bab Romawi Besar (I., II., III., ...) tebal ke akhir"
+            >
+              + Bab I.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("letterUpper", undefined, scope)}
+              className="h-7 text-xs border-teal-300 text-teal-800 bg-teal-50/80 hover:bg-teal-100 dark:border-teal-700/80 dark:text-teal-200 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 shadow-xs p-1 px-2 gap-1 font-bold rounded-lg"
+              title="Tambah Sub-Bab Huruf Kapital (A., B., C., ...) tebal ke akhir"
+            >
+              + Sub A.
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => handleInsertPoint("num", undefined, scope)}
+              className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
+            >
+              <ListOrdered className="w-3.5 h-3.5 text-[color:var(--ds-accent-on-solid)]/80" />
+              + Poin 1.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("letter", undefined, scope)}
+              className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
+            >
+              + Sub a.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("roman", undefined, scope)}
+              className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-700/80 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
+            >
+              + Butir i.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("bracket", undefined, scope)}
+              className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-300 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
+            >
+              + Butir 1)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("rincian", undefined, scope)}
+              className="h-7 text-xs border-teal-200 text-teal-800 bg-teal-50/80 hover:bg-teal-100 dark:border-teal-700/80 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah blok rincian (Hari/Tanggal, Tempat, Agenda, dll.)"
+            >
+              <Calendar className="w-3 h-3" />
+              + Rincian
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("table", undefined, scope)}
+              className="h-7 text-xs border-sky-200 text-sky-800 bg-sky-50/80 hover:bg-sky-100 dark:border-sky-700/80 dark:text-sky-300 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah blok tabel bebas (default: No, Nama, Keterangan)"
+            >
+              <Table2 className="w-3 h-3" />
+              + Tabel
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSmartPaste(!showSmartPaste)}
+              className="kpg-secondary h-7 text-xs p-1 px-3 gap-1 font-semibold rounded-lg"
+              title="Tempel teks utuh naskah dinas bertingkat"
+            >
+              <ClipboardPaste className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+              Tempel Teks Utuh
+            </Button>
+          </div>
+        </div>
+
+        {/* Body Card Wrapper */}
+        <div className="p-4 space-y-3">
+        {/* Smart Paste Drawer */}
+        {showSmartPaste && (
+          <div className="p-3 bg-slate-50/70 dark:bg-zinc-950/60 border border-[var(--ds-accent-soft-border)] rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-2">
+                <ClipboardPaste className="w-3.5 h-3.5" />
+                Tempel &amp; Parse Naskah Dinas Bertingkat Otomatis
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowSmartPaste(false)}
+                className="text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-xs text-[var(--ds-fg-muted)] leading-normal">
+              Salin teks nota dinas/undangan/edaran/TOR utuh (termasuk kalimat pembuka, Bab I. / Sub A., poin 1., sub a., butir i. / 1), rincian Hari/Tanggal : ... / Tempat : ... / Agenda : ..., tabel Excel/Word bertab, dan penutup). Sistem otomatis memecah dan menata hierarki serta tabel secara presisi.
+            </p>
+            <Textarea
+              value={smartPasteText}
+              onChange={(e) => setSmartPasteText(e.target.value)}
+              rows={6}
+              placeholder="Tempel teks di sini..."
+              className="text-xs font-mono bg-[var(--ds-surface)] leading-relaxed rounded-lg"
+            />
+            <div className="flex items-center justify-between pt-1">
+              {isMainScope ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
+                    handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT, scope);
+                  }}
+                  className="h-7 text-xs bg-[var(--ds-surface-raised)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium rounded-lg"
+                  title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
+                >
+                  <Sparkles className="w-3 h-3 text-[var(--ds-accent-fg)]" />
+                  Muat Contoh Simata BKN (31 Butir)
+                </Button>
+              ) : (
+                <span />
+              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSmartPaste(false)}
+                  className="h-7 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-lg"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => handleApplySmartPaste(undefined, scope)}
+                  className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold gap-1 rounded-lg"
+                >
+                  <FileCheck className="w-3 h-3" />
+                  Terapkan ke {isMainScope ? "Dokumen" : "Lampiran"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div
+          ref={(el) => { sectionContainerRefs.current.body = el; }}
+          className="space-y-2 text-xs"
+        >
+          {pList.map((pItem, idx) => {
+            const isRincian = isRincianBlock(pItem);
+            const isTable = isTableBlock(pItem);
+            const isStructured = isRincian || isTable;
+            const prevLvl = getPrevTextPointLevel(pList, idx);
+            const lvl = isStructured ? 0 : detectPointLevel(pItem);
+            const refLvl = isStructured ? prevLvl : lvl;
+            const isPenutup = isMainScope && !isStructured && idx === pList.length - 1 && pList.length > 1;
+            const isPembuka = isMainScope && !isStructured && idx === 0;
+
+            const indentClass = isRincian
+              ? prevLvl >= 2
+                ? "ml-6 sm:ml-10 border-l-2 border-teal-400"
+                : "ml-3 sm:ml-5 border-l-2 border-teal-400"
+              : isTable
+              ? prevLvl >= 2
+                ? "ml-6 sm:ml-10 border-l-2 border-sky-400"
+                : prevLvl === 1
+                ? "ml-3 sm:ml-5 border-l-2 border-sky-400"
+                : ""
+              : lvl === 5
+              ? "border-l-4 border-blue-500"
+              : lvl === 6
+              ? "ml-3 sm:ml-4 border-l-2 border-teal-500"
+              : lvl === 2
+              ? "ml-3 sm:ml-5 border-l-2 border-[var(--ds-accent-soft-border)]"
+              : lvl === 3
+              ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
+              : lvl === 4
+              ? "ml-9 sm:ml-14 border-l-2 border-blue-400"
+              : "";
+
+            return (
+              <div
+                key={idx}
+                className={`relative rounded-lg border p-3 space-y-2 transition-colors ${indentClass} ${
+                  isRincian
+                    ? "border-teal-200 dark:border-teal-800/70 bg-teal-50/30 dark:bg-teal-950/20"
+                    : isTable
+                    ? "border-sky-200 dark:border-sky-800/70 bg-sky-50/30 dark:bg-sky-950/20"
+                    : isPenutup
+                    ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
+                    : lvl === 5
+                    ? "border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30"
+                    : lvl === 6
+                    ? "border-teal-300 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/25"
+                    : lvl === 1
+                    ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]/50"
+                    : lvl === 2
+                    ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20"
+                    : lvl === 3
+                    ? "border-blue-200 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/20"
+                    : lvl === 4
+                    ? "border-zinc-300 dark:border-zinc-700 bg-zinc-100/50 dark:bg-zinc-800/40"
+                    : "border-slate-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
+                }`}
+              >
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-[var(--ds-fg-secondary)]">
+                      {idx + 1}.
+                    </span>
+                    {isRincian ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-700/80 dark:bg-teal-950/60 dark:text-teal-300 flex items-center gap-1 rounded-lg">
+                        <Calendar className="w-3 h-3" />
+                        Blok Rincian / Jadwal
+                      </Badge>
+                    ) : isTable ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700/80 dark:bg-sky-950/60 dark:text-sky-300 flex items-center gap-1 rounded-lg">
+                        <Table2 className="w-3 h-3" />
+                        Blok Tabel ({pItem.headers.length}×{pItem.rows.length})
+                      </Badge>
+                    ) : isPenutup ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-300 rounded-lg">
+                        Penutup (Bawah)
+                      </Badge>
+                    ) : lvl === 5 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-200 rounded-lg">
+                        Bab Utama (I.)
+                      </Badge>
+                    ) : lvl === 6 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-800/80 dark:bg-teal-950/60 dark:text-teal-200 rounded-lg">
+                        Sub-Bab (A.)
+                      </Badge>
+                    ) : lvl === 1 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center gap-1 rounded-lg">
+                        <ListOrdered className="w-2.5 h-2.5" />
+                        Poin Utama (Tingkat 1)
+                      </Badge>
+                    ) : lvl === 2 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/60 dark:text-amber-300 rounded-lg">
+                        Sub-Poin (Tingkat 2)
+                      </Badge>
+                    ) : lvl === 3 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300 rounded-lg">
+                        Sub-Butir (Tingkat 3)
+                      </Badge>
+                    ) : lvl === 4 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 rounded-lg">
+                        Sub-Butir (Tingkat 4)
+                      </Badge>
+                    ) : isPembuka ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-zinc-600 border-zinc-200 bg-white dark:text-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/80 rounded-lg">
+                        Pembuka
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-blue-700 border-blue-200 bg-blue-50/70 dark:text-blue-300 dark:border-blue-800/80 dark:bg-blue-950/50 rounded-lg">
+                        Paragraf Biasa
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Reorder, Insert Below, Quick Level Switchers & Delete */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveParagraph(idx, -1, scope)}
+                      disabled={idx === 0}
+                      className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                      title="Geser ke atas"
+                      aria-label={`Geser butir ${idx + 1} ke atas`}
+                    >
+                      <ArrowUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveParagraph(idx, 1, scope)}
+                      disabled={idx === pList.length - 1}
+                      className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors mr-1"
+                      title="Geser ke bawah"
+                      aria-label={`Geser butir ${idx + 1} ke bawah`}
+                    >
+                      <ArrowDown className="w-3 h-3" />
+                    </button>
+
+                    {!isPenutup && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/40 border border-[var(--ds-accent-soft-border)] px-2 py-1 rounded-lg transition-colors cursor-pointer mr-1"
+                            title="Sisipkan butir baru tepat di bawah ini"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Sisipkan</span>
+                            <ChevronDown className="w-3 h-3 opacity-60" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          data-module="persuratan"
+                          align="end"
+                          className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-1 z-50 text-xs"
+                        >
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleInsertPoint(
+                                refLvl === 5
+                                  ? "letterUpper"
+                                  : refLvl === 6
+                                    ? "num"
+                                    : refLvl === 1
+                                      ? "letter"
+                                      : refLvl === 2
+                                        ? "roman"
+                                        : refLvl === 3
+                                          ? "bracket"
+                                          : "num",
+                                idx + 1,
+                                scope
+                              )
+                            }
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
+                          >
+                            <span>↳ + Sub-Butir Anak</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleInsertPoint(
+                                refLvl === 5
+                                  ? "romanUpper"
+                                  : refLvl === 6
+                                    ? "letterUpper"
+                                    : refLvl === 1
+                                      ? "num"
+                                      : refLvl === 2
+                                        ? "letter"
+                                        : refLvl === 3
+                                          ? "roman"
+                                          : refLvl === 4
+                                            ? "bracket"
+                                            : "plain",
+                                idx + 1,
+                                scope
+                              )
+                            }
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium"
+                          >
+                            <span>= + Poin Setara</span>
+                          </DropdownMenuItem>
+                          <div className="my-1 border-t border-slate-200/70 dark:border-zinc-800" />
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("romanUpper", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-blue-700 dark:text-blue-300 w-4">I.</span> Bab (Romawi Besar)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("letterUpper", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-teal-700 dark:text-teal-300 w-4">A.</span> Sub-Bab (Huruf Kapital)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("num", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-[var(--ds-accent-fg)] w-4">1.</span> Poin Utama
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("letter", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">a.</span> Sub-Poin Huruf
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("roman", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">i.</span> Butir Romawi
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("bracket", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-blue-600 dark:text-blue-400 w-4">1)</span> Butir Kurung
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("plain", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-xs"
+                          >
+                            <span className="font-mono w-4">¶</span> Paragraf Biasa
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("rincian", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-teal-50 dark:hover:bg-teal-950/50 text-teal-800 dark:text-teal-300 font-semibold text-xs"
+                          >
+                            <Calendar className="w-3 h-3 shrink-0" />
+                            Rincian (Hari/Tempat/Agenda)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("table", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-sky-50 dark:hover:bg-sky-950/50 text-sky-800 dark:text-sky-300 font-semibold text-xs"
+                          >
+                            <Table2 className="w-3 h-3 shrink-0" />
+                            Tabel (No / Nama / Keterangan)
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+
+                    {!isStructured && typeof pItem === "string" && (
+                      <>
+                        <span className="text-xs text-[var(--ds-fg-muted)]">Level:</span>
+                        {LEVEL_SWITCH_CONTROLS.map((ctrl) => {
+                          const active = ctrl.isActive(lvl, pItem);
+                          return (
+                            <button
+                              key={ctrl.level}
+                              type="button"
+                              onClick={() => handleChangeParagraphLevel(idx, ctrl.level, scope)}
+                              className={cn(
+                                "text-xs px-2 py-1 rounded-lg border transition-colors",
+                                active
+                                  ? ctrl.activeClass
+                                  : cn("text-zinc-600 dark:text-zinc-400 border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
+                              )}
+                              title={ctrl.title}
+                            >
+                              {ctrl.label}
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+
+                    {!isPenutup && pList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveParagraph(idx, scope)}
+                        className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 ml-1 rounded-lg transition-colors"
+                        title="Hapus butir ini"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {isRincian ? (
+                  <div className="space-y-2">
+                    <div className="space-y-2">
+                      {pItem.items.map((row, rIdx) => (
+                        <div key={rIdx} className="flex items-start gap-1">
+                          <Input
+                            value={row.label}
+                            onChange={(e) => handleUpdateRincianRow(idx, rIdx, "label", e.target.value, scope)}
+                            {...bindSectionFormat("body", (v) =>
+                              handleUpdateRincianRow(idx, rIdx, "label", v, scope)
+                            )}
+                            placeholder="Label (mis: Hari/Tanggal)"
+                            aria-label={`Label rincian baris ${rIdx + 1}`}
+                            className="w-24 sm:w-28 shrink-0 h-8 text-xs font-semibold bg-white dark:bg-zinc-900 rounded-lg"
+                          />
+                          <span className="pt-2 px-1 text-xs font-bold text-[var(--ds-fg-muted)] select-none">:</span>
+                          <Textarea
+                            data-paragraf-focus={rIdx === 0 ? idx : undefined}
+                            value={row.value}
+                            onChange={(e) => handleUpdateRincianRow(idx, rIdx, "value", e.target.value, scope)}
+                            {...bindSectionFormat("body", (v) =>
+                              handleUpdateRincianRow(idx, rIdx, "value", v, scope)
+                            )}
+                            rows={Math.min(5, Math.max(1, row.value.split("\n").length))}
+                            placeholder="Isi rincian (tekan Enter untuk alamat/uraian multi-baris)..."
+                            aria-label={`Isi ${row.label || `rincian baris ${rIdx + 1}`}`}
+                            className="flex-1 min-w-0 min-h-8 py-1 text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRincianRow(idx, rIdx, scope)}
+                            disabled={pItem.items.length <= 1}
+                            className="mt-1 p-1 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                            title="Hapus baris rincian"
+                            aria-label={`Hapus baris rincian ${rIdx + 1}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center flex-wrap gap-1 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddRincianRow(idx, "", scope)}
+                        className="h-7 text-xs px-2 py-1 gap-1 rounded-lg border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white dark:bg-zinc-900 hover:bg-teal-50 dark:hover:bg-teal-950/60"
+                      >
+                        <Plus className="w-3 h-3" />
+                        Baris
+                      </Button>
+                      {RINCIAN_QUICK_PRESETS.filter(
+                        (preset) =>
+                          !pItem.items.some(
+                            (r) => r.label.trim().toLowerCase() === preset.toLowerCase()
+                          )
+                      ).map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => handleAddRincianRow(idx, preset, scope)}
+                          className="h-7 text-xs px-2 py-1 rounded-lg border border-dashed border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white/80 dark:bg-zinc-900/60 hover:bg-teal-50 dark:hover:bg-teal-950/60 transition-colors"
+                        >
+                          + {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : isTable ? (
+                  <TabelBlockEditor
+                    block={pItem}
+                    {...buildTableEditorProps(idx, scope)}
+                    onOpenExpand={() => setExpandedTableTarget({ scope, idx })}
+                  />
+                ) : typeof pItem === "string" ? (
+                  <Textarea
+                    data-paragraf-focus={idx}
+                    value={pItem}
+                    onChange={(e) => handleParagraphChange(idx, e.target.value, scope)}
+                    {...bindSectionFormat("body", (v) => handleParagraphChange(idx, v, scope))}
+                    rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
+                    placeholder={
+                      isPenutup
+                        ? "Tulis isi penutup naskah..."
+                        : lvl === 1
+                        ? "Tulis isi poin utama..."
+                        : lvl === 2
+                        ? "Tulis isi sub-poin..."
+                        : lvl === 3
+                        ? "Tulis isi butir..."
+                        : isMainScope
+                        ? "Tulis isi paragraf..."
+                        : "Tulis isi lampiran..."
+                    }
+                    className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
+                  />
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
@@ -1299,7 +2036,52 @@ function GenerateSuratDinasContent() {
       {/* Main Split Layout: Form Left, Preview Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: Editor Form (5 cols on lg) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 lg:self-stretch">
+          {/* Tab Switcher: Naskah Utama vs Halaman Lampiran */}
+          <div
+            role="tablist"
+            aria-label="Bagian Naskah Dinas"
+            className="flex items-center gap-1 p-1 rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={editorTab === "main"}
+              onClick={() => handleSwitchEditorTab("main")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
+                editorTab === "main"
+                  ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
+                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+              )}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Naskah Utama</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={editorTab === "lampiran"}
+              onClick={() => handleSwitchEditorTab("lampiran")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
+                editorTab === "lampiran"
+                  ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
+                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+              )}
+            >
+              <Paperclip className="w-3.5 h-3.5" />
+              <span>Lampiran</span>
+              {hasLampiran && (
+                <span className="px-2 py-0 rounded-full text-xs font-bold bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]">
+                  Aktif
+                </span>
+              )}
+            </button>
+          </div>
+
+          {editorTab === "main" ? (
+            <>
           {/* Card 1: Metadata Surat */}
           <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
             <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
@@ -1949,529 +2731,9 @@ function GenerateSuratDinasContent() {
           </div>
 
           {/* Card 3: Paragraf Isi */}
-          {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
-            <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
-              {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
-              <div className="sticky top-2 z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-3xl border-b border-slate-200/70 dark:border-zinc-800 flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
-                    <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
-                    3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
-                  </h2>
-                  <InlineFormatButtons
-                    compact
-                    labelContext="Batang Tubuh"
-                    onTrigger={(f) => triggerSectionFormat("body", f)}
-                  />
-                </div>
-                <div className="flex items-center flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("plain")}
-                    className="kpg-secondary h-7 text-xs p-1 px-2 gap-1 font-semibold rounded-lg"
-                    title="Tambah paragraf biasa ke akhir"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
-                    Paragraf
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    onClick={() => handleInsertPoint("num")}
-                    className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
-                    title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
-                  >
-                    <ListOrdered className="w-3.5 h-3.5 text-[color:var(--ds-accent-on-solid)]/80" />
-                    + Poin 1.
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("letter")}
-                    className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
-                    title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
-                  >
-                    + Sub a.
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("roman")}
-                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-700/80 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
-                    title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
-                  >
-                    + Butir i.
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("bracket")}
-                    className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-300 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
-                    title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
-                  >
-                    + Butir 1)
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("rincian")}
-                    className="h-7 text-xs border-teal-200 text-teal-800 bg-teal-50/80 hover:bg-teal-100 dark:border-teal-700/80 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
-                    title="Tambah blok rincian (Hari/Tanggal, Tempat, Agenda, dll.)"
-                  >
-                    <Calendar className="w-3 h-3" />
-                    + Rincian
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("table")}
-                    className="h-7 text-xs border-sky-200 text-sky-800 bg-sky-50/80 hover:bg-sky-100 dark:border-sky-700/80 dark:text-sky-300 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
-                    title="Tambah blok tabel bebas (default: No, Nama, Keterangan)"
-                  >
-                    <Table2 className="w-3 h-3" />
-                    + Tabel
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowSmartPaste(!showSmartPaste)}
-                    className="kpg-secondary h-7 text-xs p-1 px-3 gap-1 font-semibold rounded-lg"
-                    title="Tempel teks utuh naskah dinas bertingkat"
-                  >
-                    <ClipboardPaste className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
-                    Tempel Teks Utuh
-                  </Button>
-                </div>
-              </div>
-
-              {/* Smart Paste Drawer */}
-              {showSmartPaste && (
-                <div className="p-3 bg-slate-50/70 dark:bg-zinc-950/60 border border-[var(--ds-accent-soft-border)] rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-2">
-                      <ClipboardPaste className="w-3.5 h-3.5" />
-                      Tempel & Parse Naskah Dinas Bertingkat Otomatis
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowSmartPaste(false)}
-                      className="text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <p className="text-xs text-[var(--ds-fg-muted)] leading-normal">
-                    Salin teks nota dinas/undangan/edaran utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), rincian Hari/Tanggal : ... / Tempat : ... / Agenda : ..., tabel Excel/Word bertab, dan penutup). Sistem otomatis memecah dan menata hierarki serta tabel secara presisi.
-                  </p>
-                  <Textarea
-                    value={smartPasteText}
-                    onChange={(e) => setSmartPasteText(e.target.value)}
-                    rows={6}
-                    placeholder="Tempel teks nota dinas di sini..."
-                    className="text-xs font-mono bg-[var(--ds-surface)] leading-relaxed rounded-lg"
-                  />
-                  <div className="flex items-center justify-between pt-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
-                        handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT);
-                      }}
-                      className="h-7 text-xs bg-[var(--ds-surface-raised)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium rounded-lg"
-                      title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
-                    >
-                      <Sparkles className="w-3 h-3 text-[var(--ds-accent-fg)]" />
-                      Muat Contoh Simata BKN (31 Butir)
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowSmartPaste(false)}
-                        className="h-7 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-lg"
-                      >
-                        Batal
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => handleApplySmartPaste()}
-                        className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold gap-1 rounded-lg"
-                      >
-                        <FileCheck className="w-3 h-3" />
-                        Terapkan ke Dokumen
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div
-                ref={(el) => { sectionContainerRefs.current.body = el; }}
-                className="space-y-2 text-xs"
-              >
-                {(data.paragraf || []).map((pItem, idx) => {
-                  const pList = data.paragraf || [];
-                  const isRincian = isRincianBlock(pItem);
-                  const isTable = isTableBlock(pItem);
-                  const isStructured = isRincian || isTable;
-                  const prevLvl = getPrevTextPointLevel(pList, idx);
-                  const lvl = isStructured ? 0 : detectPointLevel(pItem);
-                  const refLvl = isStructured ? prevLvl : lvl;
-                  const isPenutup = !isStructured && idx === pList.length - 1 && pList.length > 1;
-                  const isPembuka = !isStructured && idx === 0;
-
-                  const indentClass = isRincian
-                    ? prevLvl >= 2
-                      ? "ml-6 sm:ml-10 border-l-2 border-teal-400"
-                      : "ml-3 sm:ml-5 border-l-2 border-teal-400"
-                    : isTable
-                    ? prevLvl >= 2
-                      ? "ml-6 sm:ml-10 border-l-2 border-sky-400"
-                      : prevLvl === 1
-                      ? "ml-3 sm:ml-5 border-l-2 border-sky-400"
-                      : ""
-                    : lvl === 2
-                    ? "ml-3 sm:ml-5 border-l-2 border-[var(--ds-accent-soft-border)]"
-                    : lvl === 3
-                    ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
-                    : lvl === 4
-                    ? "ml-9 sm:ml-14 border-l-2 border-blue-400"
-                    : "";
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`relative rounded-lg border p-3 space-y-2 transition-colors ${indentClass} ${
-                        isRincian
-                          ? "border-teal-200 dark:border-teal-800/70 bg-teal-50/30 dark:bg-teal-950/20"
-                          : isTable
-                          ? "border-sky-200 dark:border-sky-800/70 bg-sky-50/30 dark:bg-sky-950/20"
-                          : isPenutup
-                          ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
-                          : lvl === 1
-                          ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]/50"
-                          : lvl === 2
-                          ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20"
-                          : lvl === 3
-                          ? "border-blue-200 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/20"
-                          : lvl === 4
-                          ? "border-zinc-300 dark:border-zinc-700 bg-zinc-100/50 dark:bg-zinc-800/40"
-                          : "border-slate-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between flex-wrap gap-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-[var(--ds-fg-secondary)]">
-                            {idx + 1}.
-                          </span>
-                          {isRincian ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-700/80 dark:bg-teal-950/60 dark:text-teal-300 flex items-center gap-1 rounded-lg">
-                              <Calendar className="w-3 h-3" />
-                              Blok Rincian / Jadwal
-                            </Badge>
-                          ) : isTable ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700/80 dark:bg-sky-950/60 dark:text-sky-300 flex items-center gap-1 rounded-lg">
-                              <Table2 className="w-3 h-3" />
-                              Blok Tabel ({pItem.headers.length}×{pItem.rows.length})
-                            </Badge>
-                          ) : isPenutup ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-300 rounded-lg">
-                              Penutup (Bawah)
-                            </Badge>
-                          ) : lvl === 1 ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center gap-1 rounded-lg">
-                              <ListOrdered className="w-2.5 h-2.5" />
-                              Poin Utama (Tingkat 1)
-                            </Badge>
-                          ) : lvl === 2 ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/60 dark:text-amber-300 rounded-lg">
-                              Sub-Poin (Tingkat 2)
-                            </Badge>
-                          ) : lvl === 3 ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300 rounded-lg">
-                              Sub-Butir (Tingkat 3)
-                            </Badge>
-                          ) : lvl === 4 ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 rounded-lg">
-                              Sub-Butir (Tingkat 4)
-                            </Badge>
-                          ) : isPembuka ? (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-zinc-600 border-zinc-200 bg-white dark:text-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/80 rounded-lg">
-                              Pembuka
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-blue-700 border-blue-200 bg-blue-50/70 dark:text-blue-300 dark:border-blue-800/80 dark:bg-blue-950/50 rounded-lg">
-                              Paragraf Biasa
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Reorder, Insert Below, Quick Level Switchers & Delete */}
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => handleMoveParagraph(idx, -1)}
-                            disabled={idx === 0}
-                            className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                            title="Geser ke atas"
-                            aria-label={`Geser butir ${idx + 1} ke atas`}
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveParagraph(idx, 1)}
-                            disabled={idx === pList.length - 1}
-                            className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors mr-1"
-                            title="Geser ke bawah"
-                            aria-label={`Geser butir ${idx + 1} ke bawah`}
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </button>
-
-                          {/* Mini Dropdown: + Sisipkan Tepat di Bawah Butir Ini */}
-                          {!isPenutup && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/40 border border-[var(--ds-accent-soft-border)] px-2 py-1 rounded-lg transition-colors cursor-pointer mr-1"
-                                  title="Sisipkan butir baru tepat di bawah ini"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                  <span>Sisipkan</span>
-                                  <ChevronDown className="w-3 h-3 opacity-60" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                data-module="persuratan"
-                                align="end"
-                                className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-1 z-50 text-xs"
-                              >
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleInsertPoint(
-                                      refLvl === 1 ? "letter" : refLvl === 2 ? "roman" : refLvl === 3 ? "bracket" : "num",
-                                      idx + 1
-                                    )
-                                  }
-                                  className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
-                                >
-                                  <span>↳ + Sub-Butir Anak</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    handleInsertPoint(
-                                      refLvl === 1 ? "num" : refLvl === 2 ? "letter" : refLvl === 3 ? "roman" : refLvl === 4 ? "bracket" : "plain",
-                                      idx + 1
-                                    )
-                                  }
-                                  className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium"
-                                >
-                                  <span>= + Poin Setara</span>
-                                </DropdownMenuItem>
-                                <div className="my-1 border-t border-slate-200/70 dark:border-zinc-800" />
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("num", idx + 1)}
-                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
-                                >
-                                  <span className="font-mono font-bold text-[var(--ds-accent-fg)] w-4">1.</span> Poin Utama
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("letter", idx + 1)}
-                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
-                                >
-                                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">a.</span> Sub-Poin Huruf
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("roman", idx + 1)}
-                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
-                                >
-                                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">i.</span> Butir Romawi
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
-                                >
-                                  <span className="font-mono font-bold text-blue-600 dark:text-blue-400 w-4">1)</span> Butir Kurung
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("plain", idx + 1)}
-                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-xs"
-                                >
-                                  <span className="font-mono w-4">¶</span> Paragraf Biasa
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("rincian", idx + 1)}
-                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-teal-50 dark:hover:bg-teal-950/50 text-teal-800 dark:text-teal-300 font-semibold text-xs"
-                                >
-                                  <Calendar className="w-3 h-3 shrink-0" />
-                                  Rincian (Hari/Tempat/Agenda)
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("table", idx + 1)}
-                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-sky-50 dark:hover:bg-sky-950/50 text-sky-800 dark:text-sky-300 font-semibold text-xs"
-                                >
-                                  <Table2 className="w-3 h-3 shrink-0" />
-                                  Tabel (No / Nama / Keterangan)
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-
-                          {!isStructured && typeof pItem === "string" && (
-                            <>
-                              <span className="text-xs text-[var(--ds-fg-muted)]">Level:</span>
-                              {LEVEL_SWITCH_CONTROLS.map((ctrl) => {
-                                const active = ctrl.isActive(lvl, pItem);
-                                return (
-                                  <button
-                                    key={ctrl.level}
-                                    type="button"
-                                    onClick={() => handleChangeParagraphLevel(idx, ctrl.level)}
-                                    className={cn(
-                                      "text-xs px-2 py-1 rounded-lg border transition-colors",
-                                      active
-                                        ? ctrl.activeClass
-                                        : cn("text-zinc-600 dark:text-zinc-400 border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
-                                    )}
-                                    title={ctrl.title}
-                                  >
-                                    {ctrl.label}
-                                  </button>
-                                );
-                              })}
-                            </>
-                          )}
-
-                          {!isPenutup && pList.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveParagraph(idx)}
-                              className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 ml-1 rounded-lg transition-colors"
-                              title="Hapus butir ini"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {isRincian ? (
-                        <div className="space-y-2">
-                          <div className="space-y-2">
-                            {pItem.items.map((row, rIdx) => (
-                              <div key={rIdx} className="flex items-start gap-1">
-                                <Input
-                                  value={row.label}
-                                  onChange={(e) => handleUpdateRincianRow(idx, rIdx, "label", e.target.value)}
-                                  {...bindSectionFormat("body", (v) =>
-                                    handleUpdateRincianRow(idx, rIdx, "label", v)
-                                  )}
-                                  placeholder="Label (mis: Hari/Tanggal)"
-                                  aria-label={`Label rincian baris ${rIdx + 1}`}
-                                  className="w-24 sm:w-28 shrink-0 h-8 text-xs font-semibold bg-white dark:bg-zinc-900 rounded-lg"
-                                />
-                                <span className="pt-2 px-1 text-xs font-bold text-[var(--ds-fg-muted)] select-none">:</span>
-                                <Textarea
-                                  data-paragraf-focus={rIdx === 0 ? idx : undefined}
-                                  value={row.value}
-                                  onChange={(e) => handleUpdateRincianRow(idx, rIdx, "value", e.target.value)}
-                                  {...bindSectionFormat("body", (v) =>
-                                    handleUpdateRincianRow(idx, rIdx, "value", v)
-                                  )}
-                                  rows={Math.min(5, Math.max(1, row.value.split("\n").length))}
-                                  placeholder="Isi rincian (tekan Enter untuk alamat/uraian multi-baris)..."
-                                  aria-label={`Isi ${row.label || `rincian baris ${rIdx + 1}`}`}
-                                  className="flex-1 min-w-0 min-h-8 py-1 text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveRincianRow(idx, rIdx)}
-                                  disabled={pItem.items.length <= 1}
-                                  className="mt-1 p-1 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                  title="Hapus baris rincian"
-                                  aria-label={`Hapus baris rincian ${rIdx + 1}`}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex items-center flex-wrap gap-1 pt-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAddRincianRow(idx, "")}
-                              className="h-7 text-xs px-2 py-1 gap-1 rounded-lg border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white dark:bg-zinc-900 hover:bg-teal-50 dark:hover:bg-teal-950/60"
-                            >
-                              <Plus className="w-3 h-3" />
-                              Baris
-                            </Button>
-                            {RINCIAN_QUICK_PRESETS.filter(
-                              (preset) =>
-                                !pItem.items.some(
-                                  (r) => r.label.trim().toLowerCase() === preset.toLowerCase()
-                                )
-                            ).map((preset) => (
-                              <button
-                                key={preset}
-                                type="button"
-                                onClick={() => handleAddRincianRow(idx, preset)}
-                                className="h-7 text-xs px-2 py-1 rounded-lg border border-dashed border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white/80 dark:bg-zinc-900/60 hover:bg-teal-50 dark:hover:bg-teal-950/60 transition-colors"
-                              >
-                                + {preset}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : isTable ? (
-                        <TabelBlockEditor
-                          block={pItem}
-                          {...buildTableEditorProps(idx)}
-                          onOpenExpand={() => setExpandedTableIdx(idx)}
-                        />
-                      ) : typeof pItem === "string" ? (
-                        <Textarea
-                          data-paragraf-focus={idx}
-                          value={pItem}
-                          onChange={(e) => handleParagraphChange(idx, e.target.value)}
-                          {...bindSectionFormat("body", (v) => handleParagraphChange(idx, v))}
-                          rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
-                          placeholder={
-                            isPenutup
-                              ? "Tulis isi penutup naskah..."
-                              : lvl === 1
-                              ? `Tulis isi poin utama...`
-                              : lvl === 2
-                              ? `Tulis isi sub-poin...`
-                              : lvl === 3
-                              ? `Tulis isi butir...`
-                              : `Tulis isi paragraf...`
-                          }
-                          className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
-                        />
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {activeTemplate !== "surat_pengantar" &&
+            activeTemplate !== "surat_izin_cuti" &&
+            renderParagrafBlocksCard("main", `3. Batang Tubuh / Isi (${(data.paragraf || []).length} Butir)`)}
 
           {/* Card 4: Penandatangan */}
           <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
@@ -2792,6 +3054,217 @@ function GenerateSuratDinasContent() {
               Buka Surat Keluar &rarr;
             </Link>
           </div>
+            </>
+          ) : !hasLampiran ? (
+                <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
+                  <div className="flex items-start gap-3">
+                    <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+                      <Paperclip className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <h2 className="text-sm font-bold text-[var(--ds-fg)]">
+                        Halaman Lampiran (Halaman Baru)
+                      </h2>
+                      <p className="text-xs text-[var(--ds-fg-muted)] leading-normal">
+                        Tambahkan halaman lampiran terpisah tanpa Kop Surat. Nomor dan Tanggal otomatis mengikuti <strong>1. Identitas &amp; Meta Dokumen</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3 space-y-1 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[var(--ds-fg-muted)]">Default Judul Header:</span>
+                      <span className="font-semibold text-[var(--ds-fg)]">{defaultLampiranTitle}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[var(--ds-fg-muted)]">Nomor Naskah:</span>
+                      <span className="font-mono text-[var(--ds-fg)]">{data.nomor || "-"}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[var(--ds-fg-muted)]">Tanggal Naskah:</span>
+                      <span className="text-[var(--ds-fg)]">{data.kotaTanggal || "-"}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddLampiran}
+                    className="w-full h-9 rounded-lg text-xs font-semibold gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tambah Halaman Lampiran
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Card 1: Kepala & Tata Letak Lampiran */}
+                  <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+                        <Paperclip className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                        1. Kepala &amp; Tata Letak Lampiran
+                      </h2>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemoveLampiran}
+                        className="h-7 px-2 rounded-lg text-xs gap-1 border-slate-200/80 dark:border-zinc-800 text-[var(--ds-status-danger-fg)] hover:bg-red-50 dark:hover:bg-red-950/30"
+                        title="Hapus halaman lampiran"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Hapus Lampiran
+                      </Button>
+                    </div>
+
+                    {/* Sync Info Nomor & Tanggal */}
+                    <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3 space-y-1 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-[var(--ds-fg-secondary)]">
+                          Sinkron dari 1. Identitas &amp; Meta Dokumen
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSwitchEditorTab("main")}
+                          className="text-xs font-semibold text-[var(--ds-accent-fg)] hover:underline cursor-pointer"
+                        >
+                          Ubah Meta &rarr;
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 gap-1 pt-1 text-[var(--ds-fg)]">
+                        <div>
+                          <span className="text-[var(--ds-fg-muted)]">Nomor: </span>
+                          <span className="font-mono font-medium">{data.nomor || "-"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[var(--ds-fg-muted)]">Tanggal: </span>
+                          <span>{data.kotaTanggal || "-"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Orientasi Kertas */}
+                    <div className="space-y-2 text-xs">
+                      <label className="font-semibold text-[var(--ds-fg-secondary)] block">
+                        Orientasi Halaman Lampiran
+                      </label>
+                      <div className="flex items-center gap-1 p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-950/60">
+                        {(["portrait", "landscape"] as LampiranOrientation[]).map((ori) => {
+                          const active = (lampiranData?.orientation || "portrait") === ori;
+                          return (
+                            <button
+                              key={ori}
+                              type="button"
+                              aria-pressed={active}
+                              onClick={() => updateLampiranField("orientation", ori)}
+                              className={cn(
+                                "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                                active
+                                  ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
+                                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+                              )}
+                            >
+                              {ori === "portrait" ? "A4 Portrait" : "A4 Landscape"}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Judul Header Lampiran (Kanan Atas) */}
+                    <div
+                      ref={(el) => { sectionContainerRefs.current.lampiranHeader = el; }}
+                      className="space-y-1 text-xs"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <label className="font-semibold text-[var(--ds-fg-secondary)]">
+                          Judul Header Lampiran (Kanan Atas)
+                        </label>
+                        <div className="flex items-center gap-1">
+                          {lampiranData?.headerTitle !== defaultLampiranTitle && (
+                            <button
+                              type="button"
+                              onClick={() => updateLampiranField("headerTitle", defaultLampiranTitle)}
+                              className="text-xs px-2 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] bg-[var(--ds-surface)]"
+                              title={`Kembalikan ke "${defaultLampiranTitle}"`}
+                            >
+                              Default
+                            </button>
+                          )}
+                          <InlineFormatButtons
+                            compact
+                            labelContext="Judul Header Lampiran"
+                            onTrigger={(f) => triggerSectionFormat("lampiranHeader", f)}
+                          />
+                        </div>
+                      </div>
+                      <Input
+                        value={lampiranData?.headerTitle ?? defaultLampiranTitle}
+                        onChange={(e) => updateLampiranField("headerTitle", e.target.value)}
+                        {...bindSectionFormat("lampiranHeader", (v) =>
+                          updateLampiranField("headerTitle", v)
+                        )}
+                        placeholder={defaultLampiranTitle}
+                        className="text-xs rounded-lg"
+                      />
+                    </div>
+
+                    {/* Judul Tengah Opsional */}
+                    <div
+                      ref={(el) => { sectionContainerRefs.current.lampiranTitle = el; }}
+                      className="space-y-1 text-xs"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <label className="font-semibold text-[var(--ds-fg-secondary)]">
+                          Judul Tengah Isi Lampiran (Opsional)
+                        </label>
+                        <InlineFormatButtons
+                          compact
+                          labelContext="Judul Tengah Lampiran"
+                          onTrigger={(f) => triggerSectionFormat("lampiranTitle", f)}
+                        />
+                      </div>
+                      <Input
+                        value={lampiranData?.bodyTitle || ""}
+                        onChange={(e) => updateLampiranField("bodyTitle", e.target.value)}
+                        {...bindSectionFormat("lampiranTitle", (v) =>
+                          updateLampiranField("bodyTitle", v)
+                        )}
+                        placeholder="Contoh: SUSUNAN ACARA atau DAFTAR PEJABAT YANG DIUNDANG"
+                        className="text-xs rounded-lg"
+                      />
+                    </div>
+
+                    {/* Toggle Tanda Tangan di Lampiran */}
+                    <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] cursor-pointer text-xs">
+                      <input
+                        type="checkbox"
+                        checked={lampiranData?.showSignature ?? true}
+                        onChange={(e) => updateLampiranField("showSignature", e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded accent-teal-700 cursor-pointer shrink-0"
+                      />
+                      <div className="space-y-1">
+                        <span className="font-semibold text-[var(--ds-fg)] block">
+                          Tampilkan Tanda Tangan (${"{ttd_pengirim}"}) di Lampiran
+                        </span>
+                        <span className="text-[var(--ds-fg-muted)] block leading-normal">
+                          Sinkron dengan <strong>4. Pejabat Penandatangan</strong> ({data.namaPenandatangan || "-"})
+                          {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum")
+                            ? " — tanpa jabatan di atas TTD."
+                            : "."}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Card 2: Isi Halaman Lampiran */}
+                  {renderParagrafBlocksCard(
+                    "lampiran",
+                    `2. Isi Halaman Lampiran (${(lampiranData?.paragraf || []).length} Butir)`
+                  )}
+                </>
+              )}
         </div>
 
         {/* RIGHT COLUMN: Live A4 Preview (7 cols on lg) */}
@@ -2818,7 +3291,7 @@ function GenerateSuratDinasContent() {
             </div>
 
             <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-950/40 p-4 overflow-x-auto">
-              <div className="w-fit mx-auto shadow-xs">
+              <div className={cn("w-fit mx-auto", !hasLampiran && "shadow-xs")}>
                 <SuratDinasDocument data={deferredData} onUpdateField={updateField} />
               </div>
             </div>
@@ -2834,11 +3307,15 @@ function GenerateSuratDinasContent() {
       />
 
       {/* Modal Editor Tabel Lebar Penuh */}
-      {expandedTableIdx !== null && (() => {
-        const activeBlock = (data.paragraf || [])[expandedTableIdx];
+      {expandedTableTarget !== null && (() => {
+        const list =
+          expandedTableTarget.scope === "lampiran"
+            ? lampiranData?.paragraf || []
+            : data.paragraf || [];
+        const activeBlock = list[expandedTableTarget.idx];
         if (!activeBlock || !isTableBlock(activeBlock)) return null;
         return (
-          <Dialog open onOpenChange={(open) => !open && setExpandedTableIdx(null)}>
+          <Dialog open onOpenChange={(open) => !open && setExpandedTableTarget(null)}>
             <DialogContent
               data-module="persuratan"
               className="psr-ui sm:max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-2xl space-y-3"
@@ -2846,7 +3323,7 @@ function GenerateSuratDinasContent() {
               <DialogHeader>
                 <DialogTitle className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2">
                   <Table2 className="w-4 h-4 text-[var(--ds-accent-fg)]" />
-                  Editor Tabel Butir {expandedTableIdx + 1} ({activeBlock.headers.length} Kolom × {activeBlock.rows.length} Baris)
+                  Editor Tabel {expandedTableTarget.scope === "lampiran" ? "Lampiran " : ""}Butir {expandedTableTarget.idx + 1} ({activeBlock.headers.length} Kolom × {activeBlock.rows.length} Baris)
                 </DialogTitle>
                 <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
                   Geser batas pembatas judul kolom untuk mengatur lebar proporsional pada Pratinjau A4, PDF, dan Word.
@@ -2855,13 +3332,13 @@ function GenerateSuratDinasContent() {
               <TabelBlockEditor
                 expanded
                 block={activeBlock}
-                {...buildTableEditorProps(expandedTableIdx)}
+                {...buildTableEditorProps(expandedTableTarget.idx, expandedTableTarget.scope)}
               />
               <div className="flex justify-end pt-1">
                 <Button
                   type="button"
                   size="sm"
-                  onClick={() => setExpandedTableIdx(null)}
+                  onClick={() => setExpandedTableTarget(null)}
                   className="h-8 text-xs px-4 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold"
                 >
                   Selesai
