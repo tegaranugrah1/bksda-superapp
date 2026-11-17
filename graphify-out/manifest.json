@@ -1545,8 +1545,8 @@
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1794867649.6960056,
-    "ast_hash": "4537933023f4cfe28f1f6b5a0d6bc01e",
+    "mtime": 1794872705.3881655,
+    "ast_hash": "9e316d2477a35e22f1193b0c8fdcb65e",
     "semantic_hash": ""
   },
   "frontend/postcss.config.mjs": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794847123.8731835,
-    "ast_hash": "77d82d65dd0174474911d2ada546d7b1",
+    "mtime": 1794873317.5624378,
+    "ast_hash": "c7f63effa8a519cfc33a72f74df1e07b",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794840001.3643582,
-    "ast_hash": "d8a50aca092a104acbf2a27a9c024beb",
+    "mtime": 1794873315.6263518,
+    "ast_hash": "c2aa3a4d402fabd985ca2ca7e7ce1c95",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5390,8 +5390,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/PortalQuickStats.tsx": {
-    "mtime": 1794843234.7030294,
-    "ast_hash": "eba02f3b065809564dcc225e23752807",
+    "mtime": 1794873767.5620115,
+    "ast_hash": "7a24df32ac3c9bf127ada40e275c5bc1",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/SmartPatrolInlineForm.tsx": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794847166.18003,
-    "ast_hash": "86eb5fedd0307b7831819649418e594e",
+    "mtime": 1794873327.5253823,
+    "ast_hash": "084d8eef288d612dde549929f1350105",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {

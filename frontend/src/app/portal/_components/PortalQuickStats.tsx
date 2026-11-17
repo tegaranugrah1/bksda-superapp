@@ -53,24 +53,24 @@ export function PortalQuickStats({
       variants={containerVariants}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"
     >
-      {/* 1. PANGKAT & GOLONGAN */}
+      {/* 1. PANGKAT & GOLONGAN (compact 4-up strip: uses 10px/12px scale inside narrow 2xl:col-span-6 so labels never clip) */}
       <motion.div
         variants={itemVariants}
         whileHover={{ y: -4, transition: { type: "spring", stiffness: 400, damping: 20 } }}
         whileTap={{ scale: 0.98 }}
-        className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs hover:border-[var(--ds-border-control)] transition-colors flex items-start gap-3 select-none"
+        className="bg-[var(--ds-surface)] rounded-2xl border border-slate-200/80 dark:border-zinc-800 p-3 shadow-xs hover:border-[var(--ds-border-control)] transition-colors flex items-start gap-2.5 select-none"
       >
         <div className="p-2 rounded-lg bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] shrink-0 border border-[var(--ds-status-info-border)]">
           <Award className="w-4 h-4" />
         </div>
-        <div className="space-y-1 min-w-0">
-          <p className="text-xs uppercase font-bold tracking-tight text-[var(--ds-fg-muted)] truncate">Pangkat / Golongan</p>
-          <p className="text-sm font-bold text-[var(--ds-fg)] truncate tabular-nums">
+        <div className="space-y-0.5 min-w-0">
+          <p className="text-[10px] leading-tight uppercase font-bold tracking-tight text-[var(--ds-fg-muted)]">Pangkat / Golongan</p>
+          <p className="text-xs leading-snug font-bold text-[var(--ds-fg)] tabular-nums break-words">
             {rank || "-"}
           </p>
-          <p className="text-xs text-[var(--ds-fg-muted)] truncate">
+          <p className="text-[10px] leading-snug text-[var(--ds-fg-muted)]">
             {rank ? "Golongan Aktif" : "Non-PNS / Belum Diatur"}
           </p>
         </div>
@@ -126,17 +126,17 @@ export function PortalQuickStats({
               onSelectTab?.(tab);
             }
           }}
-          className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs hover:border-[var(--ds-border-control)] transition-colors flex items-start gap-3 cursor-pointer select-none"
+          className="bg-[var(--ds-surface)] rounded-2xl border border-slate-200/80 dark:border-zinc-800 p-3 shadow-xs hover:border-[var(--ds-border-control)] transition-colors flex items-start gap-2.5 cursor-pointer select-none"
         >
           <div className={`p-2 rounded-lg shrink-0 border ${iconBoxClass}`}>
             <Icon className="w-4 h-4" />
           </div>
-          <div className="space-y-1 min-w-0">
-            <p className="text-xs uppercase font-bold tracking-tight text-[var(--ds-fg-muted)] truncate">
+          <div className="space-y-0.5 min-w-0">
+            <p className="text-[10px] leading-tight uppercase font-bold tracking-tight text-[var(--ds-fg-muted)]">
               {label}
             </p>
-            <p className="text-sm font-bold text-[var(--ds-fg)] tabular-nums truncate">{value}</p>
-            <p className={`text-xs font-semibold truncate tabular-nums ${subtitleClass}`}>{subtitle}</p>
+            <p className="text-xs leading-snug font-bold text-[var(--ds-fg)] tabular-nums break-words">{value}</p>
+            <p className={`text-[10px] leading-snug font-semibold tabular-nums ${subtitleClass}`}>{subtitle}</p>
           </div>
         </motion.div>
       ))}
