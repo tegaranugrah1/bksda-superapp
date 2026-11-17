@@ -3085,3 +3085,23 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/portal src/components/AuthSync.tsx src/lib/echo.ts src/lib/auth-store.ts` (`0` error, `4` warning `@next/next/no-img-element` bawaan di `SmartPatrolInlineForm.tsx`/`SmartPatrolPrint.tsx`), `node tests/portal-review-check.cjs` (**PASS**), dan `npm run test:security-cache` (**8/8 passed**).
   - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15498` nodes, `28942` edges, `1040` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`ab51da04`) pada `codex/portal-security-pentest`.
+
+---
+
+## 141. Audit Lanjutan `/ponytail-review` & `/security-audit` Modul Portal: `MobileDashboardController` `ESCAPE '!'` & Stabilisasi Reverb `NotificationBell` (18 November 2026)
+
+- **Latar Belakang**:
+  Penyisiran menyeluruh atas berkas Portal tersisa yang belum dibaca baris demi baris pada putaran sebelumnya (`MobileDashboardController.php`, `NotificationBell.tsx` bagian listener/history, `ActiveLoansTab.tsx`, `PortalProfileSidebar.tsx`, `SecurityModals.tsx`, `EmailConnectDialog.tsx`, `PortalHeaderBanner.tsx`, `PortalInfoSidebar.tsx`, `ReportFormShared.tsx`, `api.ts`, `auth-store.ts`, `useAuth.ts`, serta middleware `EnsureAccountSecure`, `CheckModuleAccess`, dan `CheckRole`).
+- **Temuan & Perbaikan Diterapkan (Commit `2e64d2a8`)**:
+  - **Standarisasi `LIKE ... ESCAPE '!'` pada [`MobileDashboardController.php`](file:///e:/bksda-superapp/backend/app/Http/Controllers/Api/MobileDashboardController.php#L52-L67)**:
+    - `index()` masih menggunakan `addcslashes(mb_strtolower($fullName), '%_')` dengan `LOWER(pengguna) LIKE ?` / `LOWER(nama_pengguna) LIKE ?` tanpa klausa `ESCAPE`. Disamakan ke `str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($fullName))` dengan `LIKE ? ESCAPE '!'` agar konsisten dengan `AuthController::myAssets()` lintas SQLite dan PostgreSQL.
+  - **Hapus Dependensi Efek Tak Terpakai di [`NotificationBell.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/NotificationBell.tsx#L475-L482)**:
+    - Efek langganan channel privat Laravel Reverb tidak menggunakan `onSelectTab` secara langsung (event handler `handleCreated` memakai `itemClickHandlerRef.current`), namun memasukkan `onSelectTab` di array dependensi memicu leave/re-subscribe WebSocket yang tidak perlu saat callback induk berubah ketika data dashboard terhidrasi. Menghapus `onSelectTab` dari array dependensi (`[authEpoch, fetchLatest, fetchHistory]`).
+  - **Permukaan Lain (`Lean already. Ship.`)**:
+    - Seluruh middleware akses/2FA (`EnsureAccountSecure`, `CheckModuleAccess`, `CheckRole`), `api.ts`, `auth-store.ts`, `SecurityModals.tsx`, `EmailConnectDialog.tsx`, `ActiveLoansTab.tsx`, `PortalProfileSidebar.tsx`, dan formulir laporan Portal bersih dari kerentanan maupun bloat baru.
+  - **Penambahan Test Regresi**: [`PortalPersonalSecurityTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/PortalPersonalSecurityTest.php#L934-L950) (`test_mobile_dashboard_escapes_like_wildcards_for_unassigned_assets`: memastikan karakter `%` dan `_` pada `nama_lengkap` pegawai tidak menmatched aset tak bertuan lewat wildcard SQL pada `GET /api/mobile/dashboard`).
+- **Verifikasi Pasca-Edit Akhir**:
+  - Backend: `php -l` bersih; `11` suite PHPUnit Portal + Security (`BroadcastChannelAuthTest`, `NotificationBmnLifecycleTest`, `NotificationHealthMonitorTest`, `PortalAuthSecurityTest`, `PortalIdentityBoundaryTest`, `PortalPersonalSecurityTest`, `PortalUploadSecurityTest`, `StKepegawaianNotificationQueueTest`, `SuratTugasApprovalAndPortalNotificationTest`, `TwoFactorTest`, `SixModulesSecurityHardeningTest`) -> **155 tests passed (1713 assertions)**.
+  - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/portal src/components/AuthSync.tsx src/lib/echo.ts src/lib/auth-store.ts` (`0` error, `4` warning bawaan `@next/next/no-img-element` di `SmartPatrolInlineForm.tsx`/`SmartPatrolPrint.tsx`), `node tests/portal-review-check.cjs` (**PASS**), `npm run test:security-cache` (**8/8 passed**), dan `npm run build` (**86/86** rute Next.js).
+  - Knowledge Graph & Diff: `git diff --check -- backend frontend` bersih dan `graphify update .` (`15500` nodes, `28946` edges, `1043` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`2e64d2a8`) pada `codex/portal-security-pentest`.
