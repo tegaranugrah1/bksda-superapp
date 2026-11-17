@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (17 November 2026):** Penyempurnaan tipografi & tata letak kartu ringkas [`PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx) di Portal ASN (menghilangkan pemotongan teks pada 4 kartu ringkasan dengan proporsi kompak ala `bksdakaltim.web.id` + mempertahankan token `--ds-*`) serta upgrade keamanan **Next.js** (`16.4.2` → `16.4.6`, menutup `GHSA-mfr8-8qww-v76h` dengan `react`/`react-dom` tetap terkunci di `18.3.1`) selesai diverifikasi (`tsc --noEmit` `0`, `npx eslint src/app/portal` `0` error / `4` warning, `portal-review-check.cjs` `PASS`, `next build` `86/86` rute clean tanpa `SecurityFatalError`, serta inspeksi Chromium live `/portal` nol teks terpotong di 5 viewport Light & Dark). Melengkapi audit keamanan & refactoring (`/security-audit` `SEC-01`–`SEC-11` dan `/ponytail-audit` `P-01`–`P-07`) lintas 6 modul utama (**Surat Tugas**, **Portal**, **Kepegawaian**, **Drive**, **BMN**, dan **Persuratan**) serta penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)). Knowledge Graph (`graphify-out/`): `15333` nodes, `28501` edges, `1043` communities. (Bagian 115–124).
+**Status terbaru (17 November 2026):** Penambahan fitur **Blok Rincian / Jadwal** (`Hari/Tanggal`, `Tempat`, `Agenda`, preset `Waktu`/`Pakaian`/`Narahubung`) di **3. Batang Tubuh / Isi** modul Persuratan ([`3fabe7ff`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/dinas/page.tsx)) beserta tombol geser urutan `↑`/`↓`, deteksi `Tempel Teks Utuh` (termasuk pola salin-tempel terpisah baris), penyelarasan template `undangan` + migrasi payload lama, serta ekspor Word/PDF rata kiri sejajar titik dua `:` (`rincian-blok-check.cjs` + Playwright `/surat/keluar/dinas` + `tsc --noEmit` `0` + `npx eslint src/app/surat` `0` + `next build` `86/86` lulus). Melengkapi penyempurnaan [`PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx), upgrade **Next.js** (`16.4.2` → `16.4.6`), audit 6 modul (`/security-audit` `SEC-01`–`SEC-11`, `/ponytail-audit` `P-01`–`P-07`), serta penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)). Knowledge Graph (`graphify-out/`): `15366` nodes, `28549` edges, `1037` communities. (Bagian 115–125).
 
 ## Status Update: 2 November 2026
 
@@ -2715,4 +2715,29 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - `node tests/portal-review-check.cjs`: `PASS`.
   - `npm run build` (`Next.js 16.4.6 (Turbopack)`): `86/86` rute bersih (`exit 0`).
   - `graphify update .`: diperbarui (`15333` nodes, `28501` edges, `1043` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal pada `codex/portal-security-pentest`.
+
+---
+
+## 125. Blok Rincian / Jadwal Terstruktur pada Batang Tubuh / Isi & Pengurutan Butir Modul Persuratan (17 November 2026)
+
+- **Latar Belakang**: Sejumlah tipe naskah dinas pada `/surat/keluar/dinas` membutuhkan penyisipan rincian jadwal/acara (`Hari/Tanggal : ...`, `Tempat : ...`, `Agenda : ...`, dll.) langsung di dalam bagian **3. Batang Tubuh / Isi**, dengan tanda titik dua (`:`) sejajar vertikal, teks nilai rata kiri (termasuk alamat multi-baris), serta tetap rapi saat dicetak, diekspor ke PDF vektor, maupun diekspor ke Word (`.doc`).
+- **Perubahan Diterapkan (Commit `3fabe7ff`)**:
+  - [`frontend/src/app/surat/_components/SuratDinasDocument.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/_components/SuratDinasDocument.tsx):
+    - Menambahkan tipe `ParagrafRincianRow`, `ParagrafRincianBlock`, `ParagrafItem`, serta helper `isRincianBlock`, `createDefaultRincianBlock` (default `Hari/Tanggal`, `Tempat`, `Agenda`), dan `migrateLegacyUndanganPayload`.
+    - Memperbarui `parseRawDocumentText` pada **Tempel Teks Utuh** agar mendeteksi blok `Label : Nilai` (termasuk pola salin-tempel terpisah baris seperti `Tempat\n: ...` beserta baris alamat lanjutan) tanpa mengganggu `Nomor:` di kalimat prose.
+    - Menyesuaikan `detectPointLevel`, `getNextMarkerForSection`, dan `reindexParagraphMarkers` agar penomoran poin tetap konsisten melewati blok Rincian.
+    - Memindahkan rincian default `getDefaultDataForTemplate("undangan")` ke bagian 3 (`paragraf`) dan merender `.pkpknl-rincian-wrap` / `.pkpknl-rincian-table` tanpa tag `<p>` di dalam sel tabel (label `28mm`, `:` `4mm`, isi rata kiri `pre-line`, serta pengeditan inline di pratinjau).
+  - [`frontend/src/app/surat/keluar/dinas/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/dinas/page.tsx):
+    - Menambahkan tombol **`+ Rincian`** di toolbar **3. Batang Tubuh / Isi**, opsi **Rincian (Hari/Tempat/Agenda)** di dropdown **`Sisipkan`**, editor baris key-value (`Label`, `:`, `Textarea` multi-baris, **`+ Baris`**, serta quick preset **`+ Hari/Tanggal`**, **`+ Waktu`**, **`+ Tempat`**, **`+ Agenda`**, **`+ Pakaian`**, **`+ Narahubung`**).
+    - Menambahkan tombol geser urutan **`↑` / `↓`** (`handleMoveParagraph`) untuk setiap butir, membersihkan duplikasi panel *Rincian Acara* pada Card 2 template `undangan`, serta memanggil `migrateLegacyUndanganPayload` saat memuat data surat tersimpan.
+  - [`frontend/src/app/surat/_lib/export-surat-dinas.ts`](file:///e:/bksda-superapp/frontend/src/app/surat/_lib/export-surat-dinas.ts): menambahkan transformasi `.pkpknl-rincian-wrap` di `transformCloneForWord` menjadi tabel Word 4 kolom bertata letak tetap (`spacer` indentasi | `2.8cm` label | `0.4cm` `:` | nilai rata kiri) menggunakan `escapeWordHtml` + `sanitizeWordFragment` agar baris `<br>` terjaga tanpa terpengaruh `text-indent`/`justify`.
+  - [`frontend/tests/rincian-blok-check.cjs`](file:///e:/bksda-superapp/frontend/tests/rincian-blok-check.cjs): test regresi khusus blok Rincian, `migrateLegacyUndanganPayload`, `parseRawDocumentText` (inline & split-line), penomoran, dan guard ekspor Word/editor.
+- **Verifikasi Pasca-Edit Akhir**:
+  - `npx tsc --noEmit`: `0` error (`exit 0`).
+  - `npx eslint src/app/surat`: `0` error (`exit 0`).
+  - Unit & Static Checks: `rincian-blok-check.cjs` (`ALL ASSERTIONS PASSED`), `nota-dinas-template-check.cjs`, `persuratan-ui.cjs`, `test-export-transform.cjs`, dan `export-pdf-route.cjs` (`EXPORT_PDF_ROUTE_CHECK_PASS (live 401 + static invariants)`).
+  - `npm run build` (`Next.js 16.4.6 (Turbopack)`): `86/86` rute bersih (`exit 0`).
+  - **Chromium Playwright Live `/surat/keluar/dinas`**: verifikasi `template=surat_dinas` & `template=undangan`, pengisian alamat `Tempat` 3 baris + preset `+ Waktu`, keselarasan koordinat titik dua `:` & nilai rata kiri pada `.pkpknl-rincian-table`, hasil HTML ekspor `.doc`, serta reorder `↑`/`↓`.
+  - `graphify update .`: diperbarui (`15366` nodes, `28549` edges, `1037` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal pada `codex/portal-security-pentest`.
