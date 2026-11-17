@@ -2982,3 +2982,25 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/kepegawaian` (`0`), `node tests/kepegawaian-ui.cjs` (`PASS`), `node tests/test-export-transform.cjs` (`PASS`), `node tests/diktum-capitalization-check.cjs` (`ALL ASSERTIONS PASSED`), `node tests/st-legacy-items.cjs` (`PASS`), serta `npm run build` (**`86/86` rute bersih**).
   - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15486` nodes, `28918` edges, `1044` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`10769596`) pada `codex/portal-security-pentest`.
+
+---
+
+## 136. Audit Tahap Ketiga `/ponytail-review` & `/security-audit` Modul Kepegawaian: Pembersihan Disk Scan `forceDestroy`, Validasi Pra-Unik `LeaveType`, Guard Reconciler Uang Makan, & Transaksi Soft-Delete (17 November 2026)
+
+- **Latar Belakang**:
+  Penyisiran menyeluruh terhadap bagian modul **Kepegawaian** yang belum terbuka pada dua tahap sebelumnya (`EmployeeController::destroy` / `forceDestroy`, `LeaveTypeController::store` / `update`, `MealAllowanceController::reconcile` / `storeBatch` / `exportExcel`, serta `AttendanceReconcilerService`) memastikan tidak ada celah disk-mismatch PII, error DB `500` akibat tag HTML, `TypeError` parameter array, maupun inkonsistensi dialek SQL PostgreSQL/SQLite.
+- **Temuan & Perbaikan Diterapkan (Commit `d33f9718`)**:
+  - **Pembersihan Disk Scan Privat & Transaksi Soft-Delete ([`EmployeeController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php))**:
+    - Memperbaiki `forceDestroy()` yang sebelumnya memanggil `Storage::exists`/`Storage::delete` pada disk default (`s3` di produksi), padahal scan cuti (`cuti_scans/*`) disimpan di `Storage::disk('local')`; kini dihapus secara eksplisit lewat `Storage::disk('local')->delete(...)`.
+    - Membungkus `$employee->delete()` bersama penonaktifan akun `User` & pencabutan token pada `destroy()` ke dalam `DB::transaction()`.
+  - **Penutupan `500 NOT NULL` / `UNIQUE` & Penggabungan Logika ([`LeaveTypeController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/LeaveTypeController.php))**:
+    - Menyatukan aturan & sanitasi `store()` dan `update()` ke helper `validatedAttributes()` dengan sanitasi `nama` & `kode` **sebelum** `validate()`, sehingga input seperti `'<b></b>'` atau `'<b>Cuti Tahunan</b>'` ditolak rapi dengan HTTP `422` (bukan `500` pelanggaran constraint `NOT NULL`/`UNIQUE`).
+  - **Guard Tipe Input & Portabilitas Reconciler (`MealAllowanceController.php`, `AttendanceReconcilerService.php`)**:
+    - [`MealAllowanceController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php): menambah validasi `'overrides.*' => 'nullable|array'` dan guard `is_array(...)` di `reconcile()` (`422` bukan `TypeError 500`), menolak `nama_batch` kosong pasca-`strip_tags` (`422`) serta mensterilkan `jenis_pegawai`/`nama_bank`/`nomor_rekening` di `storeBatch()`, dan memvalidasi `'items.*' => 'array'` pada `exportExcel()`.
+    - [`AttendanceReconcilerService.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Services/AttendanceReconcilerService.php): menjaga lookup `REGEXP_REPLACE` agar hanya dipakai pada driver `pgsql` dengan fallback portabel `REPLACE(...)` untuk driver non-Postgres, serta menambah fallback `?? 'Pegawai'` / `?? ''` pada `nama_lengkap` & `jabatan` bila metadata SIKADIR tidak lengkap.
+  - **Penambahan Test Regresi**: [`KepegawaianSecurityAuditTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/KepegawaianSecurityAuditTest.php) (Test `#11`: `LeaveType` tag kosong/duplikat `422`, `MealAllowance` `items` skalar & `nama_batch` tag kosong `422`, serta `AttendanceReconcilerService::reconcile()` pada NIP eksternal).
+- **Verifikasi Pasca-Edit Akhir**:
+  - Backend: `php -l` bersih pada seluruh berkas PHP tersentuh; `14` suite PHPUnit (`13` Kepegawaian + `SixModulesSecurityHardeningTest`) -> **108 tests passed (1004 assertions)**; `php backend/tests/EmployeeLeaveSnapshotCheck.php` -> **PASS**.
+  - Frontend: tidak ada berkas frontend yang diubah pada tahap ketiga ini (verifikasi tahap kedua: `tsc --noEmit` `0`, `eslint src/app/kepegawaian` `0`, `kepegawaian-ui.cjs`, `test-export-transform.cjs`, `diktum-capitalization-check.cjs`, `st-legacy-items.cjs`, dan `npm run build` `86/86`).
+  - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15489` nodes, `28924` edges, `1047` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`d33f9718`) pada `codex/portal-security-pentest`.
