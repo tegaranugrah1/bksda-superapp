@@ -79,7 +79,7 @@ export default function SuratHubPage() {
     queryFn: async () => {
       const [resMasuk, resKeluar] = await Promise.all([
         canWrite ? api.get("/surat-masuk?per_page=5") : Promise.resolve({ data: { data: [], meta: { total: 0 } } }),
-        api.get("/surat/surat-keluar?per_page=5").catch(() => api.get("/surat-keluar?per_page=5")),
+        api.get("/surat/surat-keluar?per_page=5"),
       ]);
 
       const masukRaw = resMasuk.data;

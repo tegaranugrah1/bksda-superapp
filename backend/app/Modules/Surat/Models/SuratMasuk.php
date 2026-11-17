@@ -62,7 +62,7 @@ class SuratMasuk extends Model
 
     public function disposisi(): HasOne
     {
-        return $table = $this->hasOne(SuratDisposisi::class, 'surat_masuk_id');
+        return $this->hasOne(SuratDisposisi::class, 'surat_masuk_id');
     }
 
     public function creator(): BelongsTo

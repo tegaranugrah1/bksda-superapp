@@ -552,7 +552,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             if (newItem2.asal_surat) fd2.append("asal_surat", newItem2.asal_surat);
             if (newItem2.lampiran) fd2.append("lampiran", newItem2.lampiran);
             await api.post("/surat-masuk", fd2);
-          } catch (e) {}
+          } catch {
+            toast.warning("Surat masuk pertama tersimpan, tetapi surat kedua gagal disimpan.");
+          }
         }
       }
 

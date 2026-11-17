@@ -36,8 +36,8 @@ Route::middleware(['auth:sanctum', 'module.access:surat'])->group(function () {
     Route::get('templates/{template}', [SuratTemplateController::class, 'show'])->middleware('permission:surat.view');
     Route::middleware(['role:super_admin', 'permission:surat.manage'])->group(function () {
         Route::post('templates', [SuratTemplateController::class, 'store']);
-        Route::match(['put', 'patch'], 'templates/{template}', [SuratTemplateController::class, 'update']);
-        Route::delete('templates/{template}', [SuratTemplateController::class, 'destroy']);
+        Route::match(['put', 'patch'], 'templates/{template}', [SuratTemplateController::class, 'update'])->whereNumber('template');
+        Route::delete('templates/{template}', [SuratTemplateController::class, 'destroy'])->whereNumber('template');
         Route::post('templates/reset-defaults', [SuratTemplateController::class, 'resetDefaults']);
     });
 });

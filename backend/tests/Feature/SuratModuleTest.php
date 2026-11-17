@@ -235,4 +235,134 @@ class SuratModuleTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure(['data']);
     }
+
+    public function test_surat_keluar_accepts_terdaftar_status_json_payload_and_rejects_oversized_payload(): void
+    {
+        $createRes = $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-keluar', [
+                'no_surat' => 'S.501/K.18/TU/2026',
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji Status Terdaftar',
+                'status' => 'terdaftar',
+                'document_payload' => json_encode(['templateType' => 'surat_dinas', 'perihal' => 'Uji']),
+            ]);
+
+        $createRes->assertCreated()
+            ->assertJsonPath('data.status', 'terdaftar')
+            ->assertJsonPath('data.document_payload.templateType', 'surat_dinas');
+
+        $id = $createRes->json('data.id');
+
+        $this->actingAs($this->adminUser)
+            ->putJson("/api/surat/surat-keluar/{$id}", [
+                'no_surat' => 'S.501/K.18/TU/2026',
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji Status Terdaftar Revisi',
+                'status' => 'terdaftar',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'terdaftar');
+
+        $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-keluar', [
+                'no_surat' => 'S.502/K.18/TU/2026',
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji Payload Terlalu Besar',
+                'document_payload' => ['blob' => str_repeat('A', 600000)],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['document_payload']);
+    }
+
+    public function test_surat_masuk_export_validates_filters_and_search_escapes_wildcards(): void
+    {
+        SuratMasuk::create([
+            'no_agenda' => '2001',
+            'tanggal_agenda' => '2026-11-17',
+            'no_surat' => '100%Literal_Test!',
+            'isi_ringkas' => 'Exact wildcard check',
+            'created_by' => $this->adminUser->id,
+        ]);
+        SuratMasuk::create([
+            'no_agenda' => '2002',
+            'tanggal_agenda' => '2026-11-17',
+            'no_surat' => 'NormalLetter',
+            'isi_ringkas' => 'Other letter',
+            'created_by' => $this->adminUser->id,
+        ]);
+
+        // Unescaped '%' and '!'/'_' must NOT match unrelated NormalLetter
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk?search=%25')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.no_surat', '100%Literal_Test!');
+
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk?search=Literal_Test!')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.no_surat', '100%Literal_Test!');
+
+        // Non-string sifat query must not crash Postgres JSON containment
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk?sifat[]=Penting')
+            ->assertOk();
+
+        // Valid Excel export with escaped search filter succeeds
+        $this->actingAs($this->adminUser)
+            ->get('/api/surat/surat-masuk/export/excel?search=%25')
+            ->assertOk();
+
+        // Malformed date in export Excel filter returns 422 cleanly instead of SQL 500
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk/export/excel?start_date=not-a-date')
+            ->assertStatus(422);
+    }
+
+    public function test_surat_template_slug_collision_returns_422_and_non_numeric_route_is_rejected(): void
+    {
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_tpl_sec',
+            'role' => 'super_admin',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->postJson('/api/surat/templates', [
+                'key' => 'custom_surat',
+                'nama' => 'Custom Surat',
+            ])
+            ->assertCreated();
+
+        // Slugified duplicate ('Custom-Surat' -> 'custom_surat') must return 422 rather than SQL 500
+        $this->actingAs($superAdmin)
+            ->postJson('/api/surat/templates', [
+                'key' => 'Custom-Surat',
+                'nama' => 'Duplicate Slug',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['key']);
+
+        // Punctuation-only key ('---' -> '') must return 422
+        $this->actingAs($superAdmin)
+            ->postJson('/api/surat/templates', [
+                'key' => '---',
+                'nama' => 'Empty Slug',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['key']);
+
+        // Non-numeric mutation parameter is rejected at router (405 via GET key route) instead of TypeError 500
+        $this->actingAs($superAdmin)
+            ->deleteJson('/api/surat/templates/not-an-id')
+            ->assertStatus(405);
+
+        $this->actingAs($superAdmin)
+            ->putJson('/api/surat/templates/not-an-id', ['nama' => 'Bypass'])
+            ->assertStatus(405);
+    }
 }

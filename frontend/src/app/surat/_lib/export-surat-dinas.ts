@@ -689,9 +689,11 @@ export async function exportSuratDinasWord(
     const kopImg = kopEl.querySelector("img");
     if (kopImg) {
       const src = kopImg.getAttribute("src") || "";
-      // Lebar 189.4mm (716px) dengan indent kiri -25.5pt membuat kop surat mulai 9mm di kiri teks (1.1cm dari tepi kertas)
-      // dan ujung garis hitam kanan sejajar persis dengan batas margin kanan teks (194.5mm), sama persis seperti di Surat Tugas.
-      kopImgHtml = `<img src="${src}" width="716" style="width: 189.4mm; max-width: 189.4mm; height: auto; display: block;" />`;
+      if (/^https?:\/\/|^data:image\/(?:png|jpe?g|gif|webp|bmp);base64,/i.test(src)) {
+        // Lebar 189.4mm (716px) dengan indent kiri -25.5pt membuat kop surat mulai 9mm di kiri teks (1.1cm dari tepi kertas)
+        // dan ujung garis hitam kanan sejajar persis dengan batas margin kanan teks (194.5mm), sama persis seperti di Surat Tugas.
+        kopImgHtml = `<img src="${escapeWordHtml(src)}" width="716" style="width: 189.4mm; max-width: 189.4mm; height: auto; display: block;" />`;
+      }
     }
     kopEl.remove();
   }

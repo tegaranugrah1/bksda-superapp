@@ -21,12 +21,12 @@ class SuratMasukExport implements FromCollection, WithHeadings, WithMapping, Sho
         $query = SuratMasuk::query();
 
         if (!empty($this->filters['search'])) {
-            $search = addcslashes(trim((string) $this->filters['search']), '%_');
-            $query->where(function ($q) use ($search) {
-                $q->where('no_surat', 'like', "%{$search}%")
-                  ->orWhere('no_agenda', 'like', "%{$search}%")
-                  ->orWhere('asal_surat', 'like', "%{$search}%")
-                  ->orWhere('isi_ringkas', 'like', "%{$search}%");
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim((string) $this->filters['search'])) . '%';
+            $query->where(function ($q) use ($pattern) {
+                $q->whereRaw("no_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("no_agenda LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("asal_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("isi_ringkas LIKE ? ESCAPE '!'", [$pattern]);
             });
         }
 

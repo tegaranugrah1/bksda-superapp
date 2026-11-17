@@ -40,6 +40,15 @@ export function cloneHtmlWithResolvedImages(
   return clone.innerHTML;
 }
 
+function escapePrintAttr(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export function openPrintWindow({
   title,
   bodyHtml,
@@ -57,10 +66,10 @@ export function openPrintWindow({
   const printWindow = window.open("", "_blank");
   if (!printWindow) return null;
 
-  const langAttr = htmlLang ? ` lang="${htmlLang}"` : "";
+  const langAttr = htmlLang ? ` lang="${escapePrintAttr(htmlLang)}"` : "";
   const bodyAttrs = [
-    bodyClassName ? `class="${bodyClassName}"` : "",
-    bodyStyle ? `style="${bodyStyle}"` : "",
+    bodyClassName ? `class="${escapePrintAttr(bodyClassName)}"` : "",
+    bodyStyle ? `style="${escapePrintAttr(bodyStyle)}"` : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -70,7 +79,7 @@ export function openPrintWindow({
     <html${langAttr}>
       <head>
         <meta charset="utf-8" />
-        <title>${title}</title>
+        <title>${escapePrintAttr(title)}</title>
         ${headHtml}
         <style>${styles}</style>
       </head>

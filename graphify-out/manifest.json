@@ -1135,13 +1135,13 @@
     "semantic_hash": "d4735291bf52149f30f1ea2d05a2373b"
   },
   "backend/app/Modules/Surat/Controllers/SuratKeluarController.php": {
-    "mtime": 1794850333.4584951,
-    "ast_hash": "132ce08b07e14d6267c66be492653d7c",
+    "mtime": 1794911813.8456144,
+    "ast_hash": "2359166d627f8726815052578a66d645",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Controllers/SuratMasukController.php": {
-    "mtime": 1794850331.8917742,
-    "ast_hash": "7842b4e8954b28880aa92f316ea50ea5",
+    "mtime": 1794911812.0907633,
+    "ast_hash": "c3afa39a9ffa17c7e385d2a7aaba026d",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Models/SuratDisposisi.php": {
@@ -1155,13 +1155,13 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Models/SuratMasuk.php": {
-    "mtime": 1794850199.2789812,
-    "ast_hash": "353ad8d7560cc9b77d30f1b982e07b3f",
+    "mtime": 1794911597.1212583,
+    "ast_hash": "a3b33d5e3fe18cf4b8e3d17933ae9b82",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Requests/SuratKeluarRequest.php": {
-    "mtime": 1794850203.0080402,
-    "ast_hash": "87bf805044587b855838c33eec1fc0ae",
+    "mtime": 1794911599.210962,
+    "ast_hash": "dafe51ca8c21249047326744aeb10d82",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Requests/SuratMasukRequest.php": {
@@ -1170,8 +1170,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Routes/api.php": {
-    "mtime": 1794850207.870554,
-    "ast_hash": "3ff4532ee787901a60afb5605ccb528b",
+    "mtime": 1794911595.195078,
+    "ast_hash": "531c35897e68c710f7457944f7884c07",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/SuratServiceProvider.php": {
@@ -1495,8 +1495,8 @@
     "semantic_hash": "9012cec139c95ff9243c31b2947515e9"
   },
   "backend/tests/Feature/SuratModuleTest.php": {
-    "mtime": 1794789002.066161,
-    "ast_hash": "48bdf708fdfb240bbd70c1c93d742ebd",
+    "mtime": 1794911845.6194549,
+    "ast_hash": "57aa96c04929d883cd2918d6d2fc6f2d",
     "semantic_hash": ""
   },
   "backend/tests/Feature/SuratTugasMobileListApiTest.php": {
@@ -2290,8 +2290,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/LembarDisposisiForm.tsx": {
-    "mtime": 1794868501.019982,
-    "ast_hash": "9e6d6c7785a20cfa62a773e1adcc2912",
+    "mtime": 1794911659.289157,
+    "ast_hash": "509773fe010c6cae322e83b064f6b3f6",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/LembarDisposisiSheet.tsx": {
@@ -2335,8 +2335,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/page.tsx": {
-    "mtime": 1794820641.5498197,
-    "ast_hash": "2f5d6440dd87f15d004935ba3008695f",
+    "mtime": 1794911657.189249,
+    "ast_hash": "22d62bb1737f28a872543fd020f9bfb4",
     "semantic_hash": ""
   },
   "frontend/src/components/AuthSync.tsx": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794902631.9390306,
-    "ast_hash": "63c0df73363054bc7675b2d9cdfc6fcf",
+    "mtime": 1794911237.0416229,
+    "ast_hash": "7ab503d63fa175b1bcf7e2b92625e43e",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794902628.023852,
-    "ast_hash": "8a2a1a0f6713859b2a60b771825ba300",
+    "mtime": 1794911232.3125954,
+    "ast_hash": "b5fb9e87f2a77c724b1c2e9e257adfc7",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5610,8 +5610,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Exports/SuratMasukExport.php": {
-    "mtime": 1794850222.9257345,
-    "ast_hash": "cc65faf99a955135cbebe67e076b31ff",
+    "mtime": 1794911818.2148418,
+    "ast_hash": "a0cc632cfde6e557e2a1ea7cec8a0ddd",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_08_26_160000_create_st_expense_templates_table.php": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794902626.4044642,
-    "ast_hash": "ea7947a66603fccb72a8afb75dfc1c27",
+    "mtime": 1794911230.2669265,
+    "ast_hash": "080ef24fd39b5842093d206b9371d403",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6570,8 +6570,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Controllers/SuratTemplateController.php": {
-    "mtime": 1794850206.4982617,
-    "ast_hash": "2f8b6c32658ba04b691d2b30d23bc03f",
+    "mtime": 1794911816.110222,
+    "ast_hash": "d6b73acabc26359f0936ae3a89502ecb",
     "semantic_hash": ""
   },
   "backend/app/Modules/Surat/Models/SuratTemplate.php": {
@@ -7700,8 +7700,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_lib/export-surat-dinas.ts": {
-    "mtime": 1794898845.2703576,
-    "ast_hash": "68698f0d54043b97e381e9c57d361d89",
+    "mtime": 1794911651.7304134,
+    "ast_hash": "3ec2cf17402e87035292050d29ea89b4",
     "semantic_hash": ""
   },
   "frontend/tests/test-export-transform.cjs": {
@@ -8965,13 +8965,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/export-pdf/route.ts": {
-    "mtime": 1794850447.8793492,
-    "ast_hash": "a80b6b6eed303a93a5960d470bcc9a94",
+    "mtime": 1794911650.3273733,
+    "ast_hash": "786ec054f8f9e078d906df3a4555b610",
     "semantic_hash": ""
   },
   "frontend/tests/export-pdf-route.cjs": {
-    "mtime": 1794815466.4633331,
-    "ast_hash": "81065e8a97f4890ad797113e49368ae7",
+    "mtime": 1794911678.0340292,
+    "ast_hash": "9e26c4ce19275d6db3913651033c33f2",
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_5_TOKENS.md": {
@@ -9010,8 +9010,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/print-window.ts": {
-    "mtime": 1794867995.3880496,
-    "ast_hash": "43d489a3462cb3f0007f9d03465537ef",
+    "mtime": 1794911654.1935265,
+    "ast_hash": "e72880e28ae8fb7151636028d85e05c5",
     "semantic_hash": ""
   },
   "docs/ponytail-audit-6-modules-2026-11-17.md": {

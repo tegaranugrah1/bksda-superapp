@@ -2410,18 +2410,18 @@
     "semantic_hash": "5a8a65e617dd481437508ff58498d8fb"
   },
   "frontend/src/components/ui/confirm-dialog.tsx": {
-    "mtime": 1794404138.9739716,
-    "ast_hash": "fa7b7f2a9b4b5e77bb4806bb6a75f5d4",
+    "mtime": 1794907427.1551304,
+    "ast_hash": "17b0f6e97721c6344d4fe1a951e02fe9",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/dialog.tsx": {
-    "mtime": 1794810841.4906435,
-    "ast_hash": "74f6ca0b37f3788f9fc65f7a78843668",
+    "mtime": 1794907419.649868,
+    "ast_hash": "0a8c73cdc591f2087114a0c4aa6fc13e",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/dropdown-menu.tsx": {
-    "mtime": 1794810841.4896467,
-    "ast_hash": "d85277ea1fd4582109ff4952fcefe083",
+    "mtime": 1794907663.1319385,
+    "ast_hash": "57698e26a78d9c0e2b4a3664dbdafd94",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/employee-select.tsx": {
@@ -2450,14 +2450,14 @@
     "semantic_hash": "83a4dee523e5fa680b528a13f6cea20f"
   },
   "frontend/src/components/ui/popover.tsx": {
-    "mtime": 1778296612.3110943,
-    "ast_hash": "5bf130d487623ea8c36742def5d50685",
-    "semantic_hash": "5bf130d487623ea8c36742def5d50685"
+    "mtime": 1794907465.1104033,
+    "ast_hash": "0ce50857d521fce86c2df1b8e4290233",
+    "semantic_hash": ""
   },
   "frontend/src/components/ui/select.tsx": {
-    "mtime": 1778296612.3120947,
-    "ast_hash": "e001573d3fe5ba556027572e25536d39",
-    "semantic_hash": "e001573d3fe5ba556027572e25536d39"
+    "mtime": 1794907469.2299159,
+    "ast_hash": "5dd91ebd42e53ac3ad410d8a95b2523c",
+    "semantic_hash": ""
   },
   "frontend/src/components/ui/sonner.tsx": {
     "mtime": 1778141729.7918513,
@@ -8770,8 +8770,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ui/use-dialog-focus-return.ts": {
-    "mtime": 1794366611.043038,
-    "ast_hash": "402b5be2c2cca00c2ba7cd35648ad5a6",
+    "mtime": 1794907914.512522,
+    "ast_hash": "4f5bd7d5a3060203e986f0002403141e",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-asset-grid.cjs": {
@@ -8800,8 +8800,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-ui.cjs": {
-    "mtime": 1794905470.4442887,
-    "ast_hash": "155835e19133793f96e4ba87406ba5d8",
+    "mtime": 1794907511.630706,
+    "ast_hash": "84b77b31eba033d1f858182f43f9120b",
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {
@@ -8890,8 +8890,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/portal-notifications-live-e2e.playwright.cjs": {
-    "mtime": 1794906602.131717,
-    "ast_hash": "9ff3b914b4991ca7f5bab085e5e34add",
+    "mtime": 1794907916.5002718,
+    "ast_hash": "2b7c96f1d23e1319f131f3cc7782dce6",
     "semantic_hash": ""
   },
   "docs/security/drive-deep-audit-and-remediation-plan-2026-11-13.md": {

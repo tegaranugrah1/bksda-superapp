@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 const MAX_HTML_BYTES = 10 * 1024 * 1024; // 10 MB cap (includes inlined base64 Kop/TTD images)
 const MAX_CONCURRENT_RENDERS = 3;
+const PDF_RENDER_TIMEOUT_MS = 20_000;
+const SAFE_DATA_IMAGE_RE = /^data:image\/(?:png|jpe?g|gif|webp|bmp);base64,/i;
 let activePdfRenders = 0;
 
 const CHROMIUM_CANDIDATES = [
@@ -115,8 +117,9 @@ async function authorizeSuratRequest(request: NextRequest): Promise<{ ok: true }
 function sanitizeHtmlForPdf(rawHtml: string): string {
   return rawHtml
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<(iframe|object|embed|base)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
-    .replace(/<(iframe|object|embed|base)\b[^>]*\/?>/gi, "")
+    .replace(/<(iframe|object|embed|base|form)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<(iframe|object|embed|base|link|form)\b[^>]*\/?>/gi, "")
+    .replace(/<\/form>/gi, "")
     .replace(/<meta\b[^>]*http-equiv\s*=[^>]*>/gi, "")
     .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
     .replace(/javascript\s*:/gi, "");
@@ -140,10 +143,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: auth.status });
   }
 
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(contentLength) && contentLength > MAX_HTML_BYTES * 2) {
+    return NextResponse.json({ message: "Payload HTML terlalu besar." }, { status: 413 });
+  }
+
   let body: { html?: unknown; filename?: unknown };
   try {
     const rawBody = await request.text();
-    if (!rawBody || rawBody.length > MAX_HTML_BYTES) {
+    if (!rawBody || Buffer.byteLength(rawBody, "utf8") > MAX_HTML_BYTES) {
       return NextResponse.json({ message: "Payload HTML tidak valid atau terlalu besar." }, { status: 400 });
     }
     body = JSON.parse(rawBody);
@@ -169,10 +177,10 @@ export async function POST(request: NextRequest) {
     context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
 
-    // Block all non-inline network fetches inside headless Chromium to eliminate SSRF
+    // Block all non-inline network fetches & active data/blob URIs inside headless Chromium
     await page.route("**/*", (route) => {
       const url = route.request().url();
-      if (url.startsWith("about:") || url.startsWith("data:") || url.startsWith("blob:")) {
+      if (url.startsWith("about:") || SAFE_DATA_IMAGE_RE.test(url)) {
         return route.continue();
       }
       return route.abort();
@@ -181,10 +189,18 @@ export async function POST(request: NextRequest) {
     await page.setContent(safeHtml, { waitUntil: "load", timeout: 15000 });
     await page.emulateMedia({ media: "print" });
 
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      preferCSSPageSize: true,
+    let pdfTimer: ReturnType<typeof setTimeout> | undefined;
+    const pdfBuffer = await Promise.race([
+      page.pdf({
+        format: "A4",
+        printBackground: true,
+        preferCSSPageSize: true,
+      }),
+      new Promise<never>((_, reject) => {
+        pdfTimer = setTimeout(() => reject(new Error("PDF render timeout")), PDF_RENDER_TIMEOUT_MS);
+      }),
+    ]).finally(() => {
+      if (pdfTimer) clearTimeout(pdfTimer);
     });
 
     return new NextResponse(new Uint8Array(pdfBuffer), {

@@ -16,8 +16,15 @@ class SuratMasukController extends Controller
 {
     public function exportExcel(Request $request)
     {
-        $filters = $request->only(['search', 'start_date', 'end_date', 'year', 'month', 'sifat']);
-        
+        $filters = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'year' => 'nullable|integer|digits:4',
+            'month' => 'nullable|integer|between:1,12',
+            'sifat' => 'nullable|string|max:100',
+        ]);
+
         $filename = 'Rekap_Surat_Masuk_BKSDA_' . date('Ymd_His') . '.xlsx';
         if (!empty($filters['year'])) {
             $cleanYear = preg_replace('/[^0-9]/', '', (string) $filters['year']);
@@ -35,18 +42,18 @@ class SuratMasukController extends Controller
             ->orderBy('id', 'desc');
 
         if ($request->filled('search')) {
-            $search = addcslashes(trim((string) $request->input('search')), '%_');
-            $query->where(function ($q) use ($search) {
-                $q->where('no_surat', 'like', "%{$search}%")
-                  ->orWhere('no_agenda', 'like', "%{$search}%")
-                  ->orWhere('asal_surat', 'like', "%{$search}%")
-                  ->orWhere('isi_ringkas', 'like', "%{$search}%");
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim((string) $request->input('search'))) . '%';
+            $query->where(function ($q) use ($pattern) {
+                $q->whereRaw("no_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("no_agenda LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("asal_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("isi_ringkas LIKE ? ESCAPE '!'", [$pattern]);
             });
         }
 
-        if ($request->filled('sifat')) {
-            $sifat = $request->input('sifat');
-            $query->whereJsonContains('sifat_json', $sifat);
+        $sifat = $request->input('sifat');
+        if (is_string($sifat) && trim($sifat) !== '') {
+            $query->whereJsonContains('sifat_json', trim($sifat));
         }
 
         $perPageParam = $request->input('per_page', 10);
