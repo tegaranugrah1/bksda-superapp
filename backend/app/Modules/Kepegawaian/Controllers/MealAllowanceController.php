@@ -191,6 +191,7 @@ class MealAllowanceController extends Controller
             'penandatangan_nip' => 'nullable|string|max:50',
             'penandatangan_jabatan' => 'nullable|string|max:255',
             'items' => 'required|array|min:1|max:2000',
+            'items.*' => 'array',
             'items.*.employee_id' => 'nullable|integer|exists:kpg_employees,id',
             'items.*.nip' => 'required|string',
             'items.*.nama_lengkap' => 'required|string|max:255',
@@ -828,6 +829,9 @@ class MealAllowanceController extends Controller
     private function normalizeItems(array $items): array
     {
         foreach ($items as &$it) {
+            if (! is_array($it)) {
+                continue;
+            }
             if (empty($it['nama_lengkap']) && !empty($it['nama'])) $it['nama_lengkap'] = $it['nama'];
             if (!isset($it['tarif_harian']) && isset($it['tarif'])) $it['tarif_harian'] = $it['tarif'];
             if (!isset($it['persen_pph21']) && isset($it['pph_rate'])) $it['persen_pph21'] = $it['pph_rate'];

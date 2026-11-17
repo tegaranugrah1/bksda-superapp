@@ -571,4 +571,17 @@ class KepegawaianSecurityAuditTest extends TestCase
         $this->expectException(\Illuminate\Validation\ValidationException::class);
         $parser->parse($oversizedHtml);
     }
+
+    /** @test */
+    public function store_batch_rejects_scalar_items_with_422_instead_of_500(): void
+    {
+        $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/kepegawaian/uang-makan/batches', [
+                'periode_bulan' => '2026-11',
+                'nama_batch' => 'Batch Uji',
+                'items' => ['not-an-array'],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['items.0']);
+    }
 }
