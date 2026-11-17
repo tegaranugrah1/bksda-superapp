@@ -9,9 +9,46 @@ use Illuminate\Support\Facades\Storage;
 
 class AssetResource extends JsonResource
 {
+    public static function stripQueryTokens(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map([self::class, 'stripQueryTokens'], $value);
+        }
+
+        if (! is_string($value) || ! str_contains($value, 'token=')) {
+            return $value;
+        }
+
+        $stripped = preg_replace('/([?&])token=[^&#]*/i', '$1', $value);
+        $stripped = str_replace('?&', '?', (string) $stripped);
+        $stripped = preg_replace('/&&+/', '&', $stripped);
+
+        return rtrim((string) $stripped, '?&');
+    }
+
+    public static function attachViewerQueryToken(mixed $value, ?string $token): mixed
+    {
+        $clean = self::stripQueryTokens($value);
+        if (! $token) {
+            return $clean;
+        }
+
+        if (is_array($clean)) {
+            return array_map(fn ($item) => self::attachViewerQueryToken($item, $token), $clean);
+        }
+
+        if (! is_string($clean) || ! str_starts_with($clean, '/api/bmn/')) {
+            return $clean;
+        }
+
+        $sep = str_contains($clean, '?') ? '&' : '?';
+
+        return $clean . $sep . 'token=' . urlencode($token);
+    }
+
     public function toArray(Request $request): array
     {
-        $token = request()->bearerToken() ?: request()->query('token');
+        $token = $request->bearerToken() ?: $request->query('token');
         $tokenParam = $token ? "&token=" . urlencode($token) : "";
         $v = $this->updated_at?->timestamp ?: time();
 
@@ -99,6 +136,7 @@ class AssetResource extends JsonResource
             'tanggal_pajak_stnk' => $this->tanggal_pajak_stnk?->format('Y-m-d'),
             'tanggal_ganti_plat' => $this->tanggal_ganti_plat?->format('Y-m-d'),
             'nama_pengguna' => $this->nama_pengguna,
+            'employee_id' => $this->employee_id,
             'status_pmk' => $this->status_pmk,
             'status_foto_geotag' => $this->status_foto_geotag,
             'foto_geotag_url' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}{$tokenParam}" : $this->foto_geotag_url,

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   Bell,
@@ -68,23 +69,136 @@ function formatRelativeTime(dateString: string): string {
   }
 }
 
+function resolveSafeInternalLink(data?: Record<string, unknown> | null): string | null {
+  const link = data?.link;
+  if (typeof link !== "string") return null;
+  const trimmed = link.trim();
+  return trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.includes("\\")
+    ? trimmed
+    : null;
+}
+
 const TYPE_STYLES: Record<string, string> = {
-  surat_tugas: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
-  cuti: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-  bmn: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  system: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  surat_tugas: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]",
+  cuti: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]",
+  bmn: "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border border-[var(--ds-status-info-border)]",
+  dereporting: "bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800",
+  system: "bg-[var(--ds-status-neutral-bg)] text-[var(--ds-status-neutral-fg)] border border-[var(--ds-status-neutral-border)]",
 };
+
+function NotificationRowItem({
+  item,
+  variant,
+  onSelect,
+}: {
+  item: PortalNotificationItem;
+  variant: "popover" | "history";
+  onSelect: (item: PortalNotificationItem) => void;
+}) {
+  const isHistory = variant === "history";
+  return (
+    <motion.div
+      variants={itemMotionVariants}
+      onClick={() => onSelect(item)}
+      className={cn(
+        "flex items-start gap-3 p-4 cursor-pointer transition-colors duration-150 relative text-left",
+        isHistory
+          ? cn(
+              "rounded-lg mb-2 active:scale-[0.99]",
+              item.read_at
+                ? "hover:bg-[var(--ds-surface-muted)] bg-transparent border border-transparent"
+                : "bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)]"
+            )
+          : cn("hover:bg-[var(--ds-surface-muted)]", !item.read_at && "bg-[var(--ds-accent-soft)]")
+      )}
+    >
+      <div
+        className={cn(
+          isHistory ? "w-9 h-9 transition-transform duration-200" : "w-8 h-8",
+          "rounded-lg shrink-0 flex items-center justify-center shadow-xs mt-1",
+          TYPE_STYLES[item.type] || TYPE_STYLES.system
+        )}
+      >
+        {getTypeIcon(item.type)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className={cn(
+                "text-xs leading-tight truncate transition-colors duration-200",
+                item.read_at ? "text-[var(--ds-fg-secondary)] font-medium" : "text-[var(--ds-fg)] font-bold"
+              )}
+            >
+              {item.title}
+            </span>
+            {isHistory && item.action_tab && (
+              <Badge
+                variant="secondary"
+                className="text-xs uppercase tracking-wider py-0 px-2 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800"
+              >
+                {item.action_tab}
+              </Badge>
+            )}
+          </div>
+          <span className="text-xs text-[var(--ds-fg-muted)] shrink-0 flex items-center gap-1 tabular-nums">
+            <Clock className="w-3 h-3" />
+            {formatRelativeTime(item.created_at)}
+          </span>
+        </div>
+        <p className={cn("text-xs text-[var(--ds-fg-muted)] mt-1 break-words", isHistory ? "leading-relaxed" : "line-clamp-2 leading-snug")}>
+          {item.message}
+        </p>
+      </div>
+      {isHistory ? (
+        <div className="shrink-0 flex items-center gap-2 self-center pl-2">
+          <AnimatePresence>
+            {!item.read_at && (
+              <motion.span
+                key={`dot-history-${item.id}`}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shadow-xs"
+                title="Belum dibaca"
+              />
+            )}
+          </AnimatePresence>
+          <div className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] transition-colors">
+            <ExternalLink className="w-4 h-4" />
+          </div>
+        </div>
+      ) : (
+        <AnimatePresence>
+          {!item.read_at && (
+            <motion.span
+              key={`dot-popover-${item.id}`}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shrink-0 mt-2 shadow-xs"
+            />
+          )}
+        </AnimatePresence>
+      )}
+    </motion.div>
+  );
+}
 
 function getTypeIcon(type: string) {
   switch (type) {
     case "surat_tugas":
-      return <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />;
+      return <FileText className="w-4 h-4 text-[var(--ds-accent-fg)]" />;
     case "cuti":
-      return <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
+      return <Calendar className="w-4 h-4 text-[var(--ds-status-warning-fg)]" />;
     case "bmn":
-      return <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
+      return <Package className="w-4 h-4 text-[var(--ds-status-info-fg)]" />;
+    case "dereporting":
+      return <FileText className="w-4 h-4 text-sky-700 dark:text-sky-300" />;
     default:
-      return <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />;
+      return <Info className="w-4 h-4 text-[var(--ds-status-neutral-fg)]" />;
   }
 }
 
@@ -147,6 +261,7 @@ const tabOrder: Record<"all" | "unread" | "read", number> = {
 };
 
 export function NotificationBell({ onSelectTab, onNotification, onRefresh }: NotificationBellProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<PortalNotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -155,6 +270,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
 
   // Popover filter state
   const [popoverFilter, setPopoverFilter] = useState<"all" | "unread">("all");
+  const popoverFilterRef = useRef<"all" | "unread">("all");
   const [popoverDirection, setPopoverDirection] = useState(0);
 
   // History Modal States
@@ -177,25 +293,28 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
   const notificationHandlerRef = useRef(onNotification);
   const refreshHandlerRef = useRef(onRefresh);
   const historyStateRef = useRef({ open: false, page: 1, filter: "all" as "all" | "unread" | "read" });
+  const itemClickHandlerRef = useRef<(item: PortalNotificationItem) => Promise<void>>(async () => {});
 
   useEffect(() => { notificationHandlerRef.current = onNotification; }, [onNotification]);
   useEffect(() => { refreshHandlerRef.current = onRefresh; }, [onRefresh]);
+  useEffect(() => { popoverFilterRef.current = popoverFilter; }, [popoverFilter]);
   useEffect(() => {
     historyStateRef.current = { open: historyOpen, page: historyPage, filter: historyFilter };
   }, [historyOpen, historyPage, historyFilter]);
 
   // Fetch quick latest notifications for the popover
-  const fetchLatest = useCallback(async (isBackground = false) => {
+  const fetchLatest = useCallback(async (isBackground = false, filterOverride?: "all" | "unread") => {
     const request = ++latestRequestRef.current;
+    const activeFilter = filterOverride ?? popoverFilterRef.current;
     if (!isBackground) setLoading(true);
     try {
       const resp = await api.get("/portal/notifications", {
-        params: { per_page: 8 },
+        params: { per_page: 8, ...(activeFilter === "unread" ? { unread_only: 1 } : {}) },
       });
       if (isMountedRef.current && request === latestRequestRef.current && resp.data) {
         const items: PortalNotificationItem[] = resp.data.data || [];
         for (const item of items) {
-          if (initializedRef.current && !seenIdsRef.current.has(item.id)) {
+          if (initializedRef.current && !filterOverride && activeFilter === "all" && !seenIdsRef.current.has(item.id)) {
             historyCacheRef.current = {};
             notificationHandlerRef.current?.(item);
           }
@@ -273,6 +392,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
     if (newFilter === popoverFilter) return;
     setPopoverDirection(newFilter === "unread" ? 1 : -1);
     setPopoverFilter(newFilter);
+    void fetchLatest(false, newFilter);
   };
 
   // Polling setup: 35 seconds + on window focus
@@ -302,6 +422,18 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
     };
   }, [fetchLatest]);
 
+  // Track auth/session swaps so Echo tears down the previous user's private channel cleanly.
+  const [authEpoch, setAuthEpoch] = useState(0);
+  useEffect(() => {
+    const bump = () => setAuthEpoch((v) => v + 1);
+    window.addEventListener("auth-change", bump);
+    window.addEventListener("storage", bump);
+    return () => {
+      window.removeEventListener("auth-change", bump);
+      window.removeEventListener("storage", bump);
+    };
+  }, []);
+
   // Real-time WebSocket subscription via Laravel Reverb
   useEffect(() => {
     const user = parseAuthSnapshot(getAuthSnapshot()).user;
@@ -326,12 +458,13 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
       notificationHandlerRef.current?.(item);
 
       // UI/UX Pro Max: interactive Sonner toast
+      const hasAction = Boolean(item.action_tab || resolveSafeInternalLink(item.data));
       toast(item.title || "Notifikasi Baru", {
         description: item.message,
-        action: item.action_tab
+        action: hasAction
           ? {
               label: "Buka",
-              onClick: () => onSelectTab?.(item.action_tab!, item.reference_id),
+              onClick: () => void itemClickHandlerRef.current(item),
             }
           : undefined,
       });
@@ -346,7 +479,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
         // Safe fallback
       }
     };
-  }, [onSelectTab, fetchLatest, fetchHistory]);
+  }, [authEpoch, fetchLatest, fetchHistory]);
 
   // Handle open history modal
   useEffect(() => {
@@ -355,7 +488,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
     }
   }, [historyOpen, historyFilter, fetchHistory]);
 
-  const handleMarkAsRead = async (item: PortalNotificationItem) => {
+  const handleMarkAsRead = useCallback(async (item: PortalNotificationItem) => {
     if (item.read_at) return;
 
     // Optimistic update
@@ -379,17 +512,30 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
       // Revert if error
       fetchLatest(true);
     }
-  };
+  }, [fetchLatest]);
 
-  const handleItemClick = async (item: PortalNotificationItem) => {
+  const handleItemClick = useCallback(async (item: PortalNotificationItem) => {
     await handleMarkAsRead(item);
     setOpen(false);
     setHistoryOpen(false);
 
-    if (item.action_tab && onSelectTab) {
-      onSelectTab(item.action_tab, item.reference_id);
+    const safeLink = resolveSafeInternalLink(item.data);
+    if (safeLink) {
+      router.push(safeLink);
+      return;
     }
-  };
+
+    const availability = typeof item.data?.availability === "string" ? item.data.availability : null;
+    const status = typeof item.data?.status === "string" ? item.data.status : null;
+    const blockedRef = availability === "unavailable" || availability === "trashed" || status === "removed";
+    if (item.action_tab && onSelectTab) {
+      onSelectTab(item.action_tab, blockedRef ? null : item.reference_id);
+    }
+  }, [handleMarkAsRead, onSelectTab, router]);
+
+  useEffect(() => {
+    itemClickHandlerRef.current = handleItemClick;
+  }, [handleItemClick]);
 
   const handleMarkAllRead = async () => {
     setIsMarkingAll(true);
@@ -418,14 +564,23 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (nextOpen) {
+            clearGetCache();
+            void fetchLatest(true);
+          }
+        }}
+      >
         <PopoverTrigger asChild>
           <motion.button
             type="button"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.94 }}
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
-            className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden cursor-pointer"
+            className="relative p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)] cursor-pointer"
             title="Notifikasi"
             aria-label="Lihat Notifikasi"
           >
@@ -439,7 +594,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0, opacity: 0 }}
                     transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                    className="absolute top-1 right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white shadow-xs pointer-events-none"
+                    className="absolute top-1 right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-[var(--ds-accent-solid)] text-xs font-bold text-[var(--ds-accent-on-solid)] shadow-xs pointer-events-none tabular-nums"
                   >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </motion.span>
@@ -448,7 +603,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0, opacity: 0 }}
-                    className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full animate-ping pointer-events-none"
+                    className="absolute top-1 right-1 w-2 h-2 bg-[var(--ds-accent-solid)] rounded-full animate-ping pointer-events-none"
                   />
                 </>
               )}
@@ -458,15 +613,16 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
 
         {/* Popover Content with FIXED stable height: h-[480px] to prevent shifting */}
         <PopoverContent
+          data-module="portal"
           align="end"
           sideOffset={8}
-          className="w-[340px] sm:w-96 max-w-[calc(100vw-2rem)] p-0 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 bg-white/98 dark:bg-slate-900/98 backdrop-blur-md overflow-hidden flex flex-col h-[480px] max-h-[85vh]"
+          className="w-[340px] sm:w-96 max-w-[calc(100vw-2rem)] p-0 rounded-3xl shadow-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] overflow-hidden flex flex-col h-[480px] max-h-[85vh]"
         >
           {/* Header (shrink-0) */}
-          <div className="shrink-0 px-4 pt-3 pb-2.5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-850/50">
+          <div className="shrink-0 px-4 py-3 border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)]">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                <span className="font-bold text-sm text-[var(--ds-fg)]">
                   Notifikasi
                 </span>
                 <AnimatePresence mode="wait">
@@ -480,7 +636,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                     >
                       <Badge
                         variant="secondary"
-                        className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-none font-bold text-[10px] px-1.5 py-0"
+                        className="bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] font-bold text-xs px-2 py-0 tabular-nums"
                       >
                         {unreadCount} baru
                       </Badge>
@@ -495,9 +651,9 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                     size="sm"
                     onClick={handleMarkAllRead}
                     disabled={isMarkingAll}
-                    className="h-7 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 p-0 hover:bg-transparent cursor-pointer"
+                    className="h-8 text-xs text-[var(--ds-accent-fg)] hover:bg-transparent p-0 cursor-pointer"
                   >
-                    <CheckCheck className="w-3.5 h-3.5 mr-1" />
+                    <CheckCheck className="w-4 h-4 mr-1" />
                     Tandai dibaca
                   </Button>
                 </motion.div>
@@ -505,21 +661,21 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
             </div>
 
             {/* Filter Tabs in Popover */}
-            <div className="flex items-center p-0.5 bg-slate-200/70 dark:bg-slate-800 rounded-lg w-fit">
+            <div className="flex items-center p-1 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg w-fit">
               <button
                 type="button"
                 onClick={() => handleSelectPopoverFilter("all")}
                 className={cn(
-                  "relative px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors z-10 cursor-pointer",
+                  "relative px-3 py-1 rounded-lg text-xs font-medium transition-colors z-10 cursor-pointer",
                   popoverFilter === "all"
-                    ? "text-slate-900 dark:text-white font-semibold"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "text-[var(--ds-fg)] font-semibold"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 )}
               >
                 {popoverFilter === "all" && (
                   <motion.div
                     layoutId="popoverFilterIndicator"
-                    className="absolute inset-0 bg-white dark:bg-slate-700 rounded-md shadow-xs"
+                    className="absolute inset-0 bg-[var(--ds-accent-soft)] rounded-lg shadow-xs"
                     transition={{ type: "spring", stiffness: 450, damping: 30 }}
                   />
                 )}
@@ -529,16 +685,16 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                 type="button"
                 onClick={() => handleSelectPopoverFilter("unread")}
                 className={cn(
-                  "relative px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors z-10 flex items-center gap-1.5 cursor-pointer",
+                  "relative px-3 py-1 rounded-lg text-xs font-medium transition-colors z-10 flex items-center gap-2 cursor-pointer",
                   popoverFilter === "unread"
-                    ? "text-slate-900 dark:text-white font-semibold"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "text-[var(--ds-fg)] font-semibold"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 )}
               >
                 {popoverFilter === "unread" && (
                   <motion.div
                     layoutId="popoverFilterIndicator"
-                    className="absolute inset-0 bg-white dark:bg-slate-700 rounded-md shadow-xs"
+                    className="absolute inset-0 bg-[var(--ds-accent-soft)] rounded-lg shadow-xs"
                     transition={{ type: "spring", stiffness: 450, damping: 30 }}
                   />
                 )}
@@ -551,7 +707,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
-                        className="px-1 rounded-full text-[9px] font-bold bg-emerald-500 text-white"
+                        className="px-2 rounded-full text-xs font-bold bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] tabular-nums"
                       >
                         {unreadCount}
                       </motion.span>
@@ -572,9 +728,9 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="h-full min-h-[260px] flex flex-col items-center justify-center text-slate-400 gap-2 my-auto"
+                  className="h-full min-h-[260px] flex flex-col items-center justify-center text-[var(--ds-fg-muted)] gap-2 my-auto"
                 >
-                  <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
+                  <Loader2 className="w-5 h-5 animate-spin text-[var(--ds-accent-fg)]" />
                   <span className="text-xs">Memuat notifikasi...</span>
                 </motion.div>
               ) : displayedNotifications.length === 0 ? (
@@ -587,15 +743,15 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   exit="exit"
                   className="h-full min-h-[260px] flex flex-col items-center justify-center text-center px-4 my-auto"
                 >
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2 shadow-xs">
+                  <div className="w-10 h-10 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] flex items-center justify-center mx-auto mb-2 shadow-xs">
                     <Bell className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <p className="text-xs font-semibold text-[var(--ds-fg)]">
                     {popoverFilter === "unread"
                       ? "Semua notifikasi sudah dibaca"
                       : "Belum ada notifikasi"}
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 max-w-[240px]">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1 max-w-[240px]">
                     {popoverFilter === "unread"
                       ? "Tidak ada notifikasi baru yang memerlukan perhatian."
                       : "Informasi penugasan, cuti, dan aset akan muncul di sini."}
@@ -609,61 +765,11 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  className="divide-y divide-slate-100 dark:divide-slate-800/60 flex-1"
+                  className="divide-y divide-slate-200/70 dark:divide-zinc-800 flex-1"
                 >
                   <motion.div variants={listContainerVariants} initial="hidden" animate="show">
                     {displayedNotifications.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        variants={itemMotionVariants}
-                        onClick={() => handleItemClick(item)}
-                        className={cn(
-                          "flex items-start gap-3 p-3.5 cursor-pointer relative text-left transition-colors duration-150 hover:bg-slate-50/90 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-800",
-                          !item.read_at && "bg-emerald-50/40 dark:bg-emerald-950/20"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "w-8 h-8 rounded-xl shrink-0 flex items-center justify-center shadow-xs mt-0.5",
-                            TYPE_STYLES[item.type] || TYPE_STYLES.system
-                          )}
-                        >
-                          {getTypeIcon(item.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-1">
-                            <p
-                              className={cn(
-                                "text-xs leading-tight truncate transition-colors duration-200",
-                                item.read_at
-                                  ? "text-slate-700 dark:text-slate-300 font-medium"
-                                  : "text-slate-900 dark:text-slate-100 font-bold"
-                              )}
-                            >
-                              {item.title}
-                            </p>
-                            <span className="text-[10px] text-slate-400 shrink-0 flex items-center gap-0.5">
-                              <Clock className="w-2.5 h-2.5" />
-                              {formatRelativeTime(item.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-snug break-words">
-                            {item.message}
-                          </p>
-                        </div>
-                        <AnimatePresence>
-                          {!item.read_at && (
-                            <motion.span
-                              key={`dot-popover-${item.id}`}
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                              className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-2 shadow-xs"
-                            />
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
+                      <NotificationRowItem key={item.id} item={item} variant="popover" onSelect={handleItemClick} />
                     ))}
                   </motion.div>
                 </motion.div>
@@ -672,7 +778,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
           </div>
 
           {/* Footer (shrink-0 mt-auto) */}
-          <div className="shrink-0 p-2 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-850/50 flex items-center justify-center">
+          <div className="shrink-0 p-2 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)] flex items-center justify-center">
             <div className="w-full">
               <Button
                 variant="ghost"
@@ -681,10 +787,10 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   setOpen(false);
                   setHistoryOpen(true);
                 }}
-                className="w-full text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 h-8 rounded-xl cursor-pointer"
+                className="w-full text-xs font-semibold text-[var(--ds-accent-fg)] hover:bg-[var(--ds-surface)] h-8 rounded-lg cursor-pointer"
               >
                 Lihat Semua Riwayat
-                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           </div>
@@ -693,16 +799,16 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
 
       {/* History Dialog with FIXED LOCKED HEIGHT h-[580px] to NEVER shift position */}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DialogContent className="max-w-xl sm:max-w-2xl p-0 overflow-hidden rounded-3xl border-slate-200 dark:border-slate-800 shadow-2xl h-[580px] max-h-[85vh] flex flex-col">
+        <DialogContent data-module="portal" className="max-w-xl sm:max-w-2xl p-0 overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg h-[580px] max-h-[85vh] flex flex-col">
           {/* Header (shrink-0) */}
-          <DialogHeader className="shrink-0 px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <DialogHeader className="shrink-0 px-6 py-4 border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)]">
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <DialogTitle className="text-xl font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                   Riwayat Notifikasi
                 </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   Daftar seluruh riwayat penugasan, cuti, dan aktivitas aset Anda.
                 </DialogDescription>
               </div>
@@ -713,9 +819,9 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                     size="sm"
                     onClick={handleMarkAllRead}
                     disabled={isMarkingAll}
-                    className="text-xs text-emerald-600 border-emerald-200 dark:border-emerald-800/60 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl h-8 cursor-pointer"
+                    className="text-xs text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] rounded-lg h-8 cursor-pointer"
                   >
-                    <CheckCheck className="w-3.5 h-3.5 mr-1" />
+                    <CheckCheck className="w-4 h-4 mr-1" />
                     Tandai Semua Dibaca
                   </Button>
                 </motion.div>
@@ -723,7 +829,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
             </div>
 
             {/* Filter Tabs with animated sliding pill */}
-            <div className="flex items-center p-1 bg-slate-200/70 dark:bg-slate-800 rounded-xl mt-3 w-fit">
+            <div className="flex items-center p-1 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg mt-3 w-fit">
               {([
                 ["all", "Semua"],
                 ["unread", "Belum Dibaca"],
@@ -734,20 +840,20 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   type="button"
                   onClick={() => handleSelectHistoryFilter(tabKey)}
                   className={cn(
-                    "relative px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors z-10 flex items-center gap-1.5 cursor-pointer",
+                    "relative px-3 py-2 rounded-lg text-xs font-medium transition-colors z-10 flex items-center gap-2 cursor-pointer",
                     historyFilter === tabKey
-                      ? "text-slate-900 dark:text-white font-bold"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                      ? "text-[var(--ds-fg)] font-bold"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   )}
                 >
                   {historyFilter === tabKey && (
                     <motion.div
                       layoutId="activeHistoryFilterTab"
-                      className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-xs"
+                      className="absolute inset-0 bg-[var(--ds-accent-soft)] rounded-lg shadow-xs"
                       transition={{ type: "spring", stiffness: 450, damping: 30 }}
                     />
                   )}
-                  <span className="relative z-20 flex items-center gap-1.5">
+                  <span className="relative z-20 flex items-center gap-2">
                     {tabLabel}
                     {tabKey === "unread" && (
                       <AnimatePresence>
@@ -758,10 +864,10 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.8, opacity: 0 }}
                             className={cn(
-                              "px-1.5 py-0.2 rounded-full text-[10px] font-bold transition-colors",
+                              "px-2 py-0 rounded-full text-xs font-bold transition-colors tabular-nums",
                               historyFilter === "unread"
-                                ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
-                                : "bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                                ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                                : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                             )}
                           >
                             {unreadCount}
@@ -779,9 +885,9 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 sm:px-4 py-2 relative flex flex-col">
             {/* Subtle top loading indicator bar instead of full-page collapse */}
             {historyLoading && (
-              <div className="absolute top-0 inset-x-0 h-0.5 bg-emerald-100 dark:bg-emerald-950 overflow-hidden z-20">
+              <div className="absolute top-0 inset-x-0 h-1 bg-[var(--ds-accent-soft)] overflow-hidden z-20">
                 <motion.div
-                  className="h-full bg-emerald-500 w-1/3 rounded-full"
+                  className="h-full bg-[var(--ds-accent-solid)] w-1/3 rounded-full"
                   animate={{ x: ["-100%", "350%"] }}
                   transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }}
                 />
@@ -796,9 +902,9 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="h-full min-h-[340px] flex flex-col items-center justify-center text-slate-400 gap-2 my-auto"
+                  className="h-full min-h-[340px] flex flex-col items-center justify-center text-[var(--ds-fg-muted)] gap-2 my-auto"
                 >
-                  <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                  <Loader2 className="w-6 h-6 animate-spin text-[var(--ds-accent-fg)]" />
                   <span className="text-xs">Memuat daftar riwayat...</span>
                 </motion.div>
               ) : historyItems.length === 0 ? (
@@ -811,17 +917,17 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   exit="exit"
                   className="h-full min-h-[340px] flex flex-col items-center justify-center text-center px-4 my-auto"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3 shadow-xs">
+                  <div className="w-14 h-14 rounded-3xl bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] flex items-center justify-center mx-auto mb-3 shadow-xs">
                     <Bell className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  <p className="text-sm font-semibold text-[var(--ds-fg)]">
                     {historyFilter === "unread"
                       ? "Tidak ada notifikasi yang belum dibaca"
                       : historyFilter === "read"
                       ? "Belum ada notifikasi yang sudah dibaca"
                       : "Belum ada riwayat notifikasi"}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1 max-w-sm mx-auto">
                     Semua aktivitas penugasan surat dinas, pengajuan cuti, dan peminjaman aset akan tercatat otomatis.
                   </p>
                 </motion.div>
@@ -833,79 +939,11 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  className="space-y-1.5 flex-1"
+                  className="space-y-2 flex-1"
                 >
                   <motion.div variants={listContainerVariants} initial="hidden" animate="show">
                     {historyItems.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        variants={itemMotionVariants}
-                        onClick={() => handleItemClick(item)}
-                        className={cn(
-                          "flex items-start gap-3.5 p-3.5 rounded-2xl cursor-pointer transition-colors duration-150 relative text-left mb-1.5 active:scale-[0.99]",
-                          item.read_at
-                            ? "hover:bg-slate-50 dark:hover:bg-slate-850/60 bg-transparent border border-transparent"
-                            : "bg-emerald-50/50 dark:bg-emerald-950/25 border border-emerald-100/80 dark:border-emerald-900/40 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "w-9 h-9 rounded-xl shrink-0 flex items-center justify-center shadow-xs mt-0.5 transition-transform duration-200",
-                            TYPE_STYLES[item.type] || TYPE_STYLES.system
-                          )}
-                        >
-                          {getTypeIcon(item.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  "text-xs leading-tight transition-colors duration-200",
-                                  item.read_at
-                                    ? "text-slate-700 dark:text-slate-300 font-medium"
-                                    : "text-slate-900 dark:text-slate-100 font-bold"
-                                )}
-                              >
-                                {item.title}
-                              </span>
-                              {item.action_tab && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[9px] uppercase tracking-wider py-0 px-1 bg-slate-100 dark:bg-slate-800 text-slate-500 border-none"
-                                >
-                                  {item.action_tab}
-                                </Badge>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-slate-400 shrink-0 flex items-center gap-1">
-                              <Clock className="w-2.5 h-2.5" />
-                              {formatRelativeTime(item.created_at)}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed break-words">
-                            {item.message}
-                          </p>
-                        </div>
-                        <div className="shrink-0 flex items-center gap-2 self-center pl-2">
-                          <AnimatePresence>
-                            {!item.read_at && (
-                              <motion.span
-                                key={`dot-history-${item.id}`}
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0, opacity: 0 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                                className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"
-                                title="Belum dibaca"
-                              />
-                            )}
-                          </AnimatePresence>
-                          <div className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </div>
-                        </div>
-                      </motion.div>
+                      <NotificationRowItem key={item.id} item={item} variant="history" onSelect={handleItemClick} />
                     ))}
                   </motion.div>
                 </motion.div>
@@ -914,23 +952,23 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
           </div>
 
           {/* Stable Fixed Footer (shrink-0 mt-auto) - ALWAYS rendered to lock bottom edge */}
-          <div className="shrink-0 h-12 flex items-center justify-between px-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70">
-            <span className="text-xs text-slate-500">
+          <div className="shrink-0 h-12 flex items-center justify-between px-6 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)]">
+            <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
               {historyTotal > 0
                 ? `Halaman ${historyPage} dari ${historyTotalPages} (${historyTotal} item)`
                 : `0 item`}
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => fetchHistory(historyPage - 1)}
                   disabled={historyPage <= 1 || historyLoading}
-                  className="h-7 w-7 p-0 rounded-lg cursor-pointer"
+                  className="h-8 w-8 p-0 rounded-lg cursor-pointer"
                   title="Halaman Sebelumnya"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -939,10 +977,10 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
                   size="sm"
                   onClick={() => fetchHistory(historyPage + 1)}
                   disabled={historyPage >= historyTotalPages || historyLoading}
-                  className="h-7 w-7 p-0 rounded-lg cursor-pointer"
+                  className="h-8 w-8 p-0 rounded-lg cursor-pointer"
                   title="Halaman Selanjutnya"
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <ChevronRight className="w-4 h-4" />
                 </Button>
               </motion.div>
             </div>

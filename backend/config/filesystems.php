@@ -15,6 +15,8 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    'drive_public_share_enabled' => env('DRIVE_PUBLIC_SHARE', true),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
@@ -56,6 +58,11 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'retries' => (int) env('S3_RETRIES', 2),
+            'http' => [
+                'connect_timeout' => (float) env('S3_CONNECT_TIMEOUT', 3),
+                'timeout' => (float) env('S3_HTTP_TIMEOUT', 60),
+            ],
             'throw' => false,
             'report' => false,
         ],
@@ -70,26 +77,36 @@ return [
             'endpoint' => env('SUPABASE_ENDPOINT'),
             'use_path_style_endpoint' => env('SUPABASE_USE_PATH_STYLE_ENDPOINT', true),
             'visibility' => 'public',
+            'retries' => (int) env('S3_RETRIES', 2),
+            'http' => [
+                'connect_timeout' => (float) env('S3_CONNECT_TIMEOUT', 3),
+                'timeout' => (float) env('S3_HTTP_TIMEOUT', 60),
+            ],
             'throw' => false,
             'report' => false,
         ],
 
         'drive' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID', 'admin'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY', 'BksdaStorage2026!'),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'bucket' => env('DRIVE_BUCKET', 'bksda-drive'),
             'endpoint' => env('AWS_ENDPOINT', 'http://rustfs:9000'),
             'use_path_style_endpoint' => true,
+            'retries' => (int) env('S3_RETRIES', 2),
+            'http' => [
+                'connect_timeout' => (float) env('S3_CONNECT_TIMEOUT', 3),
+                'timeout' => (float) env('S3_HTTP_TIMEOUT', 60),
+            ],
             'throw' => false,
             'report' => false,
         ],
 
         'drive_signer' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID', 'admin'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY', 'BksdaStorage2026!'),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
             'bucket' => env('DRIVE_BUCKET', 'bksda-drive'),
             'endpoint' => env('STORAGE_PUBLIC_ENDPOINT', 'https://storage.bksdakaltim.web.id'),

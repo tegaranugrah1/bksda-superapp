@@ -21,6 +21,11 @@ import {
   Check,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  ALLOWED_REPORT_IMAGE_MIMES,
+  MAX_REPORT_IMAGE_BYTES,
+  filterValidReportImageFiles,
+} from "./ReportFormShared";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -144,6 +149,8 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
   const [stOptions, setStOptions] = useState<MySuratTugasOption[]>([]);
   const [loadingSTOptions, setLoadingSTOptions] = useState(false);
   const [selectedSTId, setSelectedSTId] = useState<string>("");
+  const [stSearch, setStSearch] = useState("");
+  const [stPopoverOpen, setStPopoverOpen] = useState(false);
 
   // Report Form States
   const [judulLaporan, setJudulLaporan] = useState("");
@@ -171,15 +178,10 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     Array<{ url: string; caption?: string }>
   >([]);
 
-  const [stSearch, setStSearch] = useState("");
-  const [stPopoverOpen, setStPopoverOpen] = useState(false);
-
   // Cover Configuration States
   const [useCustomCover, setUseCustomCover] = useState(false);
   const [coverMode, setCoverMode] = useState<"standard" | "image" | "custom_text">("standard");
   const [customCoverImageUrl, setCustomCoverImageUrl] = useState("");
-  const [customCoverTitle, setCustomCoverTitle] = useState("");
-  const [customCoverAuthor, setCustomCoverAuthor] = useState("");
   const [customCoverFooter, setCustomCoverFooter] = useState(
     "BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR"
   );
@@ -195,23 +197,20 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
   const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("File cover harus berupa gambar (JPG, PNG, WebP).");
+    if (!ALLOWED_REPORT_IMAGE_MIMES.includes(file.type)) {
+      toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
       e.target.value = "";
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_REPORT_IMAGE_BYTES) {
       toast.error("Ukuran file cover maksimal 10MB.");
       e.target.value = "";
       return;
     }
-
     if (customCoverImageUrl && customCoverImageUrl.startsWith("blob:")) {
       URL.revokeObjectURL(customCoverImageUrl);
     }
-    const blobUrl = URL.createObjectURL(file);
-    setCustomCoverImageUrl(blobUrl);
+    setCustomCoverImageUrl(URL.createObjectURL(file));
     toast.success("Gambar cover terpilih!");
     e.target.value = "";
   };
@@ -317,17 +316,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
       return;
     }
 
-    const validFiles = Array.from(files).filter((file) => {
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        toast.error(`File ${file.name} bukan format gambar.`);
-        return false;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`File ${file.name} melebihi batas maksimal 10MB.`);
-        return false;
-      }
-      return true;
-    });
+    const validFiles = filterValidReportImageFiles(files);
 
     const filesToProcess = validFiles.slice(0, remainingSlots);
     if (validFiles.length > remainingSlots) {
@@ -399,34 +388,32 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
     use_custom_cover: useCustomCover,
     cover_mode: coverMode,
     custom_cover_image_url: customCoverImageUrl,
-    custom_cover_title: customCoverTitle,
-    custom_cover_author: customCoverAuthor,
+    custom_cover_title: "",
+    custom_cover_author: "",
     custom_cover_footer: customCoverFooter,
   };
 
-  const selectedST = selectedSTId ? stOptions.find(st => String(st.id) === String(selectedSTId)) : null;
-
   return (
-    <div className="w-full bg-white dark:bg-zinc-900 rounded-3xl border border-slate-200/80 dark:border-zinc-800/80 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 print:border-none print:shadow-none print:rounded-none print:overflow-visible print:bg-transparent">
+    <div className="w-full bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300 print:border-none print:shadow-none print:rounded-none print:overflow-visible print:bg-transparent">
       {/* Header Bar */}
-      <div className="p-5 sm:p-6 bg-slate-900 text-white border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
+      <div className="p-4 sm:p-6 bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-b border-slate-200/70 dark:border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="ghost"
             onClick={onBack}
-            className="text-slate-300 hover:text-white hover:bg-slate-800 h-10 px-3 rounded-xl gap-2 text-xs font-bold transition-all"
+            className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface)] h-10 px-3 rounded-lg gap-2 text-xs font-bold transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 text-emerald-400" />
+            <ArrowLeft className="w-4 h-4 text-[var(--ds-accent-fg)]" />
             Kembali ke Portal
           </Button>
-          <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+          <div className="h-6 w-px bg-slate-200/70 dark:bg-zinc-800 hidden sm:block" />
           <div>
-            <h2 className="text-base font-black tracking-tight text-white flex items-center gap-2">
-              <FileText className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-xl font-bold tracking-tight text-[var(--ds-fg)] flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[var(--ds-accent-fg)]" />
               Formulir Laporan Pelaksanaan Surat Tugas
             </h2>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Isi formulir secara interaktif atau pilih Surat Tugas acuan untuk pengisian otomatis.
             </p>
           </div>
@@ -436,7 +423,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
           <Button
             type="button"
             onClick={() => setIsPrintMode(!isPrintMode)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl gap-1.5 shadow-sm"
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs h-9 rounded-lg gap-2 shadow-xs cursor-pointer"
           >
             {isPrintMode ? (
               <>
@@ -456,23 +443,23 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
       {isPrintMode ? (
         /* PRINT PREVIEW MODE */
         <div className="p-6 space-y-6 print:p-0 print:m-0 print:space-y-0">
-          <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 p-4 rounded-2xl print:hidden">
+          <div className="flex items-center justify-between bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] p-4 rounded-lg print:hidden">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+              <Sparkles className="w-5 h-5 text-[var(--ds-accent-fg)]" />
+              <span className="text-xs font-bold text-[var(--ds-accent-fg)]">
                 Pratinjau Format Resmi Laporan BKSDA Kaltim
               </span>
             </div>
             <Button
               onClick={handlePrint}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 rounded-xl shadow-md gap-1.5"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs h-9 rounded-lg shadow-xs gap-2 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               Cetak Dokumen Sekarang
             </Button>
           </div>
 
-          <div className="border rounded-2xl p-6 bg-gray-50 overflow-x-auto shadow-inner print:p-0 print:border-none print:bg-transparent print:shadow-none print:m-0 print:overflow-visible">
+          <div className="border border-slate-200/80 dark:border-zinc-800 rounded-lg p-6 bg-gray-50 overflow-x-auto print:p-0 print:border-none print:bg-transparent print:shadow-none print:m-0 print:overflow-visible">
             <GeneralReportPrint data={reportData} />
           </div>
         </div>
@@ -480,107 +467,114 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
         /* FORM EDIT MODE */
         <div className="p-6 space-y-6">
           {/* 1. PICK SURAT TUGAS ACUAN */}
-          <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-800/40 space-y-2">
+          <div className="p-4 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <Label className="text-xs font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                 Pilih Surat Tugas Acuan (Opsional)
               </Label>
               {loadingSTOptions && (
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
               )}
             </div>
-            <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen} modal={true}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={stPopoverOpen}
-                  className="w-full justify-between p-2.5 h-auto min-h-11 rounded-xl bg-white dark:bg-zinc-800 border border-emerald-300 dark:border-emerald-700 text-xs font-semibold text-slate-800 dark:text-slate-200"
-                >
-                  <span className="truncate whitespace-normal text-left line-clamp-1 flex-1 pr-2">
-                    {selectedST
-                      ? (selectedST.nomor_surat
-                          ? `${selectedST.nomor_surat} - `
-                          : "") +
-                        ((selectedST.maksud_tujuan || "").substring(0, 60) || "") +
-                        "..."
-                      : "[ Tanpa Surat Tugas / Input Manual ]"}
-                  </span>
-                  <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[80vw] md:w-150 p-0" align="start">
-                <div className="flex flex-col max-h-87.5">
-                  <div className="flex items-center border-b px-3">
-                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                    <Input
-                      className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-0 focus-visible:ring-0 px-0 shadow-none"
-                      placeholder="Cari nomor atau tujuan ST..."
-                      value={stSearch}
-                      onChange={(e) => setStSearch(e.target.value)}
-                    />
-                  </div>
-                  <div className="overflow-y-auto flex-1 p-1">
-                    <div
-                      className={cn(
-                        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-300",
-                        selectedSTId === "" && "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-bold"
-                      )}
-                      onClick={() => {
-                        handleSelectSuratTugas("");
-                        setStPopoverOpen(false);
-                      }}
+            {(() => {
+              const selectedST = selectedSTId ? stOptions.find(st => String(st.id) === String(selectedSTId)) : null;
+              const needle = stSearch.toLowerCase();
+              const filteredST = stOptions.filter((st) =>
+                (st.nomor_surat || "").toLowerCase().includes(needle) ||
+                (st.maksud_tujuan || "").toLowerCase().includes(needle)
+              );
+              return (
+                <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen} modal={true}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={stPopoverOpen}
+                      className="w-full justify-between p-3 h-auto min-h-11 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] text-xs font-semibold text-[var(--ds-fg)] cursor-pointer"
                     >
-                      <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedSTId === "" ? "opacity-100" : "opacity-0")} />
-                      <span className="truncate">[ Tanpa Surat Tugas / Input Manual ]</span>
-                    </div>
-                    {stOptions
-                      .filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase()))
-                      .map((st) => (
+                      <span className="truncate whitespace-normal text-left line-clamp-1 flex-1 pr-2">
+                        {selectedST
+                          ? `${selectedST.nomor_surat ? `${selectedST.nomor_surat} - ` : ""}${((selectedST.maksud_tujuan || "").substring(0, 60) || "")}...`
+                          : "[ Tanpa Surat Tugas / Input Manual ]"}
+                      </span>
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent data-module="portal" className="w-[80vw] md:w-150 p-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg" align="start">
+                    <div className="flex flex-col max-h-88">
+                      <div className="flex items-center border-b border-slate-200/70 dark:border-zinc-800 px-3">
+                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                        <Input
+                          className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-0 focus-visible:ring-0 px-0 shadow-none"
+                          placeholder="Cari nomor atau tujuan ST..."
+                          value={stSearch}
+                          onChange={(e) => setStSearch(e.target.value)}
+                        />
+                      </div>
+                      <div className="overflow-y-auto flex-1 p-2">
                         <div
-                          key={st.id}
                           className={cn(
-                            "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm outline-none hover:bg-emerald-50 dark:hover:bg-emerald-900/40 hover:text-emerald-700 dark:hover:text-emerald-300",
-                            String(selectedSTId) === String(st.id) && "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-bold"
+                            "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]",
+                            selectedSTId === "" && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
                           )}
                           onClick={() => {
-                            handleSelectSuratTugas(String(st.id));
+                            handleSelectSuratTugas("");
                             setStPopoverOpen(false);
                           }}
                         >
-                          <Check className={cn("mr-2 h-4 w-4 shrink-0", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
-                          <div className="flex flex-col flex-1 min-w-0">
-                            <span className="truncate text-xs">
-                              {st.nomor_surat ? `${st.nomor_surat} - ` : ""}
-                              {st.maksud_tujuan}
-                            </span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400">{formatDateIndonesian(st.tanggal_mulai)}</span>
-                          </div>
+                          <Check className={cn("mr-2 h-4 w-4 shrink-0", selectedSTId === "" ? "opacity-100" : "opacity-0")} />
+                          <span className="truncate">[ Tanpa Surat Tugas / Input Manual ]</span>
                         </div>
-                      ))}
-                    {stOptions.filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
-                      <div className="py-6 text-center text-sm text-slate-500">
-                        Tidak ada Surat Tugas yang cocok.
+                        {filteredST.map((st) => (
+                          <div
+                            key={st.id}
+                            className={cn(
+                              "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]",
+                              String(selectedSTId) === String(st.id) && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
+                            )}
+                            onClick={() => {
+                              handleSelectSuratTugas(String(st.id));
+                              setStPopoverOpen(false);
+                            }}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4 shrink-0", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <span className="truncate text-xs">
+                                {st.nomor_surat ? `${st.nomor_surat} - ` : ""}{st.maksud_tujuan}
+                              </span>
+                              {st.tanggal_mulai && (
+                                <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
+                                  {formatDateIndonesian(st.tanggal_mulai)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {filteredST.length === 0 && (
+                          <div className="py-6 text-center text-sm text-[var(--ds-fg-muted)]">
+                            Tidak ada Surat Tugas yang cocok.
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              );
+            })()}
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Memilih Surat Tugas akan otomatis mengisi Agenda, Dasar, Pelaksana, dan Waktu Pelaksanaan. Pilih &quot;Tanpa Surat Tugas&quot; jika ingin mengisi manual.
             </p>
           </div>
 
           {/* 1B. PENGATURAN COVER LAPORAN (COVER MANUAL / STANDAR) */}
-          <div className="p-4 bg-emerald-50/40 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200/80 dark:border-emerald-900/50 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-xs">
-                <Layers className="w-4 h-4 text-emerald-600" />
+          <div className="p-4 bg-[var(--ds-surface-muted)] rounded-lg border border-slate-200/80 dark:border-zinc-800 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-[var(--ds-fg)] font-bold text-xs">
+                <Layers className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                 <span>Pengaturan Cover Laporan (Desain Halaman 1)</span>
               </div>
-              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 rounded-full font-bold">
+              <span className="text-xs bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] px-3 py-1 rounded-full font-bold">
                 {coverMode === "standard" ? "Cover Standar BKSDA" : coverMode === "image" ? "Upload Image Cover Manual" : "Custom Teks Cover Manual"}
               </span>
             </div>
@@ -596,14 +590,14 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   setKotaLaporan("Samarinda");
                 }}
                 className={cn(
-                  "p-3 rounded-xl border text-left transition-all space-y-1",
+                  "p-3 rounded-lg border text-left transition-colors space-y-1 cursor-pointer",
                   coverMode === "standard"
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold"
-                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] border-[var(--ds-accent-solid)] shadow-xs font-bold"
+                    : "bg-[var(--ds-surface)] text-[var(--ds-fg)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
                 <p className="text-xs font-bold">1. Cover Standar BKSDA</p>
-                <p className={cn("text-[10px]", coverMode === "standard" ? "text-emerald-100" : "text-slate-400")}>
+                <p className={cn("text-xs", coverMode === "standard" ? "opacity-90" : "text-[var(--ds-fg-muted)]")}>
                   Format resmi Balai KSDA Kaltim (Otomatis)
                 </p>
               </button>
@@ -616,14 +610,14 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   setCoverMode("image");
                 }}
                 className={cn(
-                  "p-3 rounded-xl border text-left transition-all space-y-1",
+                  "p-3 rounded-lg border text-left transition-colors space-y-1 cursor-pointer",
                   coverMode === "image"
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold"
-                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] border-[var(--ds-accent-solid)] shadow-xs font-bold"
+                    : "bg-[var(--ds-surface)] text-[var(--ds-fg)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
                 <p className="text-xs font-bold">2. Upload Gambar Cover Manual</p>
-                <p className={cn("text-[10px]", coverMode === "image" ? "text-emerald-100" : "text-slate-400")}>
+                <p className={cn("text-xs", coverMode === "image" ? "opacity-90" : "text-[var(--ds-fg-muted)]")}>
                   Gunakan gambar / desain cover milik sendiri
                 </p>
               </button>
@@ -636,14 +630,14 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   setCoverMode("custom_text");
                 }}
                 className={cn(
-                  "p-3 rounded-xl border text-left transition-all space-y-1",
+                  "p-3 rounded-lg border text-left transition-colors space-y-1 cursor-pointer",
                   coverMode === "custom_text"
-                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold"
-                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800 hover:bg-slate-50"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] border-[var(--ds-accent-solid)] shadow-xs font-bold"
+                    : "bg-[var(--ds-surface)] text-[var(--ds-fg)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
                 <p className="text-xs font-bold">3. Custom Sub-Unit Cover</p>
-                <p className={cn("text-[10px]", coverMode === "custom_text" ? "text-emerald-100" : "text-slate-400")}>
+                <p className={cn("text-xs", coverMode === "custom_text" ? "opacity-90" : "text-[var(--ds-fg-muted)]")}>
                   Ubah nama instansi / unit di footer cover
                 </p>
               </button>
@@ -651,8 +645,8 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
 
             {/* Detail inputs for Mode 2: Upload Image Cover */}
             {coverMode === "image" && (
-              <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
-                <Label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              <div className="p-4 bg-[var(--ds-surface)] rounded-lg border border-slate-200/80 dark:border-zinc-800 space-y-3">
+                <Label className="text-xs font-bold text-[var(--ds-fg)]">
                   Upload File Gambar Cover Halaman 1 (JPG / PNG / WEBP)
                 </Label>
                 <div className="flex items-center gap-3">
@@ -660,12 +654,12 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                     type="file"
                     accept="image/*"
                     onChange={handleCoverImageUpload}
-                    className="text-xs rounded-xl"
+                    className="text-xs rounded-lg"
                   />
                 </div>
                 {customCoverImageUrl && (
                   <div className="flex items-center gap-3 pt-2">
-                    <div className="w-16 h-20 relative rounded-lg border border-slate-200 overflow-hidden bg-slate-100 shrink-0">
+                    <div className="w-16 h-20 relative rounded-lg border border-slate-200/80 dark:border-zinc-800 overflow-hidden bg-[var(--ds-surface-muted)] shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={customCoverImageUrl}
@@ -675,11 +669,11 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                       />
                     </div>
                     <div className="space-y-1 text-xs">
-                      <p className="font-bold text-emerald-600">Cover Manual Berhasil Diunggah</p>
+                      <p className="font-bold text-[var(--ds-accent-fg)]">Cover Manual Berhasil Diunggah</p>
                       <button
                         type="button"
                         onClick={() => setCustomCoverImageUrl("")}
-                        className="text-[11px] text-red-600 hover:underline font-semibold"
+                        className="text-xs text-[var(--ds-status-danger-fg)] hover:underline font-semibold cursor-pointer"
                       >
                         Hapus Cover
                       </button>
@@ -691,7 +685,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
 
             {/* Detail inputs for Mode 3: Custom Instansi / Sub-Unit Cover */}
             {coverMode === "custom_text" && (
-              <div className="p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="p-4 bg-[var(--ds-surface)] rounded-lg border border-slate-200/80 dark:border-zinc-800 space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs font-bold">Nama Instansi / Sub-Unit Kerja (Footer Cover)</Label>
@@ -700,7 +694,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                       placeholder="Contoh: SEKSI KSDA WILAYAH II TENGGARONG"
                       value={customCoverFooter}
                       onChange={(e) => setCustomCoverFooter(e.target.value)}
-                      className="text-xs rounded-xl font-semibold"
+                      className="text-xs rounded-lg font-semibold"
                     />
                   </div>
                   <div className="space-y-1">
@@ -710,11 +704,11 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                       placeholder="Contoh: Samarinda / Tenggarong / Berau"
                       value={kotaLaporan}
                       onChange={(e) => setKotaLaporan(e.target.value)}
-                      className="text-xs rounded-xl font-semibold"
+                      className="text-xs rounded-lg font-semibold"
                     />
                   </div>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-[var(--ds-fg-muted)]">
                   Judul cover dan daftar penyusun otomatis diambil dari Judul Laporan & Daftar Pelaksana Kegiatan.
                 </p>
               </div>
@@ -723,39 +717,39 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
 
           {/* 2. JUDUL, KOTA & TANGGAL LAPORAN */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2 space-y-1.5">
+            <div className="md:col-span-2 space-y-2">
               <Label className="text-xs font-bold">Judul Laporan</Label>
               <Input
                 value={judulLaporan}
                 onChange={(e) => setJudulLaporan(e.target.value)}
                 placeholder="Contoh: PELAKSANAAN INVENTARISASI BMN DI SEKSI KSDA WILAYAH I BERAU"
-                className="rounded-xl text-xs font-semibold"
+                className="rounded-lg text-xs font-semibold"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs font-bold">Kota Penerbitan</Label>
               <Input
                 type="text"
                 value={kotaLaporan}
                 onChange={(e) => setKotaLaporan(e.target.value)}
                 placeholder="Samarinda"
-                className="rounded-xl text-xs font-semibold"
+                className="rounded-lg text-xs font-semibold"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label className="text-xs font-bold">Tanggal Laporan</Label>
               <Input
                 type="date"
                 value={tanggalLaporan}
                 onChange={(e) => setTanggalLaporan(e.target.value)}
-                className="rounded-xl text-xs font-semibold"
+                className="rounded-lg text-xs font-semibold tabular-nums"
               />
             </div>
           </div>
 
           {/* SECTION A: AGENDA PELAKSANAAN */}
-          <div className="space-y-1.5 border-t border-slate-100 dark:border-zinc-800 pt-4">
-            <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+          <div className="space-y-2 border-t border-slate-200/70 dark:border-zinc-800 pt-4">
+            <Label className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
               A. Agenda Pelaksanaan
             </Label>
             <Textarea
@@ -763,14 +757,14 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
               value={agendaPelaksanaan}
               onChange={(e) => setAgendaPelaksanaan(e.target.value)}
               placeholder="Melaksanakan Perjalanan Dinas dari Samarinda ke..."
-              className="rounded-xl text-xs font-medium"
+              className="rounded-lg text-xs font-medium"
             />
           </div>
 
           {/* SECTION B: DASAR PELAKSANAAN */}
-          <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
+          <div className="space-y-2 border-t border-slate-200/70 dark:border-zinc-800 pt-4">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
                 B. Dasar Pelaksanaan
               </Label>
               <Button
@@ -780,16 +774,16 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                 onClick={() =>
                   setDasarPelaksanaan((prev) => [...prev, "Poin dasar baru..."])
                 }
-                className="text-xs text-blue-600 h-7 gap-1"
+                className="text-xs text-[var(--ds-status-info-fg)] h-8 gap-1 rounded-lg cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 Tambah Dasar
               </Button>
             </div>
             <div className="space-y-2">
               {dasarPelaksanaan.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-400 w-5">
+                  <span className="text-xs font-bold text-[var(--ds-fg-muted)] w-5 tabular-nums">
                     {idx + 1}.
                   </span>
                   <Input
@@ -800,7 +794,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                         prev.map((d, i) => (i === idx ? val : d))
                       );
                     }}
-                    className="rounded-xl text-xs font-medium flex-1"
+                    className="rounded-lg text-xs font-medium flex-1"
                   />
                   <Button
                     type="button"
@@ -809,7 +803,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                     onClick={() =>
                       setDasarPelaksanaan((prev) => prev.filter((_, i) => i !== idx))
                     }
-                    className="h-8 w-8 text-red-500 hover:text-red-700"
+                    className="h-8 w-8 rounded-lg text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -819,25 +813,25 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
           </div>
 
           {/* SECTION C: MAKSUD DAN TUJUAN */}
-          <div className="space-y-3 border-t border-slate-100 dark:border-zinc-800 pt-4">
+          <div className="space-y-3 border-t border-slate-200/70 dark:border-zinc-800 pt-4">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
                 C. Maksud dan Tujuan
               </Label>
               {selectedSTId ? (
-                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold px-2.5 py-0.5 rounded-full">
+                <span className="text-xs bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] font-bold px-3 py-1 rounded-full">
                   Otomatis dari ST (Dapat Disesuaikan)
                 </span>
               ) : (
-                <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-bold px-2.5 py-0.5 rounded-full">
+                <span className="text-xs bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] font-bold px-3 py-1 rounded-full">
                   Mode Input Manual
                 </span>
               )}
             </div>
 
             <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--ds-fg)]">
                   Maksud Kegiatan {selectedSTId ? "(Otomatis dari ST)" : "(Input Manual)"}:
                 </Label>
                 <Textarea
@@ -845,12 +839,12 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   value={maksudText}
                   onChange={(e) => setMaksudText(e.target.value)}
                   placeholder="Contoh: Mengantar peralatan kebakaran hutan berupa 1 unit mobil tangki air ke CA Teluk Adang..."
-                  className="rounded-xl text-xs font-medium"
+                  className="rounded-lg text-xs font-medium"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--ds-fg)]">
                   Tujuan Kegiatan (Input Spesifik Tujuan Pelaksanaan):
                 </Label>
                 <Textarea
@@ -858,16 +852,16 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                   value={tujuanText}
                   onChange={(e) => setTujuanText(e.target.value)}
                   placeholder="Contoh: memverifikasi berkas kendaraan dengan KPKNL Bontang dan mengetahui pemenang hasil Lelang kendaraan tersebut."
-                  className="rounded-xl text-xs font-medium"
+                  className="rounded-lg text-xs font-medium"
                 />
-                
+
                 {/* LIVE PREVIEW BOX FOR COMBINED MAKSUD & TUJUAN */}
-                <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 space-y-1.5 mt-2">
-                  <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 font-bold text-xs">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                <div className="p-4 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] space-y-2 mt-2">
+                  <div className="flex items-center gap-2 text-[var(--ds-accent-fg)] font-bold text-xs">
+                    <Sparkles className="w-4 h-4" />
                     <span>Hasil Penggabungan Maksud &amp; Tujuan (Tampilan Resmi PDF):</span>
                   </div>
-                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-relaxed bg-white/80 dark:bg-zinc-800/80 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                  <p className="text-xs font-semibold text-[var(--ds-fg)] leading-relaxed bg-[var(--ds-surface)] p-3 rounded-lg border border-[var(--ds-accent-soft-border)]">
                     {formatMaksudDanTujuan(maksudText, tujuanText) || "-"}
                   </p>
                 </div>
@@ -876,9 +870,9 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
           </div>
 
           {/* SECTION D: PELAKSANA */}
-          <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
+          <div className="space-y-2 border-t border-slate-200/70 dark:border-zinc-800 pt-4">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
                 D. Daftar Pelaksana Kegiatan
               </Label>
               <Button
@@ -896,9 +890,9 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                     },
                   ])
                 }
-                className="text-xs text-blue-600 h-7 gap-1"
+                className="text-xs text-[var(--ds-status-info-fg)] h-8 gap-1 rounded-lg cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 Tambah Pelaksana
               </Button>
             </div>
@@ -906,7 +900,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
               {pelaksana.map((p, idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-2 p-2 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-800 items-center"
+                  className="grid grid-cols-1 md:grid-cols-3 gap-2 p-2 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 items-center"
                 >
                   <Input
                     value={p.nama_lengkap}
@@ -932,7 +926,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                       );
                     }}
                     placeholder="NIP"
-                    className="rounded-lg text-xs font-mono"
+                    className="rounded-lg text-xs font-mono tabular-nums"
                   />
                   <div className="flex items-center gap-2">
                     <Input
@@ -957,7 +951,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                           prev.filter((_, i) => i !== idx)
                         )
                       }
-                      className="h-8 w-8 text-red-500 hover:text-red-700 shrink-0"
+                      className="h-8 w-8 rounded-lg text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] shrink-0 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -968,8 +962,8 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
           </div>
 
           {/* SECTION E: WAKTU DAN TEMPAT */}
-          <div className="space-y-1.5 border-t border-slate-100 dark:border-zinc-800 pt-4">
-            <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+          <div className="space-y-2 border-t border-slate-200/70 dark:border-zinc-800 pt-4">
+            <Label className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
               E. Waktu dan Tempat Pelaksanaan
             </Label>
             <Textarea
@@ -977,14 +971,14 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
               value={waktuTempat}
               onChange={(e) => setWaktuTempat(e.target.value)}
               placeholder="Kegiatan ini dilaksanakan selama 2 (dua) hari terhitung mulai..."
-              className="rounded-xl text-xs font-medium"
+              className="rounded-lg text-xs font-medium"
             />
           </div>
 
           {/* SECTION F: HASIL PELAKSANAAN */}
-          <div className="space-y-2 border-t border-slate-100 dark:border-zinc-800 pt-4">
+          <div className="space-y-2 border-t border-slate-200/70 dark:border-zinc-800 pt-4">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
                 F. Hasil Pelaksanaan (Kronologis Hari)
               </Label>
               <Button
@@ -997,16 +991,16 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                     "Pada hari berikutnya, melanjutkan penugasan...",
                   ])
                 }
-                className="text-xs text-blue-600 h-7 gap-1"
+                className="text-xs text-[var(--ds-status-info-fg)] h-8 gap-1 rounded-lg cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 Tambah Poin Hasil
               </Button>
             </div>
             <div className="space-y-2">
               {hasilPelaksanaan.map((h, idx) => (
                 <div key={idx} className="flex items-start gap-2">
-                  <span className="text-xs font-bold text-slate-400 w-5 mt-2">
+                  <span className="text-xs font-bold text-[var(--ds-fg-muted)] w-5 mt-2 tabular-nums">
                     {idx + 1}.
                   </span>
                   <Textarea
@@ -1018,7 +1012,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                         prev.map((item, i) => (i === idx ? val : item))
                       );
                     }}
-                    className="rounded-xl text-xs font-medium flex-1"
+                    className="rounded-lg text-xs font-medium flex-1"
                   />
                   <Button
                     type="button"
@@ -1029,7 +1023,7 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                         prev.filter((_, i) => i !== idx)
                       )
                     }
-                    className="h-8 w-8 text-red-500 hover:text-red-700 mt-1"
+                    className="h-8 w-8 rounded-lg text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] mt-1 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -1039,19 +1033,19 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
           </div>
 
           {/* SECTION G: DOKUMENTASI FOTO */}
-          <div className="space-y-3 border-t border-slate-100 dark:border-zinc-800 pt-4">
+          <div className="space-y-3 border-t border-slate-200/70 dark:border-zinc-800 pt-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Label className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
-                  <ImageIcon className="w-4 h-4 text-emerald-600" />
+                <Label className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                   G. Dokumentasi Foto Lapangan
                 </Label>
-                <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 font-bold px-2.5 py-0.5 rounded-full">
+                <span className="text-xs bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] font-bold px-3 py-1 rounded-full tabular-nums">
                   {dokumentasiFoto.length} Foto (Maks. 6 / Halaman Cetak)
                 </span>
               </div>
-              <label className="cursor-pointer bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors flex items-center gap-1.5">
-                <Plus className="w-3.5 h-3.5" />
+              <label className="cursor-pointer bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] font-bold text-xs px-3 py-2 rounded-lg hover:bg-[var(--ds-surface-muted)] transition-colors flex items-center gap-2">
+                <Plus className="w-4 h-4" />
                 Unggah Foto
                 <input
                   type="file"
@@ -1064,9 +1058,9 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
             </div>
 
             {dokumentasiFoto.length === 0 ? (
-              <div className="p-6 text-center border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl bg-slate-50/50 dark:bg-zinc-800/30">
-                <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-xs text-slate-400 font-medium">
+              <div className="p-6 text-center border-2 border-dashed border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)]">
+                <ImageIcon className="w-8 h-8 text-[var(--ds-fg-muted)] mx-auto mb-2" />
+                <p className="text-xs text-[var(--ds-fg-muted)] font-medium">
                   Belum ada foto dokumentasi. Klik &quot;Unggah Foto&quot; untuk menambahkan foto kegiatan.
                 </p>
               </div>
@@ -1075,9 +1069,9 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                 {dokumentasiFoto.map((foto, idx) => (
                   <div
                     key={idx}
-                    className="p-2 border rounded-xl bg-white dark:bg-zinc-800 space-y-2 relative group"
+                    className="p-2 border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] space-y-2 relative group"
                   >
-                    <div className="w-full h-32 bg-slate-100 rounded-lg overflow-hidden relative">
+                    <div className="w-full h-32 bg-[var(--ds-surface-muted)] rounded-lg overflow-hidden relative">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={foto.url}
@@ -1088,16 +1082,16 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
                       <button
                         type="button"
                         onClick={() => removePhoto(idx)}
-                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-lg opacity-80 hover:opacity-100 shadow"
+                        className="absolute top-1 right-1 p-1 bg-[var(--ds-danger-solid)] text-white rounded-lg opacity-80 hover:opacity-100 shadow-xs cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                     <Input
                       value={foto.caption || ""}
                       onChange={(e) => updatePhotoCaption(idx, e.target.value)}
                       placeholder="Keterangan foto..."
-                      className="rounded-lg text-[10px] h-7 font-medium"
+                      className="rounded-lg text-xs h-8 font-medium"
                     />
                   </div>
                 ))}
@@ -1106,19 +1100,19 @@ export function GeneralReportInlineForm({ onBack }: GeneralReportInlineFormProps
           </div>
 
           {/* ACTION BUTTONS */}
-          <div className="pt-4 border-t border-slate-100 dark:border-zinc-800 flex justify-end gap-3">
+          <div className="pt-4 border-t border-slate-200/70 dark:border-zinc-800 flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={onBack}
-              className="rounded-xl text-xs h-10 px-5"
+              className="rounded-lg text-xs h-10 px-5 cursor-pointer"
             >
               Kembali
             </Button>
             <Button
               type="button"
               onClick={() => setIsPrintMode(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-10 px-6 rounded-xl shadow-md gap-2"
+              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs h-10 px-6 rounded-lg shadow-xs gap-2 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               Pratinjau & Cetak Laporan

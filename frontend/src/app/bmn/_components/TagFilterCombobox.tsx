@@ -87,28 +87,28 @@ export function TagFilterCombobox({
           aria-expanded={open}
           className={cn("bmn-button bmn-secondary h-9 px-3 text-xs rounded-lg flex items-center gap-2 shrink-0", className)}
         >
-          <TagIcon className="w-3.5 h-3.5" />
+          <TagIcon className="w-4 h-4" />
           <span className="truncate max-w-[160px]">{singleSelectedTag?.label || (activeCount > 0 ? `Filter Tag (${activeCount})` : "Semua Tag")}</span>
-          <ChevronsUpDown className="w-3.5 h-3.5" />
+          <ChevronsUpDown className="w-4 h-4" />
         </button>
       </PopoverTrigger>
 
       <PopoverContent
         data-module="bmn"
         aria-label="Filter tag aset"
-        className="bmn-assets-ui bmn-popover w-68 p-0 rounded-xl shadow-lg border"
+        className="bmn-assets-ui bmn-popover w-72 p-0 rounded-lg shadow-lg border border-slate-200/80 dark:border-zinc-800"
         align="start"
       >
         {/* Search input */}
-        <div className="flex items-center border-b border-slate-100 dark:border-slate-800 px-3 py-2">
-          <Search className="w-3.5 h-3.5 text-[var(--ds-fg-muted)] mr-2 shrink-0" />
+        <div className="flex items-center border-b border-slate-200/70 dark:border-zinc-800 px-3 py-2">
+          <Search className="w-4 h-4 text-[var(--ds-fg-muted)] mr-2 shrink-0" />
           <input
             type="text"
             aria-label="Cari tag aset"
             placeholder="Cari tag aset..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full text-xs bg-transparent border-0 outline-none text-slate-800 dark:text-slate-200 placeholder:text-[var(--ds-fg-muted)]"
+            className="w-full text-xs bg-transparent border-0 outline-none text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)]"
             autoFocus
           />
           {search && (
@@ -116,7 +116,7 @@ export function TagFilterCombobox({
               type="button"
               aria-label="Bersihkan pencarian tag"
               onClick={() => setSearch("")}
-              className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] dark:hover:text-slate-200 p-0.5"
+              className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] p-1"
             >
               <X className="w-3 h-3" />
             </button>
@@ -124,7 +124,7 @@ export function TagFilterCombobox({
         </div>
 
         {/* Tag list */}
-        <div className="max-h-56 overflow-y-auto p-1.5 space-y-0.5">
+        <div className="max-h-56 overflow-y-auto p-2 space-y-1">
           {/* Bersihkan Filter Option */}
           <button
             type="button"
@@ -133,17 +133,17 @@ export function TagFilterCombobox({
               onClearAll();
             }}
             className={cn(
-              "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left",
+              "w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors text-left",
               activeCount === 0
-                ? "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold"
-                : "text-[var(--ds-fg-muted)] hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                ? "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-semibold"
+                : "text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)]"
             )}
           >
             <span className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+              <span className="w-3 h-3 rounded-full bg-slate-300 dark:bg-zinc-600" />
               <span>Semua Tag (Reset)</span>
             </span>
-            {activeCount === 0 && <Check className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />}
+            {activeCount === 0 && <Check className="w-4 h-4 text-[var(--ds-fg-muted)]" />}
           </button>
 
           {/* Filtered Tags */}
@@ -160,43 +160,43 @@ export function TagFilterCombobox({
                   onToggleTag(tag.id);
                 }}
                 className={cn(
-                  "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left group",
-                  isSub && "pl-5 bg-slate-50/50 dark:bg-slate-900/30",
+                  "w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors text-left group",
+                  isSub && "pl-5 bg-[var(--ds-surface-muted)]",
                   isSelected
                     ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
-                    : "text-slate-700 dark:text-[var(--ds-fg-muted)] hover:bg-slate-100 dark:hover:bg-slate-800"
+                    : "text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
                 )}
               >
-                <span className="flex items-center gap-1.5 truncate">
+                <span className="flex items-center gap-2 truncate">
                   {isSub ? (
-                    <span className="font-mono text-[var(--ds-fg-muted)] text-xs font-bold shrink-0 select-none mr-0.5">↳</span>
+                    <span className="font-mono text-[var(--ds-fg-muted)] text-xs font-bold shrink-0 select-none">↳</span>
                   ) : (
                     <span
                       className={cn(
-                        "w-2.5 h-2.5 rounded-full shrink-0 border border-black/10",
+                        "w-3 h-3 rounded-full shrink-0 border border-black/10",
                         swatch?.class || "bg-emerald-500"
                       )}
                     />
                   )}
                   <span className="truncate font-medium">{tag.label}</span>
                   {isSub && (
-                    <span className="text-[9px] px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-[var(--ds-fg-muted)]">
+                    <span className="text-xs px-1 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                       sub
                     </span>
                   )}
                 </span>
-                <span className="flex items-center gap-1.5 shrink-0 ml-2">
+                <span className="flex items-center gap-2 shrink-0 ml-2">
                   {tag.assets_count !== undefined && tag.assets_count > 0 && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-[var(--ds-fg-muted)]">
+                    <span className="text-xs px-2 py-1 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] tabular-nums">
                       {tag.assets_count}
                     </span>
                   )}
                   <span
                     className={cn(
-                      "w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0",
+                      "w-5 h-5 rounded-lg border flex items-center justify-center transition-colors shrink-0",
                       isSelected
                         ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-solid)] text-[color:var(--ds-accent-on-solid)]"
-                        : "border-slate-300 dark:border-slate-600 group-hover:border-slate-400"
+                        : "border-slate-300 dark:border-zinc-600 group-hover:border-slate-400"
                     )}
                   >
                     {isSelected && <Check className="w-3 h-3" />}

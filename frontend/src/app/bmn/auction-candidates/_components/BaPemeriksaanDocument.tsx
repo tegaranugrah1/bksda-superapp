@@ -8,6 +8,7 @@ import {
   formatDateLong,
   getSpelledDate,
   getAssetNilaiTaksiran,
+  parseDocDate,
   EMPTY_DOC_NUMBER_GAP,
 } from "../_lib/auction-helpers";
 import type { SkKepalaBalai } from "../_lib/sk-defaults";
@@ -36,23 +37,6 @@ interface BaLampiranPage {
 function buildNomorText(number: string, kap: string, today: Date) {
   const month = String(today.getMonth() + 1).padStart(2, "0");
   return `BA.${number.trim() || EMPTY_DOC_NUMBER_GAP}/K.18/TU/${kap.trim() || "KAP.06.01"}/B/${month}/${today.getFullYear()}`;
-}
-
-function parseDocDate(dateStr?: string | null): Date {
-  if (!dateStr) return new Date();
-  try {
-    const parts = dateStr.split("-");
-    if (parts.length === 3) {
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
-      const day = parseInt(parts[2], 10);
-      const d = new Date(year, month, day);
-      if (!isNaN(d.getTime())) return d;
-    }
-    const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) return d;
-  } catch (e) {}
-  return new Date();
 }
 
 function formatStNumberText(stNumber: string, today: Date) {

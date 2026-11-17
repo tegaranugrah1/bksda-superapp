@@ -398,17 +398,17 @@ export function KalkulatorDinasTab({
       {/* INTERACTIVE WEB UI (DISEMBUNYIKAN PENUH SAAT CETAK) */}
       <div className="space-y-6 print:hidden">
         {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-3 border-b border-slate-200/70 dark:border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] flex items-center justify-center shadow-xs shrink-0">
               <Wallet className="w-4 h-4" />
             </div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="text-xl font-bold text-[var(--ds-fg)]">
               Kalkulator & Pengeluaran Uang Panjar Perjadin
             </h2>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
             Pencatatan realisasi belanja dari uang muka/panjar bendahara dan hitung sisa kasbon yang harus disetor.
           </p>
         </div>
@@ -417,13 +417,13 @@ export function KalkulatorDinasTab({
           <Button
             type="button"
             onClick={handleManualSave}
-            className="rounded-xl text-xs font-bold gap-1.5 h-8 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+            className="rounded-lg text-xs font-bold gap-2 h-9 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] shadow-xs cursor-pointer"
           >
-            <Save className="w-3.5 h-3.5" />
+            <Save className="w-4 h-4" />
             <span>Simpan Draf</span>
           </Button>
 
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+          <span className="text-xs text-[var(--ds-fg-muted)] font-medium px-3 py-1 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 tabular-nums">
             {lastSavedTime}
           </span>
 
@@ -432,9 +432,9 @@ export function KalkulatorDinasTab({
             variant="outline"
             size="sm"
             onClick={() => window.print()}
-            className="rounded-xl text-xs font-semibold gap-1.5 h-8 border-slate-200"
+            className="rounded-lg text-xs font-semibold gap-2 h-9 cursor-pointer"
           >
-            <Printer className="w-3.5 h-3.5" />
+            <Printer className="w-4 h-4" />
             <span>Cetak LPJ Panjar</span>
           </Button>
 
@@ -443,44 +443,44 @@ export function KalkulatorDinasTab({
             variant="ghost"
             size="sm"
             onClick={handleResetDraft}
-            className="rounded-xl text-xs font-semibold gap-1.5 h-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+            className="rounded-lg text-xs font-semibold gap-2 h-9 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-4 h-4" />
             <span>Reset</span>
           </Button>
         </div>
       </div>
 
       {/* 3 KARTU STATUS KEUANGAN PANJAR */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* 1. Uang Panjar Diterima */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Uang Panjar Diterima</span>
-            <CreditCard className="w-4 h-4 text-emerald-600" />
+        <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+          <div className="flex items-center justify-between text-[var(--ds-fg-muted)]">
+            <span className="text-xs font-bold uppercase tracking-wider">Uang Panjar Diterima</span>
+            <CreditCard className="w-4 h-4 text-[var(--ds-accent-fg)]" />
           </div>
-          <p className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <p className="text-xl font-bold text-[var(--ds-fg)] mt-1 tabular-nums">
             {formatRupiah(uangPanjar)}
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
             Uang muka kasbon dari Bendahara
           </p>
         </div>
 
         {/* 2. Total Pengeluaran Riil */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Total Pengeluaran Riil</span>
-            <Receipt className="w-4 h-4 text-amber-600" />
+        <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+          <div className="flex items-center justify-between text-[var(--ds-fg-muted)]">
+            <span className="text-xs font-bold uppercase tracking-wider">Total Pengeluaran Riil</span>
+            <Receipt className="w-4 h-4 text-[var(--ds-status-warning-fg)]" />
           </div>
-          <p className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">
+          <p className="text-xl font-bold text-[var(--ds-status-warning-fg)] mt-1 tabular-nums">
             {formatRupiah(totalPengeluaran)}
           </p>
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[10px]">
-            <span className="font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs tabular-nums">
+            <span className="font-semibold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-2 py-0 rounded-lg border border-[var(--ds-status-success-border)]">
               SPJ: {formatRupiah(totalSpj)}
             </span>
-            <span className="font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+            <span className="font-semibold text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] px-2 py-0 rounded-lg border border-[var(--ds-status-warning-border)]">
               Non-SPJ: {formatRupiah(totalNonSpj)}
             </span>
           </div>
@@ -489,31 +489,31 @@ export function KalkulatorDinasTab({
         {/* 3. Sisa Saldo Panjar */}
         <div
           className={cn(
-            "p-4 rounded-2xl border shadow-xs transition-all",
+            "p-4 rounded-lg border shadow-xs transition-colors",
             sisaPanjar >= 0
-              ? "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/60"
-              : "bg-rose-50/60 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/60"
+              ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)]"
+              : "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)]"
           )}
         >
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">
+          <div className="flex items-center justify-between text-[var(--ds-fg-muted)]">
+            <span className="text-xs font-bold uppercase tracking-wider">
               {sisaPanjar >= 0 ? "Sisa Panjar di Tangan" : "Kekurangan Biaya (Reimburse)"}
             </span>
             {sisaPanjar >= 0 ? (
-              <TrendingDown className="w-4 h-4 text-emerald-600" />
+              <TrendingDown className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
             ) : (
-              <TrendingUp className="w-4 h-4 text-rose-600" />
+              <TrendingUp className="w-4 h-4 text-[var(--ds-status-danger-fg)]" />
             )}
           </div>
           <p
             className={cn(
-              "text-xl font-extrabold mt-1",
-              sisaPanjar >= 0 ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"
+              "text-xl font-bold mt-1 tabular-nums",
+              sisaPanjar >= 0 ? "text-[var(--ds-status-success-fg)]" : "text-[var(--ds-status-danger-fg)]"
             )}
           >
             {formatRupiah(Math.abs(sisaPanjar))}
           </p>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium">
+          <p className="text-xs text-[var(--ds-fg-muted)] mt-1 font-medium">
             {sisaPanjar >= 0
               ? "Wajib disetor kembali ke Bendahara"
               : "Uang talangan pribadi, perlu diganti Bendahara"}
@@ -522,22 +522,22 @@ export function KalkulatorDinasTab({
       </div>
 
       {/* TRIP METADATA & UANG PANJAR FORM */}
-      <div className="p-4 md:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div className="p-4 sm:p-6 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+            <FileText className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg)]">
               Identitas Tugas & Uang Panjar
             </h3>
           </div>
 
           {suratTugasList.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-slate-500">Hubungkan ST:</span>
+              <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">Hubungkan ST:</span>
               <select
                 value={selectedStId}
                 onChange={(e) => setSelectedStId(e.target.value)}
-                className="h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 text-xs font-medium text-slate-800 dark:text-slate-200"
+                className="h-9 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 text-xs font-medium text-[var(--ds-fg)]"
               >
                 <option value="">-- Input Bebas (Tanpa ST) --</option>
                 {suratTugasList.map((st) => (
@@ -552,88 +552,88 @@ export function KalkulatorDinasTab({
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs">
           <div className="md:col-span-5 space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
+            <label className="font-semibold text-[var(--ds-fg)]">
               Maksud / Kegiatan Perjalanan Dinas:
             </label>
             <Input
               value={namaKegiatan}
               onChange={(e) => setNamaKegiatan(e.target.value)}
               placeholder="Contoh: Patroli Pengamanan Kawasan SM Balikpapan"
-              className="h-8.5 rounded-xl text-xs"
+              className="h-9 rounded-lg text-xs"
             />
           </div>
 
           <div className="md:col-span-3 space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
+            <label className="font-semibold text-[var(--ds-fg)]">
               Tujuan / Lokasi:
             </label>
             <Input
               value={lokasiTujuan}
               onChange={(e) => setLokasiTujuan(e.target.value)}
               placeholder="Contoh: Berau / Kutai Barat"
-              className="h-8.5 rounded-xl text-xs"
+              className="h-9 rounded-lg text-xs"
             />
           </div>
 
           <div className="md:col-span-4 space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">
+            <label className="font-semibold text-[var(--ds-fg)]">
               Pemegang Uang Panjar:
             </label>
             <Input
               value={pemegangPanjar}
               onChange={(e) => setPemegangPanjar(e.target.value)}
               placeholder="Nama Pegawai Pelaksana"
-              className="h-8.5 rounded-xl text-xs font-medium"
+              className="h-9 rounded-lg text-xs font-medium"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-3 border-t border-slate-200/70 dark:border-zinc-800 text-xs items-end">
           <div className="sm:col-span-3 space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">Tgl Berangkat:</label>
+            <label className="font-semibold text-[var(--ds-fg)]">Tgl Berangkat:</label>
             <Input
               type="date"
               value={tanggalMulai}
               onChange={(e) => setTanggalMulai(e.target.value)}
-              className="h-8.5 rounded-xl text-xs"
+              className="h-9 rounded-lg text-xs tabular-nums"
             />
           </div>
 
           <div className="sm:col-span-3 space-y-1">
-            <label className="font-semibold text-slate-700 dark:text-slate-300">Tgl Kembali:</label>
+            <label className="font-semibold text-[var(--ds-fg)]">Tgl Kembali:</label>
             <Input
               type="date"
               value={tanggalSelesai}
               onChange={(e) => setTanggalSelesai(e.target.value)}
-              className="h-8.5 rounded-xl text-xs"
+              className="h-9 rounded-lg text-xs tabular-nums"
             />
           </div>
 
           {/* Input Nominal Uang Panjar dengan Preset Cepat */}
           <div className="sm:col-span-6 space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="font-bold text-emerald-800 dark:text-emerald-300">
+            <div className="flex items-center justify-between gap-2">
+              <label className="font-bold text-[var(--ds-accent-fg)]">
                 Nominal Uang Panjar Diterima (Rp):
               </label>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setUangPanjar(5000000)}
-                  className="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 font-semibold text-slate-600 dark:text-slate-300"
+                  className="px-2 py-0 rounded-lg text-xs bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-secondary-hover)] border border-slate-200/80 dark:border-zinc-800 font-semibold text-[var(--ds-fg)] cursor-pointer tabular-nums"
                 >
                   5 Jt
                 </button>
                 <button
                   type="button"
                   onClick={() => setUangPanjar(10000000)}
-                  className="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 font-semibold text-slate-600 dark:text-slate-300"
+                  className="px-2 py-0 rounded-lg text-xs bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-secondary-hover)] border border-slate-200/80 dark:border-zinc-800 font-semibold text-[var(--ds-fg)] cursor-pointer tabular-nums"
                 >
                   10 Jt
                 </button>
                 <button
                   type="button"
                   onClick={() => setUangPanjar(15000000)}
-                  className="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 font-semibold text-slate-600 dark:text-slate-300"
+                  className="px-2 py-0 rounded-lg text-xs bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-secondary-hover)] border border-slate-200/80 dark:border-zinc-800 font-semibold text-[var(--ds-fg)] cursor-pointer tabular-nums"
                 >
                   15 Jt
                 </button>
@@ -644,7 +644,7 @@ export function KalkulatorDinasTab({
               value={formatRibuan(uangPanjar)}
               onChange={(e) => setUangPanjar(parseRibuan(e.target.value))}
               placeholder="0 (Masukkan nominal panjar)"
-              className="h-8.5 rounded-xl text-xs font-mono font-bold text-slate-900 dark:text-white"
+              className="h-9 rounded-lg text-xs font-mono font-bold text-[var(--ds-fg)] tabular-nums"
             />
           </div>
         </div>
@@ -653,47 +653,47 @@ export function KalkulatorDinasTab({
       {/* FORM PENCATATAN PENGELUARAN BARU */}
       <form
         onSubmit={handleAddPengeluaran}
-        className="p-4 md:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3"
+        className="p-4 sm:p-6 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-3"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+            <Receipt className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg)]">
               Catat Pengeluaran dari Uang Panjar
             </h3>
           </div>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-xs text-[var(--ds-fg-muted)]">
             Ketik nominal dengan pemisah ribuan otomatis
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
           <div className="sm:col-span-2 space-y-1">
-            <label className="font-semibold text-slate-500">Tanggal:</label>
+            <label className="font-semibold text-[var(--ds-fg-muted)]">Tanggal:</label>
             <Input
               type="date"
               value={newExp.tanggal}
               onChange={(e) => setNewExp((prev) => ({ ...prev, tanggal: e.target.value }))}
-              className="h-8.5 rounded-xl text-xs"
+              className="h-9 rounded-lg text-xs tabular-nums"
             />
           </div>
 
           <div className="sm:col-span-3 space-y-1">
-            <label className="font-semibold text-slate-500">Keterangan Pengeluaran:</label>
+            <label className="font-semibold text-[var(--ds-fg-muted)]">Keterangan Pengeluaran:</label>
             <Input
               value={newExp.keterangan}
               onChange={(e) => setNewExp((prev) => ({ ...prev, keterangan: e.target.value }))}
               placeholder="Contoh: BBM Mobil Dinas di SPBU Sangatta"
-              className="h-8.5 rounded-xl text-xs"
+              className="h-9 rounded-lg text-xs"
             />
           </div>
 
           <div className="sm:col-span-2 space-y-1">
-            <label className="font-semibold text-slate-500">Kategori:</label>
+            <label className="font-semibold text-[var(--ds-fg-muted)]">Kategori:</label>
             <select
               value={newExp.kategori}
               onChange={(e) => setNewExp((prev) => ({ ...prev, kategori: e.target.value }))}
-              className="w-full h-8.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs font-medium"
+              className="w-full h-9 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs font-medium text-[var(--ds-fg)]"
             >
               {KATEGORI_OPTIONS.map((kat) => (
                 <option key={kat} value={kat}>{kat}</option>
@@ -703,25 +703,25 @@ export function KalkulatorDinasTab({
 
           {/* Status SPJ Toggle Button */}
           <div className="sm:col-span-2 space-y-1">
-            <label className="font-semibold text-slate-500">Status SPJ:</label>
+            <label className="font-semibold text-[var(--ds-fg-muted)]">Status SPJ:</label>
             <button
               type="button"
               onClick={() => setNewExp((prev) => ({ ...prev, isSpj: !prev.isSpj }))}
               className={cn(
-                "w-full h-8.5 rounded-xl text-xs font-bold px-2.5 transition-all flex items-center justify-center gap-1.5 border",
+                "w-full h-9 rounded-lg text-xs font-bold px-3 transition-colors flex items-center justify-center gap-2 border cursor-pointer",
                 newExp.isSpj
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                  : "bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                  ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
+                  : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]"
               )}
               title="Klik untuk beralih antara Bisa SPJ atau Non-SPJ"
             >
-              <span className={cn("w-2 h-2 rounded-full", newExp.isSpj ? "bg-emerald-500" : "bg-amber-500")} />
+              <span className={cn("w-2 h-2 rounded-full", newExp.isSpj ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-status-warning-fg)]")} />
               <span>{newExp.isSpj ? "Bisa SPJ" : "Non-SPJ"}</span>
             </button>
           </div>
 
           <div className="sm:col-span-2 space-y-1">
-            <label className="font-semibold text-slate-500">Nominal (Rp):</label>
+            <label className="font-semibold text-[var(--ds-fg-muted)]">Nominal (Rp):</label>
             <Input
               type="text"
               value={newExp.nominal}
@@ -729,7 +729,7 @@ export function KalkulatorDinasTab({
                 setNewExp((prev) => ({ ...prev, nominal: formatRibuan(e.target.value) }))
               }
               placeholder="0"
-              className="h-8.5 rounded-xl text-xs font-mono font-bold"
+              className="h-9 rounded-lg text-xs font-mono font-bold tabular-nums"
             />
           </div>
 
@@ -747,10 +747,10 @@ export function KalkulatorDinasTab({
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               className={cn(
-                "h-8.5 px-2 rounded-xl text-xs",
+                "h-9 px-2 rounded-lg text-xs cursor-pointer",
                 newExp.notaImage
-                  ? "border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40"
-                  : "text-slate-600"
+                  ? "border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)]"
+                  : "text-[var(--ds-fg-muted)]"
               )}
               title="Ambil Foto Nota dari Kamera HP"
             >
@@ -759,7 +759,7 @@ export function KalkulatorDinasTab({
 
             <Button
               type="submit"
-              className="h-8.5 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2"
+              className="h-9 flex-1 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs px-2 cursor-pointer shadow-xs"
               title="Simpan Belanja"
             >
               <Plus className="w-4 h-4" />
@@ -768,13 +768,13 @@ export function KalkulatorDinasTab({
         </div>
 
         {newExp.notaImage && (
-          <div className="flex items-center gap-2 pt-1 text-xs text-emerald-700 dark:text-emerald-400">
-            <Check className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 pt-1 text-xs text-[var(--ds-status-success-fg)]">
+            <Check className="w-4 h-4" />
             <span>Foto nota terlampir</span>
             <button
               type="button"
               onClick={() => setNewExp((prev) => ({ ...prev, notaImage: "" }))}
-              className="text-rose-600 hover:underline text-[11px]"
+              className="text-[var(--ds-status-danger-fg)] hover:underline text-xs cursor-pointer"
             >
               (Hapus foto)
             </button>
@@ -783,28 +783,28 @@ export function KalkulatorDinasTab({
       </form>
 
       {/* DAFTAR TRANSAKSI PENGELUARAN (DENGAN INLINE EDITING) */}
-      <div className="p-4 md:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
+      <div className="p-4 sm:p-6 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg)] tabular-nums">
               Rincian Pengeluaran dari Uang Panjar ({pengeluaranList.length})
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Klik ikon pensil untuk mengedit nominal, keterangan, atau status SPJ langsung di baris.
             </p>
           </div>
 
           {/* Filter Tab SPJ vs Non-SPJ */}
           {pengeluaranList.length > 0 && (
-            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-xs font-medium">
+            <div className="flex items-center gap-1 p-1 bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-xs font-medium tabular-nums">
               <button
                 type="button"
                 onClick={() => setFilterSpj("all")}
                 className={cn(
-                  "px-2.5 py-1 rounded-lg transition-all",
+                  "px-3 py-1 rounded-lg border transition-colors cursor-pointer",
                   filterSpj === "all"
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-bold"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-[var(--ds-surface)] text-[var(--ds-fg)] border-slate-200/80 dark:border-zinc-800 shadow-xs font-bold"
+                    : "border-transparent text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 )}
               >
                 Semua ({pengeluaranList.length})
@@ -813,10 +813,10 @@ export function KalkulatorDinasTab({
                 type="button"
                 onClick={() => setFilterSpj("spj")}
                 className={cn(
-                  "px-2.5 py-1 rounded-lg transition-all",
+                  "px-3 py-1 rounded-lg border transition-colors cursor-pointer",
                   filterSpj === "spj"
-                    ? "bg-emerald-600 text-white shadow-xs font-bold"
-                    : "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50/60"
+                    ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] shadow-xs font-bold"
+                    : "border-transparent text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)]"
                 )}
               >
                 Bisa SPJ ({pengeluaranList.filter((x) => x.isSpj !== false).length})
@@ -825,10 +825,10 @@ export function KalkulatorDinasTab({
                 type="button"
                 onClick={() => setFilterSpj("non_spj")}
                 className={cn(
-                  "px-2.5 py-1 rounded-lg transition-all",
+                  "px-3 py-1 rounded-lg border transition-colors cursor-pointer",
                   filterSpj === "non_spj"
-                    ? "bg-amber-600 text-white shadow-xs font-bold"
-                    : "text-amber-700 dark:text-amber-400 hover:bg-amber-50/60"
+                    ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] shadow-xs font-bold"
+                    : "border-transparent text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)]"
                 )}
               >
                 Non-SPJ ({pengeluaranList.filter((x) => x.isSpj === false).length})
@@ -838,36 +838,36 @@ export function KalkulatorDinasTab({
         </div>
 
         {pengeluaranList.length === 0 ? (
-          <div className="text-center py-8 text-slate-400 space-y-1">
+          <div className="text-center py-8 text-[var(--ds-fg-muted)] space-y-1">
             <Receipt className="w-8 h-8 mx-auto stroke-1" />
             <p className="text-xs">Belum ada pengeluaran yang dicatat dari uang panjar.</p>
           </div>
         ) : displayedPengeluaranList.length === 0 ? (
-          <div className="text-center py-6 text-slate-400 text-xs">
+          <div className="text-center py-6 text-[var(--ds-fg-muted)] text-xs">
             Tidak ada transaksi pada filter ini.
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-200/70 dark:divide-zinc-800">
             {displayedPengeluaranList.map((item, idx) => (
-              <div key={item.id} className="py-2.5">
+              <div key={item.id} className="py-3">
                 {editingExpId === item.id ? (
                   /* INLINE EDIT ROW */
-                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-emerald-300 dark:border-emerald-700 text-xs">
-                    <span className="text-[11px] font-bold text-slate-400 px-1">#{idx + 1}</span>
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 p-3 rounded-lg bg-[var(--ds-surface-muted)] border border-[var(--ds-accent-soft-border)] text-xs">
+                    <span className="text-xs font-bold text-[var(--ds-fg-muted)] px-1 tabular-nums">#{idx + 1}</span>
                     <Input
                       type="date"
                       value={editExpData.tanggal}
                       onChange={(e) =>
                         setEditExpData((prev) => ({ ...prev, tanggal: e.target.value }))
                       }
-                      className="h-8 text-xs w-32"
+                      className="h-8 text-xs w-32 rounded-lg tabular-nums"
                     />
                     <Input
                       value={editExpData.keterangan}
                       onChange={(e) =>
                         setEditExpData((prev) => ({ ...prev, keterangan: e.target.value }))
                       }
-                      className="h-8 text-xs flex-1 min-w-37.5"
+                      className="h-8 text-xs flex-1 min-w-40 rounded-lg"
                       placeholder="Keterangan Pengeluaran"
                     />
                     <select
@@ -875,7 +875,7 @@ export function KalkulatorDinasTab({
                       onChange={(e) =>
                         setEditExpData((prev) => ({ ...prev, kategori: e.target.value }))
                       }
-                      className="h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs"
+                      className="h-8 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-xs text-[var(--ds-fg)]"
                     >
                       {KATEGORI_OPTIONS.map((kat) => (
                         <option key={kat} value={kat}>{kat}</option>
@@ -889,10 +889,10 @@ export function KalkulatorDinasTab({
                         setEditExpData((prev) => ({ ...prev, isSpj: !prev.isSpj }))
                       }
                       className={cn(
-                        "h-8 px-2 rounded-lg text-xs font-bold border transition-all shrink-0",
+                        "h-8 px-2 rounded-lg text-xs font-bold border transition-colors shrink-0 cursor-pointer",
                         editExpData.isSpj
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                          : "bg-amber-50 text-amber-700 border-amber-300"
+                          ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
+                          : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]"
                       )}
                       title="Klik untuk beralih status SPJ"
                     >
@@ -908,7 +908,7 @@ export function KalkulatorDinasTab({
                           nominal: formatRibuan(e.target.value),
                         }))
                       }
-                      className="h-8 text-xs font-mono font-bold w-28 text-right"
+                      className="h-8 text-xs font-mono font-bold w-28 text-right rounded-lg tabular-nums"
                       placeholder="0"
                     />
                     <div className="flex items-center gap-1 shrink-0">
@@ -916,10 +916,10 @@ export function KalkulatorDinasTab({
                         type="button"
                         size="sm"
                         onClick={() => handleSaveEdit(item.id)}
-                        className="h-8 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg gap-1 text-xs font-bold"
+                        className="h-8 px-3 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg gap-1 text-xs font-bold cursor-pointer"
                         title="Simpan Perubahan"
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-4 h-4" />
                         <span className="hidden sm:inline">Simpan</span>
                       </Button>
                       <Button
@@ -927,44 +927,44 @@ export function KalkulatorDinasTab({
                         variant="ghost"
                         size="sm"
                         onClick={handleCancelEdit}
-                        className="h-8 px-2 text-slate-500 hover:bg-slate-200 rounded-lg"
+                        className="h-8 px-2 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface)] rounded-lg cursor-pointer"
                         title="Batal"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
                 ) : (
                   /* NORMAL ROW WITH PENCIL & TRASH BUTTONS */
                   <div className="flex items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-5 text-[11px] font-bold text-slate-400 shrink-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="w-6 text-xs font-bold text-[var(--ds-fg-muted)] shrink-0 tabular-nums">
                         #{idx + 1}
                       </span>
-                      <div className="space-y-0.5 min-w-0">
+                      <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">
+                          <p className="font-semibold text-[var(--ds-fg)] truncate">
                             {item.keterangan}
                           </p>
                           <span
                             className={cn(
-                              "text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0",
+                              "text-xs font-bold px-2 py-0 rounded-full border shrink-0",
                               item.isSpj !== false
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                                ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
+                                : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]"
                             )}
                           >
                             {item.isSpj !== false ? "Bisa SPJ" : "Non-SPJ"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                        <div className="flex items-center gap-2 text-xs text-[var(--ds-fg-muted)] tabular-nums">
                           <span>{item.tanggal}</span>
                           <span>•</span>
-                          <span className="px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                          <span className="px-2 py-0 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] font-medium">
                             {item.kategori}
                           </span>
                           {item.notaImage && (
-                            <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                            <span className="flex items-center gap-1 text-[var(--ds-accent-fg)] font-semibold">
                               <ImageIcon className="w-3 h-3" /> Ada Nota
                             </span>
                           )}
@@ -972,8 +972,8 @@ export function KalkulatorDinasTab({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="font-mono font-bold text-slate-900 dark:text-slate-100 mr-2">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-mono font-bold text-[var(--ds-fg)] mr-2 tabular-nums">
                         {formatRupiah(item.nominal)}
                       </span>
 
@@ -982,10 +982,10 @@ export function KalkulatorDinasTab({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleStartEdit(item)}
-                        className="h-7 w-7 p-0 text-blue-600 hover:bg-blue-50"
+                        className="h-8 w-8 p-0 rounded-lg text-[var(--ds-status-info-fg)] hover:bg-[var(--ds-status-info-bg)] cursor-pointer"
                         title="Edit Pengeluaran"
                       >
-                        <Pencil className="w-3.5 h-3.5" />
+                        <Pencil className="w-4 h-4" />
                       </Button>
 
                       <Button
@@ -993,10 +993,10 @@ export function KalkulatorDinasTab({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemovePengeluaran(item.id)}
-                        className="h-7 w-7 p-0 text-rose-500 hover:bg-rose-50"
+                        className="h-8 w-8 p-0 rounded-lg text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] cursor-pointer"
                         title="Hapus Pengeluaran"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

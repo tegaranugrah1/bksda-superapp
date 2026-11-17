@@ -26,8 +26,10 @@ const nextConfig: NextConfig = {
         removeConsole: process.env.NODE_ENV === "production",
     },
 
+    serverExternalPackages: ["playwright-core"],
+
     experimental: {
-        optimizePackageImports: ["lucide-react", "date-fns", "recharts"],
+        optimizePackageImports: ["lucide-react", "recharts"],
     },
 
     webpack: (config, { dev }) => {

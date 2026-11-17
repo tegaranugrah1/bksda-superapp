@@ -205,5 +205,6 @@ Semua hasil diisi dengan receipt/perintah dan batas pengujiannya. Gunakan dummy 
 - [x] `progress.md` diperbarui dengan status aktual tanpa menimpa riwayat terdahulu.
 - [x] `doc.md` diperbarui status tahapannya setelah verifikasi menyeluruh.
 - [x] Commit lokal terisolasi pada branch `codex/portal-security-pentest` (Strictly local commit, no push).
+- [x] **Update UI Daftar Pegawai (16 Nov 2026 — `16541872`, `417b2ba6`)**: Masuk mode **Data Terhapus** pada `frontend/src/app/kepegawaian/employees/page.tsx` otomatis me-reset filter aktif agar `counts.trashed` konsisten dengan tabel, dan baris pegawai purna/non-aktif (`!emp.is_active`) menyediakan tombol shortcut **Aktifkan** yang membuka `EmployeeLifecycleModal` yang sama (tetap memanggil `POST /api/kepegawaian/employees/{id}/lifecycle`, mewajibkan catatan/No. SK, mencatat `REACTIVATE_EMPLOYEE`, serta menjaga akun portal non-aktif sampai diaktifkan lewat IAM).
 
 Gangguan arsip Drive dan tiga lead audit ST/Kepegawaian historis bukan bagian fitur ini. Jangan mengubah verdict atau mengklaimnya selesai melalui implementasi lifecycle pegawai.

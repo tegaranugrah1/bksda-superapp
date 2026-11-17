@@ -14,19 +14,32 @@ class SuratMasukRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'tanggal_agenda' => $this->tanggal_agenda ?: null,
-            'tanggal_penyelesaian' => $this->tanggal_penyelesaian ?: null,
-            'tanggal_surat' => $this->tanggal_surat ?: null,
-            'indeks' => $this->indeks ? strip_tags(trim((string)$this->indeks)) : null,
-            'kode' => $this->kode ? strip_tags(trim((string)$this->kode)) : null,
-            'referensi' => $this->referensi ? strip_tags(trim((string)$this->referensi)) : null,
-            'no_surat' => $this->no_surat ? strip_tags(trim((string)$this->no_surat)) : null,
-            'asal_surat' => $this->asal_surat ? strip_tags(trim((string)$this->asal_surat)) : null,
-            'isi_ringkas' => $this->isi_ringkas ? strip_tags(trim((string)$this->isi_ringkas)) : null,
-            'lampiran' => $this->lampiran ? strip_tags(trim((string)$this->lampiran)) : null,
-            'catatan' => $this->catatan ? strip_tags(trim((string)$this->catatan)) : null,
-        ]);
+        $cleanText = function (mixed $value): mixed {
+            if (! is_string($value)) {
+                return $value;
+            }
+            $cleaned = strip_tags(trim($value));
+            return $cleaned === '' ? null : $cleaned;
+        };
+
+        $merged = [];
+        foreach (['tanggal_agenda', 'tanggal_penyelesaian', 'tanggal_surat'] as $dateField) {
+            $val = $this->input($dateField);
+            $merged[$dateField] = ($val === '' || $val === null) ? null : $val;
+        }
+        foreach (['indeks', 'kode', 'referensi', 'no_surat', 'asal_surat', 'isi_ringkas', 'lampiran', 'catatan'] as $textField) {
+            if ($this->has($textField)) {
+                $merged[$textField] = $cleanText($this->input($textField));
+            }
+        }
+
+        $disposisi = $this->input('disposisi');
+        if (is_array($disposisi) && array_key_exists('catatan', $disposisi) && is_string($disposisi['catatan'])) {
+            $disposisi['catatan'] = strip_tags(trim($disposisi['catatan']));
+            $merged['disposisi'] = $disposisi;
+        }
+
+        $this->merge($merged);
     }
 
     public function rules(): array
@@ -50,20 +63,23 @@ class SuratMasukRequest extends FormRequest
             'referensi' => 'nullable|string|max:255',
             'tanggal_penyelesaian' => 'nullable|date',
             'tanggal_surat' => 'nullable|date',
-            'isi_ringkas' => 'nullable|string',
+            'isi_ringkas' => 'nullable|string|max:10000',
             'asal_surat' => 'nullable|string|max:255',
             'lampiran' => 'nullable|string|max:255',
-            'sifat_json' => 'nullable|array',
-            'catatan' => 'nullable|string',
+            'sifat_json' => 'nullable|array|max:20',
+            'sifat_json.*' => 'string|max:100',
+            'catatan' => 'nullable|string|max:5000',
             'file_surat' => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|extensions:pdf,jpg,jpeg,png,webp|max:10240',
 
             // Disposisi fields
             'disposisi' => 'nullable|array',
-            'disposisi.diteruskan_json' => 'nullable|array',
-            'disposisi.instruksi_json' => 'nullable|array',
-            'disposisi.catatan' => 'nullable|string',
-            'disposisi.ka_subbag_tu_id' => 'nullable|exists:kpg_employees,id',
-            'disposisi.kepala_balai_id' => 'nullable|exists:kpg_employees,id',
+            'disposisi.diteruskan_json' => 'nullable|array|max:50',
+            'disposisi.diteruskan_json.*' => 'string|max:255',
+            'disposisi.instruksi_json' => 'nullable|array|max:50',
+            'disposisi.instruksi_json.*' => 'string|max:255',
+            'disposisi.catatan' => 'nullable|string|max:5000',
+            'disposisi.ka_subbag_tu_id' => 'nullable|integer|exists:kpg_employees,id',
+            'disposisi.kepala_balai_id' => 'nullable|integer|exists:kpg_employees,id',
         ];
     }
 

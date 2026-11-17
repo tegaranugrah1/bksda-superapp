@@ -37,8 +37,8 @@ function EditSuratMasukContent() {
 
   if (idParam && isLoading) {
     return (
-      <div className="p-12 text-center text-xs font-semibold text-zinc-500 flex items-center justify-center gap-2">
-        <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+      <div className="psr-ui p-12 text-center text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center justify-center gap-2">
+        <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
         Memuat data surat masuk untuk diedit...
       </div>
     );
@@ -51,25 +51,45 @@ function EditSuratMasukContent() {
     : undefined;
 
   return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
-      {/* Header Breadcrumb */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/surat/masuk">
-            <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-xl">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <Inbox className="h-4 w-4 text-emerald-600" />
-              <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
+      {/* Enterprise Header Card */}
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link href="/surat/masuk">
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Kembali ke Agenda Surat Masuk"
+                className="kpg-secondary h-10 w-10 p-0 rounded-lg shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+              <Inbox className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
                 {idParam ? "Edit Surat Masuk & Lembar Disposisi" : "Input Surat Masuk Baru & Lembar Disposisi"}
               </h1>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
+                Form Lembar Disposisi presisi BKSDA KALTIM (Ukuran Kertas Letter dibagi 2).
+              </p>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Form Lembar Disposisi presisi BKSDA KALTIM (Ukuran Kertas Letter dibagi 2).
-            </p>
+          </div>
+
+          <div className="flex items-center gap-2 self-stretch sm:self-auto">
+            <Link href="/surat/masuk">
+              <Button
+                variant="outline"
+                size="sm"
+                className="kpg-secondary h-9 px-4 text-xs font-semibold rounded-lg gap-2"
+              >
+                <Inbox className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+                Daftar Agenda Masuk
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -87,8 +107,8 @@ export default function CreateSuratMasukPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-6 text-xs text-zinc-500 flex items-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+        <div className="psr-ui p-6 text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin text-[var(--ds-accent-fg)]" />
           Memuat...
         </div>
       }

@@ -113,7 +113,8 @@ try {
     $prevData1 = json_decode($prevResp1->getContent(), true);
     assert($prevData1['tahun_cuti_text'] === 'untuk tahun 2025 dan tahun 2026', 'previewSuratIzin N-1 should be "untuk tahun 2025 dan tahun 2026"');
 
-    $adminUser = \App\Models\User::first();
+    $adminUser = \App\Models\User::where('role', 'super_admin')->where('is_active', true)->first()
+        ?? \App\Models\User::where('role', 'super_admin')->first();
     if ($adminUser) {
         \Illuminate\Support\Facades\Auth::login($adminUser);
     }
@@ -128,6 +129,7 @@ try {
     $genData = json_decode($genResp->getContent(), true)['data'];
     $skPayload = $genData['surat_keluar']['document_payload'];
     assert($skPayload['tahunCutiText'] === 'untuk tahun 2025 dan tahun 2026', 'document_payload tahunCutiText should be "untuk tahun 2025 dan tahun 2026"');
+    assert(($skPayload['hitungHari'] ?? null) === 'hari_kerja', 'document_payload hitungHari for Cuti Tahunan should be hari_kerja');
 
     // 6. Test with N-2 and N-1
     $reqN2 = EmployeeLeaveRequest::find($data2['id']);
@@ -142,7 +144,24 @@ try {
     $reqN0Only->update(['sisa_n1' => 0, 'sisa_n2' => 0]);
     $prevResp0 = $reqCtrl->previewSuratIzin($data2['id']);
     $prevData0 = json_decode($prevResp0->getContent(), true);
-    assert($prevData0['tahun_cuti_text'] === null, 'previewSuratIzin N only should be null');
+    $expectedYearText = 'untuk tahun ' . Carbon::parse($reqN0Only->tanggal_mulai)->year;
+    assert($prevData0['tahun_cuti_text'] === $expectedYearText, "previewSuratIzin N only should be \"{$expectedYearText}\"");
+
+    // 7b. Non-Tahunan should remain null and follow LeaveType::hitung_hari
+    $reqN0Only->update(['jenis_cuti' => 'Cuti Sakit']);
+    $prevRespSakit = $reqCtrl->previewSuratIzin($data2['id']);
+    $prevDataSakit = json_decode($prevRespSakit->getContent(), true);
+    assert($prevDataSakit['tahun_cuti_text'] === null, 'previewSuratIzin non-annual should be null');
+    assert(($prevDataSakit['hitung_hari'] ?? null) === 'hari_kalender', 'Cuti Sakit should follow LeaveType hitung_hari = hari_kalender');
+
+    $capType = LeaveType::where('kode', 'CAP')->first();
+    if ($capType) {
+        $capType->update(['hitung_hari' => 'hari_kerja']);
+        $reqN0Only->update(['jenis_cuti' => $capType->nama]);
+        $prevRespCap = $reqCtrl->previewSuratIzin($data2['id']);
+        $prevDataCap = json_decode($prevRespCap->getContent(), true);
+        assert(($prevDataCap['hitung_hari'] ?? null) === 'hari_kerja', 'CAP updated to hari_kerja must reflect in previewSuratIzin');
+    }
 
     // 8. Test CPNS 1-year tenure rule
     $cpns = Employee::firstOrCreate(
@@ -258,15 +277,17 @@ try {
     $respMmp = $controller->storeRecord($reqMmp, $mmp->id);
     assert($respMmp->getStatusCode() === 422, 'storeRecord for MMP must return 422');
 
-    // MMP show leave must return null data
-    $respMmpShow = $controller->show(new Request(), $mmp->id);
+    // MMP show leave must return null data (as authenticated admin per SEC-03)
+    $mmpShowReq = new Request();
+    $mmpShowReq->setUserResolver(fn () => $adminUser);
+    $respMmpShow = $controller->show($mmpShowReq, $mmp->id);
     assert($respMmpShow->getStatusCode() === 200, 'show for MMP should return 200 with null data');
     $mmpShowData = json_decode($respMmpShow->getContent(), true);
     assert($mmpShowData['data'] === null, 'show for MMP data must be null');
 
     // MMP mealAllowances must return empty data
     $empCtrl = app(\App\Modules\Kepegawaian\Controllers\EmployeeController::class);
-    $respMmpMeal = $empCtrl->mealAllowances(new Request(), (string) $mmp->id);
+    $respMmpMeal = $empCtrl->mealAllowances($mmpShowReq, (string) $mmp->id);
     assert($respMmpMeal->getStatusCode() === 200, 'mealAllowances for MMP should return 200');
     $mmpMealData = json_decode($respMmpMeal->getContent(), true);
     assert(count($mmpMealData['data']) === 0, 'mealAllowances for MMP data must be empty');

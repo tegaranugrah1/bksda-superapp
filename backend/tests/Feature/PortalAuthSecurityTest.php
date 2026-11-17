@@ -285,9 +285,14 @@ class PortalAuthSecurityTest extends TestCase
     {
         $user = $this->principal('audit-query-token');
         [$token] = $this->login($user);
+        // Query token must NOT authenticate mutating endpoints directly.
         $this->requestAsBrowser('POST', '/api/me/update-profile?'.http_build_query([
             'token' => $token, 'view' => 'contacts',
-        ]), ['phone' => '080000000001', 'code' => 'ROOM-17'], stateful: false)->assertOk();
+        ]), ['phone' => '080000000001', 'code' => 'ROOM-17'], stateful: false)->assertUnauthorized();
+
+        $this->requestAsBrowser('POST', '/api/me/update-profile?'.http_build_query([
+            'token' => $token, 'view' => 'contacts',
+        ]), ['phone' => '080000000001', 'code' => 'ROOM-17'], bearer: $token, stateful: false)->assertOk();
         $audit = \App\Models\AuditLog::where('url', 'like', '%/me/update-profile%')->latest('id')->firstOrFail();
         // On a vulnerable version, prove the logged credential still authenticates a fresh client.
         parse_str(parse_url($audit->url, PHP_URL_QUERY) ?? '', $query);

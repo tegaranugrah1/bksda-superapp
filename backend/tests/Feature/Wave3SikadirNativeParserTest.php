@@ -25,16 +25,17 @@ class Wave3SikadirNativeParserTest extends TestCase
         foreach ($extra as $cell => $value) {
             $book->getActiveSheet()->setCellValue($cell, $value);
         }
-        $handle = tmpfile();
+        $tmp = tempnam(sys_get_temp_dir(), 'sikadir_');
+        $path = $tmp.'.xlsx';
+        @unlink($tmp);
         try {
-            $path = stream_get_meta_data($handle)['uri'];
             (new Xlsx($book))->setPreCalculateFormulas(false)->save($path);
             if ($edit) {
                 $edit($path);
             }
             return (new SikadirParserService)->parse(new UploadedFile($path, 'dummy.xlsx', null, null, true));
         } finally {
-            fclose($handle);
+            @unlink($path);
             $book->disconnectWorksheets();
         }
     }
@@ -184,9 +185,10 @@ class Wave3SikadirNativeParserTest extends TestCase
     }
     public function test_outer_zip_member_filter_and_first_200_limit(): void
     {
-        $handle = tmpfile();
+        $tmp = tempnam(sys_get_temp_dir(), 'sikadir_zip_');
+        $path = $tmp.'.zip';
+        @unlink($tmp);
         try {
-            $path = stream_get_meta_data($handle)['uri'];
             $zip = new ZipArchive;
             $this->assertTrue($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true);
             $html = '<table><tr><td>NIP</td><td>900000000000000001</td></tr><tr><td>NAMA</td><td>Dummy</td></tr></table>';
@@ -203,7 +205,7 @@ class Wave3SikadirNativeParserTest extends TestCase
             $this->assertCount(1, $parsed);
             $this->assertSame('visible.xls', $parsed[0]['filename']);
         } finally {
-            fclose($handle);
+            @unlink($path);
         }
     }
 }

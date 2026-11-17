@@ -20,6 +20,7 @@ class MeDashboardResource extends JsonResource
                 'email' => $this->email,
                 'role' => $this->role,
                 'access_modules' => $this->access_modules ?? [],
+                'module_roles' => $this->moduleRolesPayload(),
             ],
             'employee' => $this->whenLoaded('employee', function () {
                 if (! $this->employee) {

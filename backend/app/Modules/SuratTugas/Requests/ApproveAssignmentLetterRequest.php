@@ -8,7 +8,7 @@ class ApproveAssignmentLetterRequest extends AssignmentLetterRequest
     {
         $user = $this->user();
 
-        return $user && (in_array($user->role, ['admin', 'super_admin'], true) || $user->hasPermission('surat_tugas.approve'));
+        return $user && ($user->isAdminFor('surat_tugas') || $user->hasPermission('surat_tugas.approve'));
     }
 
     public function rules(): array

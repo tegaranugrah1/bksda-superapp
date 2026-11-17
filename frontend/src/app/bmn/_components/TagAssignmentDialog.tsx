@@ -210,10 +210,10 @@ export function TagAssignmentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-2xl">
+      <DialogContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <TagIcon className="w-5 h-5 text-emerald-600" />
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+            <TagIcon className="w-5 h-5 text-[var(--ds-accent-fg)]" />
             {title}
           </DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
@@ -221,18 +221,18 @@ export function TagAssignmentDialog({
 
         <div className="py-2 space-y-3">
           {/* Banner Tag yang Saat Ini Terpasang */}
-          <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1.5">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-blue-500" />
+          <div className="p-3 bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-lg space-y-2">
+            <span className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider flex items-center gap-2">
+              <Info className="w-4 h-4 text-[var(--ds-status-info-fg)]" />
               Tag yang Sedang Terpasang Saat Ini:
             </span>
             {effectiveActiveTags.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
                 {effectiveActiveTags.map(({ tag, count }) => (
                   <span key={tag.id} className="inline-flex items-center gap-1">
                     <TagBadge tag={tag} size="sm" />
                     {isBulk && count > 0 && (
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                      <span className="text-xs text-[var(--ds-fg-muted)] font-medium">
                         ({count} aset)
                       </span>
                     )}
@@ -240,7 +240,7 @@ export function TagAssignmentDialog({
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-400 italic pt-0.5">
+              <p className="text-xs text-[var(--ds-fg-muted)] italic pt-1">
                 {isBulk ? "Belum ada tag yang terpasang pada aset terpilih." : "Belum ada tag yang terpasang pada aset ini."}
               </p>
             )}
@@ -248,16 +248,16 @@ export function TagAssignmentDialog({
 
           {isLoading ? (
             <div className="py-8 flex flex-col items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-emerald-500 mb-2" />
-              <p className="text-xs text-slate-400">Memuat daftar tag...</p>
+              <Loader2 className="w-6 h-6 animate-spin text-[var(--ds-accent-fg)] mb-2" />
+              <p className="text-xs text-[var(--ds-fg-muted)]">Memuat daftar tag...</p>
             </div>
           ) : tags.length === 0 ? (
-            <div className="text-center py-6 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-4">
-              <TagIcon className="w-8 h-8 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-              <p className="text-xs text-slate-500 mb-3">Belum ada tag yang terdaftar.</p>
+            <div className="text-center py-6 border border-dashed border-slate-200/80 dark:border-zinc-800 rounded-lg p-4">
+              <TagIcon className="w-8 h-8 text-[var(--ds-fg-muted)] mx-auto mb-2" />
+              <p className="text-xs text-[var(--ds-fg-muted)] mb-3">Belum ada tag yang terdaftar.</p>
               <Link href="/bmn/settings" onClick={onClose}>
-                <Button size="sm" variant="outline" className="text-xs gap-1.5 rounded-xl">
-                  <Plus className="w-3.5 h-3.5" /> Buka Pengaturan Tag
+                <Button size="sm" variant="outline" className="text-xs gap-2 rounded-lg">
+                  <Plus className="w-4 h-4" /> Buka Pengaturan Tag
                 </Button>
               </Link>
             </div>
@@ -265,15 +265,15 @@ export function TagAssignmentDialog({
             <>
               {isBulk && (
                 <div>
-                  <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/60 rounded-xl mb-2">
+                  <div className="flex gap-1 p-1 bg-[var(--ds-surface-muted)] rounded-lg mb-2">
                     <button
                       type="button"
                       onClick={() => handleModeChange("attach")}
                       className={cn(
-                        "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                        "flex-1 py-2 text-xs font-semibold rounded-lg transition-colors",
                         bulkMode === "attach"
-                          ? "bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs"
-                          : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                          ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       )}
                     >
                       Tambah Tag
@@ -282,10 +282,10 @@ export function TagAssignmentDialog({
                       type="button"
                       onClick={() => handleModeChange("detach")}
                       className={cn(
-                        "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                        "flex-1 py-2 text-xs font-semibold rounded-lg transition-colors",
                         bulkMode === "detach"
-                          ? "bg-white dark:bg-slate-900 text-red-600 dark:text-red-400 shadow-xs"
-                          : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                          ? "bg-[var(--ds-surface)] text-[var(--ds-status-danger-fg)] shadow-xs"
+                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       )}
                     >
                       Lepas Tag
@@ -294,16 +294,16 @@ export function TagAssignmentDialog({
                       type="button"
                       onClick={() => handleModeChange("replace")}
                       className={cn(
-                        "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                        "flex-1 py-2 text-xs font-semibold rounded-lg transition-colors",
                         bulkMode === "replace"
-                          ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs"
-                          : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+                          ? "bg-[var(--ds-surface)] text-[var(--ds-fg)] shadow-xs"
+                          : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                       )}
                     >
                       Gantikan Tag
                     </button>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 px-1 mb-2">
+                  <p className="text-xs text-[var(--ds-fg-muted)] px-1 mb-2">
                     {bulkMode === "attach" && "Pilih tag yang ingin ditambahkan ke aset tanpa menghapus tag yang sudah ada."}
                     {bulkMode === "detach" && "Pilih tag yang ingin dicabut dari seluruh aset terpilih."}
                     {bulkMode === "replace" && "Seluruh tag lama pada aset akan digantikan hanya dengan tag yang dicentang."}
@@ -312,10 +312,10 @@ export function TagAssignmentDialog({
               )}
 
               {isBulk && bulkMode === "detach" && (
-                <div className="p-2.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl flex items-center justify-between gap-2 animate-in fade-in duration-200">
+                <div className="p-3 bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] rounded-lg flex items-center justify-between gap-2 animate-in fade-in duration-150">
                   <div>
-                    <p className="text-xs font-semibold text-red-700 dark:text-red-400">Kosongkan Semua Tag?</p>
-                    <p className="text-[10px] text-red-600/80 dark:text-red-400/80">Cabut semua tag yang melekat pada aset terpilih.</p>
+                    <p className="text-xs font-semibold text-[var(--ds-status-danger-fg)]">Kosongkan Semua Tag?</p>
+                    <p className="text-xs text-[var(--ds-status-danger-fg)] opacity-80">Cabut semua tag yang melekat pada aset terpilih.</p>
                   </div>
                   <Button
                     type="button"
@@ -323,7 +323,7 @@ export function TagAssignmentDialog({
                     size="sm"
                     disabled={isSaving || effectiveActiveTags.length === 0}
                     onClick={handleClearAll}
-                    className="h-7 text-xs rounded-lg gap-1 px-2.5"
+                    className="h-8 text-xs rounded-lg gap-1 px-3"
                   >
                     <Trash2 className="w-3 h-3" /> Kosongkan
                   </Button>
@@ -332,37 +332,37 @@ export function TagAssignmentDialog({
 
               {/* Search Bar */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Cari tag (nama atau deskripsi)..."
-                  className="w-full h-8 pl-8 pr-7 text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 placeholder:text-slate-400"
+                  className="w-full h-9 pl-9 pr-8 text-xs bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-[var(--ds-accent-fg)] placeholder:text-[var(--ds-fg-muted)]"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] p-1"
                   >
                     <X className="w-3 h-3" />
                   </button>
                 )}
               </div>
 
-              <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                 {bulkMode === "detach" && displayTags.length === 0 ? (
-                  <p className="text-center py-6 text-xs text-slate-400 italic">
+                  <p className="text-center py-6 text-xs text-[var(--ds-fg-muted)] italic">
                     Tidak ada tag yang sedang melekat pada aset terpilih untuk dilepas.
                   </p>
                 ) : filteredTags.length === 0 ? (
-                  <div className="text-center py-6 text-xs text-slate-400">
+                  <div className="text-center py-6 text-xs text-[var(--ds-fg-muted)]">
                     <p>Tidak ada tag yang cocok dengan &quot;{searchQuery}&quot;.</p>
                     <button
                       type="button"
                       onClick={() => setSearchQuery("")}
-                      className="mt-1.5 text-emerald-600 dark:text-emerald-400 font-semibold hover:underline cursor-pointer"
+                      className="mt-2 text-[var(--ds-accent-fg)] font-semibold hover:underline cursor-pointer"
                     >
                       Reset Pencarian
                     </button>
@@ -382,54 +382,54 @@ export function TagAssignmentDialog({
                         disabled={isFullyAttached}
                         onClick={() => !isFullyAttached && toggleTag(tag)}
                         className={cn(
-                          "w-full flex items-center justify-between p-2.5 rounded-xl border transition-all text-left",
-                          isSub && "pl-5 sm:pl-6 bg-slate-50/40 dark:bg-slate-900/30",
+                          "w-full flex items-center justify-between p-3 rounded-lg border transition-colors text-left",
+                          isSub && "pl-5 sm:pl-6 bg-[var(--ds-surface-muted)]",
                           isFullyAttached
-                            ? "border-slate-200/60 dark:border-slate-800/60 bg-slate-50/70 dark:bg-slate-800/30 opacity-70 cursor-not-allowed"
+                            ? "border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)] opacity-70 cursor-not-allowed"
                             : isChecked
                               ? bulkMode === "detach"
-                                ? "border-red-400/50 bg-red-50/40 dark:bg-red-500/10"
-                                : "border-emerald-500/50 bg-emerald-50/40 dark:bg-emerald-500/10"
-                              : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer"
+                                ? "border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)]"
+                                : "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]"
+                              : "border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] cursor-pointer"
                         )}
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-wrap">
                           {isSub && (
-                            <span className="font-mono text-slate-400 text-xs font-bold shrink-0 select-none">↳</span>
+                            <span className="font-mono text-[var(--ds-fg-muted)] text-xs font-bold shrink-0 select-none">↳</span>
                           )}
                           <TagBadge tag={tag} size="md" />
                           {isSub && (
-                            <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
+                            <span className="text-xs font-semibold text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 shrink-0">
                               Sub-tag
                             </span>
                           )}
                           {tag.description && (
-                            <span className="text-xs text-slate-400 truncate max-w-[150px]">
+                            <span className="text-xs text-[var(--ds-fg-muted)] truncate max-w-[150px]">
                               {tag.description}
                             </span>
                           )}
                           {isPartiallyAttached && (
-                            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800/50 shrink-0">
+                            <span className="text-xs text-[var(--ds-status-warning-fg)] font-medium bg-[var(--ds-status-warning-bg)] px-2 py-1 rounded-lg border border-[var(--ds-status-warning-border)] shrink-0">
                               {tagCount}/{assetCount} aset sudah punya
                             </span>
                           )}
                         </div>
                         {isFullyAttached ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full shrink-0 border border-emerald-200/70 dark:border-emerald-800/50">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-full shrink-0 border border-[var(--ds-accent-soft-border)]">
                             <Check className="w-3 h-3" /> Sudah Terpasang
                           </span>
                         ) : (
                           <div
                             className={cn(
-                              "w-5 h-5 rounded-md border flex items-center justify-center transition-all shrink-0",
+                              "w-5 h-5 rounded-lg border flex items-center justify-center transition-colors shrink-0",
                               isChecked
                                 ? bulkMode === "detach"
-                                  ? "bg-red-600 border-red-600 text-white"
-                                  : "bg-emerald-600 border-emerald-600 text-white"
-                                : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
+                                  ? "bg-[var(--ds-danger-solid)] border-[var(--ds-danger-solid)] text-[var(--ds-danger-on-solid)]"
+                                  : "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                                : "border-slate-300 dark:border-zinc-700 bg-[var(--ds-surface)]"
                             )}
                           >
-                            {isChecked && <Check className="w-3.5 h-3.5" />}
+                            {isChecked && <Check className="w-4 h-4" />}
                           </div>
                         )}
                       </button>
@@ -438,9 +438,9 @@ export function TagAssignmentDialog({
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between pt-2 text-xs text-[var(--ds-fg-muted)] border-t border-slate-200/70 dark:border-zinc-800">
                 <span>{selectedIds.size} tag dipilih</span>
-                <Link href="/bmn/settings" onClick={onClose} className="text-emerald-600 hover:underline">
+                <Link href="/bmn/settings" onClick={onClose} className="text-[var(--ds-accent-fg)] hover:underline">
                   Kelola Tag di Pengaturan →
                 </Link>
               </div>
@@ -454,7 +454,7 @@ export function TagAssignmentDialog({
             variant="outline"
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-xl"
+            className="rounded-lg"
           >
             Batal
           </Button>
@@ -463,10 +463,10 @@ export function TagAssignmentDialog({
             onClick={handleSave}
             disabled={isSaving || (isBulk && selectedIds.size === 0)}
             className={cn(
-              "rounded-xl gap-2",
+              "rounded-lg gap-2",
               bulkMode === "detach"
-                ? "bg-red-600 hover:bg-red-500 text-white"
-                : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                ? "bmn-danger"
+                : "bmn-primary"
             )}
           >
             {isSaving ? (

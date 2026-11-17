@@ -9,13 +9,11 @@ import {
   Search,
   FileText,
   Calendar,
-  UserCheck,
   Eye,
   Pencil,
   Trash2,
   Printer,
   Sparkles,
-  ExternalLink,
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -33,6 +31,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useKepegawaianTabs } from "@/app/kepegawaian/_lib/useKepegawaianTabs";
+import { KepegawaianTabContent } from "@/app/kepegawaian/_components/KepegawaianTabContent";
+import { useDialogFocusReturn } from "@/components/ui/use-dialog-focus-return";
 import type { SuratKeluar } from "../_lib/surat-types";
 import {
   SuratDinasDocument,
@@ -40,11 +41,24 @@ import {
 } from "../_components/SuratDinasDocument";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../_components/TemplatePickerModal";
 
+const STATUS_TABS = ["all", "terdaftar", "draft"] as const;
+type StatusFilter = (typeof STATUS_TABS)[number];
+
+const STATUS_TAB_META: { id: StatusFilter; label: string }[] = [
+  { id: "all", label: "Semua" },
+  { id: "terdaftar", label: "Terdaftar" },
+  { id: "draft", label: "Draft" },
+];
+
 const getTemplateBadge = (tplType?: string | null) => {
   const tpl = ALL_TEMPLATES.find((t) => t.id === tplType);
-  if (!tpl) return <span className="text-[11px] text-zinc-400">Manual / Umum</span>;
+  if (!tpl) return <span className="text-xs text-[var(--ds-fg-muted)]">Manual / Umum</span>;
   return (
-    <Badge variant="outline" className={`text-[10px] font-semibold ${tpl.colorClass}`}>
+    <Badge
+      variant="outline"
+      title={tpl.name}
+      className={`text-xs font-semibold rounded-lg max-w-[150px] truncate inline-block align-middle ${tpl.colorClass}`}
+    >
       {tpl.name}
     </Badge>
   );
@@ -53,8 +67,9 @@ const getTemplateBadge = (tplType?: string | null) => {
 export default function SuratKeluarListPage() {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const focusReturn = useDialogFocusReturn();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [templateFilter, setTemplateFilter] = useState<string>("all");
   const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
   const [selectedPreview, setSelectedPreview] = useState<SuratKeluar | null>(null);
@@ -70,23 +85,21 @@ export default function SuratKeluarListPage() {
   });
   const [isSavingManual, setIsSavingManual] = useState(false);
 
+  const tabs = useKepegawaianTabs(statusFilter, "Filter status surat keluar");
+
   const {
     data: suratList = [],
     isLoading,
+    isError,
     isFetching,
     refetch,
   } = useQuery<SuratKeluar[]>({
     queryKey: ["surat-keluar", search],
     queryFn: async () => {
-      try {
-        const res = await api.get("/surat/surat-keluar", {
-          params: { search: search.trim() || undefined, per_page: 50 },
-        });
-        return res.data?.data || [];
-      } catch (err) {
-        console.error("Gagal mengambil data surat keluar:", err);
-        return [];
-      }
+      const res = await api.get("/surat/surat-keluar", {
+        params: { search: search.trim() || undefined, per_page: 50 },
+      });
+      return res.data?.data || [];
     },
     staleTime: 0,
     refetchOnMount: "always",
@@ -136,13 +149,13 @@ export default function SuratKeluarListPage() {
       title: "Hapus Surat Keluar",
       description: (
         <div className="space-y-3 pt-1">
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+          <p className="text-sm text-[var(--ds-fg-muted)]">
             Apakah Anda yakin ingin menghapus data surat keluar ini?
           </p>
-          <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 text-xs font-mono font-semibold text-zinc-800 dark:text-zinc-200 break-all text-center select-all">
+          <div className="p-4 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/70 dark:border-zinc-800 text-xs font-mono font-semibold text-[var(--ds-fg)] break-all text-center select-all">
             {noSurat || `#ID: ${id}`}
           </div>
-          <p className="text-xs text-rose-500 font-medium">
+          <p className="text-xs text-[var(--ds-status-danger-fg)] font-medium">
             Tindakan ini permanen dan data tidak dapat dipulihkan.
           </p>
         </div>
@@ -150,6 +163,8 @@ export default function SuratKeluarListPage() {
       confirmText: "Ya, Hapus",
       cancelText: "Batal",
       variant: "danger",
+      contentModule: "persuratan",
+      contentClassName: "psr-ui",
     });
 
     if (!ok) return;
@@ -164,77 +179,79 @@ export default function SuratKeluarListPage() {
   };
 
   return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
+      {/* Enterprise Header Card */}
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
               <Send className="h-5 w-5" />
             </div>
-            <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
-              Daftar Surat Keluar
-            </h1>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
+                Agenda Surat Keluar
+              </h1>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
+                Penatausahaan dan pengagendaan naskah dinas resmi Permen Kehutanan No. 1/2025.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-zinc-500">
-            Penatausahaan dan pengagendaan naskah dinas resmi Permen Kehutanan No. 1/2025.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setIsTemplatePickerOpen(true)}
-            className="h-9 px-3.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-sm gap-1.5"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            Buat Naskah Dinas
-          </Button>
-          <Link href="/surat/keluar/create">
-            <Button variant="outline" className="h-9 px-3.5 text-xs font-semibold rounded-xl gap-1.5">
-              <Plus className="h-3.5 w-3.5" />
-              Input Manual
+          <div className="flex items-center gap-2 self-stretch sm:self-auto">
+            <Button
+              onClick={() => setIsTemplatePickerOpen(true)}
+              className="h-9 px-4 text-xs font-semibold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              Buat Naskah Dinas
             </Button>
-          </Link>
+            <Link href="/surat/keluar/create">
+              <Button variant="outline" className="kpg-secondary h-9 px-4 text-xs font-semibold rounded-lg gap-2">
+                <Plus className="h-4 w-4 text-[var(--ds-accent-fg)]" />
+                Input Manual
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-2.5 md:px-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2 flex-1">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--ds-fg-muted)]" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari no surat, tujuan, perihal..."
-              className="pl-9 h-9 text-xs border-zinc-200 focus-visible:ring-blue-500"
+              className="pl-9 h-8 text-xs rounded-lg"
             />
           </div>
 
           {/* Sliding Pill Status Filter */}
-          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl">
-            {[
-              { id: "all", label: "Semua" },
-              { id: "terdaftar", label: "Terdaftar" },
-              { id: "draft", label: "Draft" },
-            ].map((tab) => {
+          <div
+            {...tabs.tabListProps}
+            className="kpg-pill-tabs flex items-center gap-1 p-1 rounded-lg"
+          >
+            {STATUS_TAB_META.map((tab) => {
               const isActive = statusFilter === tab.id;
               return (
                 <button
                   key={tab.id}
                   type="button"
+                  {...tabs.tabProps(tab.id)}
                   onClick={() => setStatusFilter(tab.id)}
                   className={cn(
-                    "relative px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
+                    "relative px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer select-none",
                     isActive
-                      ? "text-white"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                      ? "text-[var(--ds-accent-on-solid)]"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   )}
                 >
                   {isActive && (
                     <motion.span
                       layoutId="activeSuratKeluarStatusTab"
-                      className="absolute inset-0 bg-blue-600 rounded-lg shadow-xs"
+                      className="absolute inset-0 bg-[var(--ds-accent-solid)] rounded-lg"
                       transition={{ type: "spring", stiffness: 420, damping: 32 }}
                     />
                   )}
@@ -247,7 +264,8 @@ export default function SuratKeluarListPage() {
           <select
             value={templateFilter}
             onChange={(e) => setTemplateFilter(e.target.value)}
-            className="h-9 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3 text-zinc-700 dark:text-zinc-300 font-medium max-w-[170px]"
+            aria-label="Filter format template"
+            className="h-8 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 text-[var(--ds-fg)] font-medium max-w-[175px]"
           >
             <option value="all">Semua Format ({ALL_TEMPLATES.length})</option>
             {ALL_TEMPLATES.map((t) => (
@@ -258,9 +276,9 @@ export default function SuratKeluarListPage() {
           </select>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500">
+        <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ds-fg-muted)]">
           {isFetching && (
-            <span className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400">
+            <span className="flex items-center gap-2 text-xs text-[var(--ds-accent-fg)]">
               <RefreshCw className="h-3 w-3 animate-spin" />
               Menyinkronkan...
             </span>
@@ -271,185 +289,309 @@ export default function SuratKeluarListPage() {
             size="sm"
             onClick={() => refetch()}
             disabled={isFetching}
+            aria-label="Segarkan data surat keluar"
             title="Segarkan data surat keluar"
-            className="h-8 w-8 p-0 text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] rounded-lg hover:bg-[var(--ds-surface-muted)]"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin text-emerald-600" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin text-[var(--ds-accent-fg)]" : ""}`} />
           </Button>
           <span>
-            Menampilkan <span className="text-zinc-900 font-bold dark:text-zinc-50">{filteredList.length}</span> Surat Keluar
+            Menampilkan <span className="text-[var(--ds-fg)] font-bold tabular-nums">{filteredList.length}</span> Surat Keluar
           </span>
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-zinc-50 dark:bg-zinc-900/50 border-b border-zinc-200 dark:border-zinc-800 text-zinc-500 font-semibold uppercase tracking-wider text-[10.5px]">
-              <tr>
-                <th className="py-2.5 px-3.5">Nomor & Tanggal Surat</th>
-                <th className="py-2.5 px-3.5 min-w-[200px]">Tujuan Surat</th>
-                <th className="py-2.5 px-3.5">Perihal</th>
-                <th className="py-2.5 px-3.5">Sifat & Lampiran</th>
-                <th className="py-2.5 px-3.5">Status</th>
-                <th className="py-2.5 px-3.5">Tipe Template</th>
-                <th className="py-2.5 px-3.5 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {isLoading ? (
+      {/* Error State */}
+      {isError && (
+        <div role="alert" className="flex items-center justify-between gap-3 rounded-3xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 text-xs text-[var(--ds-status-danger-fg)] shadow-xs">
+          <span>Gagal memuat daftar Surat Keluar dari server.</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="kpg-secondary h-8 px-3 text-xs font-semibold rounded-lg"
+          >
+            Coba lagi
+          </Button>
+        </div>
+      )}
+
+      {/* Data Table (Desktop) & Stacked Cards (Mobile) */}
+      <div {...tabs.panelProps}>
+        <KepegawaianTabContent key={statusFilter}>
+        <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs overflow-hidden">
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/70 dark:bg-zinc-800/30 border-b border-slate-200/70 dark:border-zinc-800 text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider text-xs">
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-zinc-400">
-                    Memuat data Surat Keluar...
-                  </td>
+                  <th className="py-3 px-3">Nomor & Tanggal</th>
+                  <th className="py-3 px-2">Tujuan Surat</th>
+                  <th className="py-3 px-2">Perihal</th>
+                  <th className="py-3 px-2">Sifat</th>
+                  <th className="py-3 px-2">Status</th>
+                  <th className="py-3 px-2">Template</th>
+                  <th className="py-3 px-3 text-right">Aksi</th>
                 </tr>
-              ) : filteredList.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-zinc-400">
-                    <p className="font-medium text-sm text-zinc-600 dark:text-zinc-300">Belum ada Surat Keluar.</p>
-                    <p className="text-xs text-zinc-400 mt-1">
-                      Klik <strong>Generate Surat Dinas</strong> untuk membuat naskah dinas resmi.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                filteredList.map((item) => {
-                  const hasTemplate = Boolean(item.document_payload || item.template_type);
-                  const isDraft = item.status === "draft";
-                  return (
-                    <tr key={item.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
-                      <td className="py-3 px-3.5 align-top whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-blue-600 dark:text-blue-400">
-                          <FileText className="h-3.5 w-3.5 shrink-0" />
-                          <span>{item.no_surat}</span>
-                        </div>
-                        {item.no_surat?.includes("${nomor_naskah}") && (
-                          <div className="mt-1 pl-5">
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                              Perlu Nomor Definitif
-                            </span>
+              </thead>
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-[var(--ds-fg-muted)]">
+                      Memuat data Surat Keluar...
+                    </td>
+                  </tr>
+                ) : filteredList.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-10 text-center text-[var(--ds-fg-muted)]">
+                      <p className="font-medium text-sm text-[var(--ds-fg)]">Belum ada Surat Keluar.</p>
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
+                        Klik <strong>Buat Naskah Dinas</strong> untuk membuat naskah dinas resmi.
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredList.map((item) => {
+                    const hasTemplate = Boolean(item.document_payload || item.template_type);
+                    const isDraft = item.status === "draft";
+                    return (
+                      <tr key={item.id} className="hover:bg-[var(--ds-surface-muted)]/70 transition-colors">
+                        <td className="py-2 px-3 align-top max-w-[220px]">
+                          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ds-fg)] min-w-0">
+                            <FileText className="h-3.5 w-3.5 shrink-0 text-[var(--ds-accent-fg)]" />
+                            <span className="truncate" title={item.no_surat}>{item.no_surat}</span>
                           </div>
-                        )}
-                        <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 pl-5">
-                          <Calendar className="h-3 w-3 text-zinc-400 shrink-0" />
-                          <span>{item.tanggal_surat}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-3 px-3.5 align-top max-w-[280px] font-semibold text-[12.5px] text-zinc-800 dark:text-zinc-200 leading-snug">
-                        {item.tujuan_surat}
-                      </td>
-
-                      <td className="py-3 px-3.5 align-top max-w-[320px] text-[12px] text-zinc-700 dark:text-zinc-300 leading-snug">
-                        {item.perihal}
-                      </td>
-
-                      <td className="py-3 px-3.5 align-top whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300">
-                          {item.sifat || "Biasa"}
-                        </span>
-                        <span className="text-[10.5px] text-zinc-400 block mt-1">
-                          {item.lampiran || "-"}
-                        </span>
-                      </td>
-
-                      <td className="py-3 px-3.5 align-top whitespace-nowrap">
-                        {isDraft ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-300 dark:bg-amber-950/40 dark:text-amber-400">
-                            Draft
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-400">
-                            Terdaftar
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="py-3 px-3.5 align-top whitespace-nowrap">
-                        {getTemplateBadge(item.template_type)}
-                      </td>
-
-                      <td className="py-3 px-3.5 align-top text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {item.document_payload && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedPreview(item)}
-                              className="h-7 px-2 text-xs gap-1 text-zinc-700 hover:text-emerald-600 rounded-lg"
-                              title="Lihat Pratinjau Dokumen Cetak"
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              <span className="hidden sm:inline text-[11px]">Lihat</span>
-                            </Button>
+                          {item.no_surat?.includes("${nomor_naskah}") && (
+                            <div className="mt-1 pl-5">
+                              <span data-status="warning" className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold whitespace-nowrap">
+                                Perlu Nomor Definitif
+                              </span>
+                            </div>
                           )}
+                          <div className="flex items-center gap-2 text-xs text-[var(--ds-fg-muted)] mt-1 pl-5 tabular-nums whitespace-nowrap">
+                            <Calendar className="h-3 w-3 shrink-0" />
+                            <span>{item.tanggal_surat}</span>
+                          </div>
+                        </td>
 
-                          {hasTemplate ? (
-                            <Link href={`/surat/keluar/dinas?id=${item.id}&template=${item.template_type || 'surat_dinas'}`}>
+                        <td className="py-2 px-2 align-top max-w-[180px] font-semibold text-xs text-[var(--ds-fg)] leading-snug">
+                          <div className="line-clamp-2" title={item.tujuan_surat}>{item.tujuan_surat}</div>
+                        </td>
+
+                        <td className="py-2 px-2 align-top max-w-[200px] text-xs text-[var(--ds-fg-muted)] leading-snug">
+                          <div className="line-clamp-2" title={item.perihal}>{item.perihal}</div>
+                        </td>
+
+                        <td className="py-2 px-2 align-top whitespace-nowrap">
+                          <span className="px-2 py-1 rounded-lg text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+                            {item.sifat || "Biasa"}
+                          </span>
+                          <span className="text-xs text-[var(--ds-fg-muted)] block mt-1">
+                            {item.lampiran || "-"}
+                          </span>
+                        </td>
+
+                        <td className="py-2 px-2 align-top whitespace-nowrap">
+                          {isDraft ? (
+                            <span data-status="warning" className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold border border-[var(--ds-status-warning-border)]">
+                              Draft
+                            </span>
+                          ) : (
+                            <span data-status="success" className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold border border-[var(--ds-status-success-border)]">
+                              Terdaftar
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-2 px-2 align-top whitespace-nowrap">
+                          {getTemplateBadge(item.template_type)}
+                        </td>
+
+                        <td className="py-2 px-3 align-top text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            {item.document_payload && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-7 px-2 text-xs gap-1 text-zinc-700 hover:text-blue-600 rounded-lg"
-                                title="Edit Dokumen di Generator"
+                                onClick={() => setSelectedPreview(item)}
+                                className="kpg-secondary h-8 px-2 text-xs gap-1 rounded-lg"
+                                title="Lihat Pratinjau Dokumen Cetak"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                                <span className="hidden lg:inline text-xs">Lihat</span>
+                              </Button>
+                            )}
+
+                            {hasTemplate ? (
+                              <Link href={`/surat/keluar/dinas?id=${item.id}&template=${item.template_type || 'surat_dinas'}`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="kpg-secondary h-8 px-2 text-xs gap-1 rounded-lg"
+                                  title="Edit Dokumen di Generator"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                  <span className="hidden lg:inline text-xs">Edit</span>
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenEditManual(item)}
+                                className="kpg-secondary h-8 px-2 text-xs gap-1 rounded-lg"
+                                title="Edit Agenda Surat Manual"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
-                                <span className="hidden sm:inline text-[11px]">Edit</span>
+                                <span className="hidden lg:inline text-xs">Edit</span>
                               </Button>
-                            </Link>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleOpenEditManual(item)}
-                              className="h-7 px-2 text-xs gap-1 text-zinc-700 hover:text-blue-600 rounded-lg"
-                              title="Edit Agenda Surat Manual"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                              <span className="hidden sm:inline text-[11px]">Edit</span>
-                            </Button>
-                          )}
+                            )}
 
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(item.id, item.no_surat)}
-                            className="h-7 w-7 p-0 text-zinc-400 hover:text-red-600 rounded-lg"
-                            title="Hapus"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              aria-label={`Hapus surat keluar ${item.no_surat}`}
+                              onClick={() => handleDelete(item.id, item.no_surat)}
+                              className="h-8 w-8 p-0 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg"
+                              title="Hapus"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Stacked Card View (< md) */}
+          <div className="md:hidden divide-y divide-slate-200/70 dark:divide-zinc-800">
+            {isLoading ? (
+              <div className="p-6 text-center text-xs text-[var(--ds-fg-muted)]">
+                Memuat data Surat Keluar...
+              </div>
+            ) : filteredList.length === 0 ? (
+              <div className="p-8 text-center text-[var(--ds-fg-muted)]">
+                <p className="font-medium text-sm text-[var(--ds-fg)]">Belum ada Surat Keluar.</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
+                  Klik <strong>Buat Naskah Dinas</strong> untuk membuat naskah dinas resmi.
+                </p>
+              </div>
+            ) : (
+              filteredList.map((item) => {
+                const hasTemplate = Boolean(item.document_payload || item.template_type);
+                const isDraft = item.status === "draft";
+                return (
+                  <div key={item.id} className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)]">
+                          <FileText className="h-3.5 w-3.5 shrink-0 text-[var(--ds-accent-fg)]" />
+                          <span className="truncate">{item.no_surat}</span>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                        <span className="text-xs text-[var(--ds-fg-muted)] block mt-1 tabular-nums">
+                          {item.tanggal_surat}
+                        </span>
+                      </div>
+                      {isDraft ? (
+                        <span data-status="warning" className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold border border-[var(--ds-status-warning-border)] shrink-0">
+                          Draft
+                        </span>
+                      ) : (
+                        <span data-status="success" className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold border border-[var(--ds-status-success-border)] shrink-0">
+                          Terdaftar
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-xs text-[var(--ds-fg)]">{item.tujuan_surat}</p>
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1 line-clamp-2">{item.perihal}</p>
+                    </div>
+
+                    <div className="flex items-center flex-wrap gap-2 pt-1">
+                      <span className="px-2 py-1 rounded-lg text-xs font-bold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+                        {item.sifat || "Biasa"}
+                      </span>
+                      {getTemplateBadge(item.template_type)}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/70 dark:border-zinc-800">
+                      {item.document_payload && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedPreview(item)}
+                          className="kpg-secondary h-8 px-3 text-xs gap-1 rounded-lg"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          Lihat
+                        </Button>
+                      )}
+                      {hasTemplate ? (
+                        <Link href={`/surat/keluar/dinas?id=${item.id}&template=${item.template_type || 'surat_dinas'}`}>
+                          <Button variant="outline" size="sm" className="kpg-secondary h-8 px-3 text-xs gap-1 rounded-lg">
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenEditManual(item)}
+                          className="kpg-secondary h-8 px-3 text-xs gap-1 rounded-lg"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Hapus surat keluar ${item.no_surat}`}
+                        onClick={() => handleDelete(item.id, item.no_surat)}
+                        className="h-8 w-8 p-0 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
+        </KepegawaianTabContent>
       </div>
 
       {/* Pop-up Modal Pratinjau Dokumen */}
       <Dialog open={!!selectedPreview} onOpenChange={(open) => !open && setSelectedPreview(null)}>
-        <DialogContent className="w-[96vw] sm:max-w-5xl lg:max-w-6xl max-h-[94vh] overflow-y-auto p-4 md:p-6 bg-zinc-100 dark:bg-zinc-950 rounded-2xl shadow-2xl">
-          <DialogHeader className="flex flex-row items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800">
-            <DialogTitle className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
-              <FileText className="h-4 w-4 text-emerald-600" />
+        <DialogContent
+          data-module="persuratan"
+          {...focusReturn}
+          className="psr-ui w-[96vw] sm:max-w-5xl lg:max-w-6xl max-h-[94vh] overflow-y-auto p-4 md:p-6 bg-[var(--ds-surface-muted)] rounded-3xl shadow-lg border border-slate-200/80 dark:border-zinc-800"
+        >
+          <DialogHeader className="flex flex-row items-center justify-between pb-3 border-b border-slate-200/70 dark:border-zinc-800">
+            <DialogTitle className="text-sm font-bold flex items-center gap-2 text-[var(--ds-fg)]">
+              <FileText className="h-4 w-4 text-[var(--ds-accent-fg)]" />
               <span>Pratinjau Dokumen: {selectedPreview?.no_surat}</span>
             </DialogTitle>
             <div className="flex items-center gap-2 mr-6">
               <Button
                 size="sm"
                 onClick={handlePrintSuratDinas}
-                className="h-7 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm"
+                className="h-8 text-xs gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg"
               >
                 <Printer className="h-3.5 w-3.5" />
                 Cetak Dokumen
               </Button>
               {selectedPreview?.id && (selectedPreview.document_payload || selectedPreview.template_type) && (
                 <Link href={`/surat/keluar/dinas?id=${selectedPreview.id}&template=${selectedPreview.template_type || 'surat_dinas'}`}>
-                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5 rounded-lg">
+                  <Button variant="outline" size="sm" className="kpg-secondary h-8 text-xs gap-2 rounded-lg">
                     <Pencil className="h-3.5 w-3.5" />
                     Edit di Generator
                   </Button>
@@ -464,7 +606,7 @@ export default function SuratKeluarListPage() {
                 <SuratDinasDocument data={selectedPreview.document_payload} />
               </div>
             ) : (
-              <div className="p-8 text-center text-sm text-zinc-400">
+              <div className="p-8 text-center text-sm text-[var(--ds-fg-muted)]">
                 Tidak ada data template untuk surat ini.
               </div>
             )}
@@ -474,65 +616,69 @@ export default function SuratKeluarListPage() {
 
       {/* Pop-up Modal Edit Surat Keluar Manual */}
       <Dialog open={!!editingManualSurat} onOpenChange={(open) => !open && setEditingManualSurat(null)}>
-        <DialogContent className="sm:max-w-lg p-5 bg-white dark:bg-zinc-950 rounded-2xl shadow-xl">
-          <DialogHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
-            <DialogTitle className="text-sm font-bold flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
-              <Pencil className="h-4 w-4 text-blue-600" />
+        <DialogContent
+          data-module="persuratan"
+          {...focusReturn}
+          className="psr-ui sm:max-w-lg p-6 bg-[var(--ds-surface)] rounded-3xl shadow-lg border border-slate-200/80 dark:border-zinc-800"
+        >
+          <DialogHeader className="pb-3 border-b border-slate-200/70 dark:border-zinc-800">
+            <DialogTitle className="text-sm font-bold flex items-center gap-2 text-[var(--ds-fg)]">
+              <Pencil className="h-4 w-4 text-[var(--ds-accent-fg)]" />
               <span>Edit Surat Keluar (Agenda Manual)</span>
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSaveManualEdit} className="space-y-3.5 text-xs pt-2">
+          <form onSubmit={handleSaveManualEdit} className="space-y-4 text-xs pt-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Nomor Surat</label>
+                <label className="font-semibold text-[var(--ds-fg)] block mb-1">Nomor Surat</label>
                 <Input
                   value={manualFormData.no_surat}
                   onChange={(e) => setManualFormData((p) => ({ ...p, no_surat: e.target.value }))}
                   required
-                  className="h-8 text-xs font-mono"
+                  className="h-8 text-xs font-mono rounded-lg"
                 />
               </div>
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Tanggal Surat</label>
+                <label className="font-semibold text-[var(--ds-fg)] block mb-1">Tanggal Surat</label>
                 <Input
                   type="date"
                   value={manualFormData.tanggal_surat}
                   onChange={(e) => setManualFormData((p) => ({ ...p, tanggal_surat: e.target.value }))}
                   required
-                  className="h-8 text-xs"
+                  className="h-8 text-xs rounded-lg"
                 />
               </div>
             </div>
 
             <div>
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Tujuan Surat</label>
+              <label className="font-semibold text-[var(--ds-fg)] block mb-1">Tujuan Surat</label>
               <Input
                 value={manualFormData.tujuan_surat}
                 onChange={(e) => setManualFormData((p) => ({ ...p, tujuan_surat: e.target.value }))}
                 required
-                className="h-8 text-xs"
+                className="h-8 text-xs rounded-lg"
               />
             </div>
 
             <div>
-              <label className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Perihal</label>
+              <label className="font-semibold text-[var(--ds-fg)] block mb-1">Perihal</label>
               <Textarea
                 value={manualFormData.perihal}
                 onChange={(e) => setManualFormData((p) => ({ ...p, perihal: e.target.value }))}
                 required
                 rows={2}
-                className="text-xs"
+                className="text-xs rounded-lg"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Sifat</label>
+                <label className="font-semibold text-[var(--ds-fg)] block mb-1">Sifat</label>
                 <select
                   value={manualFormData.sifat}
                   onChange={(e) => setManualFormData((p) => ({ ...p, sifat: e.target.value }))}
-                  className="w-full h-8 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2"
+                  className="w-full h-8 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-2 text-[var(--ds-fg)]"
                 >
                   <option value="Biasa">Biasa</option>
                   <option value="Penting">Penting</option>
@@ -541,19 +687,19 @@ export default function SuratKeluarListPage() {
                 </select>
               </div>
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Lampiran</label>
+                <label className="font-semibold text-[var(--ds-fg)] block mb-1">Lampiran</label>
                 <Input
                   value={manualFormData.lampiran}
                   onChange={(e) => setManualFormData((p) => ({ ...p, lampiran: e.target.value }))}
-                  className="h-8 text-xs"
+                  className="h-8 text-xs rounded-lg"
                 />
               </div>
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Status</label>
+                <label className="font-semibold text-[var(--ds-fg)] block mb-1">Status</label>
                 <select
                   value={manualFormData.status}
                   onChange={(e) => setManualFormData((p) => ({ ...p, status: e.target.value }))}
-                  className="w-full h-8 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2"
+                  className="w-full h-8 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-2 text-[var(--ds-fg)]"
                 >
                   <option value="terdaftar">Terdaftar</option>
                   <option value="draft">Draft</option>
@@ -561,13 +707,13 @@ export default function SuratKeluarListPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200/70 dark:border-zinc-800">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setEditingManualSurat(null)}
-                className="h-8 text-xs rounded-xl"
+                className="kpg-secondary h-8 text-xs rounded-lg"
               >
                 Batal
               </Button>
@@ -575,7 +721,7 @@ export default function SuratKeluarListPage() {
                 type="submit"
                 size="sm"
                 disabled={isSavingManual}
-                className="h-8 text-xs rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
+                className="h-8 text-xs rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold"
               >
                 {isSavingManual ? "Menyimpan..." : "Simpan Perubahan"}
               </Button>

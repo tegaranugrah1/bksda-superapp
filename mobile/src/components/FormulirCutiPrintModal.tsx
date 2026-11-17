@@ -40,6 +40,7 @@ export interface LeaveRequestPrintData {
     nip?: string;
     jabatan?: string;
     satuan_kerja?: string;
+    resor?: string | null;
     pangkat_golongan?: string;
   };
 }
@@ -94,24 +95,36 @@ function calculateMasaKerja(nip?: string | null, namaLengkap?: string | null): s
   return `${years} Tahun ${months} Bulan`;
 }
 
-function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
-  const sk = (satuanKerja || "").toLowerCase();
+function getKotaAtasanFromSatuanKerja(satuanKerja?: string, resor?: string | null) {
+  const combined = `${resor || ""} ${satuanKerja || ""}`.toLowerCase();
   let kota = "Samarinda";
   let atasanTitle = "Kasubbag Tata Usaha";
   let atasanNama = "DHENY MARDIONO, S.Hut., M.Sc.";
   let atasanNip = "19750314 199903 1 004";
 
-  if (sk.includes("wilayah iii") || sk.includes("balikpapan")) {
+  if (
+    /resor[_\s-]*0?(10|11|12|13|14)\b/.test(combined) ||
+    /\b(wilayah|wil|skw)[\s_-]*(iii|3)\b/.test(combined) ||
+    combined.includes("balikpapan")
+  ) {
     kota = "Balikpapan";
     atasanTitle = "Kepala Seksi KSDA Wilayah III Balikpapan";
     atasanNama = "BAMBANG HARI TRIMARSITO, S.Si., M.P.";
     atasanNip = "19740626 200112 1 004";
-  } else if (sk.includes("wilayah ii") || sk.includes("tenggarong")) {
+  } else if (
+    /resor[_\s-]*0?[5-9]\b/.test(combined) ||
+    /\b(wilayah|wil|skw)[\s_-]*(ii|2)\b/.test(combined) ||
+    combined.includes("tenggarong")
+  ) {
     kota = "Tenggarong";
     atasanTitle = "Kepala Seksi KSDA Wilayah II Tenggarong";
     atasanNama = "SURIAWATI HALIM, S.Hut., M.P.";
     atasanNip = "19751127 200003 2 001";
-  } else if (sk.includes("wilayah i") || sk.includes("berau")) {
+  } else if (
+    /resor[_\s-]*0?[1-4]\b/.test(combined) ||
+    /\b(wilayah|wil|skw)[\s_-]*(i|1)\b/.test(combined) ||
+    combined.includes("berau")
+  ) {
     kota = "Tanjung Redeb";
     atasanTitle = "Kepala Seksi KSDA Wilayah I Berau";
     atasanNama = "YULIAN SADONO, S.Hut., M.T.";
@@ -122,14 +135,14 @@ function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
 }
 
 function buildFormulirCutiHtml(data: LeaveRequestPrintData): string {
-  const emp = data.employee || {
+  const emp: NonNullable<LeaveRequestPrintData["employee"]> = data.employee || {
     nama_lengkap: "TEGAR ANUGRAH, A.Md.Kom.",
     nip: "19990707 202506 1 006",
     jabatan: "PRANATA KOMPUTER TERAMPIL",
     satuan_kerja: "Balai KSDA Kalimantan Timur",
   };
 
-  const { kota: kotaTujuan, atasanTitle, atasanNama, atasanNip } = getKotaAtasanFromSatuanKerja(emp.satuan_kerja);
+  const { kota: kotaTujuan, atasanTitle, atasanNama, atasanNip } = getKotaAtasanFromSatuanKerja(emp.satuan_kerja, emp.resor);
 
   const isDefaultDheny = !data.kasubbag_nama || data.kasubbag_nama.includes("DHENY");
   const finalAtasanNama = (isDefaultDheny && atasanNama !== "DHENY MARDIONO, S.Hut., M.Sc.") ? atasanNama : (data.kasubbag_nama || atasanNama);

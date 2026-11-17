@@ -9,7 +9,12 @@ use App\Models\User;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Bmn\Models\AssetUpdate;
+use App\Modules\Bmn\Models\AuctionBatch;
+use App\Modules\Bmn\Models\ImportBatch;
+use App\Modules\Bmn\Models\ImportStaging;
+use App\Modules\Bmn\Services\AuctionBatchService;
 use App\Modules\Bmn\Services\LoanService;
+use App\Modules\Bmn\Services\MaintenanceService;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -221,5 +226,263 @@ class NotificationBmnLifecycleTest extends TestCase
         $this->artisan('app:monitor-health')->assertExitCode(1);
         $this->assertSame(2, PortalNotification::where('user_id', $super->id)->count());
         $this->travelBack();
+    }
+
+    public function test_bmndetail_01_ownership_assign_reassign_revoke_respects_anti_leak_and_blocked_ref(): void
+    {
+        $this->admin->update([
+            'permissions' => ['bmn.view', 'bmn.asset.create', 'bmn.asset.update', 'bmn.asset.dispose'],
+        ]);
+
+        // BMN-A1: storeAsset with employee_id notifies A.
+        $res = $this->postJson('/api/bmn/assets', [
+            'kode_barang' => '3050201001',
+            'nup' => '101',
+            'nama_barang' => 'Laptop Operasional Unit',
+            'kondisi' => 'Baik',
+            'employee_id' => $this->a->id,
+            'pengguna' => $this->a->nama_lengkap,
+        ])->assertCreated();
+
+        $assetId = $res->json('data.id');
+        $this->assertSame($this->a->id, $res->json('data.employee_id'));
+        $noticeA1 = PortalNotification::where('user_id', $this->userA->id)->sole();
+        $this->assertSame('bmn', $noticeA1->type);
+        $this->assertSame('aset', $noticeA1->action_tab);
+        $this->assertSame($assetId, $noticeA1->reference_id);
+        $this->assertArrayNotHasKey('link', $noticeA1->data ?? []);
+
+        // BMN-A2: reassign A -> B must sanitize replacement name & internal audit notes from A.
+        $this->putJson("/api/bmn/assets/{$assetId}", [
+            'employee_id' => $this->b->id,
+            'pengguna' => $this->b->nama_lengkap,
+            'nama_pengguna' => $this->b->nama_lengkap,
+            'keterangan_audit' => 'Mutasi rahasia inspektorat',
+        ])->assertOk();
+
+        $removedA = PortalNotification::where('user_id', $this->userA->id)->latest('id')->first();
+        $this->assertSame('unavailable', $removedA->data['availability']);
+        $this->assertSame('removed', $removedA->data['status']);
+        $this->assertStringNotContainsString($this->b->nama_lengkap, $removedA->message);
+        $this->assertStringNotContainsString('inspektorat', $removedA->message);
+
+        $assignedB = PortalNotification::where('user_id', $this->userB->id)->sole();
+        $this->assertSame('aset', $assignedB->action_tab);
+        $this->assertSame($assetId, $assignedB->reference_id);
+
+        // BMN-A3: revoke B -> null
+        $this->putJson("/api/bmn/assets/{$assetId}", [
+            'employee_id' => null,
+            'pengguna' => null,
+            'nama_pengguna' => null,
+        ])->assertOk();
+
+        $revokedB = PortalNotification::where('user_id', $this->userB->id)->latest('id')->first();
+        $this->assertSame('unavailable', $revokedB->data['availability']);
+        $this->assertSame('removed', $revokedB->data['status']);
+    }
+
+    public function test_bmndetail_02_dispose_bulk_dispose_restore_and_bulk_kondisi_rb(): void
+    {
+        $this->admin->update([
+            'permissions' => ['bmn.view', 'bmn.asset.update', 'bmn.asset.dispose'],
+        ]);
+
+        // BMN-A4 single dispose while held by A
+        $held = $this->asset('disp-1');
+        $held->update(['employee_id' => $this->a->id]);
+        $this->deleteJson("/api/bmn/assets/{$held->id}/dispose", [
+            'alasan_pemutihan' => 'Catatan internal penghapusan',
+        ])->assertOk();
+
+        $noticeA = PortalNotification::where('user_id', $this->userA->id)->sole();
+        $this->assertSame('trashed', $noticeA->data['availability']);
+        $this->assertSame('removed', $noticeA->data['status']);
+        $this->assertStringNotContainsString('Catatan internal', $noticeA->message);
+
+        // Anti-flood: bulkDispose 5 assets held by B => 1 summary notification
+        $bAssets = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $item = $this->asset("bulk-b-{$i}");
+            $item->update(['employee_id' => $this->b->id]);
+            $bAssets[] = $item->id;
+        }
+        $this->postJson('/api/bmn/assets/bulk-dispose', ['ids' => $bAssets])->assertOk();
+        $summaryB = PortalNotification::where('user_id', $this->userB->id)->sole();
+        $this->assertSame(5, $summaryB->data['asset_count']);
+        $this->assertSame('trashed', $summaryB->data['availability']);
+
+        // BMN-A5: bulkRestore 2 assets for B => restores notifications
+        $this->postJson('/api/bmn/assets/bulk-restore', ['ids' => array_slice($bAssets, 0, 2)])->assertOk();
+        $this->assertSame(3, PortalNotification::where('user_id', $this->userB->id)->count());
+
+        // BMN-C1: bulkUpdateKondisi -> Rusak Berat alerts C and Admin BMN (/bmn), repeat is idempotent
+        $cAsset = $this->asset('rb-c');
+        $cAsset->update(['employee_id' => $this->c->id]);
+        $this->postJson('/api/bmn/assets/bulk-update-kondisi', [
+            'ids' => [$cAsset->id],
+            'kondisi' => 'Rusak Berat',
+        ])->assertOk();
+        $this->assertSame(1, PortalNotification::where('user_id', $this->userC->id)->count());
+        $adminNotice = PortalNotification::where('user_id', $this->admin->id)->sole();
+        $this->assertSame('/bmn', $adminNotice->data['link']);
+
+        $this->postJson('/api/bmn/assets/bulk-update-kondisi', [
+            'ids' => [$cAsset->id],
+            'kondisi' => 'Rusak Berat',
+        ])->assertOk();
+        $this->assertSame(1, PortalNotification::where('user_id', $this->userC->id)->count());
+    }
+
+    public function test_bmndetail_03_auction_freeze_cancel_import_review_and_maintenance(): void
+    {
+        $this->admin->update([
+            'permissions' => ['bmn.view', 'bmn.asset.update', 'bmn.import.approve'],
+        ]);
+
+        // Auction freeze + cancel restores operational notice to holder A
+        $asset = $this->asset('auc-1');
+        $asset->update(['employee_id' => $this->a->id, 'nilai_perolehan' => 5000000]);
+        $docs = collect(app(\App\Modules\Bmn\Services\AuctionBatchDocumentWorkflow::class)->definitions())
+            ->mapWithKeys(fn ($d) => [$d['key'] => ['status' => 'completed']])
+            ->all();
+        $batch = AuctionBatch::create([
+            'batch_number' => 'LE-TEST-001',
+            'name' => 'Batch Test Freeze',
+            'status' => 'DRAFT',
+            'kepala_balai_id' => $this->c->id,
+            'metadata' => ['workflow' => ['documents' => $docs]],
+            'created_by' => $this->admin->id,
+        ]);
+        $batch->assets()->attach($asset->id, [
+            'id' => (string) \Illuminate\Support\Str::uuid(),
+            'lot_number' => 'LOT-1',
+            'nilai_taksiran' => 2500000,
+        ]);
+        $auctionService = app(AuctionBatchService::class);
+        $auctionService->lockAndSubmit($batch->id, [
+            'kepala_balai_id' => $this->c->id,
+            'signatories' => [
+                'panitia' => [$this->a->id],
+                'tim_penilai' => [$this->b->id],
+                'pemeriksa' => [$this->c->id],
+            ],
+            'document_numbers' => ['sk_penghentian' => 'SK-001'],
+            'document_dates' => ['sk_penghentian' => now()->toDateString()],
+        ], $this->admin->id);
+        $freezeNotice = PortalNotification::where('user_id', $this->userA->id)->sole();
+        $this->assertSame('frozen', $freezeNotice->data['event']);
+        $this->assertStringNotContainsString('2500000', $freezeNotice->message);
+
+        $auctionService->cancel($batch->id, 'Batal uji', $this->admin->id);
+        $unfreezeNotice = PortalNotification::where('user_id', $this->userA->id)->latest('id')->first();
+        $this->assertSame('unfrozen', $unfreezeNotice->data['event']);
+
+        // ImportReviewController::approve restores trashed asset & reassigns holder to B
+        $trashed = $this->asset('imp-1');
+        $trashed->update(['employee_id' => $this->a->id]);
+        $trashed->delete();
+        $importBatch = ImportBatch::create([
+            'uploaded_by' => $this->admin->id,
+            'filename' => 'siman.xlsx',
+            'total_rows' => 1,
+            'new_rows' => 0,
+            'updated_rows' => 1,
+            'unchanged_rows' => 0,
+            'status' => 'pending',
+        ]);
+        ImportStaging::create([
+            'batch_id' => $importBatch->id,
+            'diff_status' => 'updated',
+            'existing_asset_id' => $trashed->id,
+            'imported_data' => ['pengguna' => $this->b->nama_lengkap],
+            'changed_fields' => [
+                'pengguna' => ['old' => $this->a->nama_lengkap, 'new' => $this->b->nama_lengkap, 'selected' => true],
+            ],
+            'selected' => true,
+        ]);
+        $this->postJson("/api/bmn/import-review/{$importBatch->id}/approve")->assertOk();
+        $this->assertNull($trashed->fresh()->deleted_at);
+        $this->assertSame($this->b->id, $trashed->fresh()->employee_id);
+        $this->assertTrue(PortalNotification::where('user_id', $this->userB->id)->where('reference_id', $trashed->id)->exists());
+
+        // MaintenanceService -> Rusak Berat notifies holder & admin (/bmn)
+        app(MaintenanceService::class)->recordMaintenance($trashed->id, [
+            'tanggal_service' => now()->toDateString(),
+            'biaya' => 100000,
+            'deskripsi' => 'Cek kerusakan parah',
+            'kondisi_baru' => 'Rusak Berat',
+        ]);
+        $this->assertTrue(PortalNotification::where('user_id', $this->admin->id)->where('data->link', '/bmn')->exists());
+    }
+
+    public function test_bmndetail_04_loan_holder_guard_reassign_delete_and_deadlines_dedup(): void
+    {
+        // Guard createLoan against permanent holder overwrite
+        $owned = $this->asset('held-asset');
+        $owned->update(['employee_id' => $this->a->id]);
+        $this->postJson('/api/bmn/loans', $this->payload([$owned], $this->b))->assertStatus(400);
+        $this->assertSame($this->a->id, $owned->fresh()->employee_id);
+
+        // Overdue loan + upcoming STNK & Plat deadlines promoted and notified once (dedup_key)
+        $vehicle = Asset::create([
+            'kode_barang' => '3020102001',
+            'nup' => '99',
+            'nama_barang' => 'Mobil Patroli Hilux',
+            'jenis_bmn' => 'ALAT ANGKUTAN BERMOTOR',
+            'no_polisi' => 'KT 1234 XY',
+            'kondisi' => 'Baik',
+            'nilai_perolehan' => 100,
+            'employee_id' => $this->a->id,
+            'tanggal_pajak_stnk' => now()->addDays(5)->toDateString(),
+            'tanggal_ganti_plat' => now()->addDays(25)->toDateString(),
+        ]);
+
+        $loanAsset = $this->asset('overdue-1');
+        $overdueLoan = AssetLoan::create([
+            'asset_id' => $loanAsset->id,
+            'employee_id' => $this->b->id,
+            'tanggal_pinjam' => now()->subDays(10)->toDateString(),
+            'due_date' => now()->subDays(2)->toDateString(),
+            'status' => 'dipinjam',
+        ]);
+
+        $this->artisan('bmn:notify-deadlines')->assertExitCode(0);
+        $this->assertSame('terlambat', $overdueLoan->fresh()->status);
+
+        $countAfterFirstRun = PortalNotification::count();
+        $this->assertGreaterThanOrEqual(4, $countAfterFirstRun);
+        $this->assertTrue(PortalNotification::where('user_id', $this->userA->id)->where('action_tab', 'aset')->exists());
+        $this->assertTrue(PortalNotification::where('user_id', $this->userB->id)->where('action_tab', 'pinjaman')->where('reference_id', $overdueLoan->id)->exists());
+        $this->assertTrue(PortalNotification::where('user_id', $this->admin->id)->where('data->link', '/bmn')->exists());
+
+        // Second run on same day must be strictly idempotent (zero new notifications)
+        $this->artisan('bmn:notify-deadlines')->assertExitCode(0);
+        $this->assertSame($countAfterFirstRun, PortalNotification::count());
+
+        // Dashboard stats exposes plat_expiring_soon and overdue_loans
+        $stats = $this->getJson('/api/bmn/dashboard/stats')->assertOk();
+        $stats->assertJsonFragment(['id' => $vehicle->id])
+            ->assertJsonFragment(['id' => $overdueLoan->id]);
+    }
+
+    public function test_bmndetail_05_employee_deactivation_alerts_bmn_admins(): void
+    {
+        $asset = $this->asset('emp-clear');
+        $asset->update(['employee_id' => $this->a->id]);
+
+        $this->a->update([
+            'inactive_effective_date' => now()->toDateString(),
+            'inactive_reason' => 'pindah_instansi',
+        ]);
+
+        $this->artisan('employee:apply-lifecycle')->assertExitCode(0);
+
+        $this->assertFalse($this->a->fresh()->is_active);
+        $adminAlert = PortalNotification::where('user_id', $this->admin->id)->sole();
+        $this->assertSame('bmn', $adminAlert->type);
+        $this->assertSame('/bmn', $adminAlert->data['link']);
+        $this->assertSame($this->a->id, $adminAlert->data['employee_id']);
+        $this->assertSame(1, $adminAlert->data['asset_count']);
     }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect, useId, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -23,9 +23,8 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRole } from "@/hooks/useRole";
+import { useMasterLocations, getLocationHierarchy } from "@/lib/locations";
 import {
-  SATUAN_KERJA_OPTIONS as SATUAN_KERJA,
-  RESOR_OPTIONS,
   PANGKAT_PNS_OPTIONS,
   PANGKAT_PPPK_OPTIONS,
   JENIS_PEGAWAI_OPTIONS,
@@ -82,15 +81,31 @@ export default function EmployeeCreatePage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [jenisPegawai, setJenisPegawai] = useState<JenisPegawai>("PNS");
 
+  const { data: masterLocations = [], isLoading: locationsLoading } = useMasterLocations(true);
+  const { parents: locationParents, childrenByParentId, orphans: locationOrphans } = useMemo(
+    () => getLocationHierarchy(masterLocations),
+    [masterLocations]
+  );
+  const [selectedParentId, setSelectedParentId] = useState("");
   const [formData, setFormData] = useState({
     nip: "",
     nama_lengkap: "",
     jabatan: "",
     pangkat_golongan: "",
+    location_id: "",
     satuan_kerja: "",
     resor: "",
     is_active: "1",
   });
+
+  const selectedParentLoc = useMemo(
+    () => masterLocations.find((l) => l.id === selectedParentId) || null,
+    [masterLocations, selectedParentId]
+  );
+  const childLocations = useMemo(
+    () => (selectedParentId ? childrenByParentId.get(selectedParentId) || [] : []),
+    [childrenByParentId, selectedParentId]
+  );
 
   useEffect(() => {
     return () => {
@@ -146,16 +161,36 @@ export default function EmployeeCreatePage() {
     setFormData((prev) => ({ ...prev, nip: val }));
   };
 
-  const handleSatkerChange = (val: string) => {
-    const isBalai = val.toLowerCase().includes("balai") || (val.toLowerCase().includes("samarinda") && !val.toLowerCase().includes("wilayah ii") && !val.toLowerCase().includes("skw ii") && !val.toLowerCase().includes("resor 05"));
+  const handleParentLocationChange = (parentId: string) => {
+    setSelectedParentId(parentId);
+    const parent = masterLocations.find((l) => l.id === parentId);
+    const nextSatker = parent ? parent.name : "";
     setFormData((prev) => ({
       ...prev,
-      satuan_kerja: val,
-      resor: isBalai ? "" : prev.resor,
+      location_id: parent ? parent.id : "",
+      satuan_kerja: nextSatker,
+      resor: parent?.location_type === "resor" ? parent.code || parent.name : "",
       jabatan:
         jenisPegawai === "MMP" && isAutoMmpJabatan(prev.jabatan)
-          ? buildMmpDefaultJabatan(val)
+          ? buildMmpDefaultJabatan(nextSatker)
           : prev.jabatan,
+    }));
+  };
+
+  const handleChildLocationChange = (childId: string) => {
+    if (!childId) {
+      setFormData((prev) => ({
+        ...prev,
+        location_id: selectedParentId,
+        resor: "",
+      }));
+      return;
+    }
+    const child = masterLocations.find((l) => l.id === childId);
+    setFormData((prev) => ({
+      ...prev,
+      location_id: childId,
+      resor: child?.location_type === "resor" ? child.code || child.name : "",
     }));
   };
 
@@ -198,6 +233,7 @@ export default function EmployeeCreatePage() {
       if (jenisPegawai !== "MMP" && formData.pangkat_golongan) {
         payload.append("pangkat_golongan", formData.pangkat_golongan);
       }
+      if (formData.location_id) payload.append("location_id", formData.location_id);
       if (formData.satuan_kerja) payload.append("satuan_kerja", formData.satuan_kerja);
       if (formData.resor) payload.append("resor", formData.resor);
       payload.append("is_active", formData.is_active);
@@ -235,13 +271,13 @@ export default function EmployeeCreatePage() {
 
   if (!canWrite) {
     return (
-      <div data-module="kepegawaian" className="kpg-ui p-5 md:p-7">
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-8 text-center space-y-4 shadow-2xs">
-          <div className="w-12 h-12 rounded-2xl bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)] flex items-center justify-center mx-auto">
+      <div data-module="kepegawaian" className="kpg-ui p-4 md:p-6">
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-6 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 rounded-lg bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)] flex items-center justify-center mx-auto">
             <ShieldAlert className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-[var(--ds-fg)]">
+            <h2 className="text-xl font-bold text-[var(--ds-fg)]">
               Akses Terbatas
             </h2>
             <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
@@ -250,7 +286,7 @@ export default function EmployeeCreatePage() {
           </div>
           <Link
             href="/kepegawaian/employees"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--ds-fg)] text-[var(--ds-accent-on-solid)] text-xs font-bold"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali ke Daftar Pegawai</span>
@@ -264,19 +300,18 @@ export default function EmployeeCreatePage() {
     jenisPegawai === "PPPK" ? PANGKAT_PPPK_OPTIONS : PANGKAT_PNS_OPTIONS;
 
   return (
-    <div data-module="kepegawaian" className="kpg-ui w-full p-5 md:p-7 space-y-5 text-[var(--ds-fg)]">
+    <div data-module="kepegawaian" className="kpg-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
       {/* 1. Unified Clean Enterprise Header Bar */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:px-6 md:py-4 shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-
             <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
               Tambah Pegawai Baru
             </h1>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Input data personil PNS, PPPK (P3K), atau Masyarakat Mitra Polhut (MMP).
             </p>
           </div>
@@ -284,7 +319,7 @@ export default function EmployeeCreatePage() {
 
         <Link
           href="/kepegawaian/employees"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl kpg-secondary text-[var(--ds-fg)] text-xs font-bold transition-colors shrink-0 cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg kpg-secondary text-[var(--ds-fg)] text-xs font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Daftar</span>
@@ -292,7 +327,7 @@ export default function EmployeeCreatePage() {
       </div>
 
       {errorMsg && (
-        <div className="p-4 rounded-2xl bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] text-xs font-semibold flex items-center justify-between gap-3">
+        <div className="p-4 rounded-3xl bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] text-xs font-semibold flex items-center justify-between gap-3">
           <span>{errorMsg}</span>
           <button
             type="button"
@@ -307,11 +342,11 @@ export default function EmployeeCreatePage() {
       {/* 2. Form Layout: Left (Pas Foto Card) + Right (Biodata Card) */}
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start"
+        className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start"
       >
         {/* Left Card: Pas Foto (4 cols) */}
-        <div className="lg:col-span-4 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-5 shadow-2xs flex flex-col items-center text-center space-y-4">
-          <div className="w-full flex items-center justify-between border-b border-[var(--ds-border-subtle)] pb-3">
+        <div className="lg:col-span-4 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs flex flex-col items-center text-center space-y-4">
+          <div className="w-full flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
             <div className="text-left">
               <h3 className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
                 Pas Foto Pegawai
@@ -320,7 +355,7 @@ export default function EmployeeCreatePage() {
                 Opsional • JPG, PNG, WEBP (Maks 10 MB)
               </p>
             </div>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
+            <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
               Rasio 3:4
             </span>
           </div>
@@ -332,24 +367,24 @@ export default function EmployeeCreatePage() {
               transition={{ duration: reducedMotion ? 0 : 0.15, ease: "easeOut" }}
               className="w-full space-y-3"
             >
-              <div className="relative aspect-3/4 w-full max-w-[210px] mx-auto rounded-2xl overflow-hidden border border-[var(--ds-border-subtle)] shadow-sm">
+              <div className="relative aspect-3/4 w-full max-w-[210px] mx-auto rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 shadow-xs">
                 <Image src={previewUrl} alt="Preview Foto Pegawai" fill className="object-cover" unoptimized />
               </div>
               <div className="flex items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl kpg-secondary text-[var(--ds-fg)] text-xs font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg kpg-secondary text-[var(--ds-fg)] text-xs font-bold transition-colors cursor-pointer"
                 >
-                  <Upload className="w-3.5 h-3.5" />
+                  <Upload className="w-4 h-4" />
                   <span>Ganti Foto</span>
                 </button>
                 <button
                   type="button"
                   onClick={clearPhoto}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[var(--ds-status-danger-bg)] hover:bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)] text-xs font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)] text-xs font-bold transition-colors cursor-pointer"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                   <span>Hapus</span>
                 </button>
               </div>
@@ -358,16 +393,16 @@ export default function EmployeeCreatePage() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="aspect-3/4 w-full max-w-[210px] mx-auto rounded-2xl border-2 border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-colors group"
+              className="aspect-3/4 w-full max-w-[210px] mx-auto rounded-lg border-2 border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transition-colors group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-[var(--ds-surface-muted)] flex items-center justify-center group-hover:bg-[var(--ds-accent-soft)] transition-colors">
+              <div className="w-12 h-12 rounded-lg bg-[var(--ds-surface-muted)] flex items-center justify-center group-hover:bg-[var(--ds-accent-soft)] transition-colors">
                 <ImageIcon className="w-6 h-6 text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-accent-fg)] transition-colors" />
               </div>
               <div>
                 <p className="text-xs font-bold text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors">
                   Klik untuk Unggah Foto
                 </p>
-                <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   Tersimpan otomatis ke penyimpanan S3 / RustFS
                 </p>
               </div>
@@ -384,9 +419,9 @@ export default function EmployeeCreatePage() {
         </div>
 
         {/* Right Card: Form Biodata & Penempatan (8 cols) */}
-        <div className="lg:col-span-8 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-5 md:p-6 shadow-2xs space-y-6">
+        <div className="lg:col-span-8 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-6 shadow-xs space-y-6">
           {/* Kategori / Jenis Pegawai */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <label className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Kategori / Jenis Pegawai <span className="text-[var(--ds-status-danger-fg)]">*</span>
             </label>
@@ -400,28 +435,27 @@ export default function EmployeeCreatePage() {
                     key={opt.value}
                     type="button"
                     aria-pressed={isSelected}
-
                     onClick={() => handleJenisChange(opt.value)}
-                    className={`flex flex-col items-start p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
+                    className={`flex flex-col items-start p-4 rounded-lg border text-left transition-colors cursor-pointer ${
                       isSelected
                         ? style.activeCard
-                        : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)] "
+                        : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
                     }`}
                   >
-                    <div className="flex items-center justify-between w-full mb-1.5">
+                    <div className="flex items-center justify-between w-full mb-2">
                       <div className="flex items-center gap-2">
                         <div
                           className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 ${style.iconBadge}`}
                         >
-                          <Icon className="w-3.5 h-3.5" />
+                          <Icon className="w-4 h-4" />
                         </div>
                         <span className="text-xs font-bold text-[var(--ds-fg)]">
                           {opt.label}
                         </span>
                       </div>
                       <span
-                        className={`w-2.5 h-2.5 rounded-full ${
-                          isSelected ? style.dot : "bg-[var(--ds-surface-muted)] "
+                        className={`w-2 h-2 rounded-full ${
+                          isSelected ? style.dot : "bg-[var(--ds-surface-muted)]"
                         }`}
                       />
                     </div>
@@ -444,10 +478,10 @@ export default function EmployeeCreatePage() {
                 transition={{ duration: reducedMotion ? 0 : 0.15, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="px-4 py-3 rounded-xl bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] text-xs font-medium">
+                <div className="px-4 py-3 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] text-xs font-medium">
                   Personil <strong>MMP (Masyarakat Mitra Polhut)</strong> tidak memiliki NIP resmi ASN.
                   Sistem akan otomatis menerbitkan kode internal unik (contoh:{" "}
-                  <code className="px-1.5 py-0.5 rounded bg-[var(--ds-status-success-bg)] font-mono font-bold">
+                  <code className="px-2 py-1 rounded-lg bg-[var(--ds-status-success-bg)] font-mono font-bold">
                     MMP-xxx
                   </code>
                   ) yang sekaligus berfungsi sebagai <strong>Username Login Portal</strong>.
@@ -535,65 +569,82 @@ export default function EmployeeCreatePage() {
               )}
             </AnimatePresence>
 
-            <div className="md:col-span-2">
-              <SelectGroup
-                label="Penempatan Satuan Kerja"
-                value={formData.satuan_kerja}
-                onChange={handleSatkerChange}
-                options={SATUAN_KERJA}
-                placeholder="Pilih Penempatan Satuan Kerja..."
-              />
+            <div data-module="kepegawaian" className="kpg-ui md:col-span-2">
+              <label className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-2">
+                Penempatan Satuan Kerja / Induk
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedParentId}
+                  onChange={(e) => handleParentLocationChange(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:border-[var(--ds-accent-soft-border)] outline-none text-xs font-semibold text-[var(--ds-fg)] appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="">
+                    {locationsLoading ? "Memuat Master Lokasi..." : "Pilih Penempatan Satuan Kerja..."}
+                  </option>
+                  {locationParents.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.name}
+                    </option>
+                  ))}
+                  {locationOrphans.length > 0 && (
+                    <optgroup label="Lokasi Khusus">
+                      {locationOrphans.map((loc) => (
+                        <option key={loc.id} value={loc.id}>
+                          {loc.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
+              </div>
             </div>
 
             {(() => {
-              const satker = (formData.satuan_kerja || "").toLowerCase();
-              const isBalai = satker.includes("balai") || (satker.includes("samarinda") && !satker.includes("wilayah ii") && !satker.includes("skw ii") && !satker.includes("resor 05"));
-              let availableResors = RESOR_OPTIONS;
-              if (satker.includes("wilayah iii") || satker.includes("skw iii") || satker.includes("balikpapan") || satker.includes("seksi 3") || satker.includes("seksi iii")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_3");
-              } else if (satker.includes("wilayah ii") || satker.includes("skw ii") || satker.includes("tenggarong") || satker.includes("seksi 2") || satker.includes("seksi ii")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_2");
-              } else if (satker.includes("wilayah i") || satker.includes("skw i") || satker.includes("berau") || satker.includes("seksi 1") || satker.includes("seksi i")) {
-                availableResors = RESOR_OPTIONS.filter((r) => r.skw === "SKW_1");
-              }
+              const isBalai = selectedParentLoc?.location_type === "balai";
+              const isDisabled =
+                !selectedParentId || (childLocations.length === 0 && !isBalai);
+              const subLabel = isBalai
+                ? "Subbagian / Ruang Kerja Balai (Opsional)"
+                : "Resor Penempatan Lapangan";
+              const emptyOptionLabel = !selectedParentId
+                ? "Pilih Satuan Kerja terlebih dahulu"
+                : isBalai
+                ? "Kantor Balai Induk (Umum)"
+                : "Kantor Seksi Wilayah (Bukan Resor)";
 
               return (
                 <div data-module="kepegawaian" className="kpg-ui md:col-span-2">
-                  <label className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-1.5">
-                    Resor Penempatan Lapangan
+                  <label className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider mb-2">
+                    {subLabel}
                   </label>
                   <div className="relative">
                     <select
-                      disabled={isBalai}
-                      value={isBalai ? "" : formData.resor}
-                      onChange={(e) => setFormData({ ...formData, resor: e.target.value })}
-                      className={`w-full px-4 py-3 rounded-xl border outline-none text-xs font-semibold appearance-none cursor-pointer transition-colors ${
-                        isBalai
-                          ? "bg-[var(--ds-surface-muted)]  border-[var(--ds-border-subtle)]  text-[var(--ds-fg-muted)]  cursor-not-allowed"
-                          : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  text-[var(--ds-fg)]  focus:border-[var(--ds-accent-soft-border)] focus:bg-white "
+                      disabled={isDisabled}
+                      value={formData.location_id === selectedParentId ? "" : formData.location_id}
+                      onChange={(e) => handleChildLocationChange(e.target.value)}
+                      className={`w-full px-4 py-2 rounded-lg border outline-none text-xs font-semibold appearance-none cursor-pointer transition-colors ${
+                        isDisabled
+                          ? "bg-[var(--ds-surface-muted)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] cursor-not-allowed"
+                          : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] focus:border-[var(--ds-accent-soft-border)]"
                       }`}
                     >
-                      {isBalai ? (
-                        <option value="">Pegawai Balai (Bukan Resor Lapangan)</option>
-                      ) : (
-                        <>
-                          <option value="">Kantor Seksi Wilayah (Bukan Resor)</option>
-                          {availableResors.map((opt) => (
-                            <option key={opt.code} value={opt.code}>
-                              {opt.name}
-                            </option>
-                          ))}
-                        </>
-                      )}
+                      <option value="">{emptyOptionLabel}</option>
+                      {childLocations.map((opt) => (
+                        <option key={opt.id} value={opt.id}>
+                          {opt.name}
+                        </option>
+                      ))}
                     </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)] pointer-events-none" />
                   </div>
                 </div>
               );
             })()}
 
             {/* Status Kepegawaian (Clean 2-button Segmented Toggle) */}
-            <div className="md:col-span-2 space-y-1.5">
+            <div className="md:col-span-2 space-y-2">
               <label className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                 Status Kepegawaian
               </label>
@@ -602,10 +653,10 @@ export default function EmployeeCreatePage() {
                   type="button"
                   onClick={() => setFormData({ ...formData, is_active: "1" })}
                   aria-pressed={formData.is_active === "1"}
-                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
+                  className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${
                     formData.is_active === "1"
-                      ? "bg-[var(--ds-status-success-bg)]  border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] "
-                      : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  text-[var(--ds-fg-muted)]  hover:border-[var(--ds-border-subtle)]"
+                      ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)]"
+                      : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-[var(--ds-status-success-fg)]" />
@@ -615,10 +666,10 @@ export default function EmployeeCreatePage() {
                   type="button"
                   onClick={() => setFormData({ ...formData, is_active: "0" })}
                   aria-pressed={formData.is_active === "0"}
-                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-xs font-bold transition-colors cursor-pointer ${
+                  className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${
                     formData.is_active === "0"
-                      ? "bg-[var(--ds-status-danger-bg)]  border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)] "
-                      : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  text-[var(--ds-fg-muted)]  hover:border-[var(--ds-border-subtle)]"
+                      ? "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)]"
+                      : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full bg-[var(--ds-danger-solid)]" />
@@ -629,21 +680,21 @@ export default function EmployeeCreatePage() {
           </div>
 
           {/* Action Footer */}
-          <div className="pt-4 border-t border-[var(--ds-border-subtle)] flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+          <div className="pt-4 border-t border-slate-200/70 dark:border-zinc-800 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
             <p className="text-xs font-medium text-[var(--ds-fg-muted)]">
               Kolom bertanda <span className="text-[var(--ds-status-danger-fg)] font-bold">*</span> wajib diisi.
             </p>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <Link
                 href="/kepegawaian/employees"
-                className="px-4 py-2.5 rounded-xl kpg-secondary text-[var(--ds-fg)] text-xs font-bold transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-lg kpg-secondary text-[var(--ds-fg)] text-xs font-bold transition-colors cursor-pointer"
               >
                 Batal
               </Link>
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="inline-flex items-center gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] px-5 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>{mutation.isPending ? "Menyimpan..." : "Simpan Pegawai"}</span>
@@ -667,7 +718,7 @@ interface InputGroupProps {
 function InputGroup({ label, value, onChange, placeholder, required = false }: InputGroupProps) {
   const id = useId();
   return (
-    <div  className="space-y-1.5">
+    <div className="space-y-2">
       <label htmlFor={id} className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
         {label} {required && <span className="text-[var(--ds-status-danger-fg)]">*</span>}
       </label>
@@ -677,7 +728,7 @@ function InputGroup({ label, value, onChange, placeholder, required = false }: I
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] outline-none transition-colors font-semibold text-xs text-[var(--ds-fg)]"
+        className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] outline-none transition-colors font-semibold text-xs text-[var(--ds-fg)]"
         placeholder={placeholder}
       />
     </div>
@@ -699,7 +750,7 @@ function SelectGroup({
 }) {
   const id = useId();
   return (
-    <div  className="space-y-1.5">
+    <div className="space-y-2">
       <label htmlFor={id} className="block text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
         {label}
       </label>
@@ -708,7 +759,7 @@ function SelectGroup({
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] outline-none transition-colors font-semibold text-xs text-[var(--ds-fg)] appearance-none cursor-pointer"
+          className="w-full px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)] outline-none transition-colors font-semibold text-xs text-[var(--ds-fg)] appearance-none cursor-pointer"
         >
           <option value="">{placeholder || "Pilih..."}</option>
           {options.map((opt) => (
@@ -717,7 +768,7 @@ function SelectGroup({
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none">
+        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
           <ChevronDown className="w-4 h-4 text-[var(--ds-fg-muted)]" />
         </div>
       </div>

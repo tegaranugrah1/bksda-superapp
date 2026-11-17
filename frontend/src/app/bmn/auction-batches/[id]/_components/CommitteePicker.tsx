@@ -5,7 +5,7 @@ import { Check, ChevronsUpDown, Search, GripVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Employee } from "./workflow/types";
+import type { Employee } from "../../_lib/api";
 
 export interface CommitteePickerProps {
   label: string;
@@ -66,11 +66,11 @@ export function CommitteePicker({
   };
 
   return (
-    <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-3">
+    <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-bold text-[var(--ds-fg)]">{label}</p>
-          <p className="mt-0.5 text-xs leading-relaxed text-[var(--ds-fg-muted)]">{description}</p>
+          <p className="mt-1 text-xs leading-relaxed text-[var(--ds-fg-muted)]">{description}</p>
         </div>
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
@@ -81,14 +81,14 @@ export function CommitteePicker({
               disabled={disabled}
               aria-label={`Pilih ${label}`}
               aria-expanded={isOpen}
-              className="h-8 shrink-0 rounded-lg text-xs font-semibold"
+              className="h-8 shrink-0 rounded-lg text-xs font-semibold tabular-nums"
             >
               Pilih ({selectedIds.length})
-              <ChevronsUpDown className="h-3.5 w-3.5" />
+              <ChevronsUpDown className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[min(620px,calc(100vw-2rem))] p-0" align="end">
-            <div className="border-b border-[var(--ds-border-subtle)] px-3 py-2">
+          <PopoverContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[min(620px,calc(100vw-2rem))] p-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg" align="end">
+            <div className="border-b border-slate-200/70 dark:border-zinc-800 px-3 py-2">
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
                 <Input
@@ -100,7 +100,7 @@ export function CommitteePicker({
                 />
               </div>
             </div>
-            <div className="max-h-80 overflow-y-auto p-1.5">
+            <div className="max-h-80 overflow-y-auto p-2">
               {filteredEmployees.length === 0 ? (
                 <div className="px-3 py-6 text-center text-xs text-[var(--ds-fg-muted)]">Pegawai tidak ditemukan.</div>
               ) : (
@@ -122,7 +122,7 @@ export function CommitteePicker({
                         <span className="block truncate font-semibold text-[var(--ds-fg)]">
                           {getEmployeeName(employee)}
                         </span>
-                        <span className="block truncate font-mono text-xs text-[var(--ds-fg-muted)]">
+                        <span className="block truncate font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">
                           NIP. {employee.nip || "-"}
                           {getEmployeePosition(employee) ? ` - ${getEmployeePosition(employee)}` : ""}
                         </span>
@@ -136,7 +136,7 @@ export function CommitteePicker({
         </Popover>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      <div className="mt-3 flex flex-wrap gap-2">
         {selectedEmployees.map((employee, index) => (
           <span
             key={employee.id}
@@ -162,32 +162,32 @@ export function CommitteePicker({
               }
               setDraggingId(null);
             }}
-            className={`inline-flex items-center gap-1 rounded-full bg-[var(--ds-surface)] px-2 py-1 text-xs font-semibold text-[var(--ds-fg-secondary)] ring-1 ring-[var(--ds-border-subtle)] transition    ${
+            className={`inline-flex items-center gap-1 rounded-full bg-[var(--ds-surface)] px-2 py-1 text-xs font-semibold text-[var(--ds-fg-secondary)] ring-1 ring-slate-200/80 dark:ring-zinc-800 transition ${
               draggingId === String(employee.id) ? "opacity-50 ring-[var(--ds-accent-soft-border)]" : ""
             } ${disabled ? "" : "cursor-grab active:cursor-grabbing"}`}
           >
-            <button type="button" disabled={disabled} aria-label={`Urutkan ${getEmployeeName(employee)}: Alt+panah kiri atau kanan`} className="bmn-icon-action rounded" onKeyDown={(event) => {
+            <button type="button" disabled={disabled} aria-label={`Urutkan ${getEmployeeName(employee)}: Alt+panah kiri atau kanan`} className="bmn-icon-action rounded-lg" onKeyDown={(event) => {
               if (disabled || !event.altKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
               event.preventDefault();
               const next = selectedIds[index + (event.key === "ArrowLeft" ? -1 : 1)];
               if (next) reorderSelected(String(employee.id), next);
-            }}><GripVertical className="h-3.5 w-3.5 shrink-0 text-[var(--ds-fg-muted)]" /></button>
-            <span className="max-w-52 truncate">
+            }}><GripVertical className="h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" /></button>
+            <span className="max-w-52 truncate tabular-nums">
               {index + 1}. {getEmployeeName(employee)}
             </span>
             <button
               type="button"
               disabled={disabled}
-              className="bmn-icon-danger ml-0.5 min-w-9 min-h-9 inline-flex items-center justify-center rounded-full p-0.5 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="bmn-icon-danger ml-1 min-w-9 min-h-9 inline-flex items-center justify-center rounded-full p-1 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-status-danger-bg)] hover:text-[var(--ds-status-danger-fg)] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label={`Hapus ${getEmployeeName(employee)}`}
               onClick={() => { if (!disabled) onChange(selectedIds.filter((id) => id !== String(employee.id))); }}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           </span>
         ))}
         {selectedEmployees.length === 0 && (
-          <span className="rounded-full bg-[var(--ds-surface)] px-2.5 py-1 text-xs font-semibold text-[var(--ds-fg-muted)] ring-1 ring-dashed ring-[var(--ds-border-subtle)]">
+          <span className="rounded-full bg-[var(--ds-surface)] px-3 py-1 text-xs font-semibold text-[var(--ds-fg-muted)] ring-1 ring-dashed ring-slate-200/80 dark:ring-zinc-800">
             Belum dipilih
           </span>
         )}

@@ -25,42 +25,16 @@ cn("p-4", "p-8")                 // "p-8" (not both!)
 
 ### `formatRupiah()` - Currency Formatter
 
-**File**: `frontend/src/lib/bmn-utils.ts`
+**File**: `frontend/src/app/bmn/_lib/asset-utils.ts`
 
 Formats numbers as Indonesian Rupiah currency.
 
 ```tsx
-import { formatRupiah } from "@/lib/bmn-utils";
+import { formatRupiah } from "@/app/bmn/_lib/asset-utils";
 
 formatRupiah(1500000);     // "Rp 1.500.000"
-formatRupiah("2500000");   // "Rp 2.500.000"
 formatRupiah(null);        // "Rp 0"
-formatRupiah(undefined);    // "Rp 0"
-```
-
-### `getAssetConditionStyle()` - Condition Badge Styling
-
-**File**: `frontend/src/lib/bmn-utils.ts`
-
-Returns Tailwind classes for asset condition badges.
-
-```tsx
-import { getAssetConditionStyle } from "@/lib/bmn-utils";
-
-getAssetConditionStyle("Baik");        // green classes
-getAssetConditionStyle("Rusak Ringan"); // amber classes
-getAssetConditionStyle("Rusak Berat"); // red classes + pulse animation
-```
-
-## BMN Constants
-
-**File**: `frontend/src/lib/constants/bmn.ts`
-
-```tsx
-import { CONDITIONS, LOCATIONS } from "@/lib/constants/bmn";
-
-// CONDITIONS: ["Baik", "Rusak Ringan", "Rusak Berat"]
-// LOCATIONS: office location strings
+formatRupiah(undefined);   // "Rp 0"
 ```
 
 ## API Client

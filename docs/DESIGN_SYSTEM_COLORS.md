@@ -1,9 +1,9 @@
 # Panduan Warna BKSDA SuperApp
 
 Tanggal revisi: **11 November 2026**.
-Status **penerapan bertahap pada BMN, Surat Tugas dan Kepegawaian**. Rincian cakupan tersedia pada bagian penerapan masing-masing modul.
+Status **telah diterapkan penuh sesuai 5 Design Tokens pada Persuratan (`a41549b4`), Kepegawaian (`540fb44b`), dan BMN (`d20bfcaf`), serta bertahap pada Surat Tugas** (pembaruan **16 November 2026**). Rincian cakupan tersedia pada bagian penerapan masing-masing modul dan [DESIGN_SYSTEM_5_TOKENS.md](DESIGN_SYSTEM_5_TOKENS.md).
 
-Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini.
+Dokumen ini menggantikan panduan awal pada 10 November 2026. Cakupannya aplikasi web operasional, Portal, dan login. `DESIGN.md` di root memuat rancangan mobile tersendiri; jangan menganggap seluruh aturannya otomatis berlaku pada web atau mengubahnya melalui revisi ini. Untuk aturan praktis **5 Design Tokens** (Color Roles, Spacing 4 px, 4 Type Sizes, Concentric Radius, dan 2-Level Shadows) yang berlaku lintas layar web, rujuk [DESIGN_SYSTEM_5_TOKENS.md](DESIGN_SYSTEM_5_TOKENS.md).
 
 ## 1. Keputusan desain
 
@@ -12,7 +12,7 @@ Gunakan satu fondasi netral, aksen modul yang terbatas, dan warna status yang ko
 | Lapisan | Fungsi | Keputusan |
 | --- | --- | --- |
 | Brand global | Login, Portal, identitas aplikasi, kontrol global di luar modul | Forest Green `#1e5433`, mengikuti warna brand yang sudah dipakai source aplikasi. Ini bukan klaim verifikasi pedoman logo resmi kementerian. |
-| Identitas modul | Tombol utama, overline, ikon header, pilihan aktif, tautan dan focus ring dalam modul | Biru Kepegawaian, Emerald BMN, Teal Keuangan, Indigo Persuratan, Sky Surat Tugas, Amber DeReporting. |
+| Identitas modul | Tombol utama, overline, ikon header, pilihan aktif, tautan dan focus ring dalam modul | Biru Kepegawaian, Emerald BMN, Teal Keuangan & Persuratan, Sky Surat Tugas, Amber DeReporting. |
 | Semantik | Sukses, menunggu/peringatan, bahaya/penolakan, informasi dan netral | Mengikuti makna status, disertai teks atau ikon yang jelas; tidak mengikuti aksen modul. |
 
 Portal dan CMS memakai brand Forest Green, dengan Slate sebagai teks dan struktur netral. Ini memperjelas usulan awal yang menempatkan Slate Navy sebagai aksen Portal. `#0f172a` tetap dipakai sebagai teks utama light mode, bukan warna brand terpisah.
@@ -326,3 +326,39 @@ Dashboard Kepegawaian mempertahankan palet kategori yang dipilih pengguna. Kompo
 - Pertahankan foreground kategori/status agar label tetap terbaca dan makna semantik tidak hilang. Jangan menurunkan opacity seluruh elemen. CurrentColor mengikuti keluarga warna existing dan surface mengikuti light/dark; warna aksen tetap ada sebagai tint tipis.
 - Grafik komposisi tetap blue-600/amber-500/emerald-500. Grafik wilayah, angka utama, teks penting, tombol utama, hover dan seluruh motion tetap. Pelembutan hanya untuk dekorasi pendukung yang ditandai.
 - Kontras dari30 elemen aktual per tema (16 badge dan14 ikon) dihitung dari sRGB mix yang dilaporkan Chrome: minimum teks sekitar4.71:1 light/6.27:1 dark, ikon3.02:1 light/5.33:1 dark. Perhitungan menginversi campuran5% foreground/95% surface dan mengikuti pembulatan CSSOM; bukan sertifikasi seluruh halaman. Bukti dan batas ada pada laporan audit visual Kepegawaian.
+
+## Persuratan — 11–12 November 2026
+
+Gunakan scope `[data-module="persuratan"]` dengan `.psr-ui` pada halaman dan konten portal (Dialog, Popover, DropdownMenu, ConfirmDialog, KepegawaianDialog). Shell memakai `.psr-shell` dan mewarisi aturan fondasi bersama `.st-ui`/`.kpg-ui` tanpa membuat berkas CSS baru.
+
+- **Aksen Teal Kedinasan (`#0f766e` light / `#2dd4bf` dark — bagian 4.1 & 4.2):**
+  - Dipilih menggantikan Indigo agar lebih teduh, formal, dan ramah bagi pengguna senior/orang tua saat membaca tabel maupun menyusun naskah dinas panjang.
+  - Light: `--ds-accent-solid: #0f766e` (5,47:1 pada putih), `--ds-accent-hover: #115e59`, `--ds-accent-active: #134e4a`, `--ds-accent-on-solid: #ffffff`, `--ds-accent-fg: #0f766e`, `--ds-accent-soft: #f0fdfa`, `--ds-accent-soft-border: #99f6e4`.
+  - Dark: `--ds-accent-solid: #2dd4bf` (9,59:1 terhadap `#0f172a`), `--ds-accent-hover: #5eead4`, `--ds-accent-active: #99f6e4`, `--ds-accent-on-solid: #0f172a`, `--ds-accent-fg: #5eead4` (11,98:1 pada `#18181b`), `--ds-accent-soft: #042f2e`, `--ds-accent-soft-border: #115e59`.
+- **Palet 3 Warna Kategori Dashboard Persuratan (Sejajar dengan 3 Warna BMN & Kepegawaian):**
+  - Sebagaimana Kepegawaian memiliki 3 warna kategori SDM (`blue-600`, `amber-500`, `emerald-500`) dan BMN memiliki 3 warna kategori kondisi/KPI (`emerald`, `amber/teal`, `rose`), Dashboard Persuratan (`.psr-ui.psr-dashboard`) dibatasi tepat pada **3 keluarga warna kategori** (tidak mencampur `emerald` + `teal` secara bersamaan):
+    1. **Teal Kedinasan (`text-[var(--ds-accent-fg)]` — Light `#0f766e` / Dark `#5eead4`):** Kategori utama modul & **Surat Masuk** (ikon Header Dashboard, KPI *Surat Masuk*, Akses Cepat *Daftar Surat Masuk* & *Input Surat Masuk*, serta header tabel & nomor agenda *Surat Masuk Terbaru*).
+    2. **Blue (`text-blue-700 dark:text-blue-300` — Light `#1d4ed8` / Dark `#93c5fd`):** Kategori **Surat Keluar** (KPI *Surat Keluar*, Akses Cepat *Daftar Surat Keluar*, serta ikon header tabel *Surat Keluar Terbaru*).
+    3. **Amber (`text-amber-700 dark:text-amber-300` — Light `#b45309` / Dark `#fcd34d`):** Kategori **Disposisi Cetak & Tata Naskah Dinas** (KPI *Disposisi Cetak 2-Up*, KPI *Tata Kelola 100%*, serta Akses Cepat *Tata Naskah Dinas Permen 1/2025*).
+- **Pedoman Standar Header Dashboard Lintas Modul (Patokan: Dashboard Kepegawaian):**
+  - Seluruh halaman utama modul (`Dashboard Kepegawaian`, `Dashboard BMN`, `Dashboard Persuratan`) wajib mengacu pada anatomi dan ukuran header `kepegawaian/page.tsx`:
+    - Pembungkus: `rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 md:px-6 md:py-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4`.
+    - Sisi kiri: `flex items-start sm:items-center gap-3.5` berisi kotak ikon `w-10 h-10 rounded-xl` (`w-5 h-5` icon) + blok teks **tanpa overline/badge tambahan di atas `<h1>`**.
+    - Tipografi judul: `<h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">Dashboard <Nama Modul></h1>` diikuti deskripsi `<p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">...</p>`.
+- **Sidebar & Header (`.psr-shell`):** Menggunakan **1 warna aksen tunggal yaitu Teal Tua Kedinasan** (`--ds-accent-*`), persis seperti sidebar BMN yang seragam Emerald dan sidebar Kepegawaian yang seragam Biru:
+  - **Keseragaman Warna Sidebar:** Seluruh item menu aktif menggunakan pill `bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]`, teks `text-[var(--ds-accent-fg)] font-bold`, ikon `text-[var(--ds-accent-fg)]`, dan dot kanan `bg-[var(--ds-accent-solid)]`. Item tidak aktif menggunakan `text-[var(--ds-fg-secondary)]` dengan hover `hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]`.
+  - **Animasi & Hover (Standar BMN & Kepegawaian):**
+    - Indikator aktif animasi spring layout (`type: "spring", stiffness: 450, damping: 35`) dengan elevasi halus `shadow-2xs` (menonaktifkan transform saat `reducedMotion="user"`).
+    - Transisi hover item navigasi cepat `150ms` (`transition-colors duration-150`).
+    - Animasi collapse/expand sidebar dan drawer mobile mulus `150ms` (`transition-[transform,width,visibility] duration-150 ease-out`).
+    - Subjudul sidebar uppercase tebal `Surat & Disposisi`, header grup `text-[var(--ds-fg-secondary)]`, footer avatar `bg-[var(--ds-accent-solid)]` pada `bg-[var(--ds-surface-muted)]`, dan drawer mobile menutup saat `Escape` serta mengembalikan fokus ke pemicu menu.
+- **Dashboard (`.psr-ui.psr-dashboard`):** Memakai `.kpg-support-icon` dan `.kpg-support-badge` untuk pelembutan latar ikon/badge pendukung. Nomor surat keluar menggunakan `--ds-fg` agar tidak bertabrakan dengan warna hijau badge status `Signed`/`Terdaftar`.
+- **Standarisasi Animasi & Mikro-Interaksi (Paritas BMN & Kepegawaian):**
+  - **Bento Stat Cards & Animated Proportion Bar:** Kartu statistik berinteraksi via `whileHover: { y: -3 }`, `whileTap: { scale: 0.98 }`, pembesaran ikon `group-hover:scale-105`, dan animated proportion bar (`initial={{ width: 0 }}`, `animate={{ width: ... }}`) berdurasi 0.6s `easeOut`.
+  - **Akses Pintas / Quick Action Links:** Kartu memiliki `whileHover: { y: -2.5 }`, `whileTap: { scale: 0.98 }`, pembesaran ikon halus `scale-105`, serta pergeseran panah sudut kanan atas `group-hover:translate-x-0.5 group-hover:-translate-y-0.5`.
+  - **Tabel Ringkasan Surat Masuk & Keluar:** Tautan "Lihat Semua" memiliki animasi chevron kanan `group-hover:translate-x-0.5`, dan baris tabel memiliki transisi hover halus `hover:bg-[var(--ds-surface-muted)]/70 duration-150`.
+  - **Floating Batch Selection Toolbar:** Toolbar cetak massal disposisi dibungkus `<AnimatePresence>` dengan transisi spring slide up/down (`type: "spring", stiffness: 450, damping: 32`), mencegah *layout pop*.
+  - **Spring Pill Layout Tab Indicators:** Tab filter pada `surat/settings` dan modal katalog template menggunakan `<motion.span layoutId="..." />` (`stiffness: 420, damping: 32`) yang meluncur dinamis.
+  - **Aksesibilitas `prefers-reduced-motion`:** Seluruh animasi menghormati preferensi pengguna melalui hook `useReducedMotion()`.
+- **Kertas Cetak Resmi (`LembarDisposisiSheet`, `SuratDinasDocument`):** Tetap putih (`bg-white`) dan hitam (`text-black`) pada mode terang maupun gelap agar sesuai standar cetak fisik Letter 2-Up dan A4 Permen Kehutanan No. 1/2025. Rincian audit, ergonomi `1366 x 768` (100%), dan verifikasi tercatat di [audit visual Persuratan](testing/persuratan-visual-audit.md).
+

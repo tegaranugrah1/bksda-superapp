@@ -6,40 +6,67 @@ use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Support\Security\UploadValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class EmployeeRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
+        return (bool) $this->user()?->isAdminFor('kepegawaian');
     }
 
     protected function prepareForValidation(): void
     {
-        $jenis = strtoupper(trim((string) $this->input('jenis_pegawai', '')));
-        $nipInput = trim((string) $this->input('nip', ''));
+        $rawJenis = $this->input('jenis_pegawai');
+        $jenis = is_string($rawJenis) ? strtoupper(trim($rawJenis)) : '';
+        $rawNip = $this->input('nip');
+        $nipInput = is_string($rawNip) ? trim($rawNip) : null;
 
-        if ($this->has('nama_lengkap')) {
-            $this->merge(['nama_lengkap' => strip_tags(trim((string) $this->input('nama_lengkap')))]);
+        if ($this->has('nama_lengkap') && is_string($nama = $this->input('nama_lengkap'))) {
+            $this->merge(['nama_lengkap' => strip_tags(trim($nama))]);
         }
-        if ($this->has('jabatan')) {
-            $this->merge(['jabatan' => strip_tags(trim((string) $this->input('jabatan'))) ?: null]);
+
+        foreach (['jabatan', 'satuan_kerja', 'resor', 'pangkat_golongan', 'masa_kerja'] as $field) {
+            if ($this->has($field) && is_string($val = $this->input($field))) {
+                $this->merge([$field => strip_tags(trim($val)) ?: null]);
+            }
         }
-        if ($this->has('satuan_kerja')) {
-            $this->merge(['satuan_kerja' => strip_tags(trim((string) $this->input('satuan_kerja'))) ?: null]);
+
+        if ($this->filled('location_id')) {
+            $locId = $this->input('location_id');
+            if (is_string($locId) && Str::isUuid($locId)) {
+                $loc = \App\Modules\Bmn\Models\Location::with('parent')
+                    ->where('is_active', true)
+                    ->find($locId);
+                if ($loc) {
+                    $this->merge([
+                        'satuan_kerja' => $loc->effectiveUnitKerja(),
+                        'resor' => $loc->derivedResorCode(),
+                    ]);
+                }
+            }
+        } elseif ($this->has('satuan_kerja') || $this->has('resor')) {
+            $rawSatker = $this->input('satuan_kerja');
+            $rawResor = $this->input('resor');
+            if ((is_string($rawSatker) || $rawSatker === null) && (is_string($rawResor) || $rawResor === null)) {
+                $satkerIn = trim((string) ($rawSatker ?? ''));
+                $resorIn = trim((string) ($rawResor ?? ''));
+                // Jangan auto-resolve location_id jika payload sengaja membawa konflik untuk cross-validation
+                $resorSlug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($resorIn);
+                $satkerSlug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($satkerIn);
+                $hasConflict = $resorIn !== '' && $satkerSlug !== null && $resorSlug !== null && $resorSlug !== $satkerSlug;
+                if (! $hasConflict) {
+                    $resolved = \App\Modules\Bmn\Models\Location::resolveForPlacement(null, $satkerIn, $resorIn);
+                    if ($resolved) {
+                        $this->merge(['location_id' => $resolved->id]);
+                    }
+                }
+            }
         }
-        if ($this->has('resor')) {
-            $this->merge(['resor' => strip_tags(trim((string) $this->input('resor'))) ?: null]);
-        }
-        if ($this->has('pangkat_golongan')) {
-            $this->merge(['pangkat_golongan' => strip_tags(trim((string) $this->input('pangkat_golongan'))) ?: null]);
-        }
-        if ($this->has('masa_kerja')) {
-            $this->merge(['masa_kerja' => strip_tags(trim((string) $this->input('masa_kerja'))) ?: null]);
-        }
-        if ($this->has('nama_bank')) {
-            $rawBank = strip_tags(trim((string) $this->input('nama_bank')));
+
+        if ($this->has('nama_bank') && is_string($rawBankInput = $this->input('nama_bank'))) {
+            $rawBank = strip_tags(trim($rawBankInput));
             if ($rawBank === '' || $rawBank === '-') {
                 $this->merge(['nama_bank' => null]);
             } else {
@@ -49,37 +76,38 @@ class EmployeeRequest extends FormRequest
                 $this->merge(['nama_bank' => $canonical ?: $rawBank]);
             }
         }
-        if ($this->has('nomor_rekening')) {
-            $r = strip_tags(trim((string) $this->input('nomor_rekening')));
-            $this->merge(['nomor_rekening' => ($r === '' || $r === '-') ? null : $r]);
-        }
-        if ($this->has('telepon')) {
-            $t = strip_tags(trim((string) $this->input('telepon')));
-            $this->merge(['telepon' => ($t === '' || $t === '-') ? null : $t]);
-        }
-        if ($this->has('email')) {
-            $e = strtolower(strip_tags(trim((string) $this->input('email'))));
-            $this->merge(['email' => ($e === '' || $e === '-') ? null : $e]);
+
+        foreach (['nomor_rekening', 'telepon', 'email'] as $field) {
+            if ($this->has($field) && is_string($val = $this->input($field))) {
+                $cleaned = strip_tags(trim($val));
+                if ($field === 'email') {
+                    $cleaned = strtolower($cleaned);
+                }
+                $this->merge([$field => ($cleaned === '' || $cleaned === '-') ? null : $cleaned]);
+            }
         }
 
         if ($jenis === 'MMP') {
             $employeeId = $this->route('employee');
-            $finalNip = $nipInput;
+            $finalNip = $nipInput ?? '';
 
-            if ($finalNip === '' || ! str_starts_with(strtoupper($finalNip), 'MMP-')) {
+            if ($finalNip === '' || (! str_starts_with(strtoupper($finalNip), 'MMP-') && ($nipInput !== null || ! $this->has('nip') || $rawNip === null))) {
                 $existing = $employeeId ? Employee::find($employeeId) : null;
                 $finalNip = ($existing && str_starts_with(strtoupper((string) $existing->nip), 'MMP-'))
                     ? $existing->nip
                     : Employee::generateNextMmpCode();
             }
 
-            $this->merge([
-                'nip' => $finalNip,
+            $mergeMmp = [
                 'pangkat_golongan' => null,
                 'nama_bank' => null,
                 'nomor_rekening' => null,
-            ]);
-        } elseif ($nipInput !== '') {
+            ];
+            if ($finalNip !== '') {
+                $mergeMmp['nip'] = $finalNip;
+            }
+            $this->merge($mergeMmp);
+        } elseif ($nipInput !== null && $nipInput !== '') {
             $this->merge(['nip' => $nipInput]);
         }
     }
@@ -98,7 +126,10 @@ class EmployeeRequest extends FormRequest
                 'max:50',
                 Rule::unique('kpg_employees', 'nip')->ignore($employeeId),
                 function (string $attribute, mixed $value, \Closure $fail) use ($oldNip) {
-                    $clean = trim((string) $value);
+                    if (! is_string($value)) {
+                        return;
+                    }
+                    $clean = trim($value);
                     if ($clean === '' || $clean === $oldNip) {
                         return;
                     }
@@ -111,13 +142,17 @@ class EmployeeRequest extends FormRequest
             'jabatan' => ['nullable', 'string', 'max:255'],
             'pangkat_golongan' => ['nullable', 'string', 'max:255'],
             'satuan_kerja' => ['nullable', 'string', 'max:255'],
+            'location_id' => ['nullable', 'uuid', \Illuminate\Validation\Rule::exists('bmn_locations', 'id')->where('is_active', true)],
             'masa_kerja' => ['nullable', 'string', 'max:100'],
             'nama_bank' => [
                 'nullable',
                 'string',
                 'max:50',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    $bankVal = trim((string) $value);
+                    if (! is_string($value)) {
+                        return;
+                    }
+                    $bankVal = trim($value);
                     if ($bankVal !== '') {
                         $exists = \Illuminate\Support\Facades\DB::table('kpg_registered_banks')
                             ->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($bankVal)])
@@ -136,35 +171,51 @@ class EmployeeRequest extends FormRequest
                 'string',
                 'max:50',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    $resorVal = trim((string) $value);
+                    if (! is_string($value)) {
+                        return;
+                    }
+                    $resorVal = trim($value);
                     if ($resorVal === '') {
                         return;
                     }
 
                     $validResors = array_keys(\App\Constants\BksdaConstants::RESORS);
-                    if (! in_array($resorVal, $validResors, true)) {
+                    $dbResor = \App\Modules\Bmn\Models\Location::with('parent')
+                        ->where('code', $resorVal)
+                        ->where('location_type', \App\Modules\Bmn\Models\Location::TYPE_RESOR)
+                        ->where('is_active', true)
+                        ->first();
+
+                    if (! $dbResor && ! in_array($resorVal, $validResors, true)) {
                         $fail('Kode resor penempatan tidak valid.');
                         return;
                     }
 
-                    $satker = strtolower((string) $this->input('satuan_kerja', ''));
+                    $rawSatker = $this->input('satuan_kerja', '');
+                    $satker = is_string($rawSatker) ? strtolower($rawSatker) : '';
+                    $satkerSlug = \App\Modules\Bmn\Models\Location::canonicalUnitSlug($satker);
 
                     // Cross-validation: Balai tidak boleh ditempatkan di resor wilayah
-                    if (str_contains($satker, 'balai') || str_contains($satker, 'samarinda')) {
+                    if ($satkerSlug === 'balai-samarinda' || str_contains($satker, 'balai')) {
                         $fail('Pegawai kantor Balai tidak dapat ditempatkan di resor wilayah.');
                         return;
                     }
 
                     $resorMeta = \App\Constants\BksdaConstants::RESORS[$resorVal] ?? null;
-                    if (! $resorMeta) return;
-
-                    $expectedSkw = (int) ($resorMeta['skw'] ?? 0);
-                    if ($expectedSkw === 1 && ! (str_contains($satker, 'wilayah i') || str_contains($satker, 'skw i') || str_contains($satker, 'berau'))) {
-                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW I Berau.");
-                    } elseif ($expectedSkw === 2 && ! (str_contains($satker, 'wilayah ii') || str_contains($satker, 'skw ii') || str_contains($satker, 'tenggarong'))) {
-                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW II Tenggarong.");
-                    } elseif ($expectedSkw === 3 && ! (str_contains($satker, 'wilayah iii') || str_contains($satker, 'skw iii') || str_contains($satker, 'balikpapan'))) {
-                        $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW III Balikpapan.");
+                    if ($resorMeta) {
+                        $expectedSlug = $resorMeta['skw_slug'] ?? null;
+                        if ($expectedSlug === 'skw-1-berau' && $satkerSlug !== 'skw-1-berau') {
+                            $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW I Berau.");
+                        } elseif ($expectedSlug === 'skw-2-tenggarong' && $satkerSlug !== 'skw-2-tenggarong') {
+                            $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW II Tenggarong.");
+                        } elseif ($expectedSlug === 'skw-3-balikpapan' && $satkerSlug !== 'skw-3-balikpapan') {
+                            $fail("Resor '{$resorMeta['name']}' hanya valid untuk pegawai SKW III Balikpapan.");
+                        }
+                    } elseif ($dbResor && $dbResor->parent && $satker !== '') {
+                        $parentName = strtolower($dbResor->parent->effectiveUnitKerja());
+                        if ($satker !== $parentName && $satker !== strtolower($dbResor->parent->name)) {
+                            $fail("Resor '{$dbResor->name}' hanya valid untuk {$dbResor->parent->name}.");
+                        }
                     }
                 },
             ],

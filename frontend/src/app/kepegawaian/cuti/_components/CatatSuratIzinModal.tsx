@@ -27,10 +27,17 @@ import {
 import { EmployeeSelect, type Employee } from "@/components/ui/employee-select";
 import { api } from "@/lib/api";
 import {
+  UploadProgressBar,
+  formatPendingUploadLabel,
+  useUploadProgress,
+} from "./CutiModals";
+import {
   isMmpEmployee,
   detectEmployeeType,
   isEligibleForAnnualLeave,
   getAnnualLeaveEligibleDate,
+  calculateLeaveDays,
+  parseLocalDate,
 } from "@/app/kepegawaian/_lib/employee-helpers";
 import { toast } from "sonner";
 
@@ -52,48 +59,6 @@ const DEFAULT_JENIS_CUTI = [
   "Cuti Bersama",
   "Cuti di Luar Tanggungan Negara",
 ];
-
-function parseLocalDate(str: string): Date {
-  const [y, m, d] = str.split("-").map(Number);
-  return new Date(y, m - 1, d, 12, 0, 0);
-}
-
-function calculateLeaveDays(
-  startDateStr: string,
-  endDateStr: string,
-  jenisCuti: string,
-  leaveTypes: DynamicLeaveType[] = []
-): number {
-  if (!startDateStr || !endDateStr) return 0;
-  const start = parseLocalDate(startDateStr);
-  const end = parseLocalDate(endDateStr);
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
-
-  const matched = leaveTypes.find(
-    (lt) =>
-      lt.nama.toLowerCase() === jenisCuti.toLowerCase() ||
-      (lt.kode && lt.kode.toLowerCase() === jenisCuti.toLowerCase())
-  );
-  const isHariKerja = matched
-    ? matched.hitung_hari === "hari_kerja"
-    : jenisCuti.toLowerCase().includes("tahunan");
-
-  if (!isHariKerja) {
-    const diffTime = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    return Math.max(1, diffTime + 1);
-  }
-
-  let count = 0;
-  const cur = new Date(start);
-  while (cur <= end) {
-    const day = cur.getDay();
-    if (day !== 0 && day !== 6) {
-      count++;
-    }
-    cur.setDate(cur.getDate() + 1);
-  }
-  return Math.max(1, count);
-}
 
 interface CatatSuratIzinModalProps {
   isOpen: boolean;
@@ -128,6 +93,7 @@ export function CatatSuratIzinModal({
   const [fileScanSuratIzin, setFileScanSuratIzin] = useState<File | null>(null);
   const focusReturn = useDialogFocusReturn();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { progress: uploadProgress, getConfig, finish, reset } = useUploadProgress();
 
   // Quota Data State
   const [leaveLoading, setLeaveLoading] = useState(false);
@@ -386,10 +352,14 @@ export function CatatSuratIzinModal({
 
     setIsSubmitting(true);
     try {
-      await api.post(`/kepegawaian/employees/${selectedEmployee.id}/leave-records`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const hasFiles = Boolean(fileScanFormulir || fileScanSuratIzin);
+      await api.post(
+        `/kepegawaian/employees/${selectedEmployee.id}/leave-records`,
+        formData,
+        getConfig(hasFiles)
+      );
 
+      finish();
       toast.success("Surat izin penetapan cuti berhasil dicatat!");
       onSuccess();
       onClose();
@@ -397,35 +367,36 @@ export function CatatSuratIzinModal({
       const msg = err?.response?.data?.message || "Gagal mencatat surat izin penetapan cuti.";
       toast.error(msg);
     } finally {
+      reset();
       setIsSubmitting(false);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isSubmitting && onClose()}>
-      <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui sm:max-w-2xl max-w-[95vw] p-6 max-h-[92vh] overflow-y-auto">
+      <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui sm:max-w-2xl max-w-[95vw] p-6 max-h-[92vh] overflow-y-auto rounded-3xl shadow-lg">
         {/* Header Modal */}
-        <DialogHeader className="pb-3 border-b border-[var(--ds-border-subtle)]">
+        <DialogHeader className="pb-3 border-b border-slate-200/70 dark:border-zinc-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
               <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">
+              <DialogTitle className="text-xl font-bold text-[var(--ds-fg)]">
                 Catat Surat Izin Penetapan Cuti
               </DialogTitle>
-              <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+              <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-1">
                 Pencatatan data surat keputusan izin cuti resmi (SI / ST) langsung ke buku kendali pegawai.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 pt-1 pb-1">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-1 pb-1">
           {/* Step 1: Pemilihan Pegawai */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+            <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-2">
+              <User className="w-4 h-4 text-[var(--ds-accent-fg)]" />
               Pilih Pegawai <span className="text-[var(--ds-status-danger-fg)]">*</span>
             </label>
             <EmployeeSelect
@@ -438,13 +409,13 @@ export function CatatSuratIzinModal({
               }}
               placeholder="Cari nama atau NIP pegawai..."
               disabled={isSubmitting}
-              className="text-xs h-9 rounded-md border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] focus:bg-white"
+              className="text-xs h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)]"
             />
           </div>
 
           {/* MMP Notice */}
           {selectedEmployee && isMmp && (
-            <div className="flex items-center gap-2.5 p-3.5 rounded-xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] text-xs font-semibold">
+            <div className="flex items-center gap-3 p-4 rounded-lg border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] text-xs font-semibold">
               <AlertCircle className="w-4 h-4 shrink-0 text-[var(--ds-status-danger-fg)]" />
               <span>Personil Masyarakat Mitra Polhut (MMP) tidak memiliki fasilitas cuti kepegawaian.</span>
             </div>
@@ -452,7 +423,7 @@ export function CatatSuratIzinModal({
 
           {/* Loading Sisa Kuota Cuti */}
           {selectedEmployee && !isMmp && leaveLoading && (
-            <div className="flex items-center justify-center gap-2 p-3 rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-xs text-[var(--ds-accent-fg)]">
+            <div className="flex items-center justify-center gap-2 p-3 rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-xs text-[var(--ds-accent-fg)]">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span>Memuat sisa kuota cuti pegawai ({selectedEmployee.name})...</span>
             </div>
@@ -460,14 +431,14 @@ export function CatatSuratIzinModal({
 
           {/* Interactive Employee Leave Balance Card */}
           {selectedEmployee && !isMmp && !leaveLoading && calc && (
-            <div className="rounded-xl border border-[var(--ds-accent-soft-border)]    p-3 mt-1">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <div className="rounded-lg border border-[var(--ds-accent-soft-border)] p-4 mt-1">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg)]">
-                    <Award className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                  <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)]">
+                    <Award className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                     <span>Sisa Kuota Cuti Pegawai (Tahun {leaveYear}):</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-[var(--ds-fg-muted)]">
+                  <div className="flex items-center gap-2 mt-1 text-xs text-[var(--ds-fg-muted)]">
                     <span>Pokok: <b>{calc.hakN}</b></span>
                     <span>•</span>
                     <span>N-1: <b>+{calc.hakN1}</b></span>
@@ -479,7 +450,7 @@ export function CatatSuratIzinModal({
                 </div>
                 <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center">
                   <span className="text-xs uppercase tracking-wider font-semibold text-[var(--ds-fg-muted)]">Kuota Tersedia</span>
-                  <span className="text-lg font-extrabold text-[var(--ds-accent-fg)]">
+                  <span className="text-xl font-extrabold text-[var(--ds-accent-fg)]">
                     {calc.sisaTersedia} <span className="text-xs font-bold">Hari</span>
                   </span>
                 </div>
@@ -487,8 +458,8 @@ export function CatatSuratIzinModal({
 
               {/* Live simulation of remaining balance if Cuti Tahunan */}
               {isTahunan && !isEligibleTahunan && (
-                <div className="mb-2 p-2 rounded-lg bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] text-xs font-bold text-[var(--ds-status-danger-fg)] flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <div className="mb-2 p-2 rounded-lg bg-[var(--ds-status-danger-bg)] border border-[var(--ds-status-danger-border)] text-xs font-bold text-[var(--ds-status-danger-fg)] flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>Pegawai belum memenuhi syarat 1 tahun masa kerja terhitung sejak pengangkatan untuk mengajukan Cuti Tahunan.</span>
                 </div>
               )}
@@ -499,12 +470,12 @@ export function CatatSuratIzinModal({
                   </span>
                   {projectedRemaining < 0 ? (
                     <span className="font-bold text-[var(--ds-status-danger-fg)] flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
+                      <AlertCircle className="w-4 h-4" />
                       Melebihi kuota (kurang {Math.abs(projectedRemaining)} hari)
                     </span>
                   ) : (
                     <span className="font-bold text-[var(--ds-status-success-fg)] flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <CheckCircle2 className="w-4 h-4" />
                       Sisa {projectedRemaining} Hari
                     </span>
                   )}
@@ -515,9 +486,9 @@ export function CatatSuratIzinModal({
 
           {/* Form Fields (Hanya aktif/tampil jika pegawai sudah dipilih dan bukan MMP) */}
           {selectedEmployee && !isMmp && (
-            <div className="space-y-3.5">
+            <div className="space-y-4">
               {/* Row 1: Nomor Surat & Tanggal Terbit */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                 <div className="sm:col-span-7">
                   <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1">
                     Nomor Surat Persetujuan (SI / ST) <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -527,7 +498,7 @@ export function CatatSuratIzinModal({
                     value={form.nomor_pengajuan}
                     onChange={(e) => setForm({ ...form, nomor_pengajuan: e.target.value })}
                     placeholder="Contoh: SI.123/K.18/TU/KSA/05/2026"
-                    className="mt-1 text-xs font-mono h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors border-[var(--ds-border-subtle)]"
+                    className="mt-1 text-xs font-mono h-9 rounded-lg bg-[var(--ds-surface)] transition-colors border-slate-200/80 dark:border-zinc-800"
                   />
                 </div>
                 <div className="sm:col-span-5">
@@ -539,13 +510,13 @@ export function CatatSuratIzinModal({
                     required
                     value={form.tanggal_pengajuan}
                     onChange={(e) => setForm({ ...form, tanggal_pengajuan: e.target.value })}
-                    className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors border-[var(--ds-border-subtle)]"
+                    className="mt-1 text-xs h-9 rounded-lg bg-[var(--ds-surface)] transition-colors border-slate-200/80 dark:border-zinc-800"
                   />
                 </div>
               </div>
 
               {/* Row 2: Jenis Cuti & Alasan Cuti (1 Baris Side-by-Side) */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                 <div className="sm:col-span-6">
                   <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1">
                     Jenis Cuti <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -553,7 +524,7 @@ export function CatatSuratIzinModal({
                   <select
                     value={form.jenis_cuti}
                     onChange={(e) => handleDateChange(form.tanggal_mulai, form.tanggal_selesai, e.target.value)}
-                    className="w-full mt-1 h-9 px-3 rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] focus:bg-white text-xs font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-none transition-colors" aria-label="Jenis Cuti"
+                    className="w-full mt-1 h-9 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-none transition-colors" aria-label="Jenis Cuti"
                   >
                     {filteredLeaveTypes.length > 0
                       ? filteredLeaveTypes.map((t) => (
@@ -574,7 +545,7 @@ export function CatatSuratIzinModal({
                     <label className="text-xs font-semibold text-[var(--ds-fg)]">
                       Alasan / Keperluan Cuti
                     </label>
-                    <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded-full font-medium">
+                    <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full font-medium">
                       Opsional
                     </span>
                   </div>
@@ -582,13 +553,13 @@ export function CatatSuratIzinModal({
                     value={form.alasan_cuti}
                     onChange={(e) => setForm({ ...form, alasan_cuti: e.target.value })}
                     placeholder="Opsional (otomatis sesuai jenis cuti)"
-                    className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors border-[var(--ds-border-subtle)]"
+                    className="mt-1 text-xs h-9 rounded-lg bg-[var(--ds-surface)] transition-colors border-slate-200/80 dark:border-zinc-800"
                   />
                 </div>
               </div>
 
               {/* Row 3: Tanggal Mulai & Tanggal Selesai (Di atas Lama Cuti) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1">
                     Tanggal Mulai Pelaksanaan <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -598,7 +569,7 @@ export function CatatSuratIzinModal({
                     required
                     value={form.tanggal_mulai}
                     onChange={(e) => handleDateChange(e.target.value, form.tanggal_selesai, form.jenis_cuti)}
-                    className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors border-[var(--ds-border-subtle)]"
+                    className="mt-1 text-xs h-9 rounded-lg bg-[var(--ds-surface)] transition-colors border-slate-200/80 dark:border-zinc-800"
                   />
                 </div>
                 <div>
@@ -610,13 +581,13 @@ export function CatatSuratIzinModal({
                     required
                     value={form.tanggal_selesai}
                     onChange={(e) => handleDateChange(form.tanggal_mulai, e.target.value, form.jenis_cuti)}
-                    className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors border-[var(--ds-border-subtle)]"
+                    className="mt-1 text-xs h-9 rounded-lg bg-[var(--ds-surface)] transition-colors border-slate-200/80 dark:border-zinc-800"
                   />
                 </div>
               </div>
 
               {/* Row 4: Lama Cuti (Di bawah Tanggal Mulai & Selesai) */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
                 <div className="sm:col-span-5">
                   <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center justify-between">
                     <span>Lama Cuti <span className="text-[var(--ds-status-danger-fg)]">*</span></span>
@@ -632,7 +603,7 @@ export function CatatSuratIzinModal({
                       required
                       value={form.jumlah_hari}
                       onChange={(e) => setForm({ ...form, jumlah_hari: Math.max(1, parseInt(e.target.value, 10) || 1) })}
-                      className="text-xs font-bold h-9 pr-14 bg-[var(--ds-surface)] focus:bg-white transition-colors border-[var(--ds-border-subtle)]"
+                      className="text-xs font-bold h-9 pr-14 rounded-lg bg-[var(--ds-surface)] transition-colors border-slate-200/80 dark:border-zinc-800"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-xs font-medium text-[var(--ds-fg-muted)]">
                       Hari
@@ -641,8 +612,8 @@ export function CatatSuratIzinModal({
                 </div>
 
                 <div className="sm:col-span-7 flex flex-col justify-end">
-                  <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
-                    <Info className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
+                  <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
+                    <Info className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                     <span>
                       {isTahunan
                         ? "Otomatis dihitung hari kerja (Senin - Jumat)."
@@ -658,16 +629,16 @@ export function CatatSuratIzinModal({
                 {/* Slot 1: Scan Surat Pengantar dan Formulir Cuti */}
                 <div className="flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1 gap-1">
-                    <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1.5 truncate">
-                      <FileText className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
+                    <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-2 truncate">
+                      <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                       <span className="truncate">1. Scan Surat Pengantar & Formulir</span>
                     </label>
-                    <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                    <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full font-medium shrink-0">
                       Opsional
                     </span>
                   </div>
 
-                  <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] rounded-xl p-2.5 text-center bg-[var(--ds-surface)] transition-colors">
+                  <div className="border border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] rounded-lg p-3 text-center bg-[var(--ds-surface)] transition-colors">
                     <input
                       type="file"
                       id="file_scan_formulir_catat"
@@ -684,8 +655,8 @@ export function CatatSuratIzinModal({
                     />
                     <label htmlFor="file_scan_formulir_catat" className="cursor-pointer block">
                       {fileScanFormulir ? (
-                        <div className="flex items-center justify-center gap-1.5 text-[var(--ds-accent-fg)] font-semibold text-xs">
-                          <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                        <div className="flex items-center justify-center gap-2 text-[var(--ds-accent-fg)] font-semibold text-xs">
+                          <FileCheck className="w-4 h-4 shrink-0" />
                           <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanFormulir.name}</span>
                           <span className="text-xs text-[var(--ds-fg-muted)] font-normal shrink-0">
                             ({(fileScanFormulir.size / 1024 / 1024).toFixed(1)} MB)
@@ -712,16 +683,16 @@ export function CatatSuratIzinModal({
                 {/* Slot 2: Scan Surat Izin Resmi Penetapan Cuti */}
                 <div className="flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1 gap-1">
-                    <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1.5 truncate">
-                      <FileCheck className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)] shrink-0" />
+                    <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-2 truncate">
+                      <FileCheck className="w-4 h-4 text-[var(--ds-status-success-fg)] shrink-0" />
                       <span className="truncate">2. Scan Surat Izin Resmi (TTE)</span>
                     </label>
-                    <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                    <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full font-medium shrink-0">
                       Opsional
                     </span>
                   </div>
 
-                  <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] rounded-xl p-2.5 text-center bg-[var(--ds-surface)] transition-colors">
+                  <div className="border border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-success-border)] rounded-lg p-3 text-center bg-[var(--ds-surface)] transition-colors">
                     <input
                       type="file"
                       id="file_scan_surat_izin_catat"
@@ -738,8 +709,8 @@ export function CatatSuratIzinModal({
                     />
                     <label htmlFor="file_scan_surat_izin_catat" className="cursor-pointer block">
                       {fileScanSuratIzin ? (
-                        <div className="flex items-center justify-center gap-1.5 text-[var(--ds-status-success-fg)] font-semibold text-xs">
-                          <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                        <div className="flex items-center justify-center gap-2 text-[var(--ds-status-success-fg)] font-semibold text-xs">
+                          <FileCheck className="w-4 h-4 shrink-0" />
                           <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanSuratIzin.name}</span>
                           <span className="text-xs text-[var(--ds-fg-muted)] font-normal shrink-0">
                             ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(1)} MB)
@@ -766,15 +737,17 @@ export function CatatSuratIzinModal({
             </div>
           )}
 
+          <UploadProgressBar progress={isSubmitting ? uploadProgress : null} />
+
           {/* Footer Buttons */}
-          <DialogFooter className="gap-2 pt-3 border-t border-[var(--ds-border-subtle)]">
+          <DialogFooter className="gap-2 pt-3 border-t border-slate-200/70 dark:border-zinc-800">
             <Button
               variant="outline"
               type="button"
               size="sm"
               onClick={onClose}
               disabled={isSubmitting}
-              className="text-xs font-semibold"
+              className="rounded-lg text-xs font-semibold"
             >
               Batal
             </Button>
@@ -782,12 +755,12 @@ export function CatatSuratIzinModal({
               type="submit"
               size="sm"
               disabled={isSubmitting || !selectedEmployee || isMmp || (isTahunan && !isEligibleTahunan)}
-              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-semibold gap-1.5 shadow-xs"
+              className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-semibold gap-2 shadow-xs"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Menyimpan...
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {formatPendingUploadLabel(isSubmitting, uploadProgress, "", "Menyimpan...")}
                 </>
               ) : (
                 "Simpan Surat Izin"

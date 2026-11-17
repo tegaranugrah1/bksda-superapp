@@ -61,23 +61,42 @@ export function DriveUploadDialog({
     setFilesList((prev) => [...prev, ...newItems]);
   };
 
+  const withRateLimitRetry = async <T,>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await fn();
+      } catch (err: any) {
+        if (err?.response?.status === 429 && attempt < maxRetries) {
+          const retryAfter = parseInt(err?.response?.headers?.["retry-after"] || "2", 10);
+          const delayMs = Math.min((Number.isFinite(retryAfter) ? retryAfter : 2) * 1000, 15000);
+          await new Promise((r) => setTimeout(r, delayMs));
+          continue;
+        }
+        throw err;
+      }
+    }
+  };
+
   const uploadSingleFile = async (item: UploadingFile) => {
     const f = item.file;
-    const isLarge = f.size > 100 * 1024 * 1024; // > 100MB uses multipart
+    const isLarge = f.size > 50 * 1024 * 1024; // > 50MB uses multipart
 
     // 1. Inisialisasi upload ke API
-    const initResp = await api.post("/drive/upload/init", {
-      name: f.name,
-      size: f.size,
-      mime: f.type || "application/octet-stream",
-      unit_id: unitId || undefined,
-      folder_id: folderId || undefined,
-      is_multipart: isLarge,
-    });
+    const initResp = await withRateLimitRetry(() =>
+      api.post("/drive/upload/init", {
+        name: f.name,
+        size: f.size,
+        mime: f.type || "application/octet-stream",
+        unit_id: unitId || undefined,
+        folder_id: folderId || undefined,
+        is_multipart: isLarge,
+      })
+    );
 
     const initData = initResp.data;
 
-    if (!initData.is_multipart) {
+    try {
+      if (!initData.is_multipart) {
       // Direct Single PUT to presigned URL
       const uploadUrl = typeof initData.presigned_url === "string" ? initData.presigned_url : (initData.presigned_url?.url || "");
       await axios.put(uploadUrl, f, {
@@ -95,9 +114,11 @@ export function DriveUploadDialog({
       });
 
       // Complete upload
-      await api.post("/drive/upload/complete", {
-        upload_id: initData.upload_id,
-      });
+      await withRateLimitRetry(() =>
+        api.post("/drive/upload/complete", {
+          upload_id: initData.upload_id,
+        })
+      );
     } else {
       // Multipart upload: chunk and upload parts
       const partSize = initData.part_size || 25 * 1024 * 1024;
@@ -130,10 +151,18 @@ export function DriveUploadDialog({
       }
 
       // Complete multipart upload
-      await api.post("/drive/upload/complete", {
-        upload_id: initData.upload_id,
-        parts: completedParts,
-      });
+      await withRateLimitRetry(() =>
+        api.post("/drive/upload/complete", {
+          upload_id: initData.upload_id,
+          parts: completedParts,
+        })
+      );
+      }
+    } catch (err) {
+      if (initData?.upload_id) {
+        api.post(`/drive/upload/${initData.upload_id}/abort`).catch(() => {});
+      }
+      throw err;
     }
   };
 

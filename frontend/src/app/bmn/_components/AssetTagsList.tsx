@@ -31,7 +31,7 @@ export function AssetTagsList({
   const remainingCount = tags.length - maxVisible;
 
   return (
-    <div className={`flex flex-wrap items-center gap-1 mt-1.5 ${className || ""}`}>
+    <div className={`flex flex-wrap items-center gap-1 mt-2 ${className || ""}`}>
       {visibleTags.map((tag) => onManageTags ? (
         <button
           key={tag.id}
@@ -50,19 +50,19 @@ export function AssetTagsList({
             <button
               type="button"
               title={`Lihat semua ${tags.length} tag`}
-              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] border border-slate-200/80 dark:border-zinc-800 transition-colors cursor-pointer"
             >
               +{remainingCount}
             </button>
           </PopoverTrigger>
           <PopoverContent
             data-module="bmn"
-            className="bmn-assets-ui bmn-popover w-64 p-3 rounded-xl shadow-lg border"
+            className="bmn-assets-ui bmn-popover w-64 p-4 rounded-3xl shadow-lg border border-slate-200/80 dark:border-zinc-800"
             align="start"
           >
-            <div className="flex items-center justify-between gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 pb-2 border-b border-slate-100 dark:border-slate-800 mb-2.5">
-              <span className="flex items-center gap-1.5">
-                <TagIcon className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+            <div className="flex items-center justify-between gap-2 text-xs font-bold text-[var(--ds-fg)] pb-2 border-b border-slate-200/70 dark:border-zinc-800 mb-3">
+              <span className="flex items-center gap-2">
+                <TagIcon className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                 <span>Semua Tag Aset ({tags.length})</span>
               </span>
               {onManageTags && (
@@ -72,13 +72,13 @@ export function AssetTagsList({
                     setOpen(false);
                     onManageTags();
                   }}
-                  className="text-[11px] text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1 font-semibold"
+                  className="text-xs text-[var(--ds-accent-fg)] hover:underline flex items-center gap-1 font-semibold"
                 >
                   <Settings2 className="w-3 h-3" /> Kelola
                 </button>
               )}
             </div>
-            <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
               {tags.map((tag) => (
                 <TagBadge key={tag.id} tag={tag} size="sm" />
               ))}

@@ -8,13 +8,8 @@ import {
   LayoutGrid,
   List,
   ChevronRight,
-  Folder,
   HardDrive,
   Building2,
-  Image,
-  FileText,
-  FileSpreadsheet,
-  FileArchive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -59,19 +59,19 @@ export function GmailRowItem({
   return (
     <div
       onClick={() => onClick(letter)}
-      className={`st-letter-row group relative flex items-center gap-3 px-4 py-2.5 border-b border-[var(--ds-border-subtle)] cursor-pointer transition-colors select-none text-xs ${
+      className={`st-letter-row group relative flex items-center gap-3 px-4 py-2 border-b border-slate-200/70 dark:border-zinc-800 cursor-pointer transition-colors select-none text-xs ${
         isActive
           ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]"
           : isSelected
           ? "bg-[var(--ds-accent-soft)]"
           : isPending
-          ? "bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]"
-          : "bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
+          ? "bg-[var(--ds-surface)] hover:bg-slate-50/60 dark:hover:bg-zinc-800/30"
+          : "bg-[var(--ds-surface)] hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 text-[var(--ds-fg-muted)]"
       }`}
     >
       {/* Active Left Indicator Bar */}
       {isActive && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--ds-accent-fg)] rounded-r" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--ds-accent-fg)] rounded-r-lg" />
       )}
 
       <input
@@ -84,7 +84,7 @@ export function GmailRowItem({
       />
 
       {/* Primary Personel */}
-      <div className="st-row-person w-36 shrink-0 truncate flex items-center gap-1.5 font-semibold">
+      <div className="st-row-person w-32 2xl:w-44 shrink-0 truncate flex items-center gap-2 font-semibold">
         <span
           className={`truncate ${
             isPending
@@ -96,28 +96,28 @@ export function GmailRowItem({
           {primaryName}
         </span>
         {extraCount > 0 && (
-          <span className="shrink-0 text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.2 rounded font-bold">
+          <span className="shrink-0 text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg font-bold">
             +{extraCount}
           </span>
         )}
       </div>
 
       {/* Subject / Title & Snippet (Middle flex-1) */}
-      <div className="st-row-subject flex-1 min-w-0 flex items-center gap-2">
+      <div className="st-row-subject flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
         {letter.template_type === "bmn-pemeriksaan" && (
-          <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-black uppercase tracking-wider border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
+          <span className="shrink-0 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-wider border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
             BMN
           </span>
         )}
         {letter.template_type === "plh" && (
-          <span className="shrink-0 px-1.5 py-0.5 rounded text-xs font-black uppercase tracking-wider border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+          <span className="shrink-0 px-2 py-1 rounded-lg text-xs font-black uppercase tracking-wider border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
             PLH
           </span>
         )}
         <button
           type="button"
           aria-current={isActive ? "true" : undefined}
-          className="min-w-0 truncate rounded px-1 text-left font-semibold text-[var(--ds-fg)] hover:text-[var(--ds-accent-fg)]"
+          className="min-w-0 truncate rounded-lg px-1 text-left font-semibold text-[var(--ds-fg)] hover:text-[var(--ds-accent-fg)]"
           title={letter.maksud_tujuan || ""}
           onClick={(event) => { event.stopPropagation(); onClick(letter); }}
         >
@@ -126,7 +126,7 @@ export function GmailRowItem({
       </div>
 
       {/* Dedicated Column: Tempat Tujuan (Aligned vertically down) */}
-      <div className="st-row-meta w-28 xl:w-36 shrink-0 truncate hidden sm:flex items-center text-xs">
+      <div className="st-row-meta w-28 2xl:w-40 shrink-0 truncate hidden sm:flex items-center text-xs">
         {tujuan && tujuan !== "-" ? (
           <span className="text-[var(--ds-fg-muted)] font-medium truncate" title={tujuan}>
             {tujuan}
@@ -137,7 +137,7 @@ export function GmailRowItem({
       </div>
 
       {/* Dedicated Column: Nomor Surat Tugas (Aligned vertically down) */}
-      <div className="st-row-meta w-40 xl:w-48 shrink-0 font-mono text-xs truncate hidden sm:flex items-center">
+      <div className="st-row-meta w-36 2xl:w-52 shrink-0 font-mono text-xs truncate hidden sm:flex items-center">
         {letter.nomor_surat ? (
           <span
             className="text-[var(--ds-fg-muted)] font-semibold truncate hover:text-[var(--ds-accent-fg)] transition-colors"
@@ -150,11 +150,11 @@ export function GmailRowItem({
         )}
       </div>
 
-      {/* Dedicated Column: Sumber Dana (DIPA / FOLU) */}
-      <div className="st-row-meta w-14 shrink-0 hidden sm:flex items-center justify-start">
+      {/* Dedicated Column: Sumber Dana (DIPA / FOLU / KJA / MITRA / DL 1) */}
+      <div className="st-row-meta w-20 shrink-0 overflow-hidden hidden sm:flex items-center justify-start">
         {letter.sumber_dana ? (
           <span
-            className="px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
+            className="max-w-full truncate px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] whitespace-nowrap"
             title={formatFormalSumberDana(letter.sumber_dana, letter.sumber_dana_other)}
           >
             {formatShortSumberDana(letter.sumber_dana)}
@@ -165,21 +165,22 @@ export function GmailRowItem({
       </div>
 
       {/* Dedicated Column: Status Badge (Left-aligned so DRAFT & DITERBITKAN align perfectly) */}
-      <div className="st-row-status max-w-36 shrink-0 flex items-center justify-start">
+      <div className="st-row-status w-32 shrink-0 overflow-hidden flex items-center justify-start">
         <span
-          className={`px-2 py-0.5 rounded-full border text-xs font-black uppercase tracking-wider ${getStatusStyle(
+          className={`max-w-full px-2 py-1 rounded-full border text-xs font-black uppercase tracking-wider whitespace-nowrap truncate ${getStatusStyle(
             letter.status
           )}`}
+          title={getStatusLabel(letter.status)}
         >
-          {getStatusLabel(letter.status)}
+          {letter.status?.toLowerCase() === "pending" ? "Menunggu" : getStatusLabel(letter.status)}
         </span>
       </div>
 
       {/* Dedicated Column: Rentang Tanggal Pelaksanaan Tugas OR Hover Action Buttons */}
-      <div className="st-row-actions shrink-0 flex flex-wrap items-center justify-end gap-1 text-right">
+      <div className="st-row-actions w-28 2xl:w-36 shrink-0 relative flex items-center justify-end text-right">
         {/* Date range text (default visible, hidden on hover) */}
         <span
-          className={`text-xs whitespace-nowrap  ${
+          className={`st-row-date text-xs whitespace-nowrap transition-opacity group-hover:opacity-0 group-focus-within:opacity-0 ${
             isPending
               ? "font-bold text-[var(--ds-fg)]"
               : "font-medium text-[var(--ds-fg-muted)]"
@@ -194,16 +195,16 @@ export function GmailRowItem({
         </span>
 
         {/* Hover action buttons (hidden by default, visible on hover) */}
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="st-row-action-buttons absolute right-0 top-1/2 -translate-y-1/2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto flex items-center gap-1 bg-[var(--ds-surface)] pl-2 rounded-lg shadow-xs transition-opacity">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onClick(letter);
             }}
-            className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors"
+            className="p-1 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors"
             title="Lihat naskah surat"
           >
-            <Eye className="w-3.5 h-3.5" />
+            <Eye className="w-4 h-4" />
           </button>
 
           {onQuickApprove && !isTrashView && letter.status === "pending" && (
@@ -212,11 +213,11 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickApprove(letter);
               }}
-              className="p-1 hover:bg-[var(--ds-status-success-bg)] rounded text-[var(--ds-status-success-fg)] transition-colors"
+              className="p-1 hover:bg-[var(--ds-status-success-bg)] rounded-lg text-[var(--ds-status-success-fg)] transition-colors"
               title={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
               aria-label={needsCompletion ? "Lengkapi di Builder" : "Setujui & Terbitkan Surat Tugas"}
             >
-              {needsCompletion ? <Pencil className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              {needsCompletion ? <Pencil className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
             </button>
           )}
 
@@ -226,10 +227,10 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickDownload(letter);
               }}
-              className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors"
+              className="p-1 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors"
               title="Unduh Dokumen Dasar"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-4 h-4" />
             </button>
           )}
 
@@ -239,10 +240,10 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickEdit(letter);
               }}
-              className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-warning-fg)] transition-colors"
+              className="p-1 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-warning-fg)] transition-colors"
               title="Edit di Builder"
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <Pencil className="w-4 h-4" />
             </button>
           )}
 
@@ -253,10 +254,10 @@ export function GmailRowItem({
                   e.stopPropagation();
                   onQuickRestore(letter.id);
                 }}
-                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors"
+                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-success-fg)] transition-colors"
                 title="Pulihkan dokumen"
               >
-                <Undo2 className="w-3.5 h-3.5" />
+                <Undo2 className="w-4 h-4" />
               </button>
             )
           ) : (
@@ -266,10 +267,10 @@ export function GmailRowItem({
                   e.stopPropagation();
                   onQuickDelete?.(letter.id);
                 }}
-                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] transition-colors"
+                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] transition-colors"
                 title="Pindahkan ke sampah"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" />
               </button>
             )
           )}
@@ -279,25 +280,13 @@ export function GmailRowItem({
                 e.stopPropagation();
                 onQuickForceDelete(letter.id);
               }}
-              className="p-1 hover:bg-[var(--ds-status-danger-bg)] rounded text-[var(--ds-status-danger-fg)] transition-colors cursor-pointer"
+              className="p-1 hover:bg-[var(--ds-status-danger-bg)] rounded-lg text-[var(--ds-status-danger-fg)] transition-colors cursor-pointer"
               title="Hapus permanen"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-4 h-4" />
             </button>
           )}
-          {false && onQuickDelete && ((
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onQuickDelete?.(letter.id);
-                }}
-                className="p-1 hover:bg-[var(--ds-surface-muted)] rounded text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] transition-colors"
-                title="Pindahkan ke sampah"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )
-          )}
+
         </div>
       </div>
     </div>

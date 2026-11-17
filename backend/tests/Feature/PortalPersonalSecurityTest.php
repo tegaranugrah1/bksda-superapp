@@ -619,12 +619,20 @@ class PortalPersonalSecurityTest extends TestCase
         $archived->delete();
         $type = LeaveType::where('kode', 'CT')->firstOrFail();
         [$admin] = $this->actor('Dummy Leave Type Admin', 'admin', ['kepegawaian']);
+        [$superAdmin] = $this->actor('Dummy Leave Type Super Admin', 'super_admin', ['kepegawaian']);
         Sanctum::actingAs($admin);
         $this->putJson("/api/kepegawaian/leave-types/{$type->id}", [
             'nama' => 'Dummy Renamed Annual', 'kode' => 'CT-DUMMY',
             'hitung_hari' => 'hari_kerja', 'potong_kuota_tahunan' => true,
             'maks_hari' => 12, 'is_active' => true,
+        ])->assertForbidden();
+        Sanctum::actingAs($superAdmin);
+        $this->putJson("/api/kepegawaian/leave-types/{$type->id}", [
+            'nama' => 'Dummy Renamed Annual', 'kode' => 'CT-DUMMY',
+            'hitung_hari' => 'hari_kerja', 'potong_kuota_tahunan' => true,
+            'maks_hari' => 12, 'is_active' => true,
         ])->assertOk();
+        Sanctum::actingAs($admin);
         $this->assertSame('Dummy Renamed Annual', $approved->fresh()->jenis_cuti);
         $this->assertSame('Dummy Renamed Annual', $pending->fresh()->jenis_cuti);
         $this->assertSame('Dummy Renamed Annual', EmployeeLeaveRequest::withTrashed()->findOrFail($archived->id)->jenis_cuti);
@@ -897,5 +905,50 @@ class PortalPersonalSecurityTest extends TestCase
         $this->getJson("/api/bmn/assets/{$asset->id}/photo/depan/download")->assertForbidden();
         Sanctum::actingAs($owner);
         $this->getJson("/api/bmn/assets/{$asset->id}/photo/depan/view")->assertOk();
+    }
+
+    public function test_me_endpoints_reject_non_scalar_profile_password_and_ignore_array_query_token(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Scalar Boundary User');
+        $asset = $this->asset($employee);
+        $asset->update(['foto_depan_path' => 'audit-fixtures/portal-front.png']);
+        AssetLoan::create([
+            'asset_id' => $asset->id,
+            'employee_id' => $employee->id,
+            'tanggal_pinjam' => '2026-11-01',
+            'due_date' => '2026-11-10',
+            'status' => 'dipinjam',
+        ]);
+        Sanctum::actingAs($user);
+
+        $dash = $this->getJson('/api/me/dashboard?token[]=bad')->assertOk();
+        $assets = $this->getJson('/api/me/assets?token[]=bad')->assertOk();
+        $this->assertStringNotContainsString('&token=', (string) $dash->json('data.my_assets.0.foto_depan_url'));
+        $this->assertStringNotContainsString('&token=', (string) $assets->json('data.0.foto_depan_url'));
+
+        $this->postJson('/api/me/update-profile', [
+            'email' => 'renamed@example.com',
+            'current_password' => ['not-a-string'],
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['current_password']);
+    }
+
+    public function test_mobile_dashboard_escapes_like_wildcards_for_unassigned_assets(): void
+    {
+        [$user] = $this->actor('Dummy%User_Wildcard');
+        Asset::create([
+            'kode_barang' => 'WILD-01',
+            'nup' => '55',
+            'nama_barang' => 'Kamera Dinas Lain',
+            'jenis_bmn' => 'Peralatan',
+            'pengguna' => 'DummyXUserYWildcard',
+            'nama_pengguna' => 'DummyXUserYWildcard',
+        ]);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/mobile/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.summary.assigned_assets_count', 0);
     }
 }

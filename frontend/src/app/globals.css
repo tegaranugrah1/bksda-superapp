@@ -138,10 +138,13 @@
  */
 [data-module="bmn"],
 [data-module="surat-tugas"],
-[data-module="kepegawaian"] {
+[data-module="kepegawaian"],
+[data-module="persuratan"],
+[data-module="portal"] {
   --ds-canvas: #f8fafc;
   --ds-surface: #ffffff;
   --ds-fg: #0f172a;
+  --ds-fg-secondary: #334155;
   --ds-fg-muted: #475569;
   --ds-accent-on-solid: #ffffff;
   --ds-surface-raised: #ffffff;
@@ -183,6 +186,7 @@
   --ds-accent-fg: #047857;
   --ds-accent-soft: #ecfdf5;
   --ds-accent-soft-border: #a7f3d0;
+  --color-ring: var(--ds-accent-fg);
 }
 
 [data-module="surat-tugas"] {
@@ -192,6 +196,7 @@
   --ds-accent-fg: #0369a1;
   --ds-accent-soft: #f0f9ff;
   --ds-accent-soft-border: #bae6fd;
+  --color-ring: var(--ds-accent-fg);
 }
 
 [data-module="kepegawaian"] {
@@ -201,6 +206,27 @@
   --ds-accent-fg: #2563eb;
   --ds-accent-soft: #eff6ff;
   --ds-accent-soft-border: #bfdbfe;
+  --color-ring: var(--ds-accent-fg);
+}
+
+[data-module="persuratan"] {
+  --ds-accent-solid: #0f766e;
+  --ds-accent-hover: #115e59;
+  --ds-accent-active: #134e4a;
+  --ds-accent-fg: #0f766e;
+  --ds-accent-soft: #f0fdfa;
+  --ds-accent-soft-border: #99f6e4;
+  --color-ring: var(--ds-accent-fg);
+}
+
+[data-module="portal"] {
+  --ds-accent-solid: #1e5433;
+  --ds-accent-hover: #164227;
+  --ds-accent-active: #153e24;
+  --ds-accent-fg: #1e5433;
+  --ds-accent-soft: #edf3ee;
+  --ds-accent-soft-border: #dce8dd;
+  --color-ring: var(--ds-accent-fg);
 }
 
 .dark[data-module="bmn"],
@@ -208,10 +234,15 @@
 .dark[data-module="surat-tugas"],
 .dark [data-module="surat-tugas"],
 .dark[data-module="kepegawaian"],
-.dark [data-module="kepegawaian"] {
+.dark [data-module="kepegawaian"],
+.dark[data-module="persuratan"],
+.dark [data-module="persuratan"],
+.dark[data-module="portal"],
+.dark [data-module="portal"] {
   --ds-canvas: #09090b;
   --ds-surface: #18181b;
   --ds-fg: #f8fafc;
+  --ds-fg-secondary: #d4d4d8;
   --ds-fg-muted: #a1a1aa;
   --ds-accent-on-solid: #0f172a;
   --ds-surface-raised: #27272a;
@@ -274,6 +305,54 @@
   --ds-accent-fg: #93c5fd;
   --ds-accent-soft: #172554;
   --ds-accent-soft-border: #1e40af;
+}
+
+.dark[data-module="persuratan"],
+.dark [data-module="persuratan"] {
+  --ds-accent-solid: #2dd4bf;
+  --ds-accent-hover: #5eead4;
+  --ds-accent-active: #99f6e4;
+  --ds-accent-fg: #5eead4;
+  --ds-accent-soft: #042f2e;
+  --ds-accent-soft-border: #115e59;
+}
+
+.dark[data-module="portal"],
+.dark [data-module="portal"] {
+  --ds-accent-solid: #86efac;
+  --ds-accent-hover: #bbf7d0;
+  --ds-accent-active: #dcfce7;
+  --ds-accent-fg: #86efac;
+  --ds-accent-soft: #0d281a;
+  --ds-accent-soft-border: #24583a;
+}
+
+[data-module="portal"] :is(button, a)[data-variant="outline"] {
+  background: var(--ds-surface-raised);
+  color: var(--ds-secondary-fg);
+  border: 1px solid var(--ds-border-subtle);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+}
+
+.dark [data-module="portal"] :is(button, a)[data-variant="outline"],
+.dark[data-module="portal"] :is(button, a)[data-variant="outline"] {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+[data-module="portal"] :is(button, a)[data-variant="outline"]:hover {
+  background: var(--ds-surface-muted);
+  border-color: var(--ds-border-control);
+}
+
+/* Prevent shadcn Button's focus-visible:border-ring/ring-3 from painting a mismatched double inner border under module outlines. */
+:is(.st-ui, .kpg-ui, .psr-ui, .kpg-shell, .psr-shell, .bmn-assets-ui, .bmn-standard-ui, .bmn-shell) :is(button, a)[data-slot="button"]:focus-visible {
+  box-shadow: none;
+}
+:is(.st-ui, .kpg-ui, .psr-ui, .kpg-shell, .psr-shell, .bmn-assets-ui, .bmn-standard-ui, .bmn-shell) :is(button, a)[data-slot="button"]:not([data-variant="outline"]):focus-visible {
+  border-color: transparent;
+}
+:is(.st-ui, .kpg-ui, .psr-ui, .kpg-shell, .psr-shell, .bmn-assets-ui, .bmn-standard-ui, .bmn-shell) :is(button, a)[data-slot="button"][data-variant="outline"]:focus-visible {
+  border-color: var(--ds-border-control);
 }
 
 /* Marquee animation for photo gallery */

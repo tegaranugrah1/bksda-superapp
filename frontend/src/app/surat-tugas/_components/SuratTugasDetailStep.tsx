@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 import { Employee } from "./EmployeeSelectionStep";
 import {
   buildKegiatanDiktumText,
-  cleanMelaksanakanKegiatanPrefix,
   normalizeTaskTypeName,
   isJenisKegiatanTask,
   capitalizeOfficialText,
@@ -184,7 +183,7 @@ export function SuratTugasDetailStep({
       .catch(() => {});
   }, []);
 
-  const { data: conflictData, isLoading: isCheckingConflicts } = useScheduleConflicts({
+  const { data: conflictData } = useScheduleConflicts({
     employees: selectedEmployees,
     tanggalMulai: formData.tanggal_mulai,
     tanggalSelesai: formData.tanggal_selesai,
@@ -194,15 +193,6 @@ export function SuratTugasDetailStep({
 
   const conflicts = conflictData?.conflicts || [];
   const hasConflict = (conflictData?.has_conflict && conflicts.length > 0) ?? false;
-
-  const handleRemoveEmployee = React.useCallback(
-    (empId: number) => {
-      if (removeEmployee) {
-        removeEmployee(String(empId));
-      }
-    },
-    [removeEmployee]
-  );
 
   const activeTaskType = React.useMemo(() => {
     if (selectedTaskTypeId) {
@@ -304,19 +294,19 @@ export function SuratTugasDetailStep({
   }, [formData.sumber_dana, formData.sumber_dana_other]);
 
   return (
-    <div className="bg-[var(--ds-surface)] rounded-2xl p-6 sm:p-10 shadow-sm border border-[var(--ds-border-subtle)]">
-      <div className="flex items-center gap-4 mb-8 pb-6 border-b border-[var(--ds-border-subtle)]">
+    <div className="bg-[var(--ds-surface)] rounded-3xl p-4 sm:p-8 shadow-xs border border-slate-200/80 dark:border-zinc-800">
+      <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-200/70 dark:border-zinc-800">
         <button
           type="button"
           onClick={() => setStep(1)}
           disabled={isSubmitting}
           aria-label="Kembali ke pemilihan personel"
-          className="w-11 h-11 shrink-0 rounded-xl st-secondary flex items-center justify-center transition-colors cursor-pointer"
+          className="w-11 h-11 shrink-0 rounded-lg st-secondary flex items-center justify-center transition-colors cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div>
-          <h2 className="text-2xl font-black text-[var(--ds-fg)] tracking-tight">
+          <h2 className="text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
             Detail Surat Tugas
           </h2>
           <p className="text-[var(--ds-fg-muted)] text-sm font-medium">
@@ -325,12 +315,12 @@ export function SuratTugasDetailStep({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="space-y-8 [&_input:not([type=radio])]:text-base [&_textarea]:text-base [&_select]:text-base [&_label:has(input:focus-visible)]:outline-2 [&_label:has(input:focus-visible)]:outline-[var(--ds-accent-fg)]">
+      <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="space-y-8 [&_input:not([type=radio])]:text-sm [&_textarea]:text-sm [&_select]:text-sm [&_label:has(input:focus-visible)]:outline-2 [&_label:has(input:focus-visible)]:outline-[var(--ds-accent-fg)]">
         {/* Ringkasan Pegawai */}
-        <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-2xl p-4 flex gap-3 text-[var(--ds-accent-fg)]">
-          <Users className="w-5 h-5 shrink-0 mt-0.5 text-[var(--ds-accent-fg)]" />
+        <div className="bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-3xl p-4 flex gap-3 text-[var(--ds-accent-fg)]">
+          <Users className="w-5 h-5 shrink-0 mt-1 text-[var(--ds-accent-fg)]" />
           <div className="min-w-0">
-            <span className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] mb-0.5">
+            <span className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] mb-1 tabular-nums">
               Personel yang Ditugaskan ({selectedEmployees.length} Orang)
             </span>
             <div className="text-xs font-semibold text-[var(--ds-accent-fg)] flex flex-wrap gap-x-2 gap-y-1">
@@ -341,8 +331,8 @@ export function SuratTugasDetailStep({
 
         <div className="space-y-6">
           {/* Card Klasifikasi Jenis Tugas & Lokasi */}
-          <div className="space-y-4 bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)]">
-            <div className="space-y-1.5">
+          <div className="space-y-4 bg-[var(--ds-surface)] p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-zinc-800">
+            <div className="space-y-2">
               <label htmlFor="task-type" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] block">
                 JENIS TUGAS <span className="text-[var(--ds-status-danger-fg)]">*</span>
               </label>
@@ -351,7 +341,7 @@ export function SuratTugasDetailStep({
                 id="task-type"
                 value={normalizeTaskTypeName(jenisTugas)}
                 onChange={(e) => handleTaskTypeChange(e.target.value)}
-                className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-bold text-[var(--ds-fg)] outline-none cursor-pointer"
+                className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-bold text-[var(--ds-fg)] outline-none cursor-pointer"
               >
                 {taskTypes && taskTypes.length > 0 ? (
                   taskTypes.map((tt) => (
@@ -379,7 +369,7 @@ export function SuratTugasDetailStep({
             {/* Input Form Sesuai Mode Lokasi */}
             {modeLokasi === "dalam_kawasan" ? (
               <div className="space-y-4 pt-1">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label htmlFor="st-detail-field-1" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Di ( Kota / Kabupaten Wilayah Penugasan ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                   </label>
@@ -390,12 +380,12 @@ export function SuratTugasDetailStep({
                     value={kotaTujuan}
                     onChange={(e) => setKotaTujuan(e.target.value)}
                     onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                     placeholder="Contoh: Kabupaten Paser"
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label htmlFor="st-detail-field-2" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Dalam Rangka <span className="text-[var(--ds-status-danger-fg)]">*</span>
                   </label>
@@ -406,12 +396,12 @@ export function SuratTugasDetailStep({
                     value={namaKegiatanText}
                     onChange={(e) => handleNamaKegiatanChange(e.target.value)}
                     onBlur={() => setNamaKegiatanText(capitalizeOfficialText(namaKegiatanText))}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
                     placeholder="Contoh: Patroli kebakaran hutan"
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label htmlFor="st-detail-field-3" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Di ( Kawasan / Lokasi Spesifik ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                   </label>
@@ -422,7 +412,7 @@ export function SuratTugasDetailStep({
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
                     onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                     placeholder="Contoh: Cagar Alam Teluk Adang"
                   />
                 </div>
@@ -430,7 +420,7 @@ export function SuratTugasDetailStep({
             ) : isJenisKegiatan ? (
               <div className="space-y-4 pt-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label htmlFor="st-detail-field-4" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Dari ( Kota / Lokasi Asal ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                     </label>
@@ -441,12 +431,12 @@ export function SuratTugasDetailStep({
                       value={kotaAsal}
                       onChange={(e) => setKotaAsal(e.target.value)}
                       onBlur={() => setKotaAsal(capitalizeOfficialText(kotaAsal))}
-                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                       placeholder="Contoh: Samarinda"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label htmlFor="st-detail-field-5" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Ke ( Kota / Kabupaten Tujuan ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                     </label>
@@ -457,13 +447,13 @@ export function SuratTugasDetailStep({
                       value={kotaTujuan}
                       onChange={(e) => setKotaTujuan(e.target.value)}
                       onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
-                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                       placeholder="Contoh: Kabupaten Kutai Barat"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label htmlFor="st-detail-field-6" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Untuk ( Jenis Kegiatan / Tugas ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                   </label>
@@ -474,7 +464,7 @@ export function SuratTugasDetailStep({
                     value={untukKegiatanText}
                     onChange={(e) => setUntukKegiatanText?.(e.target.value)}
                     onBlur={() => setUntukKegiatanText?.(capitalizeOfficialText(untukKegiatanText))}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                     placeholder="Contoh: Pengawasan Pekerjaan Konstruksi"
                   />
                   <p className="text-xs text-[var(--ds-fg-muted)]">
@@ -482,7 +472,7 @@ export function SuratTugasDetailStep({
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label htmlFor="st-detail-field-7" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Dalam Rangka ( Paket Kontrak / Pekerjaan ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -491,10 +481,10 @@ export function SuratTugasDetailStep({
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={(e) => {
-                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        const textarea = e.currentTarget.closest(".space-y-2")?.querySelector("textarea");
                         if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
                       }}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
                       title="Miringkan teks terpilih (*kata*) - Ctrl+I"
                     >
                       <Italic className="w-3 h-3 text-[var(--ds-accent-fg)]" />
@@ -514,12 +504,12 @@ export function SuratTugasDetailStep({
                         toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
                       }
                     }}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
                     placeholder="Contoh: Pengelolaan kontrak sarpras"
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label htmlFor="st-detail-field-8" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Di ( Tempat Spesifik / Lokasi Proyek )
                   </label>
@@ -529,7 +519,7 @@ export function SuratTugasDetailStep({
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
                     onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                     placeholder="Contoh: Suaka Badak Kelian"
                   />
                 </div>
@@ -537,7 +527,7 @@ export function SuratTugasDetailStep({
             ) : modeLokasi === "luar_wilayah" ? (
               <div className="space-y-4 pt-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label htmlFor="st-detail-field-9" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Dari ( Kota / Lokasi Asal ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                     </label>
@@ -548,12 +538,12 @@ export function SuratTugasDetailStep({
                       value={kotaAsal}
                       onChange={(e) => setKotaAsal(e.target.value)}
                       onBlur={() => setKotaAsal(capitalizeOfficialText(kotaAsal))}
-                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                       placeholder="Contoh: Samarinda"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label htmlFor="st-detail-field-10" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Ke ( Kota / Kabupaten Tujuan ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                     </label>
@@ -564,13 +554,13 @@ export function SuratTugasDetailStep({
                       value={kotaTujuan}
                       onChange={(e) => setKotaTujuan(e.target.value)}
                       onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
-                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                       placeholder="Contoh: Kabupaten Kutai Barat"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label htmlFor="st-detail-field-11" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Dalam Rangka <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -579,10 +569,10 @@ export function SuratTugasDetailStep({
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={(e) => {
-                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        const textarea = e.currentTarget.closest(".space-y-2")?.querySelector("textarea");
                         if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
                       }}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
                       title="Miringkan teks terpilih (*kata*) - Ctrl+I"
                     >
                       <Italic className="w-3 h-3 text-[var(--ds-accent-fg)]" />
@@ -602,12 +592,12 @@ export function SuratTugasDetailStep({
                         toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
                       }
                     }}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
                     placeholder="Contoh: Inventarisasi satwa"
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label htmlFor="st-detail-field-12" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                     Di ( Tempat Spesifik / Opsional )
                   </label>
@@ -617,14 +607,14 @@ export function SuratTugasDetailStep({
                     value={tempatSpesifik}
                     onChange={(e) => setTempatSpesifik(e.target.value)}
                     onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                     placeholder="Contoh: Suaka Margasatwa Kelian"
                   />
                 </div>
               </div>
             ) : (
               <div className="space-y-4 pt-1">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label htmlFor="st-detail-field-13" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Nama Kegiatan / Tugas <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -633,10 +623,10 @@ export function SuratTugasDetailStep({
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={(e) => {
-                        const textarea = e.currentTarget.closest(".space-y-1.5")?.querySelector("textarea");
+                        const textarea = e.currentTarget.closest(".space-y-2")?.querySelector("textarea");
                         if (textarea) toggleItalicInTextarea(textarea, namaKegiatanText, setNamaKegiatanText);
                       }}
-                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] transition-colors cursor-pointer"
                       title="Miringkan teks terpilih (*kata*) - Ctrl+I"
                     >
                       <Italic className="w-3 h-3 text-[var(--ds-accent-fg)]" />
@@ -656,13 +646,13 @@ export function SuratTugasDetailStep({
                         toggleItalicInTextarea(e.currentTarget, namaKegiatanText, setNamaKegiatanText);
                       }
                     }}
-                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
+                    className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)] resize-none"
                     placeholder="Contoh: Stok opname persediaan"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label htmlFor="st-detail-field-14" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Pada ( Tempat / Unit Lokasi )
                     </label>
@@ -672,12 +662,12 @@ export function SuratTugasDetailStep({
                       value={tempatSpesifik}
                       onChange={(e) => setTempatSpesifik(e.target.value)}
                       onBlur={() => setTempatSpesifik(capitalizeOfficialText(tempatSpesifik))}
-                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                       placeholder="Contoh: Kantor Balai / Tempat Kegiatan"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <label htmlFor="st-detail-field-15" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                       Di ( Kota / Kabupaten ) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                     </label>
@@ -688,7 +678,7 @@ export function SuratTugasDetailStep({
                       value={kotaTujuan}
                       onChange={(e) => setKotaTujuan(e.target.value)}
                       onBlur={() => setKotaTujuan(capitalizeOfficialText(kotaTujuan))}
-                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
+                      className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] text-sm font-medium text-[var(--ds-fg)]"
                       placeholder="Contoh: Samarinda"
                     />
                   </div>
@@ -697,10 +687,10 @@ export function SuratTugasDetailStep({
             )}
 
             {/* Live Generated Preview Box */}
-            <div className="mt-3 p-3.5 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl text-[var(--ds-accent-fg)]">
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5" />
+            <div className="mt-3 p-4 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-lg text-[var(--ds-accent-fg)]">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-accent-fg)] flex items-center gap-2">
+                  <FileText className="w-4 h-4 shrink-0" />
                   Pratinjau Kalimat Tugas Resmi
                 </span>
                 <span className="text-xs text-[var(--ds-accent-fg)] font-medium">
@@ -711,11 +701,11 @@ export function SuratTugasDetailStep({
                 {renderFormattedItalic(previewDiktumUtama)}
                 {formData.tanggal_mulai && formData.tanggal_selesai ? (
                   formData.tanggal_mulai === formData.tanggal_selesai ? (
-                    <span className="text-[var(--ds-fg-muted)] font-medium">
+                    <span className="text-[var(--ds-fg-muted)] font-medium tabular-nums">
                       , selama 1 (satu) hari pada tanggal {formatDateIndonesian(formData.tanggal_mulai)};
                     </span>
                   ) : (
-                    <span className="text-[var(--ds-fg-muted)] font-medium">
+                    <span className="text-[var(--ds-fg-muted)] font-medium tabular-nums">
                       , selama {daysBetween(formData.tanggal_mulai, formData.tanggal_selesai)} hari terhitung mulai tanggal {formatDateIndonesian(formData.tanggal_mulai)} sampai dengan {formatDateIndonesian(formData.tanggal_selesai)};
                     </span>
                   )
@@ -751,7 +741,7 @@ export function SuratTugasDetailStep({
                       tanggal_selesai: e.target.value,
                     })
                   }
-                  className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:bg-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg-muted)] cursor-pointer"
+                  className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg)] tabular-nums cursor-pointer"
                 />
               </div>
             </div>
@@ -773,7 +763,7 @@ export function SuratTugasDetailStep({
                       onChange={(e) =>
                         setFormData({ ...formData, tanggal_mulai: e.target.value })
                       }
-                      className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:bg-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg-muted)] cursor-pointer"
+                      className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg)] tabular-nums cursor-pointer"
                     />
                   </div>
                 </div>
@@ -793,7 +783,7 @@ export function SuratTugasDetailStep({
                       onChange={(e) =>
                         setFormData({ ...formData, tanggal_selesai: e.target.value })
                       }
-                      className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:bg-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg-muted)] cursor-pointer"
+                      className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg)] tabular-nums cursor-pointer"
                     />
                   </div>
                 </div>
@@ -801,13 +791,13 @@ export function SuratTugasDetailStep({
 
               {/* Toggle Jadwal Personel Berbeda Hari */}
               {selectedEmployees.length > 1 && (
-                <div className="p-4 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-2xl space-y-3">
+                <div className="p-4 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-3xl space-y-3">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-xs font-bold text-[var(--ds-status-warning-fg)]">
                         Jadwal Personel Berbeda Hari?
                       </p>
-                      <p className="text-xs text-[var(--ds-status-warning-fg)] mt-0.5">
+                      <p className="text-xs text-[var(--ds-status-warning-fg)] mt-1">
                         Aktifkan jika masing-masing pegawai memiliki tanggal tugas berbeda (Template Beda Hari).
                       </p>
                     </div>
@@ -825,8 +815,8 @@ export function SuratTugasDetailStep({
                             selectedEmployees.forEach((emp) => {
                               if (!nextDates[emp.id]?.mulai && formData.tanggal_mulai) {
                                 nextDates[emp.id] = {
-                                   mulai: formData.tanggal_mulai,
-                                   selesai: formData.tanggal_selesai || formData.tanggal_mulai,
+                                  mulai: formData.tanggal_mulai,
+                                  selesai: formData.tanggal_selesai || formData.tanggal_mulai,
                                 };
                               }
                             });
@@ -834,17 +824,25 @@ export function SuratTugasDetailStep({
                           });
                         }
                       }}
-                      className={cn(
-                        "relative inline-flex min-h-11 w-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]",
-                        isBedaHari ? "bg-[var(--ds-status-warning-bg)]" : "bg-[var(--ds-surface-muted)]"
-                      )}
+                      className="relative inline-flex min-h-11 w-11 items-center justify-center shrink-0 cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]"
                     >
                       <span
                         className={cn(
-                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--ds-surface)] shadow-md ring-0 transition duration-150 ease-out",
-                          isBedaHari ? "translate-x-5" : "translate-x-0"
+                          "inline-flex h-6 w-11 items-center rounded-full transition-colors duration-150 ease-out",
+                          isBedaHari
+                            ? "bg-[var(--ds-status-warning-fg)]"
+                            : "bg-[var(--ds-surface)] ring-1 ring-inset ring-[var(--ds-border-control)]"
                         )}
-                      />
+                      >
+                        <span
+                          className={cn(
+                            "pointer-events-none inline-block h-4 w-4 transform rounded-full shadow-xs transition duration-150 ease-out",
+                            isBedaHari
+                              ? "translate-x-6 bg-[var(--ds-surface)]"
+                              : "translate-x-1 bg-[var(--ds-fg-muted)]"
+                          )}
+                        />
+                      </span>
                     </button>
                   </div>
 
@@ -862,19 +860,19 @@ export function SuratTugasDetailStep({
                           return (
                             <div
                               key={emp.id}
-                              className="p-3 bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs"
+                              className="p-3 bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)] rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs"
                             >
                               <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-[var(--ds-fg)] truncate">
+                                <p className="text-xs font-bold text-[var(--ds-fg)] truncate tabular-nums">
                                   {idx + 1}. {emp.name}
                                 </p>
-                                <p className="text-xs text-[var(--ds-fg-muted)] truncate">
+                                <p className="text-xs text-[var(--ds-fg-muted)] truncate tabular-nums">
                                   {emp.nip ? `${formatNipLabel(emp, true)} ${emp.nip}` : "Non-NIP"} • {emp.position || emp.department || "-"}
                                 </p>
                               </div>
                               <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 w-full md:w-auto shrink-0">
                                 <div>
-                                  <label htmlFor={`st-detail-field-19-${emp.id}`} className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase block mb-1">
+                                  <label htmlFor={`st-detail-field-19-${emp.id}`} className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase block mb-1">
                                     Mulai
                                   </label>
                                   <input
@@ -893,11 +891,11 @@ export function SuratTugasDetailStep({
                                         },
                                       }));
                                     }}
-                                    className="w-full md:w-32 px-2.5 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-xs font-medium text-[var(--ds-fg-muted)] cursor-pointer"
+                                    className="w-full md:w-40 px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-xs font-medium text-[var(--ds-fg)] tabular-nums cursor-pointer"
                                   />
                                 </div>
                                 <div>
-                                  <label htmlFor={`st-detail-field-20-${emp.id}`} className="text-[9px] font-bold text-[var(--ds-fg-muted)] uppercase block mb-1">
+                                  <label htmlFor={`st-detail-field-20-${emp.id}`} className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase block mb-1">
                                     Selesai
                                   </label>
                                   <input
@@ -917,7 +915,7 @@ export function SuratTugasDetailStep({
                                         },
                                       }));
                                     }}
-                                    className="w-full md:w-32 px-2.5 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-lg text-xs font-medium text-[var(--ds-fg-muted)] cursor-pointer"
+                                    className="w-full md:w-40 px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-xs font-medium text-[var(--ds-fg)] tabular-nums cursor-pointer"
                                   />
                                 </div>
                               </div>
@@ -938,13 +936,13 @@ export function SuratTugasDetailStep({
               )}
 
               {/* Toggle Buruh / Tenaga Lapangan (PM) */}
-              <div className="p-4 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-2xl space-y-3">
+              <div className="p-4 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-3xl space-y-3">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold text-[var(--ds-accent-fg)]">
                       Apakah ada Buruh / Tenaga Lapangan (PM)?
                     </p>
-                    <p className="text-xs text-[var(--ds-accent-fg)] mt-0.5">
+                    <p className="text-xs text-[var(--ds-accent-fg)] mt-1">
                       Aktifkan jika penugasan menyertakan buruh (format: Nama: <b>PM</b>, Jabatan: <b>-</b>).
                     </p>
                   </div>
@@ -960,17 +958,25 @@ export function SuratTugasDetailStep({
                         setJumlahBuruh(1);
                       }
                     }}
-                    className={cn(
-                      "relative inline-flex min-h-11 w-11 items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]",
-                      hasBuruh ? "bg-[var(--ds-accent-soft)]" : "bg-[var(--ds-surface-muted)]"
-                    )}
+                    className="relative inline-flex min-h-11 w-11 items-center justify-center shrink-0 cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]"
                   >
                     <span
                       className={cn(
-                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-[var(--ds-surface)] shadow-md ring-0 transition duration-150 ease-out",
-                        hasBuruh ? "translate-x-5" : "translate-x-0"
+                        "inline-flex h-6 w-11 items-center rounded-full transition-colors duration-150 ease-out",
+                        hasBuruh
+                          ? "bg-[var(--ds-accent-solid)]"
+                          : "bg-[var(--ds-surface)] ring-1 ring-inset ring-[var(--ds-border-control)]"
                       )}
-                    />
+                    >
+                      <span
+                        className={cn(
+                          "pointer-events-none inline-block h-4 w-4 transform rounded-full shadow-xs transition duration-150 ease-out",
+                          hasBuruh
+                            ? "translate-x-6 bg-[var(--ds-accent-on-solid)]"
+                            : "translate-x-1 bg-[var(--ds-fg-muted)]"
+                        )}
+                      />
+                    </span>
                   </button>
                 </div>
 
@@ -990,7 +996,7 @@ export function SuratTugasDetailStep({
                         onClick={() => setJumlahBuruh((prev) => Math.max(1, prev - 1))}
                         disabled={jumlahBuruh <= 1}
                         aria-label="Kurangi jumlah buruh"
-                        className="w-11 h-11 rounded-lg bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                        className="w-11 h-11 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-accent-fg)] font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
                       >
                         -
                       </button>
@@ -1004,14 +1010,14 @@ export function SuratTugasDetailStep({
                           const val = parseInt(e.target.value, 10);
                           setJumlahBuruh(isNaN(val) ? 1 : Math.max(1, Math.min(100, val)));
                         }}
-                        className="w-16 px-2 py-1.5 text-center bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] rounded-lg text-sm font-bold text-[var(--ds-fg)]"
+                        className="w-16 px-2 py-2 text-center bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] rounded-lg text-sm font-bold text-[var(--ds-fg)] tabular-nums"
                       />
                       <button
                         type="button"
                         onClick={() => setJumlahBuruh((prev) => Math.min(100, prev + 1))}
                         disabled={jumlahBuruh >= 100}
                         aria-label="Tambah jumlah buruh"
-                        className="w-11 h-11 rounded-lg bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
+                        className="w-11 h-11 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-accent-fg)] font-bold flex items-center justify-center transition-colors disabled:opacity-40 cursor-pointer"
                       >
                         +
                       </button>
@@ -1032,10 +1038,10 @@ export function SuratTugasDetailStep({
                 <label
                   key={opt.id}
                   className={cn(
-                    "flex items-center p-4 border rounded-xl cursor-pointer transition-colors",
+                    "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
                     formData.sumber_dana === opt.id
-                      ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] ring-1 ring-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)]"
-                      : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
+                      ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-solid)] ring-1 ring-[var(--ds-accent-solid)] text-[var(--ds-accent-fg)]"
+                      : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]"
                   )}
                 >
                   <input
@@ -1051,14 +1057,14 @@ export function SuratTugasDetailStep({
                   />
                   <div
                     className={cn(
-                      "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
+                      "w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center mr-3 bg-[var(--ds-surface)] transition-colors",
                       formData.sumber_dana === opt.id
-                        ? "border-[var(--ds-accent-soft-border)]"
-                        : "border-[var(--ds-border-subtle)]"
+                        ? "border-[var(--ds-accent-solid)]"
+                        : "border-[var(--ds-border-control)]"
                     )}
                   >
                     {formData.sumber_dana === opt.id && (
-                      <div className="w-2.5 h-2.5 bg-[var(--ds-accent-soft)] rounded-full" />
+                      <div className="w-2 h-2 bg-[var(--ds-accent-solid)] rounded-full" />
                     )}
                   </div>
                   <span className="text-xs font-bold">{opt.label}</span>
@@ -1077,7 +1083,7 @@ export function SuratTugasDetailStep({
                   onChange={(e) =>
                     setFormData({ ...formData, sumber_dana_other: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium"
+                  className="w-full px-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg)]"
                   placeholder="Sebutkan sumber dana..."
                 />
               </div>
@@ -1090,7 +1096,7 @@ export function SuratTugasDetailStep({
               <label htmlFor="plh-search" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                 Nama PLH <span className="text-[var(--ds-status-danger-fg)]">*</span>
               </label>
-              <p className="text-xs text-[var(--ds-status-warning-fg)] font-medium bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-xl px-4 py-2">
+              <p className="text-xs text-[var(--ds-status-warning-fg)] font-medium bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-lg px-4 py-2">
                 Wajib diisi karena Kepala Subbagian Tata Usaha atau Kepala Seksi melaksanakan perjalanan dinas.
               </p>
               <div className="relative" ref={plhDropdownRef} onKeyDown={(event) => {
@@ -1123,20 +1129,20 @@ export function SuratTugasDetailStep({
                       setShowPlhDropdown(true);
                     }}
                     onFocus={() => setShowPlhDropdown(true)}
-                    className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl focus:bg-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium"
+                    className="w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors text-sm font-medium text-[var(--ds-fg)]"
                     placeholder="Nama atau NIP PLH"
                   />
                 </div>
                 {showPlhDropdown &&
                   plhSearchQuery.length >= 2 &&
                   plhSearchResults.length > 0 && (
-                    <div className="absolute mt-2 w-full bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] overflow-hidden max-h-60 overflow-y-auto z-30">
-                      <ul className="py-2">
+                    <div className="absolute mt-2 w-full bg-[var(--ds-surface)] rounded-3xl p-2 shadow-lg border border-slate-200/80 dark:border-zinc-800 overflow-hidden max-h-60 overflow-y-auto z-30">
+                      <ul className="space-y-1">
                         {plhSearchResults.map((emp: Employee) => (
                           <li key={emp.id}>
                             <button
                               type="button"
-                              className="w-full text-left px-4 py-3 hover:bg-[var(--ds-surface-muted)] focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)] flex items-center justify-between transition-colors cursor-pointer"
+                              className="w-full text-left px-4 py-3 rounded-lg hover:bg-[var(--ds-surface-muted)] focus-visible:bg-[var(--ds-accent-soft)] focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)] flex items-center justify-between transition-colors cursor-pointer"
                               onClick={() => {
                                 plhDropdownRef.current?.querySelector("input")?.focus();
                                 setNamaPlh(emp.name);
@@ -1145,10 +1151,10 @@ export function SuratTugasDetailStep({
                               }}
                             >
                               <div className="flex flex-col overflow-hidden">
-                                <span className="text-sm font-semibold truncate text-[var(--ds-fg-muted)]">
+                                <span className="text-sm font-semibold truncate text-[var(--ds-fg)]">
                                   {emp.name}
                                 </span>
-                                <span className="text-xs text-[var(--ds-fg-muted)] truncate mt-0.5">
+                                <span className="text-xs text-[var(--ds-fg-muted)] truncate mt-1 tabular-nums">
                                   {emp.department && emp.department !== "-"
                                     ? emp.department
                                     : emp.nip}
@@ -1162,7 +1168,7 @@ export function SuratTugasDetailStep({
                   )}
               </div>
               {namaPlh && (
-                <div className="flex items-center gap-2 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl px-3 py-2">
+                <div className="flex items-center gap-2 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-lg px-3 py-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                   <span className="text-sm font-bold text-[var(--ds-accent-fg)] flex-1 truncate">
                     {namaPlh}
@@ -1192,10 +1198,10 @@ export function SuratTugasDetailStep({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <label
                   className={cn(
-                    "flex items-center p-4 border rounded-xl cursor-pointer transition-colors",
+                    "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
                     tandaSetuju === "sudah"
-                      ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] ring-1 ring-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)]"
-                      : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
+                      ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-solid)] ring-1 ring-[var(--ds-accent-solid)] text-[var(--ds-accent-fg)]"
+                      : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]"
                   )}
                 >
                   <input
@@ -1209,22 +1215,22 @@ export function SuratTugasDetailStep({
                   />
                   <div
                     className={cn(
-                      "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
-                      tandaSetuju === "sudah" ? "border-[var(--ds-accent-soft-border)]" : "border-[var(--ds-border-subtle)]"
+                      "w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center mr-3 bg-[var(--ds-surface)] transition-colors",
+                      tandaSetuju === "sudah" ? "border-[var(--ds-accent-solid)]" : "border-[var(--ds-border-control)]"
                     )}
                   >
                     {tandaSetuju === "sudah" && (
-                      <div className="w-2.5 h-2.5 bg-[var(--ds-accent-soft)] rounded-full" />
+                      <div className="w-2 h-2 bg-[var(--ds-accent-solid)] rounded-full" />
                     )}
                   </div>
                   <span className="text-xs font-bold">Sudah disetujui Kepala Seksi</span>
                 </label>
                 <label
                   className={cn(
-                    "flex items-center p-4 border rounded-xl cursor-pointer transition-colors",
+                    "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
                     tandaSetuju === "belum"
-                      ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] ring-1 ring-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)]"
-                      : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
+                      ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-fg)] ring-1 ring-[var(--ds-status-warning-fg)] text-[var(--ds-status-warning-fg)]"
+                      : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]"
                   )}
                 >
                   <input
@@ -1238,12 +1244,12 @@ export function SuratTugasDetailStep({
                   />
                   <div
                     className={cn(
-                      "w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors",
-                      tandaSetuju === "belum" ? "border-[var(--ds-status-warning-border)]" : "border-[var(--ds-border-subtle)]"
+                      "w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center mr-3 bg-[var(--ds-surface)] transition-colors",
+                      tandaSetuju === "belum" ? "border-[var(--ds-status-warning-fg)]" : "border-[var(--ds-border-control)]"
                     )}
                   >
                     {tandaSetuju === "belum" && (
-                      <div className="w-2.5 h-2.5 bg-[var(--ds-status-warning-fg)] rounded-full" />
+                      <div className="w-2 h-2 bg-[var(--ds-status-warning-fg)] rounded-full" />
                     )}
                   </div>
                   <span className="text-xs font-bold">Belum disetujui Kepala Seksi</span>
@@ -1273,30 +1279,30 @@ export function SuratTugasDetailStep({
               <label
                 htmlFor="dasar_surat"
                 className={cn(
-                  "flex flex-col items-center justify-center st-upload w-full min-h-28 border-2 border-dashed rounded-2xl cursor-pointer transition-colors bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]",
+                  "flex flex-col items-center justify-center st-upload w-full min-h-28 border-2 border-dashed rounded-3xl cursor-pointer transition-colors bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)]",
                   selectedFile
                     ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]"
-                    : "border-[var(--ds-border-subtle)]"
+                    : "border-slate-200/80 dark:border-zinc-800"
                 )}
               >
-                <div className="flex min-w-0 max-w-full flex-col items-center justify-center px-3 py-4">
+                <div className="flex min-w-0 max-w-full flex-col items-center justify-center px-4 py-4">
                   {selectedFile ? (
                     <>
-                      <FileText className="w-7 h-7 text-[var(--ds-accent-fg)] mb-1.5" />
+                      <FileText className="w-8 h-8 text-[var(--ds-accent-fg)] mb-2" />
                       <p className="text-xs font-bold text-[var(--ds-accent-fg)] break-all text-center max-w-full">
                         {selectedFile.name}
                       </p>
-                      <p className="text-xs text-[var(--ds-accent-fg)] font-medium mt-0.5">
+                      <p className="text-xs text-[var(--ds-accent-fg)] font-medium mt-1 tabular-nums">
                         {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
                     </>
                   ) : (
                     <>
-                      <Upload className="w-7 h-7 text-[var(--ds-fg-muted)] mb-1.5" />
+                      <Upload className="w-8 h-8 text-[var(--ds-fg-muted)] mb-2" />
                       <p className="text-xs font-semibold text-[var(--ds-fg-muted)]">
                         Klik untuk upload dokumen pendukung / disposisi
                       </p>
-                      <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                      <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                         PDF atau Gambar (Max. 10MB)
                       </p>
                     </>
@@ -1317,20 +1323,20 @@ export function SuratTugasDetailStep({
               onChange={(e) =>
                 setFormData({ ...formData, keterangan: e.target.value })
               }
-              className="w-full min-h-20 p-3.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl focus:bg-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors resize-none text-xs font-medium text-[var(--ds-fg)]"
+              className="w-full min-h-20 p-4 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors resize-none text-sm font-medium text-[var(--ds-fg)]"
               placeholder="Catatan tambahan (opsional)"
             />
           </div>
         </div>
 
         {/* Action Button */}
-        <div className="pt-6 border-t border-[var(--ds-border-subtle)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="pt-6 border-t border-slate-200/70 dark:border-zinc-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={() => setStep(1)}
             disabled={isSubmitting}
-            className="min-h-12 h-auto whitespace-normal px-4 sm:px-6 rounded-xl border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] font-bold text-xs cursor-pointer"
+            className="min-h-12 h-auto whitespace-normal px-4 sm:px-6 rounded-lg border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] font-bold text-xs cursor-pointer"
           >
             Kembali ke Personel
           </Button>
@@ -1338,7 +1344,7 @@ export function SuratTugasDetailStep({
           <Button
             type="submit"
             disabled={isSubmitting || hasConflict}
-            className="min-h-12 h-auto whitespace-normal px-4 sm:px-8 py-3 rounded-xl font-bold text-xs"
+            className="min-h-12 h-auto whitespace-normal px-4 sm:px-8 py-3 rounded-lg font-bold text-xs"
           >
             {isSubmitting
               ? "Mengirim Data..."

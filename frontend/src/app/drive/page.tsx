@@ -3,14 +3,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Loader2,
-  HardDrive,
-  Users2,
-  FolderOpen,
-  Sparkles,
   RefreshCw,
 } from "lucide-react";
 import { RouteGuard } from "@/components/RouteGuard";
@@ -43,7 +39,6 @@ import { DriveShareDialog } from "./_components/DriveShareDialog";
 import { DriveMoveDialog } from "./_components/DriveMoveDialog";
 
 function DriveDashboard() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Navigation & Filter state (support initial space & folder_id from URL)
@@ -78,6 +73,11 @@ function DriveDashboard() {
   const [assignManagerFolder, setAssignManagerFolder] = useState<DriveFolderItem | null>(null);
   const [selectedEmployeeNip, setSelectedEmployeeNip] = useState<string>("");
   const [assigning, setAssigning] = useState<boolean>(false);
+  const [confirmForceDelete, setConfirmForceDelete] = useState<{ type: "folder" | "file"; id: number } | null>(null);
+  const [transferItem, setTransferItem] = useState<{ type: "folder" | "file"; id: number; name: string } | null>(null);
+  const [transferCandidates, setTransferCandidates] = useState<Array<{ id: number; name: string; email: string }>>([]);
+  const [transferTargetUserId, setTransferTargetUserId] = useState<string>("");
+  const [transferring, setTransferring] = useState<boolean>(false);
 
   const { user } = useAuth();
   const isDriveAdmin = Boolean(
@@ -209,7 +209,7 @@ function DriveDashboard() {
 
   const handleToggleStar = async (type: "folder" | "file", id: number) => {
     try {
-      const endpoint = type === "folder" ? `/drive/folders/${id}/star` : `/drive/files/${id}/star`;
+      const endpoint = type === "folder" ? `/drive/folder/${id}/star` : `/drive/file/${id}/star`;
       const res = await api.put(endpoint);
       toast.success(res.data.is_starred ? "Ditambahkan ke Berbintang" : "Dihapus dari Berbintang");
       // Update local state smoothly
@@ -229,7 +229,7 @@ function DriveDashboard() {
 
   const handleRename = async (type: "folder" | "file", id: number, newName: string) => {
     try {
-      const endpoint = type === "folder" ? `/drive/folders/${id}/rename` : `/drive/files/${id}/rename`;
+      const endpoint = type === "folder" ? `/drive/folder/${id}/rename` : `/drive/file/${id}/rename`;
       await api.put(endpoint, { name: newName });
       toast.success("Nama berhasil diubah.");
       loadDriveData(false);
@@ -241,7 +241,7 @@ function DriveDashboard() {
 
   const handleTrash = async (type: "folder" | "file", id: number) => {
     try {
-      const endpoint = type === "folder" ? `/drive/folders/${id}` : `/drive/files/${id}`;
+      const endpoint = type === "folder" ? `/drive/folder/${id}` : `/drive/file/${id}`;
       await api.delete(endpoint);
       toast.success("Dipindahkan ke Sampah.");
       loadDriveData(false);
@@ -252,7 +252,7 @@ function DriveDashboard() {
 
   const handleRestore = async (type: "folder" | "file", id: number) => {
     try {
-      const endpoint = type === "folder" ? `/drive/folders/${id}/restore` : `/drive/files/${id}/restore`;
+      const endpoint = type === "folder" ? `/drive/folder/${id}/restore` : `/drive/file/${id}/restore`;
       await api.post(endpoint);
       toast.success("Item berhasil dipulihkan.");
       loadDriveData(false);
@@ -263,7 +263,7 @@ function DriveDashboard() {
 
   const handleForceDelete = async (type: "folder" | "file", id: number) => {
     try {
-      const endpoint = type === "folder" ? `/drive/folders/${id}/force` : `/drive/files/${id}/force`;
+      const endpoint = type === "folder" ? `/drive/folder/${id}/force` : `/drive/file/${id}/force`;
       await api.delete(endpoint);
       toast.success("Item telah dihapus secara permanen.");
       loadDriveData(false);
@@ -272,11 +272,42 @@ function DriveDashboard() {
     }
   };
 
+  const handleOpenTransferOwnership = async (type: "folder" | "file", item: { id: number; name: string }) => {
+    setTransferItem({ type, id: item.id, name: item.name });
+    setTransferTargetUserId("");
+    if (transferCandidates.length === 0) {
+      try {
+        const res = await api.get("/drive/shares/candidates");
+        setTransferCandidates(res.data?.data || []);
+      } catch {
+        // non-blocking
+      }
+    }
+  };
+
+  const handleTransferOwnershipSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!transferItem || !transferTargetUserId) return;
+    setTransferring(true);
+    try {
+      const res = await api.post(`/drive/${transferItem.type}/${transferItem.id}/transfer-ownership`, {
+        target_user_id: parseInt(transferTargetUserId, 10),
+      });
+      toast.success(res.data?.message || "Kepemilikan berhasil dialihkan.");
+      setTransferItem(null);
+      loadDriveData(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengalihkan kepemilikan.");
+    } finally {
+      setTransferring(false);
+    }
+  };
+
   const handleDownloadFile = async (file: DriveFileItem) => {
     try {
       const res = await api.get(`/drive/files/${file.id}/url?download=1`);
       if (res.data?.url) {
-        window.open(res.data.url, "_blank");
+        window.open(res.data.url, "_blank", "noopener,noreferrer");
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal mengunduh berkas.");
@@ -387,9 +418,11 @@ function DriveDashboard() {
             isUnit={isUnit}
             search={search}
             viewMode={viewMode}
+            categoryFilter={categoryFilter}
             canWrite={canWrite && currentFilter !== "trash"}
             onSearchChange={setSearch}
             onViewModeChange={setViewMode}
+            onCategoryFilterChange={setCategoryFilter}
             onNavigateFolder={handleNavigateFolder}
             onCreateFolder={handleCreateFolder}
             onOpenUpload={() => setUploadOpen(true)}
@@ -407,6 +440,9 @@ function DriveDashboard() {
               viewMode={viewMode}
               isTrash={currentFilter === "trash"}
               canWrite={canWrite}
+              isDriveAdmin={isDriveAdmin}
+              onAssignManager={setAssignManagerFolder}
+              onTransferOwnership={handleOpenTransferOwnership}
               onOpenFolder={handleNavigateFolder}
               onPreviewFile={setPreviewFile}
               onDownloadFile={handleDownloadFile}
@@ -417,7 +453,7 @@ function DriveDashboard() {
               onRename={handleRename}
               onTrash={handleTrash}
               onRestore={handleRestore}
-              onForceDelete={handleForceDelete}
+              onForceDelete={(type, id) => setConfirmForceDelete({ type, id })}
             />
           )}
         </section>
@@ -442,8 +478,73 @@ function DriveDashboard() {
       <DriveShareDialog
         file={shareFile}
         open={Boolean(shareFile)}
+        units={units}
         onOpenChange={(open) => !open && setShareFile(null)}
       />
+
+      {/* Confirm Permanent Delete Dialog */}
+      <Dialog open={!!confirmForceDelete} onOpenChange={(open) => !open && setConfirmForceDelete(null)}>
+        <DialogContent className="max-w-sm rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-rose-600">Hapus Permanen?</DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Item ini beserta berkas di storage akan dihapus permanen dan tidak dapat dipulihkan lagi.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-3">
+            <Button variant="outline" size="sm" onClick={() => setConfirmForceDelete(null)} className="rounded-xl text-xs">
+              Batal
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-xl text-xs bg-rose-600 hover:bg-rose-700 text-white"
+              onClick={() => {
+                if (confirmForceDelete) {
+                  handleForceDelete(confirmForceDelete.type, confirmForceDelete.id);
+                  setConfirmForceDelete(null);
+                }
+              }}
+            >
+              Ya, Hapus Permanen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer Ownership Dialog */}
+      <Dialog open={!!transferItem} onOpenChange={(open) => !open && setTransferItem(null)}>
+        <DialogContent className="max-w-md rounded-3xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold">Alihkan Kepemilikan</DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Pilih pengguna aktif baru sebagai pemilik <strong>{transferItem?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleTransferOwnershipSubmit} className="space-y-4 pt-2">
+            <select
+              value={transferTargetUserId}
+              onChange={(e) => setTransferTargetUserId(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-xs font-medium"
+              required
+            >
+              <option value="">-- Pilih Pengguna Baru --</option>
+              {transferCandidates.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.email})
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setTransferItem(null)} className="rounded-xl text-xs">
+                Batal
+              </Button>
+              <Button type="submit" size="sm" disabled={transferring || !transferTargetUserId} className="rounded-xl text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                {transferring ? "Memproses..." : "Alihkan Kepemilikan"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Assign Manager Dialog */}
       <Dialog open={!!assignManagerFolder} onOpenChange={(open) => !open && setAssignManagerFolder(null)}>

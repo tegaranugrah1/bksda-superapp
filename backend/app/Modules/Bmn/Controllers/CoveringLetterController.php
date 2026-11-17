@@ -5,12 +5,14 @@ namespace App\Modules\Bmn\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Models\CoveringLetter;
 use App\Modules\Bmn\Resources\CoveringLetterResource;
+use App\Modules\Bmn\Traits\ResolvesDocumentStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class CoveringLetterController extends Controller
 {
+    use ResolvesDocumentStatus;
     public function index(Request $request)
     {
         $request->validate([
@@ -36,20 +38,6 @@ class CoveringLetterController extends Controller
             : CoveringLetter::with(['senderEmployee', 'generator'])->findOrFail($letter);
 
         return response()->json(['data' => new CoveringLetterResource($model)]);
-    }
-
-    protected function determineStatus(?string $number, ?string $explicitStatus = null): string
-    {
-        if ($explicitStatus && in_array($explicitStatus, ['draft', 'published'], true)) {
-            return $explicitStatus;
-        }
-        if (empty($number) || trim($number) === '' || trim($number) === '-') {
-            return 'draft';
-        }
-        if (str_contains($number, "\u{00A0}") || preg_match('/^(?:BA|KS|SP)\.\s*\//i', $number)) {
-            return 'draft';
-        }
-        return 'published';
     }
 
     public function store(Request $request): JsonResponse

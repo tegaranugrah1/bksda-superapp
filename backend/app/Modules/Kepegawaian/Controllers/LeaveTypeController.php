@@ -25,7 +25,7 @@ class LeaveTypeController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $isAdmin = $user && in_array($user->role, ['super_admin', 'admin'], true);
+        $isAdmin = (bool) $user?->isAdminFor('kepegawaian');
 
         $query = LeaveType::query();
 
@@ -34,20 +34,22 @@ class LeaveTypeController extends Controller
             $query->where('is_active', true);
         }
 
-        if ($request->filled('search')) {
-            $search = addcslashes(strip_tags(trim((string) $request->query('search'))), '%_');
-            $likeOp = config('database.default') === 'pgsql' ? 'ILIKE' : 'LIKE';
-            $query->where(function ($q) use ($search, $likeOp) {
-                $q->where('nama', $likeOp, "%{$search}%")
-                  ->orWhere('kode', $likeOp, "%{$search}%")
-                  ->orWhere('keterangan', $likeOp, "%{$search}%");
+        $rawSearch = $request->query('search');
+        if (is_string($rawSearch) && ($cleaned = $this->cleanString($rawSearch)) !== null) {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $cleaned) . '%';
+            $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+            $query->where(function ($q) use ($pattern, $likeOp) {
+                $q->whereRaw("nama {$likeOp} ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("kode {$likeOp} ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("keterangan {$likeOp} ? ESCAPE '!'", [$pattern]);
             });
         }
 
         // Filter leave types based on employee type (MMP = none, PPPK = no CAP)
+        // Hanya admin Kepegawaian yang boleh memilih target employee_id agar tidak membuka enumerasi status pegawai.
         $targetEmployee = null;
-        if ($request->filled('employee_id')) {
-            $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::find($request->query('employee_id'));
+        if ($isAdmin && $request->filled('employee_id')) {
+            $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::find($request->integer('employee_id'));
         } elseif ($user) {
             $targetEmployee = \App\Modules\Kepegawaian\Models\Employee::where('nip', $user->username)->first();
         }
@@ -75,7 +77,7 @@ class LeaveTypeController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $isAdmin = $user && in_array($user->role, ['super_admin', 'admin'], true);
+        $isAdmin = (bool) $user?->isAdminFor('kepegawaian');
 
         $query = LeaveType::query();
         if (!$isAdmin) {
@@ -89,34 +91,55 @@ class LeaveTypeController extends Controller
         ]);
     }
 
+    private function validatedAttributes(Request $request, ?int $ignoreId = null, ?bool $defaultActive = true): array
+    {
+        if (is_string($request->input('nama'))) {
+            $request->merge(['nama' => $this->cleanString($request->input('nama')) ?? '']);
+        }
+        if (is_string($request->input('kode'))) {
+            $cleanKode = $this->cleanString($request->input('kode'));
+            $request->merge(['kode' => $cleanKode !== null ? strtoupper($cleanKode) : null]);
+        }
+
+        $uniqueNama = Rule::unique('kpg_leave_types', 'nama')->whereNull('deleted_at');
+        if ($ignoreId !== null) {
+            $uniqueNama->ignore($ignoreId);
+        }
+
+        $validated = $request->validate([
+            'nama' => ['required', 'string', 'max:150', $uniqueNama],
+            'kode' => ['nullable', 'string', 'max:30'],
+            'hitung_hari' => ['required', 'string', Rule::in(['hari_kerja', 'hari_kalender'])],
+            'potong_kuota_tahunan' => ['required', 'boolean'],
+            'maks_hari' => ['nullable', 'integer', 'min:1', 'max:3650'],
+            'keterangan' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['nullable', 'boolean'],
+            'urutan' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        return [
+            'nama' => $validated['nama'],
+            'kode' => !empty($validated['kode']) ? $validated['kode'] : null,
+            'hitung_hari' => $validated['hitung_hari'],
+            'potong_kuota_tahunan' => (bool) $validated['potong_kuota_tahunan'],
+            'maks_hari' => isset($validated['maks_hari']) ? (int) $validated['maks_hari'] : null,
+            'keterangan' => $this->cleanString($validated['keterangan'] ?? null),
+            'is_active' => $validated['is_active'] ?? $defaultActive,
+            'urutan' => $validated['urutan'] ?? 0,
+        ];
+    }
+
     /**
      * Store a newly created leave type.
      */
     public function store(Request $request): JsonResponse
     {
-        $item = DB::transaction(function () use ($request) {
-            LeaveType::lockCatalog(true);
-            $validated = $request->validate([
-                'nama' => ['required', 'string', 'max:150', Rule::unique('kpg_leave_types', 'nama')->whereNull('deleted_at')],
-                'kode' => ['nullable', 'string', 'max:30'],
-                'hitung_hari' => ['required', 'string', Rule::in(['hari_kerja', 'hari_kalender'])],
-                'potong_kuota_tahunan' => ['required', 'boolean'],
-                'maks_hari' => ['nullable', 'integer', 'min:1', 'max:3650'],
-                'keterangan' => ['nullable', 'string', 'max:1000'],
-                'is_active' => ['nullable', 'boolean'],
-                'urutan' => ['nullable', 'integer', 'min:0'],
-            ]);
+        $attributes = $this->validatedAttributes($request);
 
-            return LeaveType::create([
-                'nama' => $this->cleanString($validated['nama']),
-                'kode' => !empty($validated['kode']) ? strtoupper($this->cleanString($validated['kode'])) : null,
-                'hitung_hari' => $validated['hitung_hari'],
-                'potong_kuota_tahunan' => (bool) $validated['potong_kuota_tahunan'],
-                'maks_hari' => isset($validated['maks_hari']) ? (int) $validated['maks_hari'] : null,
-                'keterangan' => $this->cleanString($validated['keterangan'] ?? null),
-                'is_active' => $validated['is_active'] ?? true,
-                'urutan' => $validated['urutan'] ?? 0,
-            ]);
+        $item = DB::transaction(function () use ($attributes) {
+            LeaveType::lockCatalog(true);
+
+            return LeaveType::create($attributes);
         });
 
         return response()->json([
@@ -130,36 +153,20 @@ class LeaveTypeController extends Controller
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        $item = DB::transaction(function () use ($request, $id) {
+        $item = LeaveType::findOrFail($id);
+        $attributes = $this->validatedAttributes($request, $item->id, $item->is_active);
+        $attributes['urutan'] = $request->has('urutan') ? $attributes['urutan'] : $item->urutan;
+
+        $item = DB::transaction(function () use ($id, $attributes) {
             LeaveType::lockCatalog(true);
             $item = LeaveType::lockForUpdate()->findOrFail($id);
-
-            $validated = $request->validate([
-                'nama' => ['required', 'string', 'max:150', Rule::unique('kpg_leave_types', 'nama')->ignore($item->id)->whereNull('deleted_at')],
-                'kode' => ['nullable', 'string', 'max:30'],
-                'hitung_hari' => ['required', 'string', Rule::in(['hari_kerja', 'hari_kalender'])],
-                'potong_kuota_tahunan' => ['required', 'boolean'],
-                'maks_hari' => ['nullable', 'integer', 'min:1', 'max:3650'],
-                'keterangan' => ['nullable', 'string', 'max:1000'],
-                'is_active' => ['nullable', 'boolean'],
-                'urutan' => ['nullable', 'integer', 'min:0'],
-            ]);
 
             $aliases = [mb_strtolower(trim($item->nama))];
             if ($item->kode !== null && trim($item->kode) !== '') {
                 $aliases[] = mb_strtolower(trim($item->kode));
             }
 
-            $item->update([
-                'nama' => $this->cleanString($validated['nama']),
-                'kode' => !empty($validated['kode']) ? strtoupper($this->cleanString($validated['kode'])) : null,
-                'hitung_hari' => $validated['hitung_hari'],
-                'potong_kuota_tahunan' => (bool) $validated['potong_kuota_tahunan'],
-                'maks_hari' => isset($validated['maks_hari']) ? (int) $validated['maks_hari'] : null,
-                'keterangan' => $this->cleanString($validated['keterangan'] ?? null),
-                'is_active' => $validated['is_active'] ?? $item->is_active,
-                'urutan' => $validated['urutan'] ?? $item->urutan,
-            ]);
+            $item->update($attributes);
 
             if ($item->wasChanged(['nama', 'kode'])) {
                 // Keep historical names/codes attached to the renamed master, including archived rows.

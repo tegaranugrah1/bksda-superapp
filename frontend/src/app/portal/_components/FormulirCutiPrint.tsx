@@ -3,6 +3,7 @@
 import React from "react";
 import { formatDateIndonesian, formatNipLabel } from "@/lib/letter-utils";
 import { calculateMasaKerja } from "@/app/kepegawaian/_lib/employee-helpers";
+import { resolveAtasanFromSatuanKerja } from "@/lib/locations";
 
 
 export interface LeaveRequestPrintData {
@@ -39,6 +40,7 @@ export interface LeaveRequestPrintData {
     nip: string;
     jabatan?: string;
     satuan_kerja?: string;
+    resor?: string | null;
     pangkat_golongan?: string;
     masa_kerja?: string | null;
   };
@@ -54,36 +56,8 @@ interface FormulirCutiPrintProps {
 
 const formatDateIndo = (dateStr?: string | null): string => (dateStr ? formatDateIndonesian(dateStr) : "-");
 
-function getKotaAtasanFromSatuanKerja(satuanKerja?: string) {
-  const sk = (satuanKerja || "").toLowerCase();
-
-  let kota = "Samarinda";
-  let atasanTitle = "Kasubbag Tata Usaha";
-  let atasanNama = "DHENY MARDIONO, S.Hut., M.Sc.";
-  let atasanNip = "19750314 199903 1 004";
-
-  if (sk.includes("wilayah iii") || sk.includes("balikpapan")) {
-    kota = "Balikpapan";
-    atasanTitle = "Kepala Seksi KSDA Wilayah III Balikpapan";
-    atasanNama = "BAMBANG HARI TRIMARSITO, S.Si., M.P.";
-    atasanNip = "19740626 200112 1 004";
-  } else if (sk.includes("wilayah ii") || sk.includes("tenggarong")) {
-    kota = "Tenggarong";
-    atasanTitle = "Kepala Seksi KSDA Wilayah II Tenggarong";
-    atasanNama = "SURIAWATI HALIM, S.Hut., M.P.";
-    atasanNip = "19751127 200003 2 001";
-  } else if (sk.includes("wilayah i") || sk.includes("berau")) {
-    kota = "Tanjung Redeb";
-    atasanTitle = "Kepala Seksi KSDA Wilayah I Berau";
-    atasanNama = "YULIAN SADONO, S.Hut., M.T.";
-    atasanNip = "19800707 200604 1 003";
-  }
-
-  return { kota, atasanTitle, atasanNama, atasanNip };
-}
-
 export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
-  const emp = data.employee || {
+  const emp: NonNullable<LeaveRequestPrintData["employee"]> = data.employee || {
     nama_lengkap: "( .................................................... )",
     nip: "-",
     jabatan: "-",
@@ -93,7 +67,7 @@ export function FormulirCutiPrint({ data }: FormulirCutiPrintProps) {
   const currentYear = data.tanggal_mulai && !Number.isNaN(new Date(data.tanggal_mulai).getTime())
     ? new Date(data.tanggal_mulai).getFullYear()
     : new Date().getFullYear();
-  const { kota: kotaTujuan, atasanTitle, atasanNama, atasanNip } = getKotaAtasanFromSatuanKerja(emp.satuan_kerja);
+  const { kota: kotaTujuan, atasanTitle, atasanNama, atasanNip } = resolveAtasanFromSatuanKerja(emp.satuan_kerja, emp.resor);
 
   const isDefaultDheny = !data.kasubbag_nama || data.kasubbag_nama.includes("DHENY");
   const finalAtasanNama = (isDefaultDheny && atasanNama !== "DHENY MARDIONO, S.Hut., M.Sc.") ? atasanNama : (data.kasubbag_nama || atasanNama);

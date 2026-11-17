@@ -7,44 +7,33 @@ export interface BankTheme {
   iconText: string;
 }
 
-export const POPULAR_BANKS = [
-  "BRI",
-  "Mandiri",
-  "BSI",
-  "Bankaltimtara",
-  "BNI",
-  "BCA",
-  "BTN",
-  "BJB",
-];
-
 export const getBankTheme = (bank: string): BankTheme => {
   const b = (bank || "").toUpperCase().trim();
   if (b.includes("BRI")) {
     return {
-      border: "border-blue-200 dark:border-blue-900/60",
-      bgBadge: "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
-      text: "text-blue-700 dark:text-blue-400",
-      accent: "bg-blue-600 hover:bg-blue-700 text-white",
+      border: "border-[var(--ds-accent-soft-border)]",
+      bgBadge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+      text: "text-[var(--ds-accent-fg)]",
+      accent: "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]",
       tag: "PNS_BRI & PPPK_BRI",
       iconText: "BRI",
     };
   }
   if (b.includes("MANDIRI") || b === "MNDRI") {
     return {
-      border: "border-indigo-200 dark:border-indigo-900/60",
-      bgBadge: "bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800",
-      text: "text-indigo-700 dark:text-indigo-400",
-      accent: "bg-indigo-600 hover:bg-indigo-700 text-white",
+      border: "border-[var(--ds-accent-soft-border)]",
+      bgBadge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+      text: "text-[var(--ds-accent-fg)]",
+      accent: "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]",
       tag: "PNS_MNDRI & PPPK_MNDRI",
       iconText: "MNDR",
     };
   }
   if (b.includes("BSI")) {
     return {
-      border: "border-emerald-200 dark:border-emerald-900/60",
-      bgBadge: "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
-      text: "text-emerald-700 dark:text-emerald-400",
+      border: "border-[var(--ds-status-success-border)]",
+      bgBadge: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]",
+      text: "text-[var(--ds-status-success-fg)]",
       accent: "bg-emerald-600 hover:bg-emerald-700 text-white",
       tag: "PNS_BSI & PPPK_BSI",
       iconText: "BSI",
@@ -72,10 +61,10 @@ export const getBankTheme = (bank: string): BankTheme => {
   }
   if (b.includes("BCA")) {
     return {
-      border: "border-cyan-200 dark:border-cyan-900/60",
-      bgBadge: "bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800",
-      text: "text-cyan-700 dark:text-cyan-400",
-      accent: "bg-cyan-600 hover:bg-cyan-700 text-white",
+      border: "border-[var(--ds-accent-soft-border)]",
+      bgBadge: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]",
+      text: "text-[var(--ds-accent-fg)]",
+      accent: "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]",
       tag: "PNS_BCA & PPPK_BCA",
       iconText: "BCA",
     };

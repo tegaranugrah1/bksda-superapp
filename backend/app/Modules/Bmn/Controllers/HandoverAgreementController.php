@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\HandoverAgreement;
 use App\Modules\Bmn\Resources\HandoverAgreementResource;
+use App\Modules\Bmn\Traits\ResolvesDocumentStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class HandoverAgreementController extends Controller
 {
+    use ResolvesDocumentStatus;
     public function index(Request $request)
     {
         $request->validate([
@@ -44,20 +46,6 @@ class HandoverAgreementController extends Controller
         $agreement = HandoverAgreement::with(['firstPartyEmployee', 'secondPartyEmployee', 'generator'])->findOrFail($id);
 
         return response()->json(['data' => new HandoverAgreementResource($agreement)]);
-    }
-
-    protected function determineStatus(?string $number, ?string $explicitStatus = null): string
-    {
-        if ($explicitStatus && in_array($explicitStatus, ['draft', 'published'], true)) {
-            return $explicitStatus;
-        }
-        if (empty($number) || trim($number) === '' || trim($number) === '-') {
-            return 'draft';
-        }
-        if (str_contains($number, "\u{00A0}") || preg_match('/^(?:BA|KS|SP)\.\s*\//i', $number)) {
-            return 'draft';
-        }
-        return 'published';
     }
 
     public function store(Request $request): JsonResponse
@@ -285,28 +273,47 @@ class HandoverAgreementController extends Controller
                     ? (int) $item['quantity']
                     : (trim((string) ($item['quantity'] ?? '1')) ?: 1),
                 'nup' => $item['nup'] ?? null,
-                'foto_depan_url' => $item['foto_depan_url'] ?? null,
-                'foto_belakang_url' => $item['foto_belakang_url'] ?? null,
-                'foto_kiri_url' => $item['foto_kiri_url'] ?? null,
-                'foto_kanan_url' => $item['foto_kanan_url'] ?? null,
-                'foto_geotag_url' => $item['foto_geotag_url'] ?? null,
-                'foto_url' => $item['foto_url'] ?? null,
-                'photos' => $item['photos'] ?? [],
+                'foto_depan_url' => $this->sanitizePhotoUrl($item['foto_depan_url'] ?? null),
+                'foto_belakang_url' => $this->sanitizePhotoUrl($item['foto_belakang_url'] ?? null),
+                'foto_kiri_url' => $this->sanitizePhotoUrl($item['foto_kiri_url'] ?? null),
+                'foto_kanan_url' => $this->sanitizePhotoUrl($item['foto_kanan_url'] ?? null),
+                'foto_geotag_url' => $this->sanitizePhotoUrl($item['foto_geotag_url'] ?? null),
+                'foto_url' => $this->sanitizePhotoUrl($item['foto_url'] ?? null),
+                'photos' => array_values(array_filter(array_map(
+                    fn ($photo) => is_string($photo) ? $this->sanitizePhotoUrl($photo) : null,
+                    is_array($item['photos'] ?? null) ? $item['photos'] : []
+                ))),
             ])
             ->values()
             ->all();
     }
 
+    private function sanitizePhotoUrl(?string $url): ?string
+    {
+        if (! is_string($url) || trim($url) === '') {
+            return null;
+        }
+
+        $clean = \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens(trim($url));
+        if (! is_string($clean)) {
+            return null;
+        }
+
+        if (str_starts_with($clean, '/api/bmn/') || str_starts_with($clean, '/storage/')
+            || str_starts_with($clean, 'http://') || str_starts_with($clean, 'https://')) {
+            return $clean;
+        }
+
+        return null;
+    }
+
     private function vehicleItems(array $assetIds): array
     {
-        $token = request()->bearerToken() ?: request()->query('token');
-        $tokenParam = $token ? "&token=" . urlencode($token) : "";
-
         return Asset::query()
             ->whereIn('id', $assetIds)
             ->orderBy('nama_barang')
             ->get()
-            ->map(function (Asset $asset) use ($tokenParam) {
+            ->map(function (Asset $asset) {
                 $v = $asset->updated_at?->timestamp ?: time();
                 return [
                     'asset_id' => $asset->id,
@@ -318,12 +325,12 @@ class HandoverAgreementController extends Controller
                     'no_rangka' => $asset->no_rangka,
                     'kode_barang' => $asset->kode_barang,
                     'nup' => $asset->nup,
-                    'foto_depan_url' => $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}{$tokenParam}" : null,
-                    'foto_belakang_url' => $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}{$tokenParam}" : null,
-                    'foto_kiri_url' => $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}{$tokenParam}" : null,
-                    'foto_kanan_url' => $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}{$tokenParam}" : null,
-                    'foto_geotag_url' => $asset->foto_geotag_path ? "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}" : $asset->foto_geotag_url,
-                    'foto_url' => $asset->foto_url,
+                    'foto_depan_url' => $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}" : null,
+                    'foto_belakang_url' => $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}" : null,
+                    'foto_kiri_url' => $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}" : null,
+                    'foto_kanan_url' => $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}" : null,
+                    'foto_geotag_url' => $asset->foto_geotag_path ? "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}" : $this->sanitizePhotoUrl($asset->foto_geotag_url),
+                    'foto_url' => $this->sanitizePhotoUrl($asset->foto_url),
                 ];
             })
             ->values()

@@ -1,8 +1,9 @@
 # Stage 1: Build
 FROM node:22-alpine AS builder
 WORKDIR /app
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 
 # Build args for env vars needed at build time
@@ -24,7 +25,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont font-liberation fontconfig && \
+    fc-cache -f && \
+    addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public

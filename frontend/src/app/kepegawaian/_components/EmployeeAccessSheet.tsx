@@ -16,7 +16,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +30,7 @@ const accessSchema = z.object({
   role: z.enum(["super_admin", "admin", "user", "pegawai"]),
   is_active: z.boolean(),
   access_modules: z.array(z.string()),
+  module_roles: z.record(z.string(), z.enum(["user", "admin"])).optional(),
   permissions: z.array(z.string()).optional(),
   password: z.string().min(8, "Password minimal 8 karakter").optional().or(z.literal("")),
 });
@@ -45,25 +45,7 @@ const AVAILABLE_MODULES = [
   { id: "drive", label: "BKSDA Drive", description: "Admin Penyimpanan Cloud & Manajemen Berkas" },
   { id: "cms", label: "CMS Panel", description: "Manajemen Konten Website & Portal Publik" },
   { id: "surat", label: "Persuratan & Disposisi", description: "Pengelolaan Surat Masuk & Keluar" },
-];
-
-const BMN_PERMISSIONS = [
-  { id: "bmn.view", label: "Lihat Data Aset" },
-  { id: "bmn.asset.create", label: "Tambah Aset" },
-  { id: "bmn.asset.update", label: "Edit/Update Aset" },
-  { id: "bmn.asset.dispose", label: "Usulan Penghapusan/Lelang" },
-  { id: "bmn.asset.force_delete", label: "Hapus Permanen Aset" },
-  { id: "bmn.import.review", label: "Upload & Review Excel" },
-  { id: "bmn.import.approve", label: "Approve/Reject Excel" },
-  { id: "bmn.document.generate", label: "Generate Dokumen Lelang" },
-  { id: "bmn.document.delete", label: "Hapus Arsip BA" },
-  { id: "bmn.document.history.view", label: "Lihat Riwayat Dokumen" },
-  { id: "bmn.auction.view", label: "Lihat Paket Lelang" },
-  { id: "bmn.auction.create", label: "Buat Paket Lelang" },
-  { id: "bmn.auction.update", label: "Edit Draft Paket Lelang" },
-  { id: "bmn.auction.delete", label: "Hapus Draft Paket Lelang" },
-  { id: "bmn.auction.print", label: "Cetak Dokumen Lelang" },
-  { id: "bmn.auction.finalize", label: "Finalisasi/Jadwal Lelang" },
+  { id: "keuangan", label: "Keuangan", description: "Visum SPD, SPJ, & Pembayaran" },
 ];
 
 interface EmployeeAccessSheetProps {
@@ -78,11 +60,12 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
 
   const form = useForm<AccessFormValues>({
     resolver: zodResolver(accessSchema),
-    defaultValues: { role: "user", is_active: false, access_modules: [], permissions: [], password: "" },
+    defaultValues: { role: "user", is_active: false, access_modules: [], module_roles: {}, permissions: [], password: "" },
   });
 
+  const selectedRole = useWatch({ control: form.control, name: "role" });
   const accessModules = useWatch({ control: form.control, name: "access_modules", defaultValue: [] });
-  const selectedRole = useWatch({ control: form.control, name: "role", defaultValue: "user" });
+  const moduleRoles = useWatch({ control: form.control, name: "module_roles", defaultValue: {} }) || {};
 
   const { data: currentAccess, isLoading, isError, refetch } = useQuery({
     queryKey: ["employee-access", employee?.id],
@@ -104,17 +87,29 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
 
     if (currentAccess) {
       const resolvedRole = (currentAccess.role === "pegawai" ? "user" : currentAccess.role) as "super_admin" | "admin" | "user" | "pegawai";
+      const modules = Array.isArray(currentAccess.access_modules) ? currentAccess.access_modules : [];
+      const incomingModuleRoles =
+        currentAccess.module_roles && typeof currentAccess.module_roles === "object" && !Array.isArray(currentAccess.module_roles)
+          ? (currentAccess.module_roles as Record<string, "user" | "admin">)
+          : {};
+      const hydratedModuleRoles: Record<string, "user" | "admin"> = {};
+      const defaultModRole: "user" | "admin" = resolvedRole === "admin" ? "admin" : "user";
+      for (const modId of modules) {
+        const raw = incomingModuleRoles[modId];
+        hydratedModuleRoles[modId] = raw === "admin" || raw === "user" ? raw : defaultModRole;
+      }
       form.reset({
         role: resolvedRole || "user",
         is_active: currentAccess.is_active === true,
-        access_modules: currentAccess.access_modules || [],
-        permissions: currentAccess.permissions || [],
+        access_modules: modules,
+        module_roles: hydratedModuleRoles,
+        permissions: [],
         password: "",
       });
       lastSyncedId.current = employee.id;
     } else if (!isLoading) {
       // No access data (new account)
-      form.reset({ role: "user", is_active: false, access_modules: [], permissions: [], password: "" });
+      form.reset({ role: "user", is_active: false, access_modules: [], module_roles: {}, permissions: [], password: "" });
       lastSyncedId.current = employee.id;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,12 +117,29 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
 
   const mutation = useMutation({
     mutationFn: async (values: AccessFormValues) => {
+      const sanitizedModuleRoles: Record<string, "user" | "admin"> = {};
+      if (values.role !== "super_admin") {
+        const fallbackRole: "user" | "admin" = values.role === "admin" ? "admin" : "user";
+        for (const modId of values.access_modules) {
+          const raw = values.module_roles?.[modId];
+          sanitizedModuleRoles[modId] = raw === "admin" || raw === "user" ? raw : fallbackRole;
+        }
+      }
+      const modValues = Object.values(sanitizedModuleRoles);
+      const derivedRole =
+        values.role === "super_admin"
+          ? "super_admin"
+          : modValues.length > 0 && modValues.every((r) => r === "admin")
+          ? "admin"
+          : "user";
+
       // Don't send password field if empty (avoid validation issues)
       const payload: Record<string, unknown> = {
-        role: values.role,
+        role: derivedRole,
         is_active: values.is_active,
         access_modules: values.access_modules,
-        permissions: values.permissions || [],
+        ...(values.role !== "super_admin" ? { module_roles: sanitizedModuleRoles } : {}),
+        permissions: [],
       };
       if (values.password && values.password.length > 0) {
         payload.password = values.password;
@@ -135,7 +147,12 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
       const { data } = await api.put(`/kepegawaian/employees/${employee?.id}/access`, payload);
       return data;
     },
-    onSuccess: (data) => { toast.success(data.message || "Hak akses berhasil diperbarui"); queryClient.invalidateQueries({ queryKey: ["employees"] }); onOpenChange(false); },
+    onSuccess: (data) => {
+      toast.success(data.message || "Hak akses berhasil diperbarui");
+      queryClient.invalidateQueries({ queryKey: ["employees"] });
+      queryClient.invalidateQueries({ queryKey: ["employee-access", employee?.id] });
+      onOpenChange(false);
+    },
     onError: (error: unknown) => { const err = error as { response?: { data?: { message?: string } } }; toast.error(err.response?.data?.message || "Gagal memperbarui hak akses"); },
   });
 
@@ -151,9 +168,11 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
           event.preventDefault();
           returnFocusRef.current.focus();
         }}
-        data-module="kepegawaian" className="kpg-ui sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+        data-module="kepegawaian"
+        className="kpg-ui sm:max-w-[820px] p-6 gap-4 max-h-[94vh] overflow-y-auto sm:overflow-visible rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg"
+      >
+        <DialogHeader className="space-y-0">
+          <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)]">
               <Shield className="w-4 h-4" />
             </div>
@@ -162,104 +181,197 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
           <DialogDescription className="sr-only">Atur role dan modul akses pegawai</DialogDescription>
         </DialogHeader>
 
-        {/* Employee Info Card */}
+        {/* Employee Info Strip */}
         {employee && (
-          <div className="p-3 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border-subtle)] flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[var(--ds-accent-soft)] flex items-center justify-center text-[var(--ds-accent-fg)] font-bold shrink-0">
-              {employee.nama_lengkap.charAt(0)}
-            </div>
-            <div>
-              <p className="font-semibold text-sm text-[var(--ds-fg)] leading-tight">{employee.nama_lengkap}</p>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5 font-mono">
-                {employee.nip.toUpperCase().startsWith("MMP-") ? "Username Portal: " : "NIP: "}
-                <span className="font-semibold text-[var(--ds-fg)]">{employee.nip}</span>
-              </p>
+          <div className="px-3 py-2 bg-[var(--ds-surface)] rounded-lg border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-[var(--ds-accent-soft)] flex items-center justify-center text-[var(--ds-accent-fg)] text-xs font-bold shrink-0">
+                {employee.nama_lengkap.charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-sm text-[var(--ds-fg)] leading-tight truncate">{employee.nama_lengkap}</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] font-mono truncate">
+                  {employee.nip.toUpperCase().startsWith("MMP-") ? "Username Portal: " : "NIP: "}
+                  <span className="font-semibold text-[var(--ds-fg)]">{employee.nip}</span>
+                </p>
+              </div>
             </div>
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <div className="flex flex-col items-center justify-center py-10 gap-3">
             <Loader2 className="w-7 h-7 animate-spin text-[var(--ds-accent-fg)]" />
             <p className="text-sm font-medium text-[var(--ds-fg-muted)]">Memuat data akses...</p>
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-3 text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] rounded-xl border border-[var(--ds-status-danger-border)]">
+          <div className="flex flex-col items-center justify-center py-10 gap-3 text-[var(--ds-status-danger-fg)] bg-[var(--ds-status-danger-bg)] rounded-lg border border-[var(--ds-status-danger-border)]">
             <AlertCircle className="w-8 h-8 opacity-50" />
             <p className="text-sm font-semibold">Gagal memuat data akses</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>Coba Lagi</Button>
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* Role Selection */}
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-bold">Peran Sistem (Role)</FormLabel>
-                    <FormControl>
-                      <select
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        className="w-full h-10 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] focus:border-[var(--ds-accent-soft-border)]"
-                      >
-                        <option value="user">User (Pegawai Biasa)</option>
-                        <option value="admin">Admin (Pengelola Modul)</option>
-                        <option value="super_admin">Super Admin (Akses Penuh)</option>
-                      </select>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Status & Super Admin Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
+                <FormField control={form.control} name="is_active" render={({ field }) => (
+                  <FormItem className="space-y-1 flex flex-col">
+                    <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] block">Status Akun</span>
+                    <label className="flex-1 flex items-start gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-3 cursor-pointer">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={event => field.onChange(event.target.checked)}
+                          className="mt-1 shrink-0"
+                        />
+                      </FormControl>
+                      <div className="min-w-0">
+                        <span className="text-sm font-semibold text-[var(--ds-fg)] block leading-tight">Aktifkan akun akses aplikasi</span>
+                        <span className="text-xs leading-snug text-[var(--ds-fg-muted)] block mt-1">Akun nonaktif tidak dapat login &amp; sesi akses dicabut.</span>
+                      </div>
+                    </label>
+                    <FormMessage />
                   </FormItem>
-                )}
-              />
+                )} />
 
-              <FormField control={form.control} name="is_active" render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <FormControl><input type="checkbox" checked={field.value} onChange={event => field.onChange(event.target.checked)} /></FormControl>
-                    Aktifkan akun akses aplikasi
-                  </FormLabel>
-                  <p className="text-xs text-[var(--ds-fg-muted)]">Akun nonaktif tidak dapat login. Menonaktifkan akun mencabut sesi aksesnya.</p>
-                  <FormMessage />
-                </FormItem>
-              )} />
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => {
+                    const isSuperAdmin = field.value === "super_admin";
+                    return (
+                      <FormItem className="space-y-1 flex flex-col">
+                        <span className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)] block">Wewenang Global</span>
+                        <label
+                          className={cn(
+                            "flex-1 flex items-start gap-2 rounded-lg border p-3 cursor-pointer transition-colors",
+                            isSuperAdmin
+                              ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]"
+                              : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800"
+                          )}
+                        >
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={isSuperAdmin}
+                              onChange={(e) => {
+                                field.onChange(e.target.checked ? "super_admin" : "user");
+                              }}
+                              className="mt-1 shrink-0"
+                            />
+                          </FormControl>
+                          <div className="min-w-0">
+                            <span className={cn("text-sm font-semibold block leading-tight", isSuperAdmin ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]")}>
+                              Super Admin (Akses Penuh)
+                            </span>
+                            <span className="text-xs leading-snug text-[var(--ds-fg-muted)] block mt-1">
+                              Akses penuh ke semua modul, pengaturan &amp; IAM.
+                            </span>
+                          </div>
+                        </label>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    );
+                  }}
+                />
+              </div>
 
               {/* Module Access */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold">Akses Modul</label>
-                  <Badge variant="outline" className="text-xs font-bold">{accessModules.length} Terpilih</Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">Akses Modul</label>
+                    <span className="text-xs text-[var(--ds-fg-muted)]">
+                      {selectedRole === "super_admin"
+                        ? "Semua modul otomatis penuh."
+                        : "Centang modul lalu pilih User / Admin."}
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-xs font-bold shrink-0 rounded-lg">
+                    {selectedRole === "super_admin" ? "Semua Aktif" : `${accessModules.length} Terpilih`}
+                  </Badge>
                 </div>
-                <div className="grid gap-2">
+                <div
+                  className={cn(
+                    "grid grid-cols-1 sm:grid-cols-2 gap-2 transition-opacity",
+                    selectedRole === "super_admin" && "opacity-60 pointer-events-none"
+                  )}
+                >
                   {AVAILABLE_MODULES.map((module) => {
-                    const isSelected = accessModules.includes(module.id);
+                    const isSuperAdmin = selectedRole === "super_admin";
+                    const isSelected = isSuperAdmin || accessModules.includes(module.id);
+                    const currentModRole = moduleRoles[module.id] || "user";
                     return (
                       <div
                         key={module.id}
                         className={cn(
-                          "flex flex-row items-center gap-3 rounded-xl border p-3 transition-colors cursor-pointer select-none",
-                          isSelected ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]" : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] hover:border-[var(--ds-border-subtle)]"
+                          "flex flex-col justify-center gap-1 rounded-lg border px-3 py-2 transition-colors cursor-pointer select-none",
+                          isSelected ? "bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)]" : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800"
                         )}
                         onClick={() => {
+                          if (isSuperAdmin) return;
                           const current = form.getValues("access_modules") || [];
+                          const currentRoles = { ...(form.getValues("module_roles") || {}) };
                           const updated = isSelected
                             ? current.filter((v) => v !== module.id)
                             : [...current, module.id];
+                          if (isSelected) {
+                            delete currentRoles[module.id];
+                          } else {
+                            currentRoles[module.id] = "user";
+                          }
                           form.setValue("access_modules", updated, { shouldValidate: true });
+                          form.setValue("module_roles", currentRoles, { shouldDirty: true });
                         }}
                       >
-                        <div className={cn(
-                          "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                          isSelected ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-soft-border)]" : "border-[var(--ds-border-subtle)]"
-                        )}>
-                          {isSelected && <Check className="w-3 h-3 text-[var(--ds-accent-on-solid)]" />}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className={cn(
+                            "w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors",
+                            isSelected ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-soft-border)]" : "border-slate-300 dark:border-zinc-700"
+                          )}>
+                            {isSelected && <Check className="w-3 h-3 text-[var(--ds-accent-on-solid)]" />}
+                          </div>
+                          <p className={cn("text-sm font-semibold leading-tight truncate flex-1", isSelected ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]")}>
+                            {module.label}
+                          </p>
+                          {isSelected && selectedRole !== "super_admin" && (
+                            <div
+                              className="inline-flex items-center rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-1 shrink-0"
+                              onClick={(e) => e.stopPropagation()}
+                              role="group"
+                              aria-label={`Peran modul ${module.label}`}
+                            >
+                              {(["user", "admin"] as const).map((modRole) => {
+                                const active = currentModRole === modRole;
+                                return (
+                                  <button
+                                    key={modRole}
+                                    type="button"
+                                    aria-pressed={active}
+                                    onClick={() =>
+                                      form.setValue(`module_roles.${module.id}`, modRole, {
+                                        shouldDirty: true,
+                                      })
+                                    }
+                                    className={cn(
+                                      "px-2 py-1 text-xs font-bold rounded-lg transition-colors cursor-pointer",
+                                      active
+                                        ? modRole === "admin"
+                                          ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xs"
+                                          : "bg-[var(--ds-fg)] text-[var(--ds-surface)] shadow-xs"
+                                        : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
+                                    )}
+                                  >
+                                    {modRole === "admin" ? "Admin" : "User"}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex-1">
-                          <p className={cn("text-sm font-semibold", isSelected ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]")}>{module.label}</p>
-                          <p className="text-xs text-[var(--ds-fg-muted)]">{module.description}</p>
-                        </div>
+                        <p className="text-xs text-[var(--ds-fg-muted)] leading-snug pl-6 truncate">{module.description}</p>
                       </div>
                     );
                   })}
@@ -269,53 +381,10 @@ export function EmployeeAccessSheet({ employee, open, onOpenChange, returnFocusR
                 )}
               </div>
 
-              {/* BMN Granular Permissions (Hanya tampil jika modul BMN dicentang & role = admin) */}
-              {accessModules.includes("bmn") && selectedRole === "admin" && (
-                <div className="space-y-2 border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-bold text-[var(--ds-fg)]">Hak Akses Granular BMN</label>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-[var(--ds-surface)] p-3 rounded-xl border border-[var(--ds-border-subtle)]">
-                    {BMN_PERMISSIONS.map((perm) => {
-                      const currentPerms = form.getValues("permissions") || [];
-                      const isPermSelected = currentPerms.includes(perm.id);
-                      return (
-                        <div
-                          key={perm.id}
-                          className={cn(
-                            "flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer select-none transition-colors",
-                            isPermSelected
-                              ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)]   text-[var(--ds-status-success-fg)] "
-                              : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)]   text-[var(--ds-fg-muted)]  hover:bg-[var(--ds-surface)]"
-                          )}
-                          onClick={() => {
-                            const current = form.getValues("permissions") || [];
-                            const updated = isPermSelected
-                              ? current.filter((v) => v !== perm.id)
-                              : [...current, perm.id];
-                            form.setValue("permissions", updated, { shouldValidate: true });
-                          }}
-                        >
-                          <div className={cn(
-                            "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                            isPermSelected ? "bg-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] text-[var(--ds-accent-on-solid)]" : "border-[var(--ds-border-subtle)] "
-                          )}>
-                            {isPermSelected && <Check className="w-2.5 h-2.5" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold truncate">{perm.label}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
               {/* Actions */}
-              <div className="flex gap-3 pt-4 border-t">
-                <Button type="button" variant="outline" className="flex-1 h-10 rounded-xl" onClick={() => onOpenChange(false)}>Batal</Button>
-                <Button type="submit" className="flex-1 h-10 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] font-bold" disabled={mutation.isPending}>
+              <div className="flex gap-3 pt-3 border-t border-slate-200/70 dark:border-zinc-800">
+                <Button type="button" variant="outline" className="kpg-secondary flex-1 h-9 rounded-lg" onClick={() => onOpenChange(false)}>Batal</Button>
+                <Button type="submit" className="flex-1 h-9 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] font-bold" disabled={mutation.isPending}>
                   {mutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
                   {isNewAccount ? "Terbitkan Akses" : "Simpan"}
                 </Button>

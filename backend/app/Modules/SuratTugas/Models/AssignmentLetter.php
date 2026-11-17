@@ -81,11 +81,7 @@ class AssignmentLetter extends Model
         $archiveName = $this->nomor_surat ? "ST-{$this->nomor_surat}.{$extension}" : "dasar-surat.{$extension}";
         DB::afterCommit(function () use ($oldPath, $path, $archiveName, $userId) {
             static::deleteUnreferencedFile($oldPath);
-            try {
-                ArchiveOfficialDocument::dispatch('surat_tugas', $this->getKey(), 'local', $path, $archiveName, null, $userId);
-            } catch (\Throwable $e) {
-                Log::error('Surat Tugas archive dispatch failed.', ['exception' => $e->getMessage()]);
-            }
+            ArchiveOfficialDocument::dispatchBestEffort('surat_tugas', $this->getKey(), 'local', $path, $archiveName, null, $userId, true);
         });
         return $path;
     }

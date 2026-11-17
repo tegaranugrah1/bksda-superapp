@@ -247,8 +247,9 @@ class StKepegawaianSecurityClosureTest extends TestCase
         $this->assertSame('DUMMY_ORIGINAL_ORDINARY', $ordinary->fresh()->nomor_rekening);
         $this->assertSame('DUMMY_ORIGINAL_PROTECTED', $protected->fresh()->nomor_rekening);
         $payload['employee_ids'] = [$ordinary->id];
-        $this->putJson('/api/kepegawaian/settings/employee-banks/batch', $payload)->assertOk();
+        $this->putJson('/api/kepegawaian/settings/employee-banks/batch', $payload)->assertForbidden();
         Sanctum::actingAs($super);
+        $this->putJson('/api/kepegawaian/settings/employee-banks/batch', $payload)->assertOk();
         $payload['employee_ids'] = [$protected->id];
         $this->putJson('/api/kepegawaian/settings/employee-banks/batch', $payload)->assertOk();
         $this->assertSame('DUMMY_CHANGED', $protected->fresh()->nomor_rekening);
@@ -421,6 +422,8 @@ class StKepegawaianSecurityClosureTest extends TestCase
             [$admin] = $this->actor('admin', ['kepegawaian']);
             Sanctum::actingAs($admin);
             $this->deleteJson('/api/kepegawaian/employees/'.$protected->id.'/force')->assertForbidden();
+            $this->deleteJson('/api/kepegawaian/employees/'.$employee->id.'/force')->assertForbidden();
+            Sanctum::actingAs($protectedUser);
             $this->deleteJson('/api/kepegawaian/employees/'.$employee->id.'/force')->assertOk();
         }
         $this->assertSame($path, Employee::withoutGlobalScopes()->withTrashed()->findOrFail($protected->id)->foto_profil);

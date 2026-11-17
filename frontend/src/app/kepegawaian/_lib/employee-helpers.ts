@@ -151,3 +151,52 @@ export function isEligibleForAnnualLeave(
   if (!eligibleDate) return true;
   return targetDate.getTime() >= eligibleDate.getTime();
 }
+export function formatRupiah(amount: number | string | null | undefined): string {
+  const num = typeof amount === "string" ? parseFloat(amount) : Number(amount || 0);
+  if (isNaN(num)) return "Rp 0";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(num);
+}
+
+export function parseLocalDate(str: string): Date {
+  const [y, m, d] = str.split("-").map(Number);
+  return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+export function calculateLeaveDays(
+  startDateStr: string,
+  endDateStr: string,
+  jenisCuti: string,
+  leaveTypes: Array<{ nama: string; kode: string | null; hitung_hari: "hari_kerja" | "hari_kalender" }> = []
+): number {
+  if (!startDateStr || !endDateStr) return 0;
+  const start = parseLocalDate(startDateStr);
+  const end = parseLocalDate(endDateStr);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
+
+  const matched = leaveTypes.find(
+    (lt) =>
+      lt.nama.toLowerCase() === jenisCuti.toLowerCase() ||
+      (lt.kode && lt.kode.toLowerCase() === jenisCuti.toLowerCase())
+  );
+  const isHariKerja = matched
+    ? matched.hitung_hari === "hari_kerja"
+    : jenisCuti.toLowerCase().includes("tahunan");
+
+  if (!isHariKerja) {
+    const diffTime = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(1, diffTime + 1);
+  }
+
+  let count = 0;
+  const cur = new Date(start);
+  while (cur <= end) {
+    const day = cur.getDay();
+    if (day !== 0 && day !== 6) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return Math.max(1, count);
+}

@@ -1,3 +1,4 @@
+import { openPrintWindow } from "@/lib/print-window";
 import { handlePrintBa as handlePrintBaKoreksi } from "../../../auction-candidates/_components/BaKoreksiDocument";
 import { handlePrintSk as handlePrintSkPenghentian } from "../../../auction-candidates/_components/SkPenghentianDocument";
 import { handlePrintSkPanitia } from "../../../auction-candidates/_components/SkPanitiaDocument";
@@ -36,4 +37,15 @@ export function printAuctionDocument(docKey: string, ctx: AuctionPrintContext): 
     return true;
   }
   return false;
+}
+
+export function printFallbackDocument(title: string, bodyHtml: string, styles: string): boolean {
+  return Boolean(
+    openPrintWindow({
+      title,
+      bodyHtml,
+      styles,
+      delayMs: 500,
+    })
+  );
 }

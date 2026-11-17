@@ -99,48 +99,48 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
       return "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   ";
     }
     if (action.includes("printed")) {
-      return "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border-[var(--ds-status-info-border)]   ";
+      return "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border-[var(--ds-status-info-border)]";
     }
-    return "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-[var(--ds-border-subtle)]   ";
+    return "bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] border-slate-200/80 dark:border-zinc-800";
   };
 
   return (
     <div className="space-y-6">
       {/* Title */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-5 rounded-2xl shadow-xs">
-        <h2 className="text-base font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs">
+        <h2 className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2">
           <History className="h-5 w-5 text-[var(--ds-accent-fg)]" />
           Riwayat Audit Aktivitas
         </h2>
-        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+        <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
           Log historis lengkap mengenai seluruh tindakan administratif dan perubahan data pada paket lelang BMN.
         </p>
       </div>
 
       {/* Audit Table */}
-      <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs">
         <div className="overflow-x-auto">
           <table className={`${events.length ? "bmn-wide-table" : ""} w-full text-left border-collapse`}>
             <thead className={events.length ? "" : "hidden sm:table-header-group"}>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-52">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-52">
                   Waktu
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-44">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-44">
                   Aktor
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-56">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] w-56">
                   Tindakan
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Catatan / Aset Terkait
                 </th>
-                <th className="w-16 px-5 py-3.5 text-center">
+                <th className="w-16 px-4 py-3 text-center">
                   <span className="sr-only">Detail</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)] text-xs">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800 text-xs">
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="p-10 text-center">
@@ -148,7 +148,7 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                     <p className="text-xs text-[var(--ds-fg-muted)] mt-1">Memuat log riwayat...</p>
                   </td>
                 </tr>
-              ) : error ? (<tr><td colSpan={5} className="p-8 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Riwayat audit gagal dimuat.</p><Button variant="outline" onClick={() => refetch()}>Coba lagi</Button></td></tr>) : events.length === 0 ? (
+              ) : error ? (<tr><td colSpan={5} className="p-8 text-center"><p role="alert" className="text-[var(--ds-status-danger-fg)]">Riwayat audit gagal dimuat.</p><Button variant="outline" className="mt-3" onClick={() => refetch()}>Coba lagi</Button></td></tr>) : events.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-12 text-center text-[var(--ds-fg-muted)]">
                     Belum ada riwayat aktivitas yang tercatat untuk paket lelang ini.
@@ -163,17 +163,17 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                     <React.Fragment key={event.id}>
                       <tr className="bmn-table-row">
                         {/* Time */}
-                        <td className="px-5 py-4 text-[var(--ds-fg-muted)]">
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 text-[var(--ds-fg-muted)]" />
+                        <td className="px-4 py-4 text-[var(--ds-fg-muted)] tabular-nums">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-[var(--ds-fg-muted)]" />
                             <span>{formatDateTime(event.created_at)}</span>
                           </div>
                         </td>
 
                         {/* Actor */}
-                        <td className="px-5 py-4 text-[var(--ds-fg)]">
-                          <div className="flex items-center gap-1.5">
-                            <User className="h-3.5 w-3.5 text-[var(--ds-fg-muted)] shrink-0" />
+                        <td className="px-4 py-4 text-[var(--ds-fg)]">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-[var(--ds-fg-muted)] shrink-0" />
                             <span className="font-medium truncate max-w-[150px]">
                               {event.actor_name || "Sistem"}
                             </span>
@@ -181,9 +181,9 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                         </td>
 
                         {/* Action Badge */}
-                        <td className="px-5 py-4">
+                        <td className="px-4 py-4">
                           <span
-                            className={`inline-block border px-2 py-0.5 rounded-md text-xs font-bold ${getActionBadgeClass(
+                            className={`inline-block border px-2 py-1 rounded-full text-xs font-bold ${getActionBadgeClass(
                               event.action
                             )}`}
                           >
@@ -192,11 +192,11 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                         </td>
 
                         {/* Notes / Affected Asset */}
-                        <td className="px-5 py-4 text-[var(--ds-fg-secondary)]">
-                          <div className="space-y-0.5">
+                        <td className="px-4 py-4 text-[var(--ds-fg-secondary)]">
+                          <div className="space-y-1">
                             <p className="font-medium">{event.notes || "-"}</p>
                             {event.bmn_asset_id && (
-                              <div className="flex items-center gap-1 text-xs text-[var(--ds-fg-muted)] font-mono">
+                              <div className="flex items-center gap-1 text-xs text-[var(--ds-fg-muted)] font-mono tabular-nums">
                                 <Layers className="h-3 w-3" />
                                 <span>Aset ID: {event.bmn_asset_id}</span>
                               </div>
@@ -205,7 +205,7 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                         </td>
 
                         {/* Detail Trigger */}
-                        <td className="px-5 py-4 text-center align-middle">
+                        <td className="px-4 py-4 text-center align-middle">
                           {hasDetails && (
                             <Button
                               variant="ghost"
@@ -214,7 +214,7 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                               aria-expanded={isExpanded}
                               aria-controls={`auction-event-${event.id}`}
                               onClick={() => setExpandedEventId(isExpanded ? null : event.id)}
-                              className="rounded-lg h-7 w-7"
+                              className="rounded-lg h-8 w-8"
                               title="Tampilkan detail JSON diff"
                             >
                               {isExpanded ? (
@@ -229,16 +229,16 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
 
                       {/* Expandable JSON details panel */}
                       {isExpanded && hasDetails && (
-                        <tr className="bg-[var(--ds-surface-muted)] border-t border-b border-[var(--ds-border-subtle)]">
+                        <tr className="bg-[var(--ds-surface-muted)] border-t border-b border-slate-200/70 dark:border-zinc-800">
                           <td />
-                          <td id={`auction-event-${event.id}`} colSpan={4} className="px-5 py-4">
+                          <td id={`auction-event-${event.id}`} colSpan={4} className="px-4 py-4">
                             <div className="grid gap-4 md:grid-cols-2 text-xs font-mono">
                               {/* Previous Values */}
                               <div className="space-y-1">
                                 <span className="font-sans font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider block">
                                   Sebelum (Previous)
                                 </span>
-                                <pre className="bg-[var(--ds-surface-muted)] p-3 rounded-lg border border-[var(--ds-border-subtle)] overflow-x-auto max-h-48 text-[var(--ds-fg-secondary)]">
+                                <pre className="bg-[var(--ds-surface-muted)] p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 overflow-x-auto max-h-48 text-[var(--ds-fg-secondary)] tabular-nums">
                                   {event.previous_values
                                     ? JSON.stringify(event.previous_values, null, 2)
                                     : "null"}
@@ -250,7 +250,7 @@ export function AuditTrailTab({ batchId }: AuditTrailTabProps) {
                                 <span className="font-sans font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider block">
                                   Sesudah (New)
                                 </span>
-                                <pre className="bg-[var(--ds-surface-muted)] p-3 rounded-lg border border-[var(--ds-border-subtle)] overflow-x-auto max-h-48 text-[var(--ds-fg-secondary)]">
+                                <pre className="bg-[var(--ds-surface-muted)] p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 overflow-x-auto max-h-48 text-[var(--ds-fg-secondary)] tabular-nums">
                                   {event.new_values
                                     ? JSON.stringify(event.new_values, null, 2)
                                     : "null"}

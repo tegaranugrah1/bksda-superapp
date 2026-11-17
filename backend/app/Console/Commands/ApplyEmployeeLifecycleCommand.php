@@ -81,6 +81,7 @@ class ApplyEmployeeLifecycleCommand extends Command
                 });
 
                 if ($applied) {
+                    app(\App\Modules\Bmn\Services\AssetService::class)->notifyEmployeeBmnClearance($employee, 'penonaktifan TMT otomatis');
                     $this->line(" - Pegawai ID {$employee->id} ({$employee->nama_lengkap}) berhasil dinonaktifkan.");
                     $processed++;
                 }

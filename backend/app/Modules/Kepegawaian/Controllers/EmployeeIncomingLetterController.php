@@ -21,9 +21,20 @@ class EmployeeIncomingLetterController extends Controller
         return (string) config('filesystems.default');
     }
 
+    private function validatedFilters(Request $request): array
+    {
+        return $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'kategori' => ['nullable', 'string', 'max:50'],
+            'status_balasan' => ['nullable', 'string', 'max:30'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+        ]);
+    }
+
     public function export(Request $request)
     {
-        $filters = $request->only(['search', 'kategori', 'start_date', 'end_date', 'status_balasan']);
+        $filters = $this->validatedFilters($request);
         $filename = 'Arsip_Surat_Masuk_Kepegawaian_' . now()->format('Ymd_His') . '.xlsx';
 
         return Excel::download(new EmployeeIncomingLettersExport($filters), $filename);
@@ -31,7 +42,7 @@ class EmployeeIncomingLetterController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only(['search', 'kategori', 'status_balasan', 'start_date', 'end_date']);
+        $filters = $this->validatedFilters($request);
 
         $items = EmployeeIncomingLetter::query()
             ->with('attachments:id,incoming_letter_id,type,original_name,mime_type,size,note,created_at')
@@ -80,19 +91,26 @@ class EmployeeIncomingLetterController extends Controller
         return $this->save($request, $letter, false);
     }
 
-    public function destroy(EmployeeIncomingLetter $letter): JsonResponse
+    private function deleteStoragePaths(array $paths): void
     {
         $disk = Storage::disk($this->disk());
-        $attachments = $letter->attachments()->get();
-
-        foreach ($attachments as $attachment) {
-            if ($attachment->storage_path && $disk->exists($attachment->storage_path)) {
-                $disk->delete($attachment->storage_path);
+        foreach (array_unique(array_filter($paths)) as $path) {
+            if ($disk->exists($path)) {
+                $disk->delete($path);
             }
         }
+    }
 
-        $letter->attachments()->delete();
-        $letter->delete();
+    public function destroy(EmployeeIncomingLetter $letter): JsonResponse
+    {
+        $paths = $letter->attachments()->pluck('storage_path')->all();
+
+        DB::transaction(function () use ($letter): void {
+            $letter->attachments()->delete();
+            $letter->delete();
+        });
+
+        $this->deleteStoragePaths($paths);
 
         return response()->json(['message' => 'Arsip surat berhasil dihapus.']);
     }
@@ -101,12 +119,10 @@ class EmployeeIncomingLetterController extends Controller
     {
         abort_unless($attachment->incoming_letter_id === $letter->id, 404);
 
-        $disk = Storage::disk($this->disk());
-        if ($attachment->storage_path && $disk->exists($attachment->storage_path)) {
-            $disk->delete($attachment->storage_path);
-        }
-
+        $path = $attachment->storage_path;
         $attachment->delete();
+
+        $this->deleteStoragePaths([$path]);
 
         return response()->json(['message' => 'Lampiran berhasil dihapus.']);
     }
@@ -179,13 +195,6 @@ class EmployeeIncomingLetterController extends Controller
                     'delete_attachment_ids',
                 ])->all();
 
-                foreach (['no_agenda', 'no_surat_masuk', 'asal_surat', 'perihal', 'catatan', 'no_surat_balasan'] as $textKey) {
-                    if (array_key_exists($textKey, $fields)) {
-                        $cleaned = $fields[$textKey] !== null ? strip_tags(trim((string) $fields[$textKey])) : null;
-                        $fields[$textKey] = $cleaned !== '' ? $cleaned : null;
-                    }
-                }
-
                 $letter->fill($fields);
                 if ($creating) {
                     $letter->created_by = $request->user()?->id;
@@ -227,24 +236,14 @@ class EmployeeIncomingLetterController extends Controller
                 return $letter->load('attachments');
             });
 
-            $disk = Storage::disk($this->disk());
-            foreach ($removedPaths as $path) {
-                if ($path && $disk->exists($path)) {
-                    $disk->delete($path);
-                }
-            }
+            $this->deleteStoragePaths($removedPaths);
 
             return response()->json([
                 'message' => $creating ? 'Arsip surat berhasil dibuat.' : 'Arsip surat berhasil diperbarui.',
                 'data' => $this->serializeLetter($saved),
             ], $creating ? 201 : 200);
         } catch (\Throwable $exception) {
-            $disk = Storage::disk($this->disk());
-            foreach ($storedPaths as $path) {
-                if ($path && $disk->exists($path)) {
-                    $disk->delete($path);
-                }
-            }
+            $this->deleteStoragePaths($storedPaths);
 
             report($exception);
             return response()->json(['message' => 'Gagal menyimpan arsip surat.'], 500);

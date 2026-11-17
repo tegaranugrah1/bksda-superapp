@@ -16,8 +16,15 @@ class SuratMasukController extends Controller
 {
     public function exportExcel(Request $request)
     {
-        $filters = $request->only(['search', 'start_date', 'end_date', 'year', 'month', 'sifat']);
-        
+        $filters = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'year' => 'nullable|integer|digits:4',
+            'month' => 'nullable|integer|between:1,12',
+            'sifat' => 'nullable|string|max:100',
+        ]);
+
         $filename = 'Rekap_Surat_Masuk_BKSDA_' . date('Ymd_His') . '.xlsx';
         if (!empty($filters['year'])) {
             $cleanYear = preg_replace('/[^0-9]/', '', (string) $filters['year']);
@@ -34,24 +41,25 @@ class SuratMasukController extends Controller
         $query = SuratMasuk::with(['disposisi', 'creator'])
             ->orderBy('id', 'desc');
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('no_surat', 'like', "%{$search}%")
-                  ->orWhere('no_agenda', 'like', "%{$search}%")
-                  ->orWhere('asal_surat', 'like', "%{$search}%")
-                  ->orWhere('isi_ringkas', 'like', "%{$search}%");
+        $search = $request->input('search');
+        if (is_string($search) && trim($search) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($search)) . '%';
+            $query->where(function ($q) use ($pattern) {
+                $q->whereRaw("no_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("no_agenda LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("asal_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("isi_ringkas LIKE ? ESCAPE '!'", [$pattern]);
             });
         }
 
-        if ($request->filled('sifat')) {
-            $sifat = $request->input('sifat');
-            $query->whereJsonContains('sifat_json', $sifat);
+        $sifat = $request->input('sifat');
+        if (is_string($sifat) && trim($sifat) !== '') {
+            $query->whereJsonContains('sifat_json', trim($sifat));
         }
 
         $perPageParam = $request->input('per_page', 10);
         if ($perPageParam === 'all') {
-            $items = $query->get();
+            $items = $query->limit(1000)->get();
             return response()->json([
                 'data' => $items,
                 'meta' => [
@@ -80,7 +88,10 @@ class SuratMasukController extends Controller
 
     public function nextAgenda(Request $request): JsonResponse
     {
-        $year = (int) ($request->input('year') ?: date('Y'));
+        $rawYear = $request->input('year');
+        $year = (is_scalar($rawYear) && is_numeric($rawYear))
+            ? max(1900, min(2100, (int) $rawYear))
+            : (int) date('Y');
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'pgsql') {
@@ -116,7 +127,9 @@ class SuratMasukController extends Controller
     public function locations(): JsonResponse
     {
         $locations = DB::table('bmn_locations')
-            ->select('id', 'name', 'unit_kerja')
+            ->where('is_active', true)
+            ->select('id', 'parent_id', 'location_type', 'name', 'unit_kerja', 'code', 'is_restricted', 'is_active')
+            ->orderBy('unit_kerja')
             ->orderBy('name')
             ->get();
 
@@ -125,17 +138,25 @@ class SuratMasukController extends Controller
         ]);
     }
 
+    private function storeUploadedFile(SuratMasukRequest $request): ?string
+    {
+        if (! $request->hasFile('file_surat')) {
+            return null;
+        }
+        $file = $request->file('file_surat');
+        $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
+        return $file->storeAs('surat/masuk', uniqid('surat_masuk_') . '.' . $ext, 'local');
+    }
+
     public function store(SuratMasukRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
         DB::beginTransaction();
         try {
-            if ($request->hasFile('file_surat')) {
-                $file = $request->file('file_surat');
-                $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
-                $filename = uniqid('surat_masuk_') . '.' . $ext;
-                $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'private');
+            $newFilePath = $this->storeUploadedFile($request);
+            if ($newFilePath) {
+                $validated['file_path'] = $newFilePath;
             }
 
             $validated['created_by'] = $request->user()?->id;
@@ -154,9 +175,12 @@ class SuratMasukController extends Controller
             ], 201);
         } catch (\Throwable $e) {
             DB::rollBack();
+            if (!empty($validated['file_path']) && Storage::disk('local')->exists($validated['file_path'])) {
+                Storage::disk('local')->delete($validated['file_path']);
+            }
             return response()->json([
                 'error' => 'Gagal menyimpan Surat Masuk',
-                'message' => $e->getMessage(),
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menyimpan Surat Masuk.',
             ], 500);
         }
     }
@@ -171,21 +195,31 @@ class SuratMasukController extends Controller
         ]);
     }
 
+    public function downloadFile(int $id)
+    {
+        $suratMasuk = SuratMasuk::findOrFail($id);
+        if (! $suratMasuk->file_path || ! Storage::disk('local')->exists($suratMasuk->file_path)) {
+            return response()->json(['message' => 'Berkas surat masuk tidak ditemukan.'], 404);
+        }
+
+        return Storage::disk('local')->response($suratMasuk->file_path, basename($suratMasuk->file_path), [
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, max-age=0',
+        ]);
+    }
+
     public function update(SuratMasukRequest $request, int $id): JsonResponse
     {
         $suratMasuk = SuratMasuk::findOrFail($id);
         $validated = $request->validated();
+        $oldFilePath = $suratMasuk->file_path;
+        $newFilePath = null;
 
         DB::beginTransaction();
         try {
-            if ($request->hasFile('file_surat')) {
-                if ($suratMasuk->file_path && Storage::disk('private')->exists($suratMasuk->file_path)) {
-                    Storage::disk('private')->delete($suratMasuk->file_path);
-                }
-                $file = $request->file('file_surat');
-                $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
-                $filename = uniqid('surat_masuk_') . '.' . $ext;
-                $validated['file_path'] = $file->storeAs('surat/masuk', $filename, 'private');
+            $newFilePath = $this->storeUploadedFile($request);
+            if ($newFilePath) {
+                $validated['file_path'] = $newFilePath;
             }
 
             $suratMasuk->update($validated);
@@ -199,15 +233,22 @@ class SuratMasukController extends Controller
 
             DB::commit();
 
+            if ($newFilePath && $oldFilePath && $oldFilePath !== $newFilePath && Storage::disk('local')->exists($oldFilePath)) {
+                Storage::disk('local')->delete($oldFilePath);
+            }
+
             return response()->json([
                 'message' => 'Surat Masuk berhasil diperbarui.',
                 'data' => $suratMasuk->fresh(['disposisi', 'creator']),
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
+            if ($newFilePath && Storage::disk('local')->exists($newFilePath)) {
+                Storage::disk('local')->delete($newFilePath);
+            }
             return response()->json([
                 'error' => 'Gagal memperbarui Surat Masuk',
-                'message' => $e->getMessage(),
+                'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat memperbarui Surat Masuk.',
             ], 500);
         }
     }

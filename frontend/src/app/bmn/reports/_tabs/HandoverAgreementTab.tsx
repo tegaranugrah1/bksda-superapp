@@ -564,15 +564,15 @@ export function HandoverAgreementTab({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-[var(--ds-fg)]">Generate BA Serah Terima</h2>
-          <p className="text-xs text-[var(--ds-fg-muted)]">{fullHandoverNumber}</p>
+          <h2 className="text-sm font-bold text-[var(--ds-fg)]">Generate BA Serah Terima</h2>
+          <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{fullHandoverNumber}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button
             variant="outline"
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={saveHandoverAgreement}
             disabled={savingHandoverAgreement || !canGenerate}
           >
@@ -586,7 +586,7 @@ export function HandoverAgreementTab({
               : "Simpan Riwayat"}
           </Button>
           <Button
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={() => handlePrintHandoverAgreement()}
           >
             <Printer className="w-4 h-4" />
@@ -595,7 +595,7 @@ export function HandoverAgreementTab({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="mb-4">
           <h3 className="text-sm font-bold text-[var(--ds-fg)]">1. Tipe Serah Terima</h3>
           <p className="text-xs text-[var(--ds-fg-muted)]">
@@ -612,10 +612,10 @@ export function HandoverAgreementTab({
               type="button"
               aria-pressed={handoverVariant === variant}
               onClick={() => handleHandoverVariantChange(variant)}
-              className={`rounded-xl border p-4 text-left transition-colors duration-150 ease-out ${
+              className={`rounded-lg border p-4 text-left transition-colors duration-150 ease-out ${
                 handoverVariant === variant
-                  ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]   "
-                  : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]   "
+                  ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                  : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)]"
               }`}
             >
               <span className="block text-sm font-bold">{label}</span>
@@ -625,9 +625,9 @@ export function HandoverAgreementTab({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 2xl:grid-cols-[430px_minmax(0,1fr)] gap-5">
-        <div className="order-3 space-y-5">
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="grid grid-cols-1 2xl:grid-cols-[430px_minmax(0,1fr)] gap-6">
+        <div className="order-3 space-y-4">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">3. Detail Dokumen</h3>
             <div className="space-y-3">
               <label className="block">
@@ -635,7 +635,7 @@ export function HandoverAgreementTab({
                 <input
                   value={handoverTitle}
                   onChange={(event) => setHandoverTitle(event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                 />
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -645,7 +645,7 @@ export function HandoverAgreementTab({
                     value={handoverSequence}
                     onChange={(event) => setHandoverSequence(event.target.value)}
                     placeholder="contoh: 129"
-                    className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                    className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                   />
                 </label>
                 <label className="block">
@@ -653,7 +653,7 @@ export function HandoverAgreementTab({
                   <input
                     value={handoverKap}
                     onChange={(event) => setHandoverKap(event.target.value)}
-                    className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                    className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                   />
                 </label>
               </div>
@@ -663,7 +663,7 @@ export function HandoverAgreementTab({
                   type="date"
                   value={handoverDate}
                   onChange={(event) => setHandoverDate(event.target.value)}
-                  className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                 />
               </label>
               <label className="block">
@@ -683,13 +683,13 @@ export function HandoverAgreementTab({
                   placeholder={
                     handoverVariant === "vehicle" ? "contoh: kendaraan roda dua" : "contoh: perlengkapan kebakaran"
                   }
-                  className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
                 />
               </label>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">4. Para Pihak</h3>
             <div className="space-y-4">
               {([
@@ -712,12 +712,12 @@ export function HandoverAgreementTab({
                   setHandoverSecondPartyType,
                 ],
               ] as const).map(([role, label, employeeId, party, setParty, partyType, setPartyType]) => (
-                <div key={role} className="rounded-xl border border-[var(--ds-border-subtle)] p-3">
-                  <div className="mb-2.5 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg-secondary)]">
-                      <UserRound className="w-3.5 h-3.5" /> {label}
+                <div key={role} className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg-secondary)]">
+                      <UserRound className="w-4 h-4" /> {label}
                     </div>
-                    <div className="flex flex-wrap rounded-lg border border-[var(--ds-border-subtle)] p-0.5 bg-[var(--ds-surface-muted)]">
+                    <div className="flex flex-wrap rounded-lg border border-slate-200/80 dark:border-zinc-800 p-1 bg-[var(--ds-surface-muted)]">
                       <button
                         type="button"
                         aria-pressed={partyType === "internal"}
@@ -725,10 +725,10 @@ export function HandoverAgreementTab({
                           setPartyType("internal");
                           setParty({ ...party, idType: "NIP" });
                         }}
-                        className={`px-2 py-0.5 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors duration-150 ease-out ${
                           partyType === "internal"
-                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
-                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                         }`}
                       >
                         Pegawai (NIP)
@@ -740,10 +740,10 @@ export function HandoverAgreementTab({
                           setPartyType("external");
                           setParty({ ...party, idType: "NIK" });
                         }}
-                        className={`px-2 py-0.5 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors duration-150 ease-out ${
                           partyType === "external"
-                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
-                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                            ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                         }`}
                       >
                         Pihak Luar (NIK)
@@ -757,7 +757,7 @@ export function HandoverAgreementTab({
                     value={employeeId}
                       onChange={(event) => handleHandoverPartyEmployeeChange(role, event.target.value)}
                       disabled={loadingEmployees}
-                      className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                      className="mb-2 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                     >
                       <option value="">
                         {loadingEmployees
@@ -779,36 +779,36 @@ export function HandoverAgreementTab({
                     value={party.name}
                     onChange={(event) => setParty({ ...party, name: event.target.value })}
                     placeholder="Nama"
-                    className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="mb-2 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
                     aria-label={`Identitas ${label}`}
                     value={party.nip || ""}
                     onChange={(event) => setParty({ ...party, nip: event.target.value })}
                     placeholder={partyType === "external" ? "NIK" : "NIP"}
-                    className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="mb-2 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs tabular-nums"
                   />
                   <input
                     aria-label={`Jabatan ${label}`}
                     value={party.position || ""}
                     onChange={(event) => setParty({ ...party, position: event.target.value })}
                     placeholder={partyType === "external" ? "Jabatan / Pekerjaan" : "Jabatan"}
-                    className="mb-2 w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="mb-2 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
                     aria-label={`Alamat ${label}`}
                     value={party.address || ""}
                     onChange={(event) => setParty({ ...party, address: event.target.value })}
                     placeholder="Alamat"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
-            <div className="mb-3 flex flex-wrap gap-2 items-center justify-between gap-2">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+            <div className="mb-3 flex flex-wrap gap-2 items-center justify-between">
               <h3 className="text-sm font-bold text-[var(--ds-fg)]">5. Klausul Tanggung Jawab</h3>
               <button
                 type="button"
@@ -826,22 +826,22 @@ export function HandoverAgreementTab({
                   value={handoverReceiptClause}
               onChange={(event) => setHandoverReceiptClause(event.target.value)}
               rows={4}
-              className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs leading-relaxed outline-none"
+              className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs leading-relaxed outline-none"
             />
           </div>
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
-            <div className="mb-3 flex flex-wrap gap-2 items-center justify-between gap-2">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+            <div className="mb-3 flex flex-wrap gap-2 items-center justify-between">
               <h3 className="text-sm font-bold text-[var(--ds-fg)]">6. Konfigurasi Tanda Tangan</h3>
-              <div className="flex flex-wrap rounded-lg border border-[var(--ds-border-subtle)] p-0.5 bg-[var(--ds-surface-muted)]">
+              <div className="flex flex-wrap rounded-lg border border-slate-200/80 dark:border-zinc-800 p-1 bg-[var(--ds-surface-muted)]">
                 <button
                   type="button"
                   aria-pressed={handoverSignerCount === 2}
                   onClick={() => setHandoverSignerCount(2)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors duration-150 ease-out ${
                     handoverSignerCount === 2
-                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
-                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   2 TTD
@@ -850,10 +850,10 @@ export function HandoverAgreementTab({
                   type="button"
                   aria-pressed={handoverSignerCount === 3}
                   onClick={() => setHandoverSignerCount(3)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors duration-150 ease-out ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors duration-150 ease-out ${
                     handoverSignerCount === 3
-                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs  "
-                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] "
+                      ? "bg-[var(--ds-surface)] text-[var(--ds-accent-fg)] shadow-xs"
+                      : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                   }`}
                 >
                   3 TTD (+ Mengetahui)
@@ -862,14 +862,14 @@ export function HandoverAgreementTab({
             </div>
 
             {handoverSignerCount === 3 && (
-              <div className="space-y-2.5 rounded-xl border border-[var(--ds-border-subtle)] p-3 bg-[var(--ds-surface-muted)]">
+              <div className="space-y-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-[var(--ds-surface-muted)]">
                 <div className="text-xs font-bold text-[var(--ds-fg-secondary)]">Penandatangan Mengetahui</div>
                 <select
                   aria-label="Pilih penandatangan mengetahui"
                   value={handoverWitnessEmployeeId}
                   onChange={(event) => handleHandoverWitnessEmployeeChange(event.target.value)}
                   disabled={loadingEmployees}
-                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                  className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                 >
                   <option value="">
                     {loadingEmployees
@@ -889,21 +889,21 @@ export function HandoverAgreementTab({
                   value={handoverWitness?.name || ""}
                   onChange={(event) => setHandoverWitness({ ...handoverWitness, name: event.target.value })}
                   placeholder="Nama Penandatangan Mengetahui"
-                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                  className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                 />
                 <input
                   aria-label="NIP penandatangan mengetahui"
                   value={handoverWitness?.nip || ""}
                   onChange={(event) => setHandoverWitness({ ...handoverWitness, nip: event.target.value })}
                   placeholder="NIP Penandatangan Mengetahui"
-                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                  className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs tabular-nums"
                 />
                 <input
                   aria-label="Jabatan penandatangan mengetahui"
                   value={handoverWitness?.position || ""}
                   onChange={(event) => setHandoverWitness({ ...handoverWitness, position: event.target.value })}
                   placeholder="Jabatan Mengetahui (contoh: KEPALA BALAI,)"
-                  className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                  className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                 />
               </div>
             )}
@@ -911,11 +911,11 @@ export function HandoverAgreementTab({
         </div>
 
         <div className="contents">
-          <div className="order-2 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 2xl:col-span-2">
+          <div className="order-2 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs 2xl:col-span-2">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-[var(--ds-fg)]">2. Barang Diserahterimakan</h3>
-                <p className="text-xs text-[var(--ds-fg-muted)]">
+                <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                   {handoverVariant === "vehicle"
                     ? `${selectedVehicleAssetIds.length} dari ${vehicleAssets.length} kendaraan dipilih`
                     : `${handoverItems.filter((item) => String(item.name || "").trim()).length} barang terisi`}
@@ -938,12 +938,12 @@ export function HandoverAgreementTab({
                   value={vehicleSearch}
                     onChange={(event) => setVehicleSearch(event.target.value)}
                     placeholder="Cari kendaraan, merk, atau no polisi..."
-                    className="h-10 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] pl-9 pr-3 text-sm outline-none"
+                    className="h-10 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] pl-9 pr-3 text-sm outline-none"
                   />
                 </div>
-                <div className="max-h-96 overflow-auto rounded-xl border border-[var(--ds-border-subtle)]">
+                <div className="max-h-96 overflow-auto rounded-lg border border-slate-200/80 dark:border-zinc-800">
                   <table className={`${filteredVehicleAssets.length > 0 ? "bmn-wide-table" : ""} w-full table-fixed text-left text-xs`}>
-                    <thead className="sticky top-0 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
+                    <thead className="sticky top-0 bg-slate-50/70 dark:bg-zinc-800/30 border-b border-slate-200/70 dark:border-zinc-800 text-[var(--ds-fg-muted)]">
                       <tr>
                         <th className="w-10 px-2 py-2"></th>
                         <th className="px-3 py-2">Kendaraan</th>
@@ -954,7 +954,7 @@ export function HandoverAgreementTab({
                         <th className="w-28 px-2 py-2">No. Rangka</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                    <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                       {filteredVehicleAssets.length === 0 ? (
                         <tr>
                           <td colSpan={7} className="px-3 py-8 text-center text-[var(--ds-fg-muted)]">
@@ -983,14 +983,14 @@ export function HandoverAgreementTab({
                             >
                               {asset.merk_tipe || asset.merk || "-"}
                             </td>
-                            <td className="px-2 py-2 text-[var(--ds-fg-muted)]">{asset.nup || "-"}</td>
-                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate" title={asset.no_polisi || "-"}>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] tabular-nums">{asset.nup || "-"}</td>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate tabular-nums" title={asset.no_polisi || "-"}>
                               {asset.no_polisi || "-"}
                             </td>
-                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate" title={asset.no_mesin || "-"}>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate tabular-nums" title={asset.no_mesin || "-"}>
                               {asset.no_mesin || "-"}
                             </td>
-                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate" title={asset.no_rangka || "-"}>
+                            <td className="px-2 py-2 text-[var(--ds-fg-muted)] truncate tabular-nums" title={asset.no_rangka || "-"}>
                               {asset.no_rangka || "-"}
                             </td>
                           </tr>
@@ -1002,7 +1002,7 @@ export function HandoverAgreementTab({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-3">
+                <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3">
                   <div className="mb-2 text-xs font-semibold text-[var(--ds-fg-secondary)]">
                     Tambah dari data BMN
                   </div>
@@ -1019,7 +1019,7 @@ export function HandoverAgreementTab({
                           {loadingGeneralAssetOptions ? (
                             <span className="text-[var(--ds-fg-muted)]">Memuat barang BMN...</span>
                           ) : selectedGeneralAssetIds.size > 0 ? (
-                            <span>
+                            <span className="tabular-nums">
                               <strong className="text-[var(--ds-accent-fg)]">
                                 {selectedGeneralAssetIds.size} barang BMN terpilih
                               </strong>{" "}
@@ -1032,9 +1032,9 @@ export function HandoverAgreementTab({
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent data-module="bmn" aria-label="Pilih barang dari data BMN" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[680px] max-w-[calc(100vw-2rem)] p-0" align="start">
+                    <PopoverContent data-module="bmn" aria-label="Pilih barang dari data BMN" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[680px] max-w-[calc(100vw-2rem)] p-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg" align="start">
                       <div className="flex max-h-125 flex-col">
-                        <div className="flex items-center border-b px-3 py-2.5">
+                        <div className="flex items-center border-b border-slate-200/70 dark:border-zinc-800 px-3 py-2">
                           <Search className="mr-2 h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
                           <Input
                             className="h-9 border-0 bg-transparent px-0 text-sm shadow-none outline-none"
@@ -1057,7 +1057,7 @@ export function HandoverAgreementTab({
                         </div>
 
                         {!loadingGeneralAssetOptions && generalAssetOptions.length > 0 && (
-                          <div className="flex items-center justify-between border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs text-[var(--ds-fg-muted)]">
+                          <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 px-3 py-2 text-xs text-[var(--ds-fg-muted)] tabular-nums">
                             <span>
                               Ditemukan <strong>{generalAssetOptions.length}</strong> barang
                             </span>
@@ -1073,7 +1073,7 @@ export function HandoverAgreementTab({
                           </div>
                         )}
 
-                        <div className="flex-1 overflow-y-auto p-1.5 divide-y divide-[var(--ds-border-subtle)] max-h-85">
+                        <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-200/70 dark:divide-zinc-800 max-h-85">
                           {loadingGeneralAssetOptions && (
                             <div className="py-8 text-center text-sm text-[var(--ds-fg-muted)]">
                               <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-[var(--ds-accent-fg)]" />
@@ -1094,10 +1094,10 @@ export function HandoverAgreementTab({
                                 <label
                                   key={asset.id}
                                   data-selected={isSelected}
-                                  className={`bmn-choice-card flex cursor-pointer items-start gap-3 rounded-lg p-2.5 select-none ${
+                                  className={`bmn-choice-card flex cursor-pointer items-start gap-3 rounded-lg p-3 select-none ${
                                     isSelected
-                                      ? "bg-[var(--ds-accent-soft)] "
-                                      : "hover:bg-[var(--ds-surface-muted)] "
+                                      ? "bg-[var(--ds-accent-soft)]"
+                                      : "hover:bg-slate-50/60 dark:hover:bg-zinc-800/30"
                                   }`}
                                 >
                                   <input
@@ -1105,45 +1105,45 @@ export function HandoverAgreementTab({
                                     aria-label={`Pilih ${asset.nama_barang} NUP ${asset.nup || "-"}`}
                                     checked={isSelected}
                                     onChange={() => toggleGeneralAssetItem(asset)}
-                                    className="mt-0.5 h-4 w-4 rounded border-[var(--ds-border-subtle)] text-[var(--ds-accent-fg)]"
+                                    className="mt-1 h-4 w-4 accent-[var(--ds-accent-solid)]"
                                   />
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between gap-2">
                                       <span
                                         className={`block text-xs font-bold leading-tight ${
                                           isSelected
-                                            ? "text-[var(--ds-accent-fg)] "
-                                            : "text-[var(--ds-fg)] "
+                                            ? "text-[var(--ds-accent-fg)]"
+                                            : "text-[var(--ds-fg)]"
                                         }`}
                                       >
                                         {asset.nama_barang}
                                       </span>
                                       {isSelected && (
-                                        <span className="shrink-0 rounded-full bg-[var(--ds-accent-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
+                                        <span className="shrink-0 rounded-full bg-[var(--ds-accent-soft)] px-2 py-1 text-xs font-semibold text-[var(--ds-accent-fg)]">
                                           ✓ Dipilih
                                         </span>
                                       )}
                                     </div>
-                                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ds-fg-muted)]">
+                                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--ds-fg-muted)]">
                                       <span>
                                         Merk/Tipe:{" "}
                                         <b className="font-semibold text-[var(--ds-fg-secondary)]">{merkTipe}</b>
                                       </span>
-                                      <span>
+                                      <span className="tabular-nums">
                                         NUP:{" "}
                                         <b className="font-semibold text-[var(--ds-accent-fg)]">
                                           {asset.nup || "-"}
                                         </b>
                                       </span>
                                       {asset.kode_barang && (
-                                        <span className="text-[var(--ds-fg-muted)]">
+                                        <span className="text-[var(--ds-fg-muted)] tabular-nums">
                                           Kode: {asset.kode_barang}
                                         </span>
                                       )}
                                       {asset.kondisi && (
                                         <span
                                           data-status={asset.kondisi.trim().toLowerCase() === "baik" ? "success" : asset.kondisi.trim().toLowerCase() === "rusak berat" ? "danger" : asset.kondisi.trim().toLowerCase() === "rusak ringan" ? "warning" : "neutral"}
-                                          className="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium"
+                                          className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
                                         >
                                           {asset.kondisi}
                                         </span>
@@ -1155,8 +1155,8 @@ export function HandoverAgreementTab({
                             })}
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
-                          <span className="text-[var(--ds-fg-secondary)]">
+                        <div className="flex items-center justify-between border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
+                          <span className="text-[var(--ds-fg-secondary)] tabular-nums">
                             Total terpilih:{" "}
                             <strong className="font-bold text-[var(--ds-accent-fg)]">
                               {selectedGeneralAssetIds.size}
@@ -1166,7 +1166,7 @@ export function HandoverAgreementTab({
                           <Button
                             type="button"
                             size="sm"
-                            className="h-8 rounded-lg bg-[var(--ds-accent-soft)] px-3 text-xs font-semibold text-white hover:bg-[var(--ds-accent-soft)]"
+                            className="h-8 rounded-lg bmn-primary px-3 text-xs font-semibold"
                             onClick={() => setOpenGeneralAssetPicker(false)}
                           >
                             Selesai
@@ -1177,9 +1177,9 @@ export function HandoverAgreementTab({
                   </Popover>
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)]">
+                <div className="overflow-x-auto rounded-lg border border-slate-200/80 dark:border-zinc-800">
                   <table className="bmn-wide-table w-full table-fixed text-left text-xs">
-                    <thead className="bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
+                    <thead className="bg-slate-50/70 dark:bg-zinc-800/30 border-b border-slate-200/70 dark:border-zinc-800 text-[var(--ds-fg-muted)]">
                       <tr>
                         <th className="w-40 px-3 py-2">Nama Barang</th>
                         <th className="w-32 px-2 py-2">Merk / Tipe</th>
@@ -1189,7 +1189,7 @@ export function HandoverAgreementTab({
                         <th className="w-16 px-3 py-2 text-right">Aksi</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                    <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                       {handoverItems.map((item, index) => (
                         <tr key={index}>
                           <td className="px-3 py-2">
@@ -1197,7 +1197,7 @@ export function HandoverAgreementTab({
                               value={item.name || ""}
                               onChange={(event) => updateHandoverItem(index, "name", event.target.value)}
                               placeholder="Nama barang"
-                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
+                              className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-2 text-xs"
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -1205,7 +1205,7 @@ export function HandoverAgreementTab({
                               value={item.merk_tipe || ""}
                               onChange={(event) => updateHandoverItem(index, "merk_tipe", event.target.value)}
                               placeholder="Merk / Tipe"
-                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
+                              className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-2 text-xs"
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -1214,7 +1214,7 @@ export function HandoverAgreementTab({
                               value={item.quantity ?? ""}
                               onChange={(event) => updateHandoverItem(index, "quantity", event.target.value)}
                               placeholder="Contoh: 1 Box"
-                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
+                              className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-2 text-xs tabular-nums"
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -1222,7 +1222,7 @@ export function HandoverAgreementTab({
                               value={item.nup || ""}
                               onChange={(event) => updateHandoverItem(index, "nup", event.target.value)}
                               placeholder="-"
-                              className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 py-1.5 text-xs"
+                              className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 py-2 text-xs tabular-nums"
                             />
                           </td>
                           <td className="px-2 py-2 text-[var(--ds-fg-muted)]">{item.asset_id ? "BMN" : "Manual"}</td>
@@ -1231,7 +1231,7 @@ export function HandoverAgreementTab({
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="bmn-icon-danger h-7 rounded-lg px-2 text-xs"
+                              className="bmn-icon-danger h-8 rounded-lg px-2 text-xs"
                               onClick={() => removeHandoverItem(index)}
                               disabled={handoverItems.length === 1}
                             >
@@ -1247,12 +1247,12 @@ export function HandoverAgreementTab({
             )}
           </div>
 
-          <div className="order-5 min-w-0 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+          <div className="order-5 min-w-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <div className="mb-4">
               <h3 className="text-sm font-bold text-[var(--ds-fg)]">5. Preview Dokumen</h3>
-              <p className="text-xs text-[var(--ds-fg-muted)]">{fullHandoverNumber}</p>
+              <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{fullHandoverNumber}</p>
             </div>
-            <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4">
+            <div className="overflow-x-auto rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-4">
               <HandoverAgreementDocument
                 number={fullHandoverNumber}
                 title={handoverTitle}

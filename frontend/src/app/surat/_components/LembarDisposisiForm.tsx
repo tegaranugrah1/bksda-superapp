@@ -31,6 +31,255 @@ function formatDateForInput(dateStr?: string | null): string {
   return str;
 }
 
+function loadDefaultRecipients(): string[] {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("bksda_default_penerus");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Fallback to built-in default options on malformed storage value
+      }
+    }
+  }
+  return [...DITERUSKAN_OPTIONS];
+}
+
+function LembarDisposisiCardFields({
+  formData,
+  setFormData,
+  diteruskanList,
+  newRecipientText,
+  setNewRecipientText,
+  onAddRecipient,
+  onUpdateRecipient,
+  onDeleteRecipient,
+  onResetRecipients,
+  resetLabel,
+  onSaveDefaultRecipients,
+  required = false,
+  onNoAgendaSync,
+}: {
+  formData: SuratMasuk;
+  setFormData: React.Dispatch<React.SetStateAction<SuratMasuk>>;
+  diteruskanList: string[];
+  newRecipientText: string;
+  setNewRecipientText: (val: string) => void;
+  onAddRecipient: () => void;
+  onUpdateRecipient: (idx: number, val: string) => void;
+  onDeleteRecipient: (idx: number) => void;
+  onResetRecipients: () => void;
+  resetLabel: string;
+  onSaveDefaultRecipients?: () => void;
+  required?: boolean;
+  onNoAgendaSync?: (val: string) => void;
+}) {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
+            Tanggal Agenda (Atas){required ? " *" : ""}
+          </label>
+          <Input
+            type="date"
+            value={formData.tanggal_agenda}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, tanggal_agenda: e.target.value })}
+            className="mt-1 h-9 text-xs font-semibold rounded-lg"
+            required={required}
+          />
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
+            No Agenda (Atas){required ? " *" : ""}
+          </label>
+          <Input
+            type="text"
+            value={formData.no_agenda}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const val = e.target.value;
+              setFormData({ ...formData, no_agenda: val });
+              onNoAgendaSync?.(val);
+            }}
+            placeholder={required ? "Contoh: 1004" : undefined}
+            className="mt-1 h-9 text-xs font-semibold rounded-lg"
+            required={required}
+          />
+        </div>
+      </div>
+
+      <div className="border-t border-slate-200/70 dark:border-zinc-800 pt-3 space-y-3">
+        <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider block">
+          2. Informasi Naskah Surat
+        </span>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
+              No Surat{required ? " *" : ""}
+            </label>
+            <Input
+              value={formData.no_surat}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, no_surat: e.target.value })}
+              placeholder={required ? "36/APEKLI/VII/2026" : undefined}
+              className="mt-1 h-9 text-xs font-semibold rounded-lg"
+              required={required}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
+              Tanggal Surat (Bawah){required ? " *" : ""}
+            </label>
+            <Input
+              type="date"
+              value={formData.tanggal_surat || ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, tanggal_surat: e.target.value })}
+              className="mt-1 h-9 text-xs font-semibold rounded-lg"
+              required={required}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
+            Isi Ringkas / Perihal{required ? " *" : ""}
+          </label>
+          <Textarea
+            value={formData.isi_ringkas || ""}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, isi_ringkas: e.target.value })}
+            placeholder={required ? "Usulan Evaluasi Kouta Ekspor..." : undefined}
+            rows={2}
+            className="mt-1 text-xs font-medium rounded-lg"
+            required={required}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
+              Asal Surat{required ? " *" : ""}
+            </label>
+            <Input
+              value={formData.asal_surat || ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, asal_surat: e.target.value })}
+              placeholder={required ? "Apekli" : undefined}
+              className="mt-1 h-9 text-xs rounded-lg"
+              required={required}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-[var(--ds-fg-secondary)]">
+              Lampiran{required ? " *" : ""}
+            </label>
+            <Input
+              value={formData.lampiran || ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, lampiran: e.target.value })}
+              placeholder={required ? "3 Set" : undefined}
+              className="mt-1 h-9 text-xs rounded-lg"
+              required={required}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label className="text-xs font-medium text-[var(--ds-fg-muted)]">Indek (Opsional)</label>
+            <Input
+              value={formData.indeks || ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, indeks: e.target.value })}
+              className="mt-1 h-8 text-xs rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-[var(--ds-fg-muted)]">Kode (Opsional)</label>
+            <Input
+              value={formData.kode || ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, kode: e.target.value })}
+              className="mt-1 h-8 text-xs rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-200/70 dark:border-zinc-800 pt-3 space-y-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider">
+            3. Daftar Penerus (Diteruskan Kepada Yth)
+          </span>
+          <div className="flex items-center gap-2">
+            {onSaveDefaultRecipients && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onSaveDefaultRecipients}
+                className="h-7 text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] border-[var(--ds-accent-soft-border)] hover:opacity-90 rounded-lg"
+              >
+                <Save className="mr-1 h-3 w-3" />
+                Simpan Default ({diteruskanList.length})
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onResetRecipients}
+              className="h-7 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-lg"
+            >
+              <RotateCcw className="mr-1 h-3 w-3" />
+              {resetLabel}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Input
+            value={newRecipientText}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRecipientText(e.target.value)}
+            placeholder="Tambah penerus baru (misal: 10. Urusan XYZ)..."
+            className="h-8 text-xs flex-1 rounded-lg"
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onAddRecipient();
+              }
+            }}
+          />
+          <Button
+            type="button"
+            size="sm"
+            onClick={onAddRecipient}
+            className="h-8 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold rounded-lg"
+          >
+            <Plus className="mr-1 h-3 w-3" />
+            Tambah
+          </Button>
+        </div>
+
+        <div className="space-y-2 max-h-48 overflow-y-auto p-2 border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)]">
+          {diteruskanList.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <Input
+                value={item}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdateRecipient(idx, e.target.value)}
+                className="h-7 text-xs bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 rounded-lg"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onDeleteRecipient(idx)}
+                className="h-7 w-7 p-0 text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: LembarDisposisiFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -55,20 +304,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
   }));
 
   // Dynamic Diteruskan Options List (Load custom default from localStorage if available)
-  const [diteruskanList1, setDiteruskanList1] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("bksda_default_penerus");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
-        } catch (e) {}
-      }
-    }
-    return [...DITERUSKAN_OPTIONS];
-  });
+  const [diteruskanList1, setDiteruskanList1] = useState<string[]>(loadDefaultRecipients);
   const [newRecipientText, setNewRecipientText] = useState("");
   const [catatanDisposisi1, setCatatanDisposisi1] = useState("");
 
@@ -113,20 +349,7 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
     lampiran: "",
     catatan: "",
   });
-  const [diteruskanList2, setDiteruskanList2] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("bksda_default_penerus");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
-        } catch (e) {}
-      }
-    }
-    return [...DITERUSKAN_OPTIONS];
-  });
+  const [diteruskanList2, setDiteruskanList2] = useState<string[]>(loadDefaultRecipients);
   const [catatanDisposisi2, setCatatanDisposisi2] = useState("");
 
   // Position 1-Up (Kiri / Kanan) when printing 1 Disposisi
@@ -320,7 +543,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             if (newItem2.asal_surat) fd2.append("asal_surat", newItem2.asal_surat);
             if (newItem2.lampiran) fd2.append("lampiran", newItem2.lampiran);
             await api.post("/surat-masuk", fd2);
-          } catch (e) {}
+          } catch {
+            toast.warning("Surat masuk pertama tersimpan, tetapi surat kedua gagal disimpan.");
+          }
         }
       }
 
@@ -351,43 +576,47 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
   };
 
   return (
-    <div className="space-y-6">
+    <div className="psr-ui space-y-6">
       {/* ── Action Toolbar ── */}
-      <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-emerald-600" />
+      <div className="no-print flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+            <FileText className="h-4 w-4" />
+          </div>
           <div>
-            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+            <h2 className="text-sm font-bold text-[var(--ds-fg)]">
               Form Lembar Disposisi (BKSDA KALTIM)
             </h2>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Form isian informasi surat masuk untuk dicetak 2-Up (Letter dibagi 2).
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!isTwoUpMode && (
-            <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-0.5 rounded-xl text-xs font-semibold">
-              <span className="px-2 text-[10px] text-zinc-500 font-bold">Posisi 1-Up:</span>
+            <div className="flex items-center gap-1 bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 p-1 rounded-lg text-xs font-semibold">
+              <span className="px-2 text-xs text-[var(--ds-fg-muted)] font-bold">Posisi 1-Up:</span>
               <button
                 type="button"
+                aria-pressed={oneUpPosition === "kiri"}
                 onClick={() => setOneUpPosition("kiri")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   oneUpPosition === "kiri"
-                    ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 }`}
               >
                 ⬅️ Kiri
               </button>
               <button
                 type="button"
+                aria-pressed={oneUpPosition === "kanan"}
                 onClick={() => setOneUpPosition("kanan")}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   oneUpPosition === "kanan"
-                    ? "bg-white text-emerald-700 shadow-2xs dark:bg-zinc-800 dark:text-emerald-300"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                    : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                 }`}
               >
                 Kanan ➡️
@@ -399,10 +628,15 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             type="button"
             variant="outline"
             size="sm"
+            aria-pressed={isTwoUpMode}
             onClick={handleToggleTwoUpMode}
-            className={`h-9 text-xs font-semibold ${isTwoUpMode ? "border-emerald-600 text-emerald-700 bg-emerald-50" : ""}`}
+            className={`h-9 text-xs font-semibold rounded-lg gap-2 ${
+              isTwoUpMode
+                ? "border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)]"
+                : "kpg-secondary"
+            }`}
           >
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" />
             {isTwoUpMode ? "Mode 2-Up Aktif (2 Form)" : "Aktifkan Input 2 Form"}
           </Button>
 
@@ -411,9 +645,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             variant="outline"
             size="sm"
             onClick={handlePrint}
-            className="h-9 text-xs font-semibold text-zinc-700 hover:bg-zinc-100"
+            className="kpg-secondary h-9 text-xs font-semibold rounded-lg gap-2"
           >
-            <Printer className="mr-1.5 h-3.5 w-3.5" />
+            <Printer className="h-3.5 w-3.5" />
             {isTwoUpMode ? "Cetak 2-Up (2 Disposisi Side-by-Side)" : "Cetak 1-Up (1 Disposisi)"}
           </Button>
 
@@ -421,9 +655,9 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
             type="button"
             onClick={() => handleSubmit()}
             disabled={loading}
-            className="h-9 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+            className="h-9 text-xs font-bold bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] rounded-lg gap-2"
           >
-            <Save className="mr-1.5 h-3.5 w-3.5" />
+            <Save className="h-3.5 w-3.5" />
             {loading ? "Menyimpan..." : "Simpan Surat Masuk"}
           </Button>
         </div>
@@ -432,217 +666,40 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       {/* ── Form Input Fields (Form 1) ── */}
       <div className="no-print grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form 1 Input Card */}
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-            <span className="font-bold text-xs text-emerald-600 uppercase tracking-wider">
-              1. Informai Agenda & Header
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 md:p-6 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
+            <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider">
+              1. Informasi Agenda & Header
             </span>
-            <span className="text-[11px] text-zinc-400">Lembar 1 (Utama)</span>
+            <span className="text-xs text-[var(--ds-fg-muted)]">Lembar 1 (Utama)</span>
           </div>
 
-          {/* Agenda & Tanggal Atas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-semibold text-zinc-700">Tanggal Agenda (Atas) *</label>
-              <Input
-                type="date"
-                value={formData1.tanggal_agenda}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, tanggal_agenda: e.target.value })}
-                className="mt-1 h-9 text-xs font-semibold"
-                required
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">No Agenda (Atas) *</label>
-              </div>
-              <Input
-                type="text"
-                value={formData1.no_agenda}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const val = e.target.value;
-                  setFormData1({ ...formData1, no_agenda: val });
-                  if (val && !isNaN(Number(val))) {
-                    const nextVal = String(Number(val) + 1);
-                    setFormData2((prev: SuratMasuk) => ({ ...prev, no_agenda: nextVal }));
-                  }
-                }}
-                placeholder="Contoh: 1004"
-                className="mt-1 h-9 text-xs font-semibold"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Detail Surat */}
-          <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-3">
-            <span className="font-bold text-xs text-emerald-600 uppercase tracking-wider block">
-              2. Informasi Naskah Surat
-            </span>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-semibold text-zinc-700">No Surat *</label>
-                <Input
-                  value={formData1.no_surat}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, no_surat: e.target.value })}
-                  placeholder="36/APEKLI/VII/2026"
-                  className="mt-1 h-9 text-xs font-semibold"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-zinc-700">Tanggal Surat (Bawah) *</label>
-                <Input
-                  type="date"
-                  value={formData1.tanggal_surat || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, tanggal_surat: e.target.value })}
-                  className="mt-1 h-9 text-xs font-semibold"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-semibold text-zinc-700">Isi Ringkas / Perihal *</label>
-              <Textarea
-                value={formData1.isi_ringkas || ""}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData1({ ...formData1, isi_ringkas: e.target.value })}
-                placeholder="Usulan Evaluasi Kouta Ekspor..."
-                rows={2}
-                className="mt-1 text-xs font-medium"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-[11px] font-semibold text-zinc-700">Asal Surat *</label>
-                <Input
-                  value={formData1.asal_surat || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, asal_surat: e.target.value })}
-                  placeholder="Apekli"
-                  className="mt-1 h-9 text-xs"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-zinc-700">Lampiran *</label>
-                <Input
-                  value={formData1.lampiran || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, lampiran: e.target.value })}
-                  placeholder="3 Set"
-                  className="mt-1 h-9 text-xs"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Optional Metadata */}
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <div>
-                <label className="text-[11px] font-medium text-zinc-500">Indek (Opsional)</label>
-                <Input
-                  value={formData1.indeks || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, indeks: e.target.value })}
-                  className="mt-1 h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-medium text-zinc-500">Kode (Opsional)</label>
-                <Input
-                  value={formData1.kode || ""}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData1({ ...formData1, kode: e.target.value })}
-                  className="mt-1 h-8 text-xs"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Manager Penerus "DITERUSKAN KEPADA YTH" */}
-          <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-xs text-emerald-600 uppercase tracking-wider">
-                3. Daftar Penerus (Diteruskan Kepada Yth)
-              </span>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSaveDefaultRecipients1}
-                  className="h-6 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300"
-                >
-                  <Save className="mr-1 h-3 w-3" />
-                  Simpan Default ({diteruskanList1.length})
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetRecipients1}
-                  className="h-6 text-[10px] text-zinc-500 hover:text-zinc-900"
-                >
-                  <RotateCcw className="mr-1 h-3 w-3" />
-                  Reset Bawaan
-                </Button>
-              </div>
-            </div>
-
-            {/* Form Tambah Item Penerus */}
-            <div className="flex items-center gap-2">
-              <Input
-                value={newRecipientText}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRecipientText(e.target.value)}
-                placeholder="Tambah penerus baru (misal: 10. Urusan XYZ)..."
-                className="h-8 text-xs flex-1"
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddRecipient1();
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleAddRecipient1}
-                className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                <Plus className="mr-1 h-3 w-3" />
-                Tambah
-              </Button>
-            </div>
-
-            {/* Daftar Item Penerus Editable */}
-            <div className="space-y-1.5 max-h-48 overflow-y-auto p-2 border border-zinc-200 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/50">
-              {diteruskanList1.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <Input
-                    value={item}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateRecipient1(idx, e.target.value)}
-                    className="h-7 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteRecipient1(idx)}
-                    className="h-7 w-7 p-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <LembarDisposisiCardFields
+            formData={formData1}
+            setFormData={setFormData1}
+            diteruskanList={diteruskanList1}
+            newRecipientText={newRecipientText}
+            setNewRecipientText={setNewRecipientText}
+            onAddRecipient={handleAddRecipient1}
+            onUpdateRecipient={handleUpdateRecipient1}
+            onDeleteRecipient={handleDeleteRecipient1}
+            onResetRecipients={handleResetRecipients1}
+            resetLabel="Reset Bawaan"
+            onSaveDefaultRecipients={handleSaveDefaultRecipients1}
+            required
+            onNoAgendaSync={(val) => {
+              if (val && !isNaN(Number(val))) {
+                setFormData2((prev: SuratMasuk) => ({ ...prev, no_agenda: String(Number(val) + 1) }));
+              }
+            }}
+          />
         </form>
 
         {/* Form 2 Input Card (Optional 2-Up Mode) */}
         {isTwoUpMode ? (
-          <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
-              <span className="font-bold text-xs text-blue-600 uppercase tracking-wider">
+          <div className="space-y-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 md:p-6 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
+              <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider">
                 Disposisi 2 (Form Kanan 2-Up)
               </span>
               <Button
@@ -650,194 +707,42 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyForm1ToForm2}
-                className="h-7 text-[11px] font-semibold text-blue-600 hover:bg-blue-50"
+                className="h-7 text-xs font-semibold text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg"
               >
                 <Copy className="mr-1 h-3 w-3" />
                 Salin dari Form 1
               </Button>
             </div>
 
-            {/* ── 1. Informasi Agenda & Header (Form 2) ── */}
-            <div className="space-y-3">
-              <span className="font-bold text-xs text-blue-600 uppercase tracking-wider block">
-                1. Informasi Agenda & Header
-              </span>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-zinc-700">Tanggal Agenda (Atas)</label>
-                  <Input
-                    type="date"
-                    value={formData2.tanggal_agenda}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, tanggal_agenda: e.target.value })}
-                    className="mt-1 h-9 text-xs font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-zinc-700">No Agenda (Atas)</label>
-                  <Input
-                    type="text"
-                    value={formData2.no_agenda}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, no_agenda: e.target.value })}
-                    className="mt-1 h-9 text-xs font-semibold"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* ── 2. Informasi Naskah Surat (Form 2) ── */}
-            <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-3">
-              <span className="font-bold text-xs text-blue-600 uppercase tracking-wider block">
-                2. Informasi Naskah Surat
-              </span>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-zinc-700">No Surat</label>
-                  <Input
-                    value={formData2.no_surat}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, no_surat: e.target.value })}
-                    className="mt-1 h-9 text-xs font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-zinc-700">Tanggal Surat (Bawah)</label>
-                  <Input
-                    type="date"
-                    value={formData2.tanggal_surat}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, tanggal_surat: e.target.value })}
-                    className="mt-1 h-9 text-xs font-semibold"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-semibold text-zinc-700">Isi Ringkas / Perihal</label>
-                <Textarea
-                  value={formData2.isi_ringkas || ""}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData2({ ...formData2, isi_ringkas: e.target.value })}
-                  rows={2}
-                  className="mt-1 text-xs font-medium"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] font-semibold text-zinc-700">Asal Surat</label>
-                  <Input
-                    value={formData2.asal_surat || ""}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, asal_surat: e.target.value })}
-                    className="mt-1 h-9 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-zinc-700">Lampiran</label>
-                  <Input
-                    value={formData2.lampiran || ""}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, lampiran: e.target.value })}
-                    className="mt-1 h-9 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label className="text-[11px] font-medium text-zinc-500">Indek (Opsional)</label>
-                  <Input
-                    value={formData2.indeks || ""}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, indeks: e.target.value })}
-                    className="mt-1 h-8 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-zinc-500">Kode (Opsional)</label>
-                  <Input
-                    value={formData2.kode || ""}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData2({ ...formData2, kode: e.target.value })}
-                    className="mt-1 h-8 text-xs"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* ── 3. Daftar Penerus (Diteruskan Kepada Yth) (Form 2) ── */}
-            <div className="border-t border-zinc-100 pt-3 dark:border-zinc-800 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-xs text-blue-600 uppercase tracking-wider">
-                  3. Daftar Penerus (Diteruskan Kepada Yth)
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleResetRecipients2}
-                  className="h-6 text-[10px] text-zinc-500 hover:text-zinc-900"
-                >
-                  <RotateCcw className="mr-1 h-3 w-3" />
-                  Reset 1-9
-                </Button>
-              </div>
-
-              {/* Form Tambah Item Penerus */}
-              <div className="flex items-center gap-2">
-                <Input
-                  value={newRecipientText2}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRecipientText2(e.target.value)}
-                  placeholder="Tambah penerus baru (misal: 10. Urusan XYZ)..."
-                  className="h-8 text-xs flex-1"
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddRecipient2();
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleAddRecipient2}
-                  className="h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Plus className="mr-1 h-3 w-3" />
-                  Tambah
-                </Button>
-              </div>
-
-              {/* Daftar Item Penerus Editable Form 2 */}
-              <div className="space-y-1.5 max-h-48 overflow-y-auto p-2 border border-zinc-200 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/50">
-                {diteruskanList2.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <Input
-                      value={item}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUpdateRecipient2(idx, e.target.value)}
-                      className="h-7 text-xs bg-white dark:bg-zinc-950 border-zinc-200"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteRecipient2(idx)}
-                      className="h-7 w-7 p-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <span className="font-bold text-xs text-[var(--ds-accent-fg)] uppercase tracking-wider block">
+              1. Informasi Agenda & Header
+            </span>
+            <LembarDisposisiCardFields
+              formData={formData2}
+              setFormData={setFormData2}
+              diteruskanList={diteruskanList2}
+              newRecipientText={newRecipientText2}
+              setNewRecipientText={setNewRecipientText2}
+              onAddRecipient={handleAddRecipient2}
+              onUpdateRecipient={handleUpdateRecipient2}
+              onDeleteRecipient={handleDeleteRecipient2}
+              onResetRecipients={handleResetRecipients2}
+              resetLabel="Reset 1-9"
+            />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-zinc-200 rounded-2xl bg-zinc-50/50 text-center">
-            <Shield className="h-10 w-10 text-zinc-300 mb-2" />
-            <h4 className="font-bold text-xs text-zinc-700">Pratinjau Cetak Lembar Disposisi 2-Up</h4>
-            <p className="text-[11px] text-zinc-500 max-w-xs mt-1 leading-relaxed">
-              Secara bawaan, cetakan akan merender **2-Up (salinan duplikat Form 1)** pada 1 halaman kertas Letter Landscape agar pas dibagi 2.
+          <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200/80 dark:border-zinc-800 rounded-3xl bg-[var(--ds-surface-muted)] text-center shadow-xs">
+            <Shield className="h-10 w-10 text-[var(--ds-fg-muted)] mb-2" />
+            <h4 className="font-bold text-xs text-[var(--ds-fg)]">Pratinjau Cetak Lembar Disposisi 2-Up</h4>
+            <p className="text-xs text-[var(--ds-fg-muted)] max-w-xs mt-1 leading-relaxed">
+              Secara bawaan, cetakan akan merender <strong>2-Up (salinan duplikat Form 1)</strong> pada 1 halaman kertas Letter Landscape agar pas dibagi 2.
             </p>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsTwoUpMode(true)}
-              className="mt-4 h-8 text-xs font-semibold"
+              className="kpg-secondary mt-4 h-8 text-xs font-semibold rounded-lg"
             >
               Input Disposisi Kedua Berbeda
             </Button>
@@ -848,24 +753,26 @@ export function LembarDisposisiForm({ initialData, onSave, isSubmitting }: Lemba
       {/* ── Live Print Layout Preview (1-Up or 2-Up) ── */}
       <div className="space-y-2">
         <div className="no-print flex items-center justify-between px-1">
-          <span className="font-bold text-xs text-zinc-700 uppercase tracking-wider">
+          <span className="font-bold text-xs text-[var(--ds-fg-muted)] uppercase tracking-wider">
             {isTwoUpMode ? "Pratinjau Cetak Fisik 2-Up (Letter Landscape)" : "Pratinjau Cetak Fisik 1-Up (1 Lembar Disposisi)"}
           </span>
-          <span className="text-[11px] text-zinc-400">
+          <span className="text-xs text-[var(--ds-fg-muted)]">
             {isTwoUpMode ? "Ukuran Kertas: Letter divided by 2 (Side-by-side)" : "Ukuran Kertas: 1 Lembar Disposisi"}
           </span>
         </div>
 
-        <LembarDisposisi2UpPrint
-          surat1={formData1}
-          diteruskan1={diteruskanList1}
-          catatan1={catatanDisposisi1}
-          surat2={isTwoUpMode ? formData2 : undefined}
-          diteruskan2={isTwoUpMode ? diteruskanList2 : undefined}
-          catatan2={isTwoUpMode ? catatanDisposisi2 : undefined}
-          isTwoUpMode={isTwoUpMode}
-          oneUpPosition={oneUpPosition}
-        />
+        <div className="overflow-x-auto pb-2">
+          <LembarDisposisi2UpPrint
+            surat1={formData1}
+            diteruskan1={diteruskanList1}
+            catatan1={catatanDisposisi1}
+            surat2={isTwoUpMode ? formData2 : undefined}
+            diteruskan2={isTwoUpMode ? diteruskanList2 : undefined}
+            catatan2={isTwoUpMode ? catatanDisposisi2 : undefined}
+            isTwoUpMode={isTwoUpMode}
+            oneUpPosition={oneUpPosition}
+          />
+        </div>
       </div>
     </div>
   );

@@ -43,12 +43,12 @@ export function EmployeeSelectionStep({
   dropdownRef,
 }: EmployeeSelectionStepProps) {
   return (
-    <div className="bg-[var(--ds-surface)] rounded-2xl p-6 sm:p-10 shadow-sm border border-[var(--ds-border-subtle)]">
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-[var(--ds-accent-soft-border)]">
+    <div className="bg-[var(--ds-surface)] rounded-3xl p-4 sm:p-8 shadow-xs border border-slate-200/80 dark:border-zinc-800">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] rounded-lg mx-auto flex items-center justify-center mb-4 shadow-xs border border-[var(--ds-accent-soft-border)]">
           <Users className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-black text-[var(--ds-fg)] tracking-tight">
+        <h2 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
           Pilih Personel Tugas
         </h2>
         <p className="text-[var(--ds-fg-muted)] text-sm mt-2 font-medium">
@@ -57,11 +57,11 @@ export function EmployeeSelectionStep({
       </div>
 
       <div className="mb-8">
-        <p aria-live="polite" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 block">
+        <p aria-live="polite" className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-3 block tabular-nums">
           Daftar Personel Terpilih ({selectedEmployees.length})
         </p>
         {selectedEmployees.length === 0 ? (
-          <div className="p-6 rounded-2xl border-2 border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-center flex flex-col items-center justify-center">
+          <div className="p-6 rounded-lg border-2 border-dashed border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-center flex flex-col items-center justify-center">
             <UserPlus className="w-6 h-6 text-[var(--ds-fg-muted)] mb-2" />
             <span className="text-sm font-medium text-[var(--ds-fg-muted)]">
               Belum ada pegawai dipilih
@@ -78,7 +78,7 @@ export function EmployeeSelectionStep({
                   <span className="text-sm font-bold text-[var(--ds-accent-fg)] leading-tight break-words">
                     {emp.name}
                   </span>
-                  <span className="text-xs text-[var(--ds-accent-fg)] font-medium truncate max-w-37.5">
+                  <span className="text-xs text-[var(--ds-accent-fg)] font-medium truncate max-w-40 tabular-nums">
                     {emp.department || emp.nip}
                   </span>
                 </div>
@@ -88,7 +88,7 @@ export function EmployeeSelectionStep({
                   aria-label={`Hapus ${emp.name} dari personel tugas`}
                   className="w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-[var(--ds-accent-fg)] hover:bg-[var(--ds-surface)] hover:text-[var(--ds-status-danger-fg)] focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             ))}
@@ -125,7 +125,7 @@ export function EmployeeSelectionStep({
                 }
               }
             }}
-            className="block w-full pl-11 pr-4 py-4 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl text-base placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors font-medium text-[var(--ds-fg-muted)] shadow-sm"
+            className="block w-full pl-11 pr-4 py-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm placeholder:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-fg)] focus:border-[var(--ds-accent-fg)] transition-colors font-medium text-[var(--ds-fg)] shadow-xs"
             placeholder="Nama atau NIP"
             value={searchQuery}
             onChange={(e) => {
@@ -141,7 +141,7 @@ export function EmployeeSelectionStep({
           )}
           {isSearching && (
             <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-              <div className="w-4 h-4 border-2 border-[var(--ds-accent-soft-border)] border-t-[var(--ds-accent-soft-border)] rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-[var(--ds-accent-soft-border)] border-t-[var(--ds-accent-solid)] rounded-full animate-spin"></div>
             </div>
           )}
         </div>
@@ -150,8 +150,8 @@ export function EmployeeSelectionStep({
           <p role="status" className="mt-2 text-sm text-[var(--ds-fg-muted)]">Personel tidak ditemukan. Coba nama atau NIP lain.</p>
         )}
         {showDropdown && searchResults.length > 0 && searchQuery.trim().length >= 1 && (
-          <div className="absolute mt-2 w-full bg-[var(--ds-surface)] rounded-2xl shadow-sm border border-[var(--ds-border-subtle)] overflow-hidden max-h-60 overflow-y-auto">
-            <ul id="personnel-search-results" aria-label="Hasil pencarian personel" className="py-2">
+          <div className="absolute mt-2 w-full bg-[var(--ds-surface)] rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800 overflow-hidden max-h-60 overflow-y-auto">
+            <ul id="personnel-search-results" aria-label="Hasil pencarian personel" className="space-y-1">
               {searchResults.map((emp: Employee) => {
                 const isSelected = selectedEmployees.some(
                   (e: Employee) => e.id === emp.id
@@ -162,8 +162,8 @@ export function EmployeeSelectionStep({
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       className={cn(
-                        "w-full text-left px-4 py-3 hover:bg-[var(--ds-surface-muted)] focus-visible:bg-[var(--ds-accent-fg)] focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)] flex items-center justify-between transition-colors cursor-pointer",
-                        isSelected && "bg-[var(--ds-surface)]"
+                        "w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--ds-surface-muted)] focus-visible:bg-[var(--ds-accent-soft)] focus-visible:text-[var(--ds-accent-fg)] focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)] flex items-center justify-between transition-colors cursor-pointer",
+                        isSelected && "bg-[var(--ds-accent-soft)]"
                       )}
                       aria-pressed={isSelected}
                       onClick={() => {
@@ -175,12 +175,12 @@ export function EmployeeSelectionStep({
                         <span
                           className={cn(
                             "text-sm font-semibold truncate",
-                            isSelected ? "text-[var(--ds-fg-muted)]" : "text-[var(--ds-fg-muted)]"
+                            isSelected ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg)]"
                           )}
                         >
                           {emp.name}
                         </span>
-                        <span className="text-xs text-[var(--ds-fg-muted)] truncate mt-0.5">
+                        <span className="text-xs text-[var(--ds-fg-muted)] truncate mt-1 tabular-nums">
                           {emp.department && emp.department !== "-"
                             ? emp.department
                             : emp.nip}
@@ -188,13 +188,13 @@ export function EmployeeSelectionStep({
                       </div>
                       <div
                         className={cn(
-                          "w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ml-3 transition-colors",
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-3 transition-colors",
                           isSelected
-                            ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-on-solid)]"
-                            : "border-[var(--ds-border-subtle)]"
+                            ? "bg-[var(--ds-accent-solid)] border-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                            : "border-[var(--ds-border-control)] bg-[var(--ds-surface)]"
                         )}
                       >
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4" />}
                       </div>
                     </button>
                   </li>
@@ -205,11 +205,11 @@ export function EmployeeSelectionStep({
         )}
       </div>
 
-      <div className="mt-10 flex justify-end pt-4 border-t border-[var(--ds-border-subtle)]">
+      <div className="mt-8 flex justify-end pt-4 border-t border-slate-200/70 dark:border-zinc-800">
         <Button
           onClick={handleNextStep}
           disabled={selectedEmployees.length === 0}
-          className="min-h-12 h-auto whitespace-normal px-4 sm:px-8 rounded-xl bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold tracking-wide disabled:opacity-50 transition-colors gap-2 cursor-pointer"
+          className="min-h-12 h-auto whitespace-normal px-4 sm:px-8 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold tracking-wide disabled:opacity-50 transition-colors gap-2 cursor-pointer"
         >
           Lanjutkan ke Detail Tugas <ChevronRight className="w-4 h-4" />
         </Button>

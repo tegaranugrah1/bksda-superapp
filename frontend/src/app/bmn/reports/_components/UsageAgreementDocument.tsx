@@ -48,36 +48,18 @@ import {
   signatureName,
   displayRank,
   formatSpelledDate,
-  resolvePhotoUrl as resolveSharedPhotoUrl,
+  collectPrintPhotoUrls,
   chunkPhotoAssets,
   printReportDocumentWindow,
   PHOTO_LAMPIRAN_PRINT_STYLES,
 } from "../_lib/report-utils";
+import { PhotoLampiranPages } from "./PhotoLampiranPages";
 
 function assetMerkTipe(asset: UsageAgreementAsset) {
   return fallback(asset.merk_tipe || [asset.merk, asset.tipe].filter(Boolean).join(" "));
 }
 
-function resolvePhotoUrl(url?: string | null): string | null {
-  return resolveSharedPhotoUrl(url, resolveApiUrl);
-}
-
-function getAssetPrintPhotos(asset: UsageAgreementAsset): string[] {
-  const rawUrls: string[] = [];
-
-  if (asset.photos && Array.isArray(asset.photos)) {
-    rawUrls.push(...asset.photos.filter(Boolean));
-  }
-  if (asset.foto_depan_url) rawUrls.push(asset.foto_depan_url);
-  if (asset.foto_belakang_url) rawUrls.push(asset.foto_belakang_url);
-  if (asset.foto_kiri_url) rawUrls.push(asset.foto_kiri_url);
-  if (asset.foto_kanan_url) rawUrls.push(asset.foto_kanan_url);
-  if (asset.foto_geotag_url) rawUrls.push(asset.foto_geotag_url);
-  if (asset.foto_url) rawUrls.push(asset.foto_url);
-
-  const resolved = Array.from(new Set(rawUrls.map(resolvePhotoUrl).filter(Boolean) as string[]));
-  return resolved.slice(0, 2);
-}
+const getAssetPrintPhotos = (asset: UsageAgreementAsset) => collectPrintPhotoUrls(asset, resolveApiUrl);
 
 
 const USAGE_PRINT_STYLES = `
@@ -144,7 +126,13 @@ export function UsageAgreementDocument({
   const page2Assets = isMultiPage ? assets.slice(PAGE_1_MAX_ITEMS) : [];
 
   // Group assets for Photo Lampiran pages (3 assets per page with Kop Surat header)
-  const photoPages = chunkPhotoAssets(assets, 3);
+  const photoPages = chunkPhotoAssets(assets, 3).map((group) =>
+    group.map((asset) => ({
+      key: asset.id,
+      title: `${asset.nama_barang} ( NUP ${asset.nup || "-"} )`,
+      photos: getAssetPrintPhotos(asset),
+    }))
+  );
 
   return (
     <div id={documentId}>
@@ -435,55 +423,7 @@ export function UsageAgreementDocument({
           </div>
         </article>
 
-        {/* Halaman Baru Lampiran Dokumentasi Foto Aset BMN (3 Aset per Halaman Memenuhi Layar) */}
-        {photoPages.map((pageGroup, pageIndex) => (
-          <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
-            <div className="usage-header">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/header.png" alt="Kop Surat" />
-            </div>
-
-            {/* Title ONLY on pageIndex === 0 */}
-            {pageIndex === 0 && (
-              <div className="photo-lampiran-title">
-                <p>LAMPIRAN DOKUMENTASI FOTO BARANG MILIK NEGARA</p>
-              </div>
-            )}
-
-            {pageGroup.map((asset) => {
-              const photos = getAssetPrintPhotos(asset);
-              return (
-                <div key={`photo-${asset.id}`} className="photo-asset-block avoid-break">
-                  <p className="photo-asset-title">
-                    {asset.nama_barang} ( NUP {asset.nup || "-"} )
-                  </p>
-                  <div className="photo-grid-row">
-                    {photos.length > 0 ? (
-                      photos.map((photoUrl, idx) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          key={idx}
-                          src={photoUrl}
-                          alt={`${asset.nama_barang} ${idx + 1}`}
-                          className="photo-img"
-                        />
-                      ))
-                    ) : (
-                      <>
-                        <div className="photo-placeholder">
-                          <span>Foto 1 (Tampak Depan)</span>
-                        </div>
-                        <div className="photo-placeholder">
-                          <span>Foto 2 (Tampak Belakang)</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </article>
-        ))}
+        <PhotoLampiranPages pages={photoPages} headerSrc="/header.png" headerClassName="usage-header" />
       </div>
     </div>
   );

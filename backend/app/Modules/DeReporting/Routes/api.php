@@ -34,10 +34,13 @@ Route::post('/public-forms/{slug}/submit', [FormBuilderController::class, 'submi
 Route::middleware(['auth:sanctum', 'module.access:dereporting'])->group(function () {
 
     // 1. LALU LINTAS LAPORAN INTERNAL (Seluruh Pegawai)
+    Route::get('/recipients/candidates', [InternalController::class, 'candidateRecipients']);
     // Otomatis menciptakan rute index, store, show, update, destroy
     Route::apiResource('internals', InternalController::class);
-    // Pintu gaib pengunduh PDF dari Brankas Privat
+    // Pintu gaib pengunduh & pratinjau PDF dari Brankas Privat
     Route::get('/internals/{id}/download', [InternalController::class, 'downloadFile']);
+    Route::get('/internals/{id}/preview', [InternalController::class, 'previewFile']);
+    Route::put('/internals/{id}/review', [InternalController::class, 'updateReview']);
 
     // 2. BACA & UNDUH LAPORAN EKSTERNAL (Seluruh Pegawai)
     Route::get('/eksternals', [EksternalController::class, 'index']);

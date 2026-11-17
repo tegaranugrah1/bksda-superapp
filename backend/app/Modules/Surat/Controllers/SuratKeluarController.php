@@ -11,23 +11,43 @@ use Illuminate\Support\Facades\Storage;
 
 class SuratKeluarController extends Controller
 {
+    private function isScopedToOwnLetters(Request $request): bool
+    {
+        return ! $request->user()?->isAdminFor('surat');
+    }
+
+    private function findAuthorizedSuratKeluar(Request $request, int $id): SuratKeluar
+    {
+        $suratKeluar = SuratKeluar::findOrFail($id);
+        if ($this->isScopedToOwnLetters($request) && (int) $suratKeluar->created_by !== (int) $request->user()?->id) {
+            abort(403, 'Anda hanya dapat mengakses surat keluar yang Anda input sendiri.');
+        }
+
+        return $suratKeluar;
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = SuratKeluar::with(['penandatangan', 'creator'])
             ->orderBy('id', 'desc');
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('no_surat', 'like', "%{$search}%")
-                  ->orWhere('tujuan_surat', 'like', "%{$search}%")
-                  ->orWhere('perihal', 'like', "%{$search}%");
+        if ($this->isScopedToOwnLetters($request)) {
+            $query->where('created_by', (int) $request->user()?->id);
+        }
+
+        $search = $request->input('search');
+        if (is_string($search) && trim($search) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($search)) . '%';
+            $query->where(function ($q) use ($pattern) {
+                $q->whereRaw("no_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("tujuan_surat LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("perihal LIKE ? ESCAPE '!'", [$pattern]);
             });
         }
 
         $perPageParam = $request->input('per_page', 15);
         if ($perPageParam === 'all') {
-            $items = $query->get();
+            $items = $query->limit(1000)->get();
             return response()->json([
                 'data' => $items,
                 'meta' => [
@@ -54,27 +74,33 @@ class SuratKeluarController extends Controller
         ]);
     }
 
+    private function storeUploadedFile(SuratKeluarRequest $request): ?string
+    {
+        if (! $request->hasFile('file_surat')) {
+            return null;
+        }
+        $file = $request->file('file_surat');
+        $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
+        return $file->storeAs('surat/keluar', uniqid('surat_keluar_') . '.' . $ext, 'local');
+    }
+
     public function store(SuratKeluarRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
-        if ($request->hasFile('file_surat')) {
-            $file = $request->file('file_surat');
-            $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
-            $filename = uniqid('surat_keluar_') . '.' . $ext;
-            $validated['file_path'] = $file->storeAs('surat/keluar', $filename, 'private');
+        $newFilePath = $this->storeUploadedFile($request);
+        if ($newFilePath) {
+            $validated['file_path'] = $newFilePath;
         }
-
-        if (isset($validated['document_payload']) && is_string($validated['document_payload'])) {
-            $decoded = json_decode($validated['document_payload'], true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $validated['document_payload'] = $decoded;
-            }
-        }
-
         $validated['created_by'] = $request->user()?->id;
 
-        $suratKeluar = SuratKeluar::create($validated);
+        try {
+            $suratKeluar = SuratKeluar::create($validated);
+        } catch (\Throwable $e) {
+            if ($newFilePath && Storage::disk('local')->exists($newFilePath)) {
+                Storage::disk('local')->delete($newFilePath);
+            }
+            throw $e;
+        }
 
         return response()->json([
             'message' => 'Surat Keluar berhasil disimpan.',
@@ -82,39 +108,50 @@ class SuratKeluarController extends Controller
         ], 201);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
-        $suratKeluar = SuratKeluar::with(['penandatangan', 'creator'])
-            ->findOrFail($id);
+        $suratKeluar = $this->findAuthorizedSuratKeluar($request, $id)->load(['penandatangan', 'creator']);
 
         return response()->json([
             'data' => $suratKeluar,
         ]);
     }
 
+    public function downloadFile(Request $request, int $id)
+    {
+        $suratKeluar = $this->findAuthorizedSuratKeluar($request, $id);
+        if (! $suratKeluar->file_path || ! Storage::disk('local')->exists($suratKeluar->file_path)) {
+            return response()->json(['message' => 'Berkas surat keluar tidak ditemukan.'], 404);
+        }
+
+        return Storage::disk('local')->response($suratKeluar->file_path, basename($suratKeluar->file_path), [
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, max-age=0',
+        ]);
+    }
+
     public function update(SuratKeluarRequest $request, int $id): JsonResponse
     {
-        $suratKeluar = SuratKeluar::findOrFail($id);
+        $suratKeluar = $this->findAuthorizedSuratKeluar($request, $id);
         $validated = $request->validated();
-
-        if ($request->hasFile('file_surat')) {
-            if ($suratKeluar->file_path && Storage::disk('private')->exists($suratKeluar->file_path)) {
-                Storage::disk('private')->delete($suratKeluar->file_path);
-            }
-            $file = $request->file('file_surat');
-            $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'pdf');
-            $filename = uniqid('surat_keluar_') . '.' . $ext;
-            $validated['file_path'] = $file->storeAs('surat/keluar', $filename, 'private');
+        $oldFilePath = $suratKeluar->file_path;
+        $newFilePath = $this->storeUploadedFile($request);
+        if ($newFilePath) {
+            $validated['file_path'] = $newFilePath;
         }
 
-        if (isset($validated['document_payload']) && is_string($validated['document_payload'])) {
-            $decoded = json_decode($validated['document_payload'], true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $validated['document_payload'] = $decoded;
+        try {
+            $suratKeluar->update($validated);
+        } catch (\Throwable $e) {
+            if ($newFilePath && Storage::disk('local')->exists($newFilePath)) {
+                Storage::disk('local')->delete($newFilePath);
             }
+            throw $e;
         }
 
-        $suratKeluar->update($validated);
+        if ($newFilePath && $oldFilePath && $oldFilePath !== $newFilePath && Storage::disk('local')->exists($oldFilePath)) {
+            Storage::disk('local')->delete($oldFilePath);
+        }
 
         return response()->json([
             'message' => 'Surat Keluar berhasil diperbarui.',
@@ -122,9 +159,9 @@ class SuratKeluarController extends Controller
         ]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
-        $suratKeluar = SuratKeluar::findOrFail($id);
+        $suratKeluar = $this->findAuthorizedSuratKeluar($request, $id);
         $suratKeluar->delete();
 
         return response()->json([

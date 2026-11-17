@@ -21,7 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DocumentContentEditorModal } from "./DocumentContentEditorModal";
 
 import { AuctionDocumentRenderer } from "./AuctionDocumentRenderer";
-import { printAuctionDocument } from "../_lib/auction-print-dispatcher";
+import { printAuctionDocument, printFallbackDocument } from "../_lib/auction-print-dispatcher";
 import {
   CommitteePicker,
   getEmployeeName,
@@ -31,7 +31,7 @@ import {
 } from "./CommitteePicker";
 import { PERNYATAAN_PRINT_CSS } from "../../../auction-candidates/_lib/print-pernyataan";
 import { EMPTY_DOC_NUMBER_GAP } from "../../../auction-candidates/_lib/auction-helpers";
-import type { Employee } from "./workflow/types";
+import type { Employee } from "../../_lib/api";
 
 interface DocumentsCenterTabProps {
   formState: ReturnType<typeof useDocumentsCenterFormState>;
@@ -293,13 +293,13 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
 
   if (error || !context) {
     return (
-      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-6 bg-[var(--ds-status-danger-bg)] rounded-2xl">
+      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-4 bg-[var(--ds-status-danger-bg)] rounded-3xl border border-[var(--ds-status-danger-border)]">
         <AlertTriangle className="h-8 w-8 text-[var(--ds-status-danger-fg)]" />
         <h3 className="font-bold text-xs text-[var(--ds-fg)]">Gagal Memuat Dokumen</h3>
         <p className="text-xs text-[var(--ds-fg-muted)]">
           Silakan muat ulang halaman ini atau pastikan data paket lengkap.
         </p>
-        <Button variant="outline" onClick={() => refetchContext()}>Coba lagi</Button>
+        <Button variant="outline" className="rounded-lg" onClick={() => refetchContext()}>Coba lagi</Button>
       </div>
     );
   }
@@ -307,10 +307,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
   // Check Schema Version
   if (context.metadata_schema_version && ![1, 2].includes(context.metadata_schema_version)) {
     return (
-      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-6 bg-[var(--ds-status-warning-bg)] rounded-2xl border border-[var(--ds-status-warning-border)]">
+      <div className="flex h-60 flex-col items-center justify-center space-y-2 text-center p-4 bg-[var(--ds-status-warning-bg)] rounded-3xl border border-[var(--ds-status-warning-border)]">
         <AlertTriangle className="h-8 w-8 text-[var(--ds-status-warning-fg)]" />
         <h3 className="font-bold text-xs text-[var(--ds-fg)]">Skema Metadata Tidak Didukung</h3>
-        <p className="text-xs text-[var(--ds-fg-muted)] max-w-md">
+        <p className="text-xs text-[var(--ds-fg-muted)] max-w-md tabular-nums">
           Dokumen ini dibuat menggunakan skema metadata versi {context.metadata_schema_version} yang belum didukung oleh sistem cetak saat ini.
         </p>
       </div>
@@ -341,24 +341,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
       });
 
       if (!printed) {
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) {
+        if (!printFallbackDocument(doc.title, printElement.innerHTML, PERNYATAAN_PRINT_CSS)) {
           setPrintingDocKey(null);
           return;
         }
-
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>${doc.title}</title>
-              <style>${PERNYATAAN_PRINT_CSS}</style>
-            </head>
-            <body>${printElement.innerHTML}</body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => printWindow.print(), 500);
       }
 
       logPrintMutation.mutate(doc.workflowKey || doc.key);
@@ -517,9 +503,9 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
     const valuationItems = checklist.sections?.find((section) => section.key === "valuation")?.items ?? [];
     return (
       <div className="space-y-6">
-        <div className="rounded-2xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-5 text-[var(--ds-status-warning-fg)] shadow-xs">
+        <div className="rounded-3xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-4 text-[var(--ds-status-warning-fg)] shadow-xs">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--ds-status-warning-fg)]" />
+            <AlertTriangle className="mt-1 h-5 w-5 shrink-0 text-[var(--ds-status-warning-fg)]" />
             <div>
               <h2 className="text-sm font-bold">Dokumen setelah taksiran belum dibuka</h2>
               <p className="mt-1 text-xs leading-relaxed text-[var(--ds-status-warning-fg)]">
@@ -528,13 +514,13 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
             </div>
           </div>
         </div>
-        <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
           <h3 className="text-sm font-bold text-[var(--ds-fg)]">Checklist nilai taksiran</h3>
           <div className="mt-4 space-y-2">
             {valuationItems.map((item) => (
-              <div key={item.key} className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
+              <div key={item.key} className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
                 <p className="font-semibold text-[var(--ds-fg)]">{item.label}</p>
-                {item.message && <p className="mt-0.5 text-xs text-[var(--ds-fg-muted)]">{item.message}</p>}
+                {item.message && <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">{item.message}</p>}
               </div>
             ))}
           </div>
@@ -545,21 +531,21 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
 
   return (
     <div className="space-y-6">
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-5 rounded-2xl shadow-xs">
-        <h2 className="text-base font-bold text-[var(--ds-fg)]">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs">
+        <h2 className="text-sm font-bold text-[var(--ds-fg)]">
           {phaseTitle}
         </h2>
-        <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+        <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
           {phaseDescription}
         </p>
       </div>
 
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)] lg:items-start">
           <div>
             <p className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Penandatangan & Panitia Dokumen</p>
             <h3 className="mt-1 text-sm font-bold text-[var(--ds-fg)]">Kepala Balai</h3>
-            <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
+            <p className="mt-1 text-xs text-[var(--ds-fg-muted)] tabular-nums">
               {kepalaBalai.nama !== "-" ? `${kepalaBalai.nama}${kepalaBalai.nip ? ` - NIP. ${kepalaBalai.nip}` : ""}` : "Belum dipilih"}
             </p>
             <p className="mt-2 max-w-2xl text-xs leading-relaxed text-[var(--ds-fg-muted)]">
@@ -576,7 +562,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                 role="combobox"
                 aria-expanded={isKepalaPickerOpen}
                 disabled={signatoryFieldDisabled}
-                className="h-auto min-h-11 w-full justify-between rounded-xl border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-left text-xs font-normal"
+                className="h-auto min-h-11 w-full justify-between rounded-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-left text-xs font-normal"
               >
                 <span className="min-w-0 truncate">
                   {selectedKepalaBalai
@@ -588,8 +574,8 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[min(560px,calc(100vw-2rem))] p-0" align="end">
-              <div className="border-b border-[var(--ds-border-subtle)] px-3 py-2">
+            <PopoverContent data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover w-[min(560px,calc(100vw-2rem))] p-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg" align="end">
+              <div className="border-b border-slate-200/70 dark:border-zinc-800 px-3 py-2">
                 <div className="flex items-center gap-2">
                   <Search className="h-4 w-4 shrink-0 text-[var(--ds-fg-muted)]" />
                   <Input
@@ -601,7 +587,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                   />
                 </div>
               </div>
-              <div className="max-h-72 overflow-y-auto p-1.5">
+              <div className="max-h-72 overflow-y-auto p-2">
                 {filteredKepalaBalaiEmployees.length === 0 ? (
                   <div className="px-3 py-6 text-center text-xs text-[var(--ds-fg-muted)]">Pegawai tidak ditemukan.</div>
                 ) : (
@@ -627,7 +613,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                           <span className="block truncate font-semibold text-[var(--ds-fg)]">
                             {getEmployeeName(employee)}
                           </span>
-                          <span className="block truncate font-mono text-xs text-[var(--ds-fg-muted)]">
+                          <span className="block truncate font-mono text-xs text-[var(--ds-fg-muted)] tabular-nums">
                             NIP. {employee.nip || "-"}
                             {getEmployeePosition(employee) ? ` - ${getEmployeePosition(employee)}` : ""}
                           </span>
@@ -690,7 +676,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
               return (
                 <div
                   key={workflowKey}
-                  className="flex flex-col justify-between rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5 shadow-xs"
+                  className="flex flex-col justify-between rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -698,17 +684,17 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                         {channelLabels[doc.channel || ""] || doc.category}
                       </span>
                       {doc.requiresValuation && (
-                        <span className="rounded-full bg-[var(--ds-status-warning-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-warning-fg)] ring-1 ring-[var(--ds-status-warning-border)]">
+                        <span className="rounded-full bg-[var(--ds-status-warning-bg)] px-2 py-1 text-xs font-bold text-[var(--ds-status-warning-fg)] ring-1 ring-[var(--ds-status-warning-border)]">
                           Setelah taksiran
                         </span>
                       )}
                       {waitingForValuation && (
-                        <span className="rounded-full bg-[var(--ds-status-danger-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-danger-fg)] ring-1 ring-[var(--ds-status-danger-border)]">
+                        <span className="rounded-full bg-[var(--ds-status-danger-bg)] px-2 py-1 text-xs font-bold text-[var(--ds-status-danger-fg)] ring-1 ring-[var(--ds-status-danger-border)]">
                           Menunggu Nilai Taksiran
                         </span>
                       )}
                       {!doc.printable && (
-                        <span className="rounded-full bg-[var(--ds-surface-muted)] px-2 py-0.5 text-xs font-bold text-[var(--ds-fg-muted)] ring-1 ring-[var(--ds-border-subtle)]">
+                        <span className="rounded-full bg-[var(--ds-surface-muted)] px-2 py-1 text-xs font-bold text-[var(--ds-fg-muted)] ring-1 ring-slate-200/80 dark:ring-zinc-800">
                           Status saja
                         </span>
                       )}
@@ -720,7 +706,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                         {doc.numberKey && (
                           <div className="space-y-2">
                             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8.5rem]">
-                              <div className="space-y-1.5">
+                              <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Nomor Dokumen</label>
                                 <Input
                                   key={`${workflowKey}-number-${documentNumber}`}
@@ -744,10 +730,10 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                                       event.currentTarget.blur();
                                     }
                                   }}
-                                  className="h-9 rounded-xl text-xs font-semibold"
+                                  className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs font-semibold tabular-nums"
                                 />
                               </div>
-                              <div className="space-y-1.5">
+                              <div className="space-y-2">
                                 <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">KAP</label>
                                 <Input
                                   key={`${workflowKey}-kap-${documentKap}`}
@@ -771,17 +757,17 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                                       event.currentTarget.blur();
                                     }
                                   }}
-                                  className="h-9 rounded-xl text-xs font-semibold"
+                                  className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs font-semibold tabular-nums"
                                 />
                               </div>
                             </div>
-                            <p className="truncate rounded-lg bg-[var(--ds-surface-muted)] px-2 py-1 font-mono text-xs font-semibold text-[var(--ds-fg-muted)]">
+                            <p className="truncate rounded-lg bg-[var(--ds-surface-muted)] px-2 py-1 font-mono text-xs font-semibold text-[var(--ds-fg-muted)] tabular-nums">
                               {buildDocumentNumberPreview(doc.key, documentNumber, documentKap)}
                             </p>
                           </div>
                         )}
                         {doc.dateKey && (
-                          <div className="space-y-1.5">
+                          <div className="space-y-2">
                             <label className="text-xs font-bold uppercase text-[var(--ds-fg-muted)]">Tanggal</label>
                             <Input
                               key={`${workflowKey}-date-${documentDate}`}
@@ -800,7 +786,7 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                                   date: nextDate,
                                 });
                               }}
-                              className="h-9 rounded-xl text-xs font-semibold"
+                              className="h-9 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs font-semibold tabular-nums"
                             />
                           </div>
                         )}
@@ -808,20 +794,20 @@ export function DocumentsCenterTab({ batch, phaseFilter, checklist, onRefetch, f
                     )}
                   </div>
 
-                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-[var(--ds-border-subtle)] pt-3">
+                  <div className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800 pt-3">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setEditingDoc(doc)}
                       disabled={waitingForValuation || isLoadingEmployees || !hasPrintableKepalaBalai}
-                      className="flex items-center gap-1.5 rounded-xl border-[var(--ds-border-subtle)] text-xs font-semibold text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
+                      className="flex items-center gap-2 rounded-lg border-slate-200/80 dark:border-zinc-800 text-xs font-semibold text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
                     >
                       <FileEdit className="h-4 w-4 text-[var(--ds-accent-fg)]" />
                       Edit Isi & Pratinjau
                     </Button>
                     <Button
                       onClick={() => handlePrint(doc)}
-                      className="flex items-center gap-1.5 rounded-xl bg-[var(--ds-accent-solid)] text-xs font-semibold text-white hover:bg-[var(--ds-accent-hover)]"
+                      className="flex items-center gap-2 rounded-lg bg-[var(--ds-accent-solid)] text-xs font-semibold text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
                       disabled={!!printingDocKey || !doc.printable || waitingForValuation || isLoadingEmployees || !hasPrintableKepalaBalai}
                     >
                       {isPrintingThis ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}

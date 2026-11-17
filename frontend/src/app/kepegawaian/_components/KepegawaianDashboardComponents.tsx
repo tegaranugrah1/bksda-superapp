@@ -26,27 +26,27 @@ export interface SatkerBreakdownItem {
 export function RecentActivitiesFeedCard({ activities }: { activities: RecentActivityItem[] }) {
   const reducedMotion = useReducedMotion();
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs flex flex-col">
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-zinc-800/80 mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="kpg-support-icon w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center">
+    <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs flex flex-col">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 dark:border-zinc-800 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="kpg-support-icon w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
             <TrendingUp className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-xs md:text-sm text-slate-900 dark:text-white">
+            <h3 className="font-bold text-sm text-[var(--ds-fg)]">
               Aktivitas Terkini Surat Tugas
             </h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Riwayat penerbitan ST dan penugasan terbaru
             </p>
           </div>
         </div>
         <Link
           href="/kepegawaian/surat-tugas/inbox"
-          className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 flex items-center gap-0.5 cursor-pointer"
+          className="text-xs font-bold text-[var(--ds-accent-fg)] hover:opacity-80 flex items-center gap-1 cursor-pointer"
         >
           <span>Lihat Semua</span>
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
 
@@ -61,39 +61,39 @@ export function RecentActivitiesFeedCard({ activities }: { activities: RecentAct
             >
               <Link
                 href={`/kepegawaian/surat-tugas/builder/${cleanId}`}
-                className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200/60 dark:border-zinc-800/80 hover:border-blue-300/60 transition-colors group cursor-pointer"
+                className="flex items-center gap-3 p-4 rounded-lg bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200/70 dark:border-zinc-800 hover:border-blue-300/60 transition-colors group cursor-pointer"
               >
-              <div className="kpg-support-icon w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+              <div className="kpg-support-icon w-9 h-9 rounded-lg bg-blue-600/10 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
                 <FileText className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <p className="text-xs font-bold text-[var(--ds-fg)] truncate group-hover:text-[var(--ds-accent-fg)] transition-colors">
                   {st.title}
                 </p>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                  <span data-status={["approved", "completed", "published"].includes(st.status.toLowerCase()) ? "success" : st.status.toLowerCase() === "pending" ? "warning" : st.status.toLowerCase() === "rejected" ? "danger" : "neutral"} className="kpg-support-badge max-w-full px-2 py-0.5 rounded-full text-xs font-bold">
+                  <span data-status={["approved", "completed", "published"].includes(st.status.toLowerCase()) ? "success" : st.status.toLowerCase() === "pending" ? "warning" : st.status.toLowerCase() === "rejected" ? "danger" : "neutral"} className="kpg-support-badge max-w-full px-2 py-1 rounded-full text-xs font-bold">
                     {getStatusLabel(st.status.toLowerCase())}
                   </span>
                   {st.tempat_tujuan && (
-                    <span className="min-w-0 max-w-full text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1 truncate font-medium">
+                    <span className="min-w-0 max-w-full text-xs text-[var(--ds-fg-muted)] flex items-center gap-1 truncate font-medium">
                       <MapPin className="w-3 h-3 text-blue-500 shrink-0" />
                       {st.tempat_tujuan}
                     </span>
                   )}
                   {st.tanggal_surat && (
-                    <span className="text-xs text-[var(--ds-fg-muted)] ml-auto shrink-0">
+                    <span className="text-xs text-[var(--ds-fg-muted)] ml-auto shrink-0 tabular-nums">
                       {st.tanggal_surat}
                     </span>
                   )}
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 shrink-0 transition-colors" />
+              <ChevronRight className="w-4 h-4 text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-accent-fg)] shrink-0 transition-colors" />
               </Link>
             </motion.div>
           );
         })}
         {activities.length === 0 && (
-          <div className="p-6 text-center text-slate-400 text-xs font-medium bg-slate-50/40 dark:bg-zinc-800/20 rounded-xl border border-dashed border-slate-200 dark:border-zinc-800">
+          <div className="p-6 text-center text-[var(--ds-fg-muted)] text-xs font-medium bg-slate-50/40 dark:bg-zinc-800/20 rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800">
             Belum ada aktivitas Surat Tugas terbaru.
           </div>
         )}
@@ -105,22 +105,22 @@ export function RecentActivitiesFeedCard({ activities }: { activities: RecentAct
 export function SatkerDistributionCard({ satkerBreakdown }: { satkerBreakdown: SatkerBreakdownItem[] }) {
   const reducedMotion = useReducedMotion();
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 p-5 rounded-2xl shadow-2xs flex flex-col">
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-zinc-800/80 mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="kpg-support-icon w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center">
+    <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs flex flex-col">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 dark:border-zinc-800 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="kpg-support-icon w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
             <Building2 className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-xs md:text-sm text-slate-900 dark:text-white">
+            <h3 className="font-bold text-sm text-[var(--ds-fg)]">
               Sebaran Personil per Wilayah Satker
             </h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
+            <p className="text-xs text-[var(--ds-fg-muted)]">
               Klik wilayah untuk memfilter Daftar Pegawai
             </p>
           </div>
         </div>
-        <span className="kpg-support-badge text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2.5 py-1 rounded-lg border border-blue-200/60 dark:border-blue-800/60">
+        <span className="kpg-support-badge text-xs font-bold text-[var(--ds-accent-fg)] bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-lg">
           {satkerBreakdown.length} Wilayah
         </span>
       </div>
@@ -138,18 +138,18 @@ export function SatkerDistributionCard({ satkerBreakdown }: { satkerBreakdown: S
             >
               <Link
                 href={href}
-                className="block p-3.5 rounded-xl bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/25 border border-slate-200/60 dark:border-zinc-800/70 hover:border-blue-300/60 transition-colors group cursor-pointer"
+                className="block p-4 rounded-lg bg-slate-50/70 dark:bg-zinc-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/25 border border-slate-200/70 dark:border-zinc-800 hover:border-blue-300/60 transition-colors group cursor-pointer"
               >
                 <div className="flex items-center justify-between text-xs font-bold mb-2">
-                  <span className="text-slate-800 dark:text-zinc-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 flex items-center gap-2 truncate transition-colors">
-                    <span className={`w-2.5 h-2.5 rounded-full ${satker.dot}`} />
+                  <span className="text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] flex items-center gap-2 truncate transition-colors">
+                    <span className={`w-2 h-2 rounded-full ${satker.dot}`} />
                     {satker.name}
                   </span>
-                  <span className="text-slate-600 dark:text-zinc-400 font-mono text-xs shrink-0 ml-2 flex items-center gap-1">
+                  <span className="text-[var(--ds-fg-muted)] font-mono text-xs shrink-0 ml-2 flex items-center gap-1 tabular-nums">
                     <span>
                       {satker.count} Personil ({satker.percentage}%)
                     </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-accent-fg)] transition-colors" />
                   </span>
                 </div>
                 <div className="w-full h-2 bg-slate-200/80 dark:bg-zinc-800 rounded-full overflow-hidden">

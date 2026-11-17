@@ -27,6 +27,10 @@ class EmployeeController extends Controller
     public function index(Request $request): JsonResponse
     {
         $baseQuery = Employee::query()
+            ->with([
+                'location:id,parent_id,location_type,unit_kerja,name,code,is_restricted',
+                'location.parent:id,unit_kerja,name,location_type,code',
+            ])
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
@@ -36,7 +40,7 @@ class EmployeeController extends Controller
                     ->orWhere('satuan_kerja', 'NOT LIKE', '%pusat%');
             });
 
-        $canViewTrashed = in_array($request->user()?->role, ['super_admin', 'admin'], true);
+        $canViewTrashed = (bool) $request->user()?->isAdminFor('kepegawaian');
 
         $counts = [
             'total' => (clone $baseQuery)->count(),
@@ -50,8 +54,13 @@ class EmployeeController extends Controller
             'trashed' => $canViewTrashed ? (clone $baseQuery)->onlyTrashed()->count() : 0,
         ];
 
-        $statusFilter = strtolower(trim((string) $request->input('status', '')));
-        $isTrashedView = $canViewTrashed && ($statusFilter === 'trashed' || $request->boolean('trashed'));
+        $rawStatus = $request->input('status', '');
+        $statusFilter = is_string($rawStatus) ? strtolower(trim($rawStatus)) : '';
+        $wantsTrashed = $statusFilter === 'trashed' || $request->boolean('trashed');
+        if ($wantsTrashed && ! $canViewTrashed) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat data pegawai terhapus.');
+        }
+        $isTrashedView = $canViewTrashed && $wantsTrashed;
 
         $query = clone $baseQuery;
         if ($isTrashedView) {
@@ -71,90 +80,130 @@ class EmployeeController extends Controller
             $query->effectiveActive();
         }
 
-        $jenisPegawai = strtoupper(trim((string) $request->input('jenis_pegawai', '')));
+        $rawJenis = $request->input('jenis_pegawai', '');
+        $jenisPegawai = is_string($rawJenis) ? strtoupper(trim($rawJenis)) : '';
         if (in_array($jenisPegawai, ['PNS', 'PPPK', 'P3K', 'MMP'], true)) {
             $query->ofJenis($jenisPegawai);
         }
 
         $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-        $wilayah = trim((string) $request->input('wilayah', ''));
+        $escapeLike = static fn (string $value): string => '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value) . '%';
+        $rawWilayah = $request->input('wilayah', '');
+        $wilayah = is_string($rawWilayah) ? trim($rawWilayah) : '';
         if ($wilayah !== '') {
-            if ($wilayah === 'BALAI') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%balai%')
-                        ->orWhere('satuan_kerja', $likeOp, '%samarinda%')
-                        ->orWhere('satuan_kerja', $likeOp, '%tata usaha%');
-                });
-            } elseif ($wilayah === 'SKW_1') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%wilayah i %')
-                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 1%')
-                        ->orWhere('satuan_kerja', $likeOp, '%berau%')
-                        ->orWhere('satuan_kerja', $likeOp, '%derawan%')
-                        ->orWhere('satuan_kerja', $likeOp, '%kelay%')
-                        ->orWhere('satuan_kerja', $likeOp, '%segah%')
-                        ->orWhere('satuan_kerja', $likeOp, '%talisayan%');
-                });
-            } elseif ($wilayah === 'SKW_2') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%wilayah ii %')
-                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 2%')
-                        ->orWhere('satuan_kerja', $likeOp, '%tenggarong%')
-                        ->orWhere('satuan_kerja', $likeOp, '%paser%')
-                        ->orWhere('satuan_kerja', $likeOp, '%sangatta%')
-                        ->orWhere('satuan_kerja', $likeOp, '%bengalon%')
-                        ->orWhere('satuan_kerja', $likeOp, '%sangkulirang%')
-                        ->orWhere('satuan_kerja', $likeOp, '%muara kama%')
-                        ->orWhere('satuan_kerja', $likeOp, '%kembang janggut%')
-                        ->orWhere('satuan_kerja', $likeOp, '%dondang%');
-                });
-            } elseif ($wilayah === 'SKW_3') {
-                $query->where(function ($q) use ($likeOp) {
-                    $q->where('satuan_kerja', $likeOp, '%wilayah iii%')
-                        ->orWhere('satuan_kerja', $likeOp, '%wilayah 3%')
-                        ->orWhere('satuan_kerja', $likeOp, '%balikpapan%')
-                        ->orWhere('satuan_kerja', $likeOp, '%bangkirai%')
-                        ->orWhere('satuan_kerja', $likeOp, '%penajam%')
-                        ->orWhere('satuan_kerja', $likeOp, '%nusantara%');
+            $slugMap = [
+                'BALAI' => 'balai-samarinda',
+                'SKW_1' => 'skw-1-berau',
+                'SKW_2' => 'skw-2-tenggarong',
+                'SKW_3' => 'skw-3-balikpapan',
+            ];
+
+            if (\Illuminate\Support\Str::isUuid($wilayah)) {
+                $childLocIds = \App\Modules\Bmn\Models\Location::where('parent_id', $wilayah)->pluck('id')->all();
+                $allLocIds = array_merge([$wilayah], $childLocIds);
+                $query->whereIn('location_id', $allLocIds);
+            } elseif (isset($slugMap[$wilayah])) {
+                $slug = $slugMap[$wilayah];
+                $parentLoc = \App\Modules\Bmn\Models\Location::where('code', $slug)->first();
+                $locIds = $parentLoc
+                    ? array_merge([$parentLoc->id], $parentLoc->children()->pluck('id')->all())
+                    : [];
+
+                $query->where(function ($q) use ($wilayah, $likeOp, $locIds) {
+                    if (! empty($locIds)) {
+                        $q->whereIn('location_id', $locIds);
+                    }
+                    if ($wilayah === 'BALAI') {
+                        $q->orWhere(function ($sub) use ($likeOp) {
+                            $sub->where('satuan_kerja', $likeOp, '%balai%')
+                                ->orWhere('satuan_kerja', $likeOp, '%tata usaha%')
+                                ->orWhere(function ($s2) use ($likeOp) {
+                                    $s2->where('satuan_kerja', $likeOp, '%samarinda%')
+                                        ->where(function ($r) {
+                                            $r->whereNull('resor')->orWhere('resor', '!=', 'resor_05');
+                                        });
+                                });
+                        });
+                    } elseif ($wilayah === 'SKW_1') {
+                        $q->orWhere('satuan_kerja', $likeOp, '%wilayah i %')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah i')
+                            ->orWhere('satuan_kerja', $likeOp, '%wil i%')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw i %')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw i')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah 1%')
+                            ->orWhere('satuan_kerja', $likeOp, '%berau%')
+                            ->orWhereIn('resor', ['resor_01', 'resor_02', 'resor_03']);
+                    } elseif ($wilayah === 'SKW_2') {
+                        $q->orWhere('satuan_kerja', $likeOp, '%wilayah ii %')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah ii')
+                            ->orWhere('satuan_kerja', $likeOp, '%wil ii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw ii %')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw ii')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah 2%')
+                            ->orWhere('satuan_kerja', $likeOp, '%tenggarong%')
+                            ->orWhere('satuan_kerja', $likeOp, '%paser%')
+                            ->orWhereIn('resor', ['resor_04', 'resor_05', 'resor_06', 'resor_07', 'resor_08']);
+                    } elseif ($wilayah === 'SKW_3') {
+                        $q->orWhere('satuan_kerja', $likeOp, '%wilayah iii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%wil iii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%skw iii%')
+                            ->orWhere('satuan_kerja', $likeOp, '%wilayah 3%')
+                            ->orWhere('satuan_kerja', $likeOp, '%balikpapan%')
+                            ->orWhereIn('resor', ['resor_09', 'resor_10', 'resor_11', 'resor_12', 'resor_13', 'resor_14']);
+                    }
                 });
             } else {
-                $escapedWilayah = addcslashes($wilayah, '%_');
-                $resorMatch = null;
+                $wilayahPattern = $escapeLike($wilayah);
+                $resorPatterns = null;
                 if (preg_match('/Resor\s+0*(\d+)\.\s*(.+)$/i', $wilayah, $m)) {
                     $resorNum = $m[1];
-                    $resorName = addcslashes(trim($m[2]), '%_');
-                    $resorMatch = ["Resor KSDA Wilayah {$resorNum}", $resorName];
+                    $resorName = trim($m[2]);
+                    $resorPatterns = [$escapeLike("Resor KSDA Wilayah {$resorNum}"), $escapeLike($resorName)];
                 }
-                $query->where(function ($q) use ($escapedWilayah, $resorMatch, $likeOp) {
-                    $q->where('satuan_kerja', $likeOp, "%{$escapedWilayah}%")
-                        ->orWhere('jabatan', $likeOp, "%{$escapedWilayah}%");
-                    if ($resorMatch) {
-                        $q->orWhere('jabatan', $likeOp, "%{$resorMatch[0]}%")
-                            ->orWhere('jabatan', $likeOp, "%{$resorMatch[1]}%");
+                $query->where(function ($q) use ($wilayahPattern, $resorPatterns, $likeOp) {
+                    $q->whereRaw("satuan_kerja {$likeOp} ? ESCAPE '!'", [$wilayahPattern])
+                        ->orWhereRaw("resor {$likeOp} ? ESCAPE '!'", [$wilayahPattern])
+                        ->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$wilayahPattern]);
+                    if ($resorPatterns) {
+                        $q->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$resorPatterns[0]])
+                            ->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$resorPatterns[1]]);
                     }
                 });
             }
         }
 
         // Ambil parameter pencarian dari URL (?search=... atau ?q=...)
-        $searchTerm = trim((string) ($request->input('search') ?? $request->input('q') ?? ''));
+        $rawSearch = $request->input('search') ?? $request->input('q') ?? '';
+        $searchTerm = is_string($rawSearch) ? trim($rawSearch) : '';
 
         if ($searchTerm !== '') {
-            $escapedTerm = addcslashes($searchTerm, '%_');
-            $query->where(function ($q) use ($escapedTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('jabatan', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('satuan_kerja', $likeOp, "%{$escapedTerm}%");
+            $termPattern = $escapeLike($searchTerm);
+            $query->where(function ($q) use ($termPattern, $likeOp) {
+                $q->whereRaw("nama_lengkap {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("nip {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("jabatan {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("satuan_kerja {$likeOp} ? ESCAPE '!'", [$termPattern]);
             });
         }
 
         // Ambil data dengan Pagination (default 10 baris per halaman, 'all' = 500)
-        $rawPerPage = strtolower(trim((string) $request->input('per_page', '10')));
+        $rawPerPageInput = $request->input('per_page', '10');
+        $rawPerPage = is_scalar($rawPerPageInput) ? strtolower(trim((string) $rawPerPageInput)) : '10';
         $requestedPerPage = $rawPerPage === 'all' ? 500 : max(1, (int) $rawPerPage);
         $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
         $perPage = min($requestedPerPage, $isMobile ? 100 : 500);
         $employees = $query->orderBy('nama_lengkap', 'asc')->paginate($perPage);
+
+        $actor = $request->user();
+        $isAdminActor = (bool) $actor?->isAdminFor('kepegawaian');
+        if (! $isAdminActor) {
+            $actorNip = trim((string) $actor?->username);
+            $employees->getCollection()->each(function (Employee $emp) use ($actorNip) {
+                if ($actorNip === '' || trim((string) $emp->nip) !== $actorNip) {
+                    $emp->makeHidden(['nama_bank', 'nomor_rekening', 'inactive_notes']);
+                }
+            });
+        }
 
         // Rule 5.1 & 5.3: Format Response Seragam
         return response()->json([
@@ -208,14 +257,21 @@ class EmployeeController extends Controller
     /**
      * Lihat detail 1 Pegawai
      */
-    public function show($id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
-        $employee = Employee::with('user')->findOrFail($id);
+        $employee = Employee::with(['user', 'location.parent'])->findOrFail($id);
 
         $data = $employee->toArray();
         unset($data['user']);
         $data['foto_url'] = $employee->foto_profil ? Storage::url($employee->foto_profil) : null;
         $data['email'] = $employee->email ?? $employee->user?->email ?? null;
+
+        $actor = $request->user();
+        $isAdminActor = (bool) $actor?->isAdminFor('kepegawaian');
+        $isSelf = $actor && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $actor->username);
+        if (! $isAdminActor && ! $isSelf) {
+            unset($data['nama_bank'], $data['nomor_rekening'], $data['inactive_notes']);
+        }
 
         return response()->json([
             'message' => 'Detail pegawai ditemukan.',
@@ -242,59 +298,96 @@ class EmployeeController extends Controller
 
         $validated = $request->validated();
 
-        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
+        $oldEmail = strtolower(trim((string) $employee->email));
+        $newEmail = isset($validated['email']) ? strtolower(trim((string) $validated['email'])) : '';
+        if ($targetUser && $newEmail !== '' && $newEmail !== $oldEmail) {
+            $emailConflict = User::whereRaw('LOWER(email) = ?', [$newEmail])
+                ->where('id', '!=', $targetUser->id)
+                ->exists();
+            if ($emailConflict) {
+                return response()->json([
+                    'message' => 'Alamat email sudah digunakan oleh akun pengguna lain.',
+                    'errors' => ['email' => ['Alamat email sudah digunakan oleh akun pengguna lain.']],
+                ], 422);
+            }
+        }
+
+        $trackedFields = ['nama_lengkap', 'nip', 'jabatan', 'pangkat_golongan', 'satuan_kerja', 'resor', 'location_id', 'masa_kerja', 'nama_bank', 'nomor_rekening', 'telepon', 'email', 'is_active'];
+        $employee->loadMissing('location.parent');
+        $oldPlacement = [
+            'location_id' => $employee->location_id,
+            'satuan_kerja' => $employee->satuan_kerja,
+            'resor' => $employee->resor,
+            'drive_unit_id' => $employee->location?->effectiveDriveUnitId(),
+        ];
+
         $oldValues = [];
         foreach ($trackedFields as $field) {
             $oldValues[$field] = $employee->$field;
         }
+        $oldNip = trim((string) $employee->nip);
 
         // Jika user mengganti foto lama dengan foto baru
         if ($request->hasFile('foto')) {
             $employee->replaceProfilePhoto($request->file('foto'));
         }
 
-        $employee->update($validated);
-        $newNip = trim((string) $employee->nip);
+        DB::transaction(function () use ($employee, $validated, $trackedFields, $oldValues, $oldNip, $oldPlacement, $targetUser, $currentUser) {
+            $employee->update($validated);
+            $newNip = trim((string) $employee->nip);
 
-        // Sinkronisasi email ke akun User jika ada
-        if ($targetUser && !empty($employee->email)) {
-            $targetUser->email = $employee->email;
-            $targetUser->save();
-        }
-
-        // Catat riwayat audit jika ada field biodata yang berubah
-        $changes = [];
-        foreach ($trackedFields as $field) {
-            $newVal = $employee->$field;
-            $oldVal = $oldValues[$field];
-            if ($oldVal != $newVal) {
-                $changes[$field] = [
-                    'old' => $oldVal,
-                    'new' => $newVal,
-                ];
+            // Sinkronisasi email ke akun User jika ada (reset verifikasi + sesi bila email berubah)
+            if ($targetUser && ! empty($employee->email)) {
+                $emailChanged = strtolower(trim((string) $targetUser->email)) !== strtolower(trim((string) $employee->email));
+                $targetUser->email = $employee->email;
+                if ($emailChanged) {
+                    $targetUser->email_verified_at = null;
+                    $targetUser->tokens()->delete();
+                }
+                $targetUser->save();
             }
-        }
 
-        if (! empty($changes)) {
-            EmployeeHistory::create([
-                'employee_id' => $employee->id,
-                'user_id' => $currentUser?->id,
-                'action' => 'UPDATE_BIODATA',
-                'changes' => $changes,
-                'created_at' => now(),
-            ]);
-        }
+            // Catat riwayat audit jika ada field biodata yang berubah
+            $changes = [];
+            foreach ($trackedFields as $field) {
+                $newVal = $employee->$field;
+                $oldVal = $oldValues[$field];
+                if ($oldVal != $newVal) {
+                    $changes[$field] = [
+                        'old' => $oldVal,
+                        'new' => $newVal,
+                    ];
+                }
+            }
 
-        if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
-            User::where('username', $oldNip)->update([
-                'username' => $newNip,
-                'name' => $employee->nama_lengkap,
-            ]);
-        }
+            if (! empty($changes)) {
+                EmployeeHistory::create([
+                    'employee_id' => $employee->id,
+                    'user_id' => $currentUser?->id,
+                    'action' => 'UPDATE_BIODATA',
+                    'changes' => $changes,
+                    'created_at' => now(),
+                ]);
+            }
+
+            if ($oldNip !== '' && $newNip !== '' && $newNip !== $oldNip) {
+                User::where('username', $oldNip)->update([
+                    'username' => $newNip,
+                    'name' => $employee->nama_lengkap,
+                ]);
+            }
+
+            $freshEmployee = $employee->fresh(['location.parent']);
+            $resolvedUser = ($newNip !== '' && $newNip !== $oldNip)
+                ? User::where('username', $newNip)->first()
+                : ($targetUser ?: ($newNip !== '' ? User::where('username', $newNip)->first() : null));
+
+            \App\Support\Security\DriveAccess::syncEmployeePlacement($freshEmployee, $oldPlacement, $resolvedUser);
+        });
 
         return response()->json([
             'message' => 'Data pegawai berhasil diperbarui.',
-            'data' => $employee,
+            'data' => $employee->fresh(['location.parent']),
         ]);
     }
 
@@ -370,14 +463,18 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        // Operasi ini otomatis menjadi Soft Delete karena Trait SoftDeletes di Model (Issue #23)
-        $employee->delete();
+        DB::transaction(function () use ($employee, $nip) {
+            // Operasi ini otomatis menjadi Soft Delete karena Trait SoftDeletes di Model (Issue #23)
+            $employee->delete();
 
-        // Deactivate associated user account and revoke existing tokens to prevent orphaned login
-        if ($nip !== '' && ($user = User::where('username', $nip)->first())) {
-            $user->update(['is_active' => false]);
-            $user->tokens()->delete();
-        }
+            // Deactivate associated user account and revoke existing tokens to prevent orphaned login
+            if ($nip !== '' && ($user = User::where('username', $nip)->first())) {
+                $user->update(['is_active' => false]);
+                $user->tokens()->delete();
+            }
+        });
+
+        app(\App\Modules\Bmn\Services\AssetService::class)->notifyEmployeeBmnClearance($employee, 'penghapusan data pegawai');
 
         return response()->json([
             'message' => 'Data pegawai berhasil dihapus (soft delete).',
@@ -451,10 +548,9 @@ class EmployeeController extends Controller
         });
 
         Employee::deleteUnreferencedProfilePhoto($employee->foto_profil);
-        foreach (array_unique($filesToDelete) as $path) {
-            if (Storage::exists($path)) {
-                Storage::delete($path);
-            }
+        $localFiles = array_values(array_unique(array_filter($filesToDelete)));
+        if ($localFiles !== []) {
+            Storage::disk('local')->delete($localFiles);
         }
 
         return response()->json([
@@ -467,8 +563,14 @@ class EmployeeController extends Controller
      */
     public function select(Request $request): JsonResponse
     {
-        $searchTerm = trim((string) ($request->input('q') ?? $request->input('search') ?? ''));
-        $asOf = $request->input('as_of') ? \Illuminate\Support\Carbon::parse($request->input('as_of')) : null;
+        $request->validate([
+            'as_of' => ['nullable', 'date'],
+        ]);
+        $rawSearch = $request->input('q') ?? $request->input('search') ?? '';
+        $searchTerm = is_string($rawSearch) ? trim($rawSearch) : '';
+        $asOf = ($request->user() && $request->filled('as_of'))
+            ? \Illuminate\Support\Carbon::parse($request->input('as_of'))
+            : null;
 
         $query = Employee::query()
             ->effectiveActive($asOf)
@@ -476,12 +578,12 @@ class EmployeeController extends Controller
             ->where('nama_lengkap', 'NOT LIKE', '%superadmin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%');
 
-        if (! empty($searchTerm)) {
-            $escapedTerm = addcslashes($searchTerm, '%_');
+        if ($searchTerm !== '') {
+            $termPattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $searchTerm) . '%';
             $likeOp = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($escapedTerm, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$escapedTerm}%")
-                    ->orWhere('nip', $likeOp, "%{$escapedTerm}%");
+            $query->where(function ($q) use ($termPattern, $likeOp) {
+                $q->whereRaw("nama_lengkap {$likeOp} ? ESCAPE '!'", [$termPattern])
+                    ->orWhereRaw("nip {$likeOp} ? ESCAPE '!'", [$termPattern]);
             });
         }
 
@@ -545,10 +647,14 @@ class EmployeeController extends Controller
         }
 
         $currentUser = $request->user();
-        if ($user->role === 'super_admin' && $currentUser?->role !== 'super_admin') {
-            return response()->json([
-                'message' => 'Hanya Super Admin yang dapat mereset password akun Super Admin.',
-            ], 403);
+        $targetIsPrivileged = $user->role === 'super_admin'
+            || $user->role === 'admin'
+            || in_array('admin', array_values($user->module_roles ?? []), true);
+        if ($targetIsPrivileged && $currentUser?->role !== 'super_admin') {
+            $msg = $user->role === 'super_admin'
+                ? 'Hanya Super Admin yang dapat mereset password akun Super Admin.'
+                : 'Hanya Super Admin yang dapat mereset password akun Administrator Modul.';
+            return response()->json(['message' => $msg], 403);
         }
 
         // Mode B: Kirim link reset jika diminta dan user punya email valid
@@ -613,6 +719,7 @@ class EmployeeController extends Controller
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ]);
+        $user->tokens()->delete();
 
         // Ponytail: Catat riwayat audit
         EmployeeHistory::create([
@@ -789,12 +896,17 @@ class EmployeeController extends Controller
     public function assignmentLetters(Request $request, string $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $user = $request->user();
+        $isAdmin = $user && ($user->role === 'super_admin'
+            || ($user->isAdminFor('surat_tugas') && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])));
+        $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
+        if (! $isAdmin && ! $isSelf) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat riwayat surat tugas pegawai lain.');
+        }
+
         $perPage = min(100, max(1, (int) $request->input('per_page', 10)));
 
         $query = $employee->assignmentLetters();
-        $user = $request->user();
-        $isAdmin = $user->role === 'super_admin'
-            || ($user->role === 'admin' && array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? []));
         if (! $isAdmin) {
             $query->where(function ($q) use ($user) {
                 $q->whereIn(DB::raw('LOWER(status)'), \App\Modules\SuratTugas\Models\AssignmentLetter::OFFICIAL_STATUSES)
@@ -822,6 +934,14 @@ class EmployeeController extends Controller
     public function mealAllowances(Request $request, string $id): JsonResponse
     {
         $employee = Employee::findOrFail($id);
+        $user = $request->user();
+        $isAdmin = $user && ($user->role === 'super_admin'
+            || ($user->isAdminFor('kepegawaian') && in_array('kepegawaian', $user->access_modules ?? [], true)));
+        $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
+        if (! $isAdmin && ! $isSelf) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat riwayat uang makan pegawai lain.');
+        }
+
         $perPage = min(100, max(1, (int) $request->input('per_page', 12)));
 
         if ($employee->is_mmp) {
@@ -863,9 +983,15 @@ class EmployeeController extends Controller
      * GET /api/kepegawaian/dashboard-stats
      * Mengambil data statistik real-time dari database untuk Kepegawaian Dashboard
      */
-    public function dashboardStats(): JsonResponse
+    public function dashboardStats(Request $request): JsonResponse
     {
+        $isAdminActor = (bool) $request->user()?->isAdminFor('kepegawaian');
+
         $baseQuery = Employee::query()
+            ->with([
+                'location:id,parent_id,location_type,unit_kerja,name,code,is_restricted',
+                'location.parent:id,unit_kerja,name,location_type,code',
+            ])
             ->where('nama_lengkap', 'NOT LIKE', '%administrator%')
             ->where('nama_lengkap', 'NOT LIKE', '%admin%')
             ->where('nama_lengkap', 'NOT LIKE', '%magang%')
@@ -885,41 +1011,54 @@ class EmployeeController extends Controller
             ? number_format(($activeEmployees / $totalEmployees) * 100, 1) . '%' 
             : '100%';
 
-        // 2. Surat Tugas Aktif & Pending
-        $activeStCount = AssignmentLetter::whereIn('status', ['DITERBITKAN', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'diterbitkan', 'approved', 'completed', 'published'])->count();
-        $pendingStCount = AssignmentLetter::whereIn('status', ['PENDING', 'DRAFT', 'pending', 'draft'])->count();
+        // 2-3 & 5. Query surat tugas / cuti / surat masuk hanya untuk admin kepegawaian
+        $activeStCount = 0;
+        $pendingStCount = 0;
+        $pendingCutiCount = 0;
+        $approvedCutiCount = 0;
+        $totalSuratMasuk = 0;
+        $unrepliedSuratMasuk = 0;
+        $recentSt = collect();
 
-        // 3. Leave Requests & Surat Masuk
-        $pendingCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['PENGAJUAN', 'PENDING'])->count();
-        $approvedCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['DISETUJUI', 'APPROVED'])->count();
-        $totalSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::count();
-        $unrepliedSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::where(function ($q) {
-            $q->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
-        })->count();
+        if ($isAdminActor) {
+            $activeStCount = AssignmentLetter::whereIn('status', ['DITERBITKAN', 'APPROVED', 'COMPLETED', 'PUBLISHED', 'diterbitkan', 'approved', 'completed', 'published'])->count();
+            $pendingStCount = AssignmentLetter::whereIn('status', ['PENDING', 'DRAFT', 'pending', 'draft'])->count();
+            $pendingCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['PENGAJUAN', 'PENDING'])->count();
+            $approvedCutiCount = EmployeeLeaveRequest::whereIn(DB::raw('UPPER(status)'), ['DISETUJUI', 'APPROVED'])->count();
+            $totalSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::count();
+            $unrepliedSuratMasuk = \App\Modules\Kepegawaian\Models\EmployeeIncomingLetter::where(function ($q) {
+                $q->whereNull('no_surat_balasan')->orWhere('no_surat_balasan', '');
+            })->count();
+        }
 
-        // 4. Sebaran Satuan Kerja
-        $satkerRaw = (clone $baseQuery)
-            ->select('satuan_kerja', DB::raw('count(*) as count'))
-            ->groupBy('satuan_kerja')
-            ->get();
+        // 4. Sebaran Satuan Kerja (berbasis Master Lokasi & kanonik unit)
+        $employeesForStats = (clone $baseQuery)->with('location.parent')->get(['id', 'location_id', 'satuan_kerja', 'resor']);
 
         $samarindaCount = 0;
         $berauCount = 0;
         $tenggarongCount = 0;
         $balikpapanCount = 0;
+        $dynamicSeksiCounts = [];
 
-        foreach ($satkerRaw as $item) {
-            $name = strtolower($item->satuan_kerja ?? '');
-            if (str_contains($name, 'wilayah iii') || str_contains($name, 'wilayah 3') || str_contains($name, 'balikpapan')) {
-                $balikpapanCount += $item->count;
-            } elseif (str_contains($name, 'wilayah ii') || str_contains($name, 'wilayah 2') || str_contains($name, 'tenggarong') || str_contains($name, 'paser')) {
-                $tenggarongCount += $item->count;
-            } elseif (str_contains($name, 'wilayah i') || str_contains($name, 'wilayah 1') || str_contains($name, 'berau')) {
-                $berauCount += $item->count;
-            } elseif (str_contains($name, 'balai') || str_contains($name, 'samarinda') || str_contains($name, 'tata usaha')) {
-                $samarindaCount += $item->count;
+        foreach ($employeesForStats as $emp) {
+            $slug = $emp->canonicalLocationSlug();
+
+            if ($slug === 'skw-3-balikpapan') {
+                $balikpapanCount++;
+            } elseif ($slug === 'skw-2-tenggarong') {
+                $tenggarongCount++;
+            } elseif ($slug === 'skw-1-berau') {
+                $berauCount++;
+            } elseif ($emp->location?->parent?->location_type === \App\Modules\Bmn\Models\Location::TYPE_SEKSI
+                || $emp->location?->location_type === \App\Modules\Bmn\Models\Location::TYPE_SEKSI) {
+                $seksiLoc = $emp->location?->parent ?? $emp->location;
+                $key = $seksiLoc->id;
+                if (! isset($dynamicSeksiCounts[$key])) {
+                    $dynamicSeksiCounts[$key] = ['code' => $key, 'name' => $seksiLoc->name, 'count' => 0];
+                }
+                $dynamicSeksiCounts[$key]['count']++;
             } else {
-                $samarindaCount += $item->count;
+                $samarindaCount++;
             }
         }
 
@@ -959,16 +1098,29 @@ class EmployeeController extends Controller
             ],
         ];
 
-        // 5. Recent Surat Tugas
-        $recentSt = AssignmentLetter::latest()->take(4)->get()->map(function ($st) {
-            return [
-                'id' => 'st-' . $st->id,
-                'title' => $st->maksud_tujuan ?: ($st->nama_kegiatan ?: 'Melaksanakan Perjalanan Dinas'),
-                'tempat_tujuan' => $st->tempat_tujuan ?: 'Kalimantan Timur',
-                'status' => strtoupper($st->status ?: 'DITERBITKAN'),
-                'tanggal_surat' => $st->created_at ? $st->created_at->format('d/m/Y') : 'Terbaru',
+        foreach ($dynamicSeksiCounts as $dyn) {
+            $satkerBreakdown[] = [
+                'code' => $dyn['code'],
+                'name' => $dyn['name'],
+                'count' => $dyn['count'],
+                'percentage' => (int) round(($dyn['count'] / $denom) * 100),
+                'gradient' => 'from-violet-500 to-purple-500',
+                'dot' => 'bg-violet-400',
             ];
-        });
+        }
+
+        // 5. Recent Surat Tugas (admin kepegawaian saja)
+        if ($isAdminActor) {
+            $recentSt = AssignmentLetter::latest()->take(4)->get()->map(function ($st) {
+                return [
+                    'id' => 'st-' . $st->id,
+                    'title' => $st->maksud_tujuan ?: ($st->nama_kegiatan ?: 'Melaksanakan Perjalanan Dinas'),
+                    'tempat_tujuan' => $st->tempat_tujuan ?: 'Kalimantan Timur',
+                    'status' => strtoupper($st->status ?: 'DITERBITKAN'),
+                    'tanggal_surat' => $st->created_at ? $st->created_at->format('d/m/Y') : 'Terbaru',
+                ];
+            });
+        }
 
         return response()->json([
             'message' => 'Statistik dashboard kepegawaian berhasil dimuat.',
@@ -979,14 +1131,14 @@ class EmployeeController extends Controller
                 'pppk_count' => $pppkCount,
                 'mmp_count' => $mmpCount,
                 'active_rate' => $activeRate,
-                'active_surat_tugas' => $activeStCount,
-                'pending_surat_tugas' => $pendingStCount,
-                'pending_cuti' => $pendingCutiCount,
-                'approved_cuti' => $approvedCutiCount,
-                'total_surat_masuk' => $totalSuratMasuk,
-                'unreplied_surat_masuk' => $unrepliedSuratMasuk,
+                'active_surat_tugas' => $isAdminActor ? $activeStCount : 0,
+                'pending_surat_tugas' => $isAdminActor ? $pendingStCount : 0,
+                'pending_cuti' => $isAdminActor ? $pendingCutiCount : 0,
+                'approved_cuti' => $isAdminActor ? $approvedCutiCount : 0,
+                'total_surat_masuk' => $isAdminActor ? $totalSuratMasuk : 0,
+                'unreplied_surat_masuk' => $isAdminActor ? $unrepliedSuratMasuk : 0,
                 'satker_breakdown' => $satkerBreakdown,
-                'recent_activities' => $recentSt,
+                'recent_activities' => $isAdminActor ? $recentSt : [],
             ],
         ]);
     }

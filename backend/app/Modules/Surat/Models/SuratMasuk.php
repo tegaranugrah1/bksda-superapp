@@ -20,8 +20,8 @@ class SuratMasuk extends Model
         static::deleting(function (SuratMasuk $surat) {
             if ($surat->isForceDeleting()) {
                 $surat->disposisi()->forceDelete();
-                if ($surat->file_path && Storage::disk('private')->exists($surat->file_path)) {
-                    Storage::disk('private')->delete($surat->file_path);
+                if ($surat->file_path && Storage::disk('local')->exists($surat->file_path)) {
+                    Storage::disk('local')->delete($surat->file_path);
                 }
             } else {
                 $surat->disposisi()->delete();
@@ -62,7 +62,7 @@ class SuratMasuk extends Model
 
     public function disposisi(): HasOne
     {
-        return $table = $this->hasOne(SuratDisposisi::class, 'surat_masuk_id');
+        return $this->hasOne(SuratDisposisi::class, 'surat_masuk_id');
     }
 
     public function creator(): BelongsTo

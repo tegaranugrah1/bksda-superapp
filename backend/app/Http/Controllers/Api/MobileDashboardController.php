@@ -29,6 +29,7 @@ class MobileDashboardController extends Controller
             'username' => $user->username,
             'role' => $user->role,
             'access_modules' => $user->access_modules ?? [],
+            'module_roles' => $user->moduleRolesPayload(),
             'permissions' => $user->permissions ?? [],
             'employee' => $employee ? [
                 'id' => $employee->id,
@@ -51,15 +52,15 @@ class MobileDashboardController extends Controller
         if ($employee) {
             $employeeId = $employee->id;
             $fullName = trim($employee->nama_lengkap ?? '');
-            $escapedName = addcslashes(mb_strtolower($fullName), '%_');
+            $escapedName = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($fullName));
             $assetOwnerScope = function ($query) use ($employeeId, $fullName, $escapedName) {
                 $query->where('employee_id', $employeeId);
                 if (mb_strlen($fullName) >= 3) {
                     $query->orWhere(function ($fallback) use ($escapedName) {
                         $fallback->whereNull('employee_id')
                             ->where(function ($q) use ($escapedName) {
-                                $q->whereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
-                                  ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+                                $q->whereRaw("LOWER(pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedName . '%'])
+                                  ->orWhereRaw("LOWER(nama_pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedName . '%']);
                             });
                     });
                 }
@@ -129,7 +130,7 @@ class MobileDashboardController extends Controller
         // Global approval counts require the same module boundary as assignment approval.
         $hasSuratTugasAccess = $user->role === 'super_admin'
             || (array_intersect(['surat_tugas', 'kepegawaian'], $user->access_modules ?? [])
-                && ($user->role === 'admin' || $user->hasPermission('surat_tugas.approve')));
+                && ($user->isAdminFor('surat_tugas') || $user->hasPermission('surat_tugas.approve')));
 
         if ($hasSuratTugasAccess) {
             $pendingApprovalsCount = AssignmentLetter::whereIn('status', ['pending', 'PENDING'])->count();

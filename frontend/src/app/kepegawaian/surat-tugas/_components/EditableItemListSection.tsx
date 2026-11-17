@@ -102,18 +102,18 @@ export function EditableItemListSection({
           <button
             type="button"
             onClick={addItem}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] text-xs text-[var(--ds-accent-fg)] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] text-xs text-[var(--ds-accent-fg)] font-bold uppercase tracking-wider transition-colors cursor-pointer"
           >
             <Plus className="w-3 h-3" /> Tambah Poin
           </button>
         ) : undefined
       }
     >
-      {description && <div className="mb-2.5">{description}</div>}
+      {description && <div className="mb-3">{description}</div>}
 
       {placeholderChips && placeholderChips.length > 0 && !disabled && (
-        <div className="mb-3 flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
-          <span className="text-xs font-bold text-[var(--ds-fg-muted)] mr-0.5">
+        <div className="mb-3 flex flex-wrap items-center gap-2 p-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
+          <span className="text-xs font-bold text-[var(--ds-fg-muted)] mr-1">
             Klik untuk sisipkan ke poin aktif:
           </span>
           {placeholderChips.map((chip) => (
@@ -123,7 +123,7 @@ export function EditableItemListSection({
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => insertTokenIntoActiveItem(chip.token)}
               title={chip.desc || `Sisipkan ${chip.token}`}
-              className="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-colors cursor-pointer shadow-2xs"
+              className="px-2 py-1 rounded-lg text-xs font-mono font-bold bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] transition-colors cursor-pointer shadow-xs"
             >
               + {chip.label || chip.token}
             </button>
@@ -143,11 +143,11 @@ export function EditableItemListSection({
           return (
             <div
               key={item.id}
-              className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-2.5 space-y-2 transition-colors focus-within:border-[var(--ds-accent-fg)] focus-within:bg-[var(--ds-accent-fg)]"
+              className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-3 space-y-2 transition-colors focus-within:border-[var(--ds-accent-fg)]"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-[var(--ds-surface-muted)] text-xs font-black text-[var(--ds-fg-muted)]">
+                  <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-lg bg-[var(--ds-surface-muted)] text-xs font-black text-[var(--ds-fg-muted)]">
                     {markerLabel}
                   </span>
                   {badge}
@@ -160,7 +160,7 @@ export function EditableItemListSection({
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => handleItalic(idx, item.id)}
                       title="Miringkan teks terpilih (*kata*) - Ctrl+I"
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-[var(--ds-fg-muted)] bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:text-[var(--ds-accent-fg)] hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] rounded-lg transition-colors cursor-pointer"
+                      className="kpg-secondary inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-[var(--ds-fg-muted)] bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:text-[var(--ds-accent-fg)] hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)] rounded-lg transition-colors cursor-pointer"
                     >
                       <Italic className="w-3 h-3 text-[var(--ds-accent-fg)]" />
                       <span className="font-serif italic">Miringkan</span>
@@ -169,7 +169,7 @@ export function EditableItemListSection({
                       type="button"
                       onClick={() => removeItem(item.id)}
                       title="Hapus poin"
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-danger-border)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-danger-border)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
                       <span>Hapus</span>
@@ -196,7 +196,7 @@ export function EditableItemListSection({
                   }
                 }}
                 placeholder="Ketik teks poin... (blok teks lalu tekan Ctrl+I untuk huruf miring)"
-                className="w-full px-3 py-2.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs leading-relaxed focus:border-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] outline-none min-h-[74px] text-[var(--ds-fg)] transition-colors resize-y disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-xs leading-relaxed focus:border-[var(--ds-accent-fg)] focus:ring-2 focus:ring-[var(--ds-accent-fg)] outline-none min-h-[74px] text-[var(--ds-fg)] transition-colors resize-y disabled:opacity-60 disabled:cursor-not-allowed"
               />
             </div>
           );

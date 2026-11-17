@@ -7,8 +7,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
-        "google/apiclient": "^2.19",
-        "google/auth": "^1.50",
         "laravel/framework": "^13.7",
         "laravel/reverb": "*",
         "laravel/sanctum": "^4.0",

@@ -4,7 +4,7 @@ import { KepegawaianTabContent } from "../_components/KepegawaianTabContent";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, clearGetCache } from "@/lib/api";
 import { toast } from "sonner";
 import {
   Inbox, Search, Eye, Edit2, Trash2, FileText, FileUp, FileCheck,
@@ -33,9 +33,12 @@ import {
   ApproveLeaveModal,
   UploadScanModal,
   ScanViewerModal,
-  CatatSuratIzinModal,
   DigitalSuratIzinModal,
+  useUploadProgress,
+  deleteLeaveScan,
+  type ScanSlot,
 } from "./_components/CutiModals";
+import { CatatSuratIzinModal } from "./_components/CatatSuratIzinModal";
 
 function notifyLeaveSync(status?: string, id?: number) {
   try {
@@ -77,6 +80,8 @@ export default function InboxSuratCutiPage() {
   const [approveMode, setApproveMode] = useState<"approve" | "regenerate">("approve");
   const [digitalSuratItem, setDigitalSuratItem] = useState<LeaveRequestItem | null>(null);
   const [uploadScanItem, setUploadScanItem] = useState<LeaveRequestItem | null>(null);
+  const approveUpload = useUploadProgress();
+  const scanUpload = useUploadProgress();
   const viewerTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
   const [isCatatModalOpen, setIsCatatModalOpen] = useState(false);
@@ -109,10 +114,13 @@ export default function InboxSuratCutiPage() {
     },
     placeholderData: keepPreviousData,
     staleTime: 10000,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
 
   // Real-time inbox update via WebSocket
   useAdminInboxLive("kepegawaian", () => {
+    clearGetCache();
     queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
   });
 
@@ -168,6 +176,7 @@ export default function InboxSuratCutiPage() {
       catatan: string;
       tanggalSurat?: string;
     }) => {
+      approveUpload.startSaving(fileFormulir || fileSuratIzin ? 5 : 15);
       await api.post(`/kepegawaian/leave-requests/${id}/generate-surat-izin`, {
         nomor_surat: nomorSurat,
         catatan_atasan: catatan,
@@ -182,10 +191,13 @@ export default function InboxSuratCutiPage() {
         if (fileSuratIzin) {
           formData.append("file_scan_surat_izin", fileSuratIzin);
         }
-        await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(
+          `/kepegawaian/leave-requests/${id}/upload-scan`,
+          formData,
+          approveUpload.getConfig(true)
+        );
       }
+      approveUpload.finish();
     },
     onSuccess: () => {
       toast.success("Surat Izin Cuti Resmi berhasil diterbitkan & disetujui! Kuota cuti terpotong.");
@@ -197,6 +209,7 @@ export default function InboxSuratCutiPage() {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal memproses permohonan cuti.";
       toast.error(msg);
     },
+    onSettled: () => approveUpload.reset(),
   });
 
   // Upload or Replace Scan File Mutation
@@ -217,9 +230,12 @@ export default function InboxSuratCutiPage() {
       if (fileSuratIzin) {
         formData.append("file_scan_surat_izin", fileSuratIzin);
       }
-      await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post(
+        `/kepegawaian/leave-requests/${id}/upload-scan`,
+        formData,
+        scanUpload.getConfig(true)
+      );
+      scanUpload.finish();
     },
     onSuccess: () => {
       toast.success("Berkas cuti resmi berhasil disimpan!");
@@ -229,6 +245,23 @@ export default function InboxSuratCutiPage() {
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal mengunggah berkas scan.";
+      toast.error(msg);
+    },
+    onSettled: () => scanUpload.reset(),
+  });
+
+  const deleteScanMutation = useMutation({
+    mutationFn: async ({ id, type }: { id: number; type: ScanSlot }) => deleteLeaveScan(id, type),
+    onSuccess: (updated, { id }) => {
+      toast.success("Berkas scan cuti berhasil dihapus.");
+      if (updated) {
+        setUploadScanItem((prev) => (prev && prev.id === id ? { ...prev, ...updated } : prev));
+      }
+      queryClient.invalidateQueries({ queryKey: ["inboxLeaveRequests"] });
+      notifyLeaveSync();
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Gagal menghapus berkas scan.";
       toast.error(msg);
     },
   });
@@ -313,18 +346,18 @@ export default function InboxSuratCutiPage() {
   };
 
   return (
-    <div data-module="kepegawaian" className="kpg-ui p-5 md:p-7 space-y-5">
+    <div data-module="kepegawaian" className="kpg-ui p-4 md:p-6 space-y-6">
       {/* Header Bar - Clean Enterprise Pro Max */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:px-6 md:py-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
             <Inbox className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg md:text-xl font-bold text-[var(--ds-fg)] tracking-tight mt-0.5">
+            <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
               Inbox &amp; Riwayat Surat Cuti Pegawai
             </h1>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Kelola pengajuan cuti mandiri, penerbitan Surat Izin (SI) resmi, dan arsip berkas scan pegawai.
             </p>
           </div>
@@ -334,7 +367,7 @@ export default function InboxSuratCutiPage() {
           <Button
             type="button"
             onClick={() => setIsCatatModalOpen(true)}
-            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold rounded-xl gap-1.5 h-9 px-4 shadow-xs shrink-0 cursor-pointer"
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold rounded-lg gap-2 h-9 px-4 shadow-xs shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Catat Surat Izin
@@ -350,32 +383,32 @@ export default function InboxSuratCutiPage() {
             label: "Total Data Cuti",
             count: summaryCounts.all,
             icon: Inbox,
-            activeClass: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]  ring-1 ring-[var(--ds-accent-soft-border)]",
-            iconClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]  ",
+            activeClass: "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] ring-1 ring-[var(--ds-accent-soft-border)]",
+            iconClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]",
           },
           {
             key: "PENGAJUAN",
             label: "Menunggu Persetujuan",
             count: summaryCounts.PENGAJUAN,
             icon: Clock,
-            activeClass: "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]  ring-1 ring-[var(--ds-status-warning-border)]",
-            iconClass: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]  ",
+            activeClass: "border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] ring-1 ring-[var(--ds-status-warning-border)]",
+            iconClass: "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]",
           },
           {
             key: "DISETUJUI",
             label: "Disetujui (Resmi)",
             count: summaryCounts.DISETUJUI,
             icon: CheckCircle2,
-            activeClass: "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]  ring-1 ring-[var(--ds-status-success-border)]",
-            iconClass: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]  ",
+            activeClass: "border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] ring-1 ring-[var(--ds-status-success-border)]",
+            iconClass: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]",
           },
           {
             key: "DITOLAK",
             label: "Ditolak / Batal",
             count: summaryCounts.DITOLAK,
             icon: XCircle,
-            activeClass: "border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)]  ring-1 ring-[var(--ds-status-danger-border)]",
-            iconClass: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]  ",
+            activeClass: "border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] ring-1 ring-[var(--ds-status-danger-border)]",
+            iconClass: "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)]",
           },
         ].map((card) => {
           const Icon = card.icon;
@@ -385,17 +418,16 @@ export default function InboxSuratCutiPage() {
               key={card.key}
               aria-pressed={isActive}
               type="button"
-
               onClick={() => setSelectedStatus(card.key)}
               className={cn(
-                "flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors cursor-pointer",
+                "flex items-center justify-between p-4 rounded-3xl border shadow-xs text-left transition-colors cursor-pointer",
                 isActive
                   ? card.activeClass
-                  : "bg-[var(--ds-surface)]  border-[var(--ds-border-subtle)]  hover:border-[var(--ds-border-subtle)] "
+                  : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700"
               )}
             >
               <div>
-                <p className="text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-[var(--ds-fg-muted)] flex items-center gap-2">
                   {card.key === "PENGAJUAN" && card.count > 0 && (
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--ds-status-warning-fg)] opacity-75" />
@@ -404,11 +436,11 @@ export default function InboxSuratCutiPage() {
                   )}
                   {card.label}
                 </p>
-                <p className="text-xl font-extrabold text-[var(--ds-fg)] mt-0.5 tabular-nums">
+                <p className="text-xl font-extrabold text-[var(--ds-fg)] mt-1 tabular-nums">
                   {card.count}
                 </p>
               </div>
-              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", card.iconClass)}>
+              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", card.iconClass)}>
                 <Icon className="w-4 h-4" />
               </div>
             </button>
@@ -417,15 +449,15 @@ export default function InboxSuratCutiPage() {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-3 shadow-xs">
-        <div className="flex flex-1 flex-col sm:flex-row items-center gap-2.5">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs">
+        <div className="flex flex-1 flex-col sm:flex-row items-center gap-3">
           <div className="relative flex-1 w-full max-w-md">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--ds-fg-muted)]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari nama pegawai, NIP, no. surat, jenis cuti..."
-              className="pl-9 h-9 text-xs border-[var(--ds-border-subtle)] focus-visible:ring-[var(--ds-accent-soft-border)]"
+              className="pl-9 h-9 text-xs rounded-lg border-slate-200/80 dark:border-zinc-800 focus-visible:ring-[var(--ds-accent-soft-border)]"
             />
           </div>
 
@@ -434,7 +466,7 @@ export default function InboxSuratCutiPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Tahun"
+              className="h-9 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Tahun"
             >
               <option value="all">Semua Tahun</option>
               <option value="2026">Tahun 2026</option>
@@ -446,7 +478,7 @@ export default function InboxSuratCutiPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="h-9 px-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Status cuti"
+              className="h-9 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none" aria-label="Status cuti"
             >
               <option value="all">Semua Status</option>
               <option value="DISETUJUI">Disetujui (Resmi)</option>
@@ -458,7 +490,7 @@ export default function InboxSuratCutiPage() {
             <select
               value={perPage}
               onChange={(e) => setPerPage(Number(e.target.value))}
-              className="h-9 px-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none"
+              className="h-9 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none"
               title="Jumlah baris per halaman" aria-label="Jumlah per halaman"
             >
               <option value={15}>15 / hal</option>
@@ -480,8 +512,7 @@ export default function InboxSuratCutiPage() {
       <AnimatePresence mode="wait" initial={false}>
         <KepegawaianTabContent
           key={`${selectedStatus}-${selectedYear}-${page}`}
-
-          className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-xs min-h-[460px] flex flex-col justify-between"
+          className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs min-h-[460px] flex flex-col justify-between"
         >
         {isLoading || isPlaceholderData ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-xs text-[var(--ds-fg-muted)]">
@@ -502,31 +533,30 @@ export default function InboxSuratCutiPage() {
         ) : (
           <div className="flex-1 overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[var(--ds-surface)] border-b border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider text-xs">
+              <thead className="bg-slate-50/70 dark:bg-zinc-800/30 border-b border-slate-200/70 dark:border-zinc-800 text-[var(--ds-fg-muted)] font-semibold uppercase tracking-wider text-xs">
                 <tr>
-                  <th className="p-3.5 w-[20%]">Pegawai Pemohon</th>
-                  <th className="p-3.5 w-[16%]">Surat & Jenis Cuti</th>
-                  <th className="p-3.5 w-[14%]">Masa Pelaksanaan</th>
-                  <th className="p-3.5 w-[13%]">Alasan Cuti</th>
-                  <th className="p-3.5 w-[14%]">Alamat Selama Cuti</th>
-                  <th className="p-3.5 w-[9%] text-center">Status</th>
-                  <th className="p-3.5 text-right w-[14%]">Aksi & Verifikasi</th>
+                  <th className="py-3 px-2">Pegawai Pemohon</th>
+                  <th className="py-3 px-2 min-w-[205px]">Surat &amp; Jenis Cuti</th>
+                  <th className="py-3 px-2 w-[1%] whitespace-nowrap">Masa Pelaksanaan</th>
+                  <th className="py-3 px-2">Alasan &amp; Alamat Cuti</th>
+                  <th className="py-3 px-2 w-[1%] text-center whitespace-nowrap">Status</th>
+                  <th className="py-3 px-2 w-[1%] text-center whitespace-nowrap">Aksi &amp; Verifikasi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                 {list.map((item) => (
-                  <tr key={item.id} className="hover:bg-[var(--ds-surface)] transition-colors">
+                  <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors">
                     {/* Pegawai Pemohon */}
-                    <td className="p-3.5 align-middle">
-                      <div className="font-bold text-[var(--ds-fg)] leading-snug">
+                    <td className="py-3 px-2 align-top max-w-[165px]">
+                      <div className="font-bold text-[var(--ds-fg)] leading-tight truncate" title={item.employee?.nama_lengkap || "Pegawai"}>
                         {item.employee?.nama_lengkap || "Pegawai"}
                       </div>
-                      <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-0.5">
+                      <div className="text-xs font-mono text-[var(--ds-fg-muted)] mt-1 leading-tight truncate">
                         {item.employee?.nip}
                       </div>
                       {item.employee?.satuan_kerja && (
                         <div
-                          className="text-xs text-[var(--ds-fg-muted)] truncate max-w-52 mt-0.5"
+                          className="text-xs text-[var(--ds-fg-muted)] line-clamp-2 mt-1 leading-tight break-words"
                           title={item.employee?.satuan_kerja}
                         >
                           {item.employee?.satuan_kerja}
@@ -535,56 +565,55 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Surat & Jenis Cuti */}
-                    <td className="p-3.5 align-middle">
-                      <div className="font-semibold text-[var(--ds-accent-fg)] leading-snug">
+                    <td className="py-3 px-2 align-top min-w-[215px] max-w-[280px]">
+                      <div className="font-bold text-[var(--ds-accent-fg)] leading-tight truncate" title={item.jenis_cuti}>
                         {item.jenis_cuti}
                       </div>
                       {item.nomor_pengajuan ? (
-                        <span className="font-mono text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-md mt-1 inline-block border border-[var(--ds-border-subtle)] font-medium whitespace-pre">
+                        <div
+                          className="font-mono text-xs text-[var(--ds-fg-muted)] mt-1 font-medium truncate leading-tight"
+                          title={item.nomor_pengajuan}
+                        >
                           {item.nomor_pengajuan}
-                        </span>
+                        </div>
                       ) : (
-                        <span className="text-xs text-[var(--ds-status-warning-fg)] bg-[var(--ds-status-warning-bg)] px-2 py-0.5 rounded-md mt-1 inline-block border border-[var(--ds-status-warning-border)] font-medium">
+                        <div className="text-xs text-[var(--ds-status-warning-fg)] mt-1 font-medium leading-tight">
                           Belum Ada Nomor
-                        </span>
+                        </div>
                       )}
                     </td>
 
                     {/* Masa Pelaksanaan */}
-                    <td className="p-3.5 align-middle">
-                      <div className="font-bold text-[var(--ds-fg)] leading-snug">
+                    <td className="py-3 px-2 align-top w-[1%] whitespace-nowrap">
+                      <div className="font-bold text-[var(--ds-fg)] leading-tight">
+                        {item.tanggal_mulai} s/d {item.tanggal_selesai}
+                      </div>
+                      <div className="text-xs font-semibold text-[var(--ds-fg-muted)] mt-1 leading-tight">
                         {item.jumlah_hari} Hari
                       </div>
-                      <span className="text-xs text-[var(--ds-fg-muted)] block mt-0.5 whitespace-nowrap">
-                        {item.tanggal_mulai} s/d {item.tanggal_selesai}
-                      </span>
                     </td>
 
-                    {/* Alasan Cuti */}
-                    <td className="p-3.5 max-w-44 align-middle">
+                    {/* Alasan & Alamat Cuti */}
+                    <td className="py-3 px-2 max-w-[115px] align-top">
                       {!item.alasan_cuti || item.alasan_cuti.toLowerCase().includes("sisa cuti") ? (
-                        <span className="text-[var(--ds-fg-muted)] italic text-xs">-</span>
+                        <div className="text-[var(--ds-fg-muted)] italic text-xs leading-tight">-</div>
                       ) : (
-                        <span className="text-xs text-[var(--ds-fg-muted)] line-clamp-2 leading-relaxed" title={item.alasan_cuti}>
+                        <div className="text-xs font-medium text-[var(--ds-fg)] truncate leading-tight" title={item.alasan_cuti}>
                           {item.alasan_cuti}
-                        </span>
+                        </div>
                       )}
+                      <div className="text-xs text-[var(--ds-fg-muted)] truncate mt-1 leading-tight" title={item.alamat_menjalankan_cuti || "-"}>
+                        {item.alamat_menjalankan_cuti || "-"}
+                      </div>
                       {item.catatan_atasan && (
-                        <div className="mt-1 text-xs text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-1.5 py-0.5 rounded border border-[var(--ds-status-success-border)] truncate" title={`Catatan Atasan: ${item.catatan_atasan}`}>
+                        <div className="mt-1 text-xs text-[var(--ds-status-success-fg)] truncate leading-tight" title={`Catatan Atasan: ${item.catatan_atasan}`}>
                           <span className="font-semibold">Catatan:</span> {item.catatan_atasan}
                         </div>
                       )}
                     </td>
 
-                    {/* Alamat Selama Cuti */}
-                    <td className="p-3.5 max-w-44 align-middle">
-                      <span className="text-xs text-[var(--ds-fg-muted)] truncate block" title={item.alamat_menjalankan_cuti || "-"}>
-                        {item.alamat_menjalankan_cuti || "-"}
-                      </span>
-                    </td>
-
                     {/* Status Badge */}
-                    <td className="p-3.5 align-middle text-center">
+                    <td className="py-3 px-2 w-[1%] align-top text-center whitespace-nowrap">
                       {(() => {
                         const st = (item.status || "PENGAJUAN").toUpperCase();
                         const isApproved = st === "DISETUJUI" || st === "APPROVED";
@@ -610,13 +639,13 @@ export default function InboxSuratCutiPage() {
                             }}
                             disabled={!canWrite || toggleStatusMutation.isPending || approveMutation.isPending}
                             className={cn(
-                              "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-2xs border",
-                              canWrite && "cursor-pointer  ",
+                              "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors border",
+                              canWrite && "cursor-pointer",
                               isApproved
-                                ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   "
+                                ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
                                 : isRejected
-                                ? "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]   "
-                                : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   "
+                                ? "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]"
+                                : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]"
                             )}
                             title={
                               isApproved
@@ -634,7 +663,7 @@ export default function InboxSuratCutiPage() {
                             ) : (
                               <span
                                 className={cn(
-                                  "w-1.5 h-1.5 rounded-full shrink-0",
+                                  "w-2 h-2 rounded-full shrink-0",
                                   isApproved ? "bg-[var(--ds-status-success-fg)]" : "bg-[var(--ds-danger-solid)]"
                                 )}
                               />
@@ -646,7 +675,7 @@ export default function InboxSuratCutiPage() {
                     </td>
 
                     {/* Aksi & Verifikasi */}
-                    <td className="p-3.5 text-right whitespace-nowrap align-middle">
+                    <td className="py-3 px-2 w-[1%] text-right whitespace-nowrap align-top">
                       {(() => {
                         const st = (item.status || "PENGAJUAN").toUpperCase();
                         const isApproved = st === "DISETUJUI" || st === "APPROVED";
@@ -657,7 +686,7 @@ export default function InboxSuratCutiPage() {
                         const uploadedCount = (hasDigitalSurat ? 1 : 0) + (hasSuratIzin ? 1 : 0) + (hasFormulir ? 1 : 0);
 
                         return (
-                          <div data-module="kepegawaian" className="kpg-ui flex items-center justify-end gap-1.5">
+                          <div data-module="kepegawaian" className="kpg-ui inline-flex items-center justify-end gap-1">
                             {/* 1. Berkas Dropdown Menu */}
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild
@@ -669,28 +698,28 @@ export default function InboxSuratCutiPage() {
                                   variant="outline"
                                   size="sm"
                                   className={cn(
-                                    "h-8 px-2.5 text-xs font-semibold rounded-xl gap-1.5 shadow-2xs transition-colors cursor-pointer",
+                                    "h-8 px-2 text-xs font-semibold rounded-lg gap-1 shadow-xs transition-colors cursor-pointer",
                                     hasDigitalSurat
-                                      ? "text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)]   "
+                                      ? "text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]"
                                       : uploadedCount > 0
-                                      ? "text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] hover:bg-[var(--ds-status-warning-bg)]   "
-                                      : "text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]   "
+                                      ? "text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]"
+                                      : "text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]"
                                   )}
                                   title="Kelola & Lihat Berkas Cuti (Digital & Fisik)"
                                 >
                                   {hasDigitalSurat ? (
-                                    <FileBadge className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)]" />
+                                    <FileBadge className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                                   ) : uploadedCount > 0 ? (
-                                    <Clock className="w-3.5 h-3.5 text-[var(--ds-status-warning-fg)]" />
+                                    <Clock className="w-4 h-4 text-[var(--ds-status-warning-fg)]" />
                                   ) : (
-                                    <FileUp className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                                    <FileUp className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                                   )}
                                   <span>{hasDigitalSurat ? "Surat Izin (TTE)" : uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
-                                  <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
+                                  <ChevronDown className="w-3 h-3 opacity-60 ml-1" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-64 p-1.5 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
-                                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] px-2.5 py-1.5">
+                              <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-64 p-2 rounded-lg shadow-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
+                                <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] px-3 py-2">
                                   Naskah &amp; Berkas Cuti
                                 </DropdownMenuLabel>
 
@@ -705,18 +734,18 @@ export default function InboxSuratCutiPage() {
                                       setApproveItem(item);
                                     }
                                   }}
-                                  className="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl cursor-pointer"
+                                  className="flex items-center justify-between text-xs py-2 px-3 rounded-lg cursor-pointer"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <FileBadge className={cn("w-4 h-4", hasDigitalSurat ? "text-[var(--ds-status-success-fg)] " : "text-[var(--ds-status-warning-fg)]")} />
+                                    <FileBadge className={cn("w-4 h-4", hasDigitalSurat ? "text-[var(--ds-status-success-fg)]" : "text-[var(--ds-status-warning-fg)]")} />
                                     <span className="font-semibold text-[var(--ds-fg)]">Surat Izin (Digital TTE)</span>
                                   </div>
                                   {hasDigitalSurat ? (
-                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
+                                    <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
                                       Lihat
                                     </span>
                                   ) : (
-                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
+                                    <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
                                       Generate
                                     </span>
                                   )}
@@ -729,14 +758,14 @@ export default function InboxSuratCutiPage() {
                                       setApproveMode("regenerate");
                                       setApproveItem(item);
                                     }}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg cursor-pointer text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-medium"
                                   >
                                     <RefreshCw className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
                                     <span>Generate Ulang Surat Izin</span>
                                   </DropdownMenuItem>
                                 )}
 
-                                <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
+                                <DropdownMenuSeparator className="my-1 border-slate-200/70 dark:border-zinc-800" />
 
                                 <DropdownMenuItem
                                   disabled={!hasFormulir}
@@ -745,14 +774,14 @@ export default function InboxSuratCutiPage() {
                                       fileName: item.scan_formulir_nama,
                                       title: "Scan Formulir Permohonan Cuti (TTD Manual & Cap Balai)",
                                     })}
-                                  className="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl cursor-pointer"
+                                  className="flex items-center justify-between text-xs py-2 px-3 rounded-lg cursor-pointer"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <FileText className={cn("w-4 h-4", hasFormulir ? "text-[var(--ds-accent-fg)] " : "text-[var(--ds-fg-muted)]")} />
+                                    <FileText className={cn("w-4 h-4", hasFormulir ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]")} />
                                     <span className={cn("font-medium", !hasFormulir && "text-[var(--ds-fg-muted)]")}>Formulir (Scan Basah)</span>
                                   </div>
                                   {hasFormulir ? (
-                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+                                    <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                                       Lihat
                                     </span>
                                   ) : (
@@ -767,14 +796,14 @@ export default function InboxSuratCutiPage() {
                                       fileName: item.scan_surat_izin_nama || item.scan_surat_nama,
                                       title: "Scan Surat Izin Fisik (TTD Basah)",
                                     })}
-                                  className="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl cursor-pointer"
+                                  className="flex items-center justify-between text-xs py-2 px-3 rounded-lg cursor-pointer"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <FileCheck className={cn("w-4 h-4", hasSuratIzin ? "text-[var(--ds-status-success-fg)] " : "text-[var(--ds-fg-muted)]")} />
+                                    <FileCheck className={cn("w-4 h-4", hasSuratIzin ? "text-[var(--ds-status-success-fg)]" : "text-[var(--ds-fg-muted)]")} />
                                     <span className={cn("font-medium", !hasSuratIzin && "text-[var(--ds-fg-muted)]")}>Surat Izin (Scan Fisik)</span>
                                   </div>
                                   {hasSuratIzin ? (
-                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
+                                    <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
                                       Lihat
                                     </span>
                                   ) : (
@@ -784,10 +813,10 @@ export default function InboxSuratCutiPage() {
 
                                 {canWrite && (
                                   <>
-                                    <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
+                                    <DropdownMenuSeparator className="my-1 border-slate-200/70 dark:border-zinc-800" />
                                     <DropdownMenuItem
                                       onClick={() => setUploadScanItem(item)}
-                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer font-semibold"
+                                      className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer font-semibold"
                                     >
                                       <FileUp className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                                       <span>Unggah / Kelola Berkas Fisik</span>
@@ -803,10 +832,10 @@ export default function InboxSuratCutiPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => setPrintItem(item)}
-                              className="h-8 px-2.5 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] rounded-xl gap-1.5 shadow-2xs cursor-pointer"
+                              className="h-8 px-2 text-xs font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] rounded-lg gap-1 shadow-xs cursor-pointer"
                               title="Lihat / Cetak Hasil Formulir Cuti"
                             >
-                              <Eye className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                              <Eye className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                               Form Cuti
                             </Button>
 
@@ -821,30 +850,30 @@ export default function InboxSuratCutiPage() {
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-xl cursor-pointer"
+                                    className="h-8 w-8 p-0 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
                                     title="Aksi Lainnya"
                                   >
                                     <MoreHorizontal className="w-4 h-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-52 p-1 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+                                <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-52 p-1 rounded-lg shadow-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
                                   <DropdownMenuItem
                                     onClick={() => {
                                       setApproveMode(isApproved ? "regenerate" : "approve");
                                       setApproveItem(item);
                                     }}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg cursor-pointer text-[var(--ds-status-success-fg)] hover:bg-[var(--ds-status-success-bg)] font-medium"
                                   >
-                                    <RefreshCw className="w-3.5 h-3.5" />
+                                    <RefreshCw className="w-4 h-4" />
                                     <span>{isApproved ? "Generate Ulang Surat" : "Setujui & Terbitkan Surat"}</span>
                                   </DropdownMenuItem>
 
                                   {isApproved && (
                                     <DropdownMenuItem
                                       onClick={() => handleRevertStatus(item)}
-                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] font-medium"
+                                      className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg cursor-pointer text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] font-medium"
                                     >
-                                      <RotateCcw className="w-3.5 h-3.5" />
+                                      <RotateCcw className="w-4 h-4" />
                                       <span>Kembalikan ke Pengajuan</span>
                                     </DropdownMenuItem>
                                   )}
@@ -852,27 +881,27 @@ export default function InboxSuratCutiPage() {
                                   {!isRejected && (
                                     <DropdownMenuItem
                                       onClick={() => handleRejectLeave(item)}
-                                      className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
+                                      className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
                                     >
-                                      <XCircle className="w-3.5 h-3.5" />
+                                      <XCircle className="w-4 h-4" />
                                       <span>Tolak Pengajuan</span>
                                     </DropdownMenuItem>
                                   )}
 
-                                  <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
+                                  <DropdownMenuSeparator className="my-1 border-slate-200/70 dark:border-zinc-800" />
                                   <DropdownMenuItem
                                     onClick={() => openEditModal(item)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg cursor-pointer text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] font-medium"
                                   >
-                                    <Edit2 className="w-3.5 h-3.5" />
+                                    <Edit2 className="w-4 h-4" />
                                     <span>Edit Pengajuan</span>
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
+                                  <DropdownMenuSeparator className="my-1 border-slate-200/70 dark:border-zinc-800" />
                                   <DropdownMenuItem
                                     onClick={() => handleDeleteLeave(item)}
-                                    className="flex items-center gap-2 text-xs py-2 px-2.5 rounded-xl cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
+                                    className="flex items-center gap-2 text-xs py-2 px-3 rounded-lg cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <Trash2 className="w-4 h-4" />
                                     <span>Hapus Pengajuan</span>
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -888,7 +917,7 @@ export default function InboxSuratCutiPage() {
             </table>
 
             {/* Pagination Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs">
               <span className="text-[var(--ds-fg-muted)] text-xs">
                 Menampilkan <span className="font-bold text-[var(--ds-fg)]">{fromRecord}</span> - <span className="font-bold text-[var(--ds-fg)]">{toRecord}</span> dari <span className="font-bold text-[var(--ds-fg)]">{totalRecords}</span> riwayat &amp; surat cuti
               </span>
@@ -900,7 +929,7 @@ export default function InboxSuratCutiPage() {
                   size="sm"
                   disabled={page <= 1 || isLoading}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="h-8 px-3 text-xs font-semibold rounded-xl"
+                  className="h-8 px-3 text-xs font-semibold rounded-lg"
                 >
                   Sebelumnya
                 </Button>
@@ -913,7 +942,7 @@ export default function InboxSuratCutiPage() {
                   size="sm"
                   disabled={page >= lastPage || isLoading}
                   onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
-                  className="h-8 px-3 text-xs font-semibold rounded-xl"
+                  className="h-8 px-3 text-xs font-semibold rounded-lg"
                 >
                   Selanjutnya
                 </Button>
@@ -944,6 +973,7 @@ export default function InboxSuratCutiPage() {
         item={approveItem}
         mode={approveMode}
         isPending={approveMutation.isPending}
+        uploadProgress={approveUpload.progress}
         onClose={() => setApproveItem(null)}
         onApprove={(nomorSurat, fileFormulir, fileSuratIzin, catatan, tanggalSurat) => {
           if (approveItem) {
@@ -978,6 +1008,8 @@ export default function InboxSuratCutiPage() {
       <UploadScanModal
         item={uploadScanItem}
         isPending={uploadScanMutation.isPending}
+        uploadProgress={scanUpload.progress}
+        deletingSlot={deleteScanMutation.isPending ? deleteScanMutation.variables?.type ?? null : null}
         onClose={() => setUploadScanItem(null)}
         onUpload={({ fileFormulir, fileSuratIzin }) => {
           if (uploadScanItem) {
@@ -986,6 +1018,11 @@ export default function InboxSuratCutiPage() {
               fileFormulir,
               fileSuratIzin,
             });
+          }
+        }}
+        onDeleteScan={(type) => {
+          if (uploadScanItem) {
+            return deleteScanMutation.mutateAsync({ id: uploadScanItem.id, type });
           }
         }}
       />

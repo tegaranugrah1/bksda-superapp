@@ -17,6 +17,7 @@ use App\Support\Security\UploadValidationRules;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -32,6 +33,9 @@ class AssetController extends Controller
         }])->latest();
 
         if ($request->query('status') === 'disposed') {
+            if (! $request->user()?->hasPermission('bmn.asset.dispose')) {
+                abort(403, 'Anda tidak memiliki hak akses untuk melihat daftar aset dihapus.');
+            }
             $query->onlyTrashed();
         }
 
@@ -166,8 +170,16 @@ class AssetController extends Controller
     {
         $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'string']);
 
-        $count = Asset::whereIn('id', $request->ids)->count();
-        Asset::whereIn('id', $request->ids)->delete();
+        $count = DB::transaction(function () use ($request) {
+            $assets = Asset::whereIn('id', $request->ids)->get();
+            if ($assets->isEmpty()) {
+                return 0;
+            }
+            $this->assetService->notifyDisposedAssets($assets);
+            Asset::whereIn('id', $assets->pluck('id'))->delete();
+
+            return $assets->count();
+        });
 
         return response()->json(['message' => "{$count} aset berhasil di-dispose."]);
     }
@@ -176,8 +188,16 @@ class AssetController extends Controller
     {
         $request->validate(['ids' => 'required|array|min:1', 'ids.*' => 'string']);
 
-        $count = Asset::onlyTrashed()->whereIn('id', $request->ids)->count();
-        Asset::onlyTrashed()->whereIn('id', $request->ids)->restore();
+        $count = DB::transaction(function () use ($request) {
+            $assets = Asset::onlyTrashed()->whereIn('id', $request->ids)->get();
+            if ($assets->isEmpty()) {
+                return 0;
+            }
+            Asset::onlyTrashed()->whereIn('id', $assets->pluck('id'))->restore();
+            $this->assetService->notifyRestoredAssets($assets);
+
+            return $assets->count();
+        });
 
         return response()->json(['message' => "{$count} aset berhasil di-restore."]);
     }
@@ -204,23 +224,27 @@ class AssetController extends Controller
             'kondisi' => 'required|in:Baik,Rusak Ringan,Rusak Berat',
         ]);
 
-        $assets = Asset::whereIn('id', $request->ids)->get();
         $userId = $request->user()->id;
 
-        foreach ($assets as $asset) {
-            if ($asset->kondisi !== $request->kondisi) {
-                AssetUpdate::create([
-                    'asset_id' => $asset->id,
-                    'user_id' => $userId,
-                    'field_changed' => 'kondisi',
-                    'old_value' => $asset->kondisi,
-                    'new_value' => $request->kondisi,
-                    'alasan_perubahan' => 'Bulk update kondisi',
-                ]);
+        DB::transaction(function () use ($request, $userId) {
+            $assets = Asset::whereIn('id', $request->ids)->get();
+            foreach ($assets as $asset) {
+                $oldKondisi = $asset->kondisi;
+                if ($oldKondisi !== $request->kondisi) {
+                    AssetUpdate::create([
+                        'asset_id' => $asset->id,
+                        'user_id' => $userId,
+                        'field_changed' => 'kondisi',
+                        'old_value' => $oldKondisi,
+                        'new_value' => $request->kondisi,
+                        'alasan_perubahan' => 'Bulk update kondisi',
+                    ]);
+                    $this->assetService->notifyConditionCritical($asset, $oldKondisi, $request->kondisi);
+                }
             }
-        }
 
-        Asset::whereIn('id', $request->ids)->update(['kondisi' => $request->kondisi]);
+            Asset::whereIn('id', $request->ids)->update(['kondisi' => $request->kondisi]);
+        });
 
         return response()->json(['message' => count($request->ids) . " aset diubah ke {$request->kondisi}."]);
     }
@@ -263,6 +287,7 @@ class AssetController extends Controller
         try {
             $import = new AssetImport;
             Excel::import($import, $request->file('file'));
+            $this->assetService->notifyBulkAssigned($import->getAssignedByEmployee());
 
             return response()->json([
                 'message' => "Impor berhasil! {$import->getImportedCount()} aset BMN diproses.",

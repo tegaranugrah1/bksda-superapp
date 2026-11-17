@@ -9,6 +9,8 @@ import {
   detectEmployeeType,
   isEligibleForAnnualLeave,
   isMmpEmployee,
+  calculateLeaveDays,
+  parseLocalDate,
 } from "@/app/kepegawaian/_lib/employee-helpers";
 import { toast } from "sonner";
 import {
@@ -53,7 +55,16 @@ import {
 } from "@/components/ui/dialog";
 import { isAxiosError } from "axios";
 import { cn } from "@/lib/utils";
-import { ScanViewerModal, UploadScanModal } from "@/app/kepegawaian/cuti/_components/CutiModals";
+import {
+  ScanViewerModal,
+  UploadScanModal,
+  UploadProgressBar,
+  ActiveScanFileRow,
+  formatPendingUploadLabel,
+  useUploadProgress,
+  deleteLeaveScan,
+  type ScanSlot,
+} from "@/app/kepegawaian/cuti/_components/CutiModals";
 
 interface EmployeeLeaveData {
   id?: number;
@@ -121,11 +132,6 @@ const JENIS_CUTI_OPTIONS = [
   "Cuti di Luar Tanggungan Negara",
 ];
 
-function parseLocalDate(str: string): Date {
-  const [y, m, d] = str.split("-").map(Number);
-  return new Date(y, m - 1, d, 12, 0, 0);
-}
-
 interface DynamicLeaveType {
   id: number;
   nama: string;
@@ -133,45 +139,6 @@ interface DynamicLeaveType {
   hitung_hari: "hari_kerja" | "hari_kalender";
   potong_kuota_tahunan: boolean;
   maks_hari: number | null;
-}
-
-function calculateLeaveDays(
-  startDateStr: string,
-  endDateStr: string,
-  jenisCuti: string,
-  leaveTypes: DynamicLeaveType[] = []
-): number {
-  if (!startDateStr || !endDateStr) return 0;
-  const start = parseLocalDate(startDateStr);
-  const end = parseLocalDate(endDateStr);
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
-
-  const matched = leaveTypes.find(
-    (lt) =>
-      lt.nama.toLowerCase() === jenisCuti.toLowerCase() ||
-      (lt.kode && lt.kode.toLowerCase() === jenisCuti.toLowerCase())
-  );
-  const isHariKerja = matched
-    ? matched.hitung_hari === "hari_kerja"
-    : jenisCuti.toLowerCase().includes("tahunan");
-
-  if (!isHariKerja) {
-    // Hari Kalender
-    const diffTime = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    return Math.max(1, diffTime + 1);
-  }
-
-  // Hari Kerja (Senin - Jumat, abaikan Sabtu & Minggu)
-  let count = 0;
-  const cur = new Date(start);
-  while (cur <= end) {
-    const day = cur.getDay(); // 0 is Sunday, 6 is Saturday
-    if (day !== 0 && day !== 6) {
-      count++;
-    }
-    cur.setDate(cur.getDate() + 1);
-  }
-  return Math.max(1, count);
 }
 
 export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
@@ -201,6 +168,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const [viewerModal, setViewerModal] = useState<{ url: string; fileName?: string | null; title?: string } | null>(null);
   const closeViewer = useCallback(() => setViewerModal(null), []);
   const [uploadScanItem, setUploadScanItem] = useState<LeaveRecordItem | null>(null);
+  const recordUpload = useUploadProgress();
+  const scanUpload = useUploadProgress();
 
   // Form for Leave Balance (Admin Quota)
   const [balanceForm, setBalanceForm] = useState({
@@ -378,16 +347,24 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
         formData.append("file_scan_surat_izin", fileScanSuratIzin);
       }
 
+      const hasFiles = Boolean(fileScanFormulir || fileScanSuratIzin);
+      const uploadConfig = recordUpload.getConfig(hasFiles);
+
       if (editingRecord) {
         formData.append("_method", "PUT");
-        await api.post(`/kepegawaian/employees/${employeeId}/leave-records/${editingRecord.id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(
+          `/kepegawaian/employees/${employeeId}/leave-records/${editingRecord.id}`,
+          formData,
+          uploadConfig
+        );
       } else {
-        await api.post(`/kepegawaian/employees/${employeeId}/leave-records`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(
+          `/kepegawaian/employees/${employeeId}/leave-records`,
+          formData,
+          uploadConfig
+        );
       }
+      recordUpload.finish();
     },
     onSuccess: () => {
       toast.success(editingRecord ? "Penetapan cuti berhasil diperbarui!" : "Surat Izin Cuti berhasil dicatat!");
@@ -407,6 +384,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       }
       toast.error(msg);
     },
+    onSettled: () => recordUpload.reset(),
   });
 
   // Mutation: Upload or Replace Scan File on Existing Record
@@ -427,9 +405,12 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
       if (fileSuratIzin) {
         formData.append("file_scan_surat_izin", fileSuratIzin);
       }
-      await api.post(`/kepegawaian/leave-requests/${id}/upload-scan`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post(
+        `/kepegawaian/leave-requests/${id}/upload-scan`,
+        formData,
+        scanUpload.getConfig(true)
+      );
+      scanUpload.finish();
     },
     onSuccess: () => {
       toast.success("Berkas cuti resmi berhasil disimpan!");
@@ -438,6 +419,26 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     },
     onError: (err: unknown) => {
       let msg = "Gagal mengunggah berkas scan.";
+      if (isAxiosError<{ message?: string }>(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      toast.error(msg);
+    },
+    onSettled: () => scanUpload.reset(),
+  });
+
+  const deleteRecordScanMutation = useMutation({
+    mutationFn: async ({ id, type }: { id: number; type: ScanSlot }) => deleteLeaveScan(id, type),
+    onSuccess: (updated, { id }) => {
+      toast.success("Berkas scan cuti berhasil dihapus.");
+      if (updated) {
+        setUploadScanItem((prev) => (prev && prev.id === id ? { ...prev, ...updated } : prev));
+        setEditingRecord((prev) => (prev && prev.id === id ? { ...prev, ...updated } : prev));
+      }
+      queryClient.invalidateQueries({ queryKey: ["employeeLeave", employeeId, selectedYear] });
+    },
+    onError: (err: unknown) => {
+      let msg = "Gagal menghapus berkas scan.";
       if (isAxiosError<{ message?: string }>(err)) {
         msg = err.response?.data?.message || msg;
       }
@@ -577,19 +578,19 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   return (
     <div className="space-y-6">
       {/* Header Selector & Title */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--ds-border-subtle)] pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/70 dark:border-zinc-800 pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] shadow-xs">
+          <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] shadow-xs">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-[var(--ds-fg)]">Buku Kendali & Hak Cuti PNS</h3>
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+              <h3 className="text-xl font-bold text-[var(--ds-fg)]">Buku Kendali & Hak Cuti PNS</h3>
+              <span className="text-xs font-bold px-2 py-1 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                 Tahun {selectedYear}
               </span>
             </div>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Penghitungan otomatis hak cuti tahunan dan pencatatan Surat Izin (SI/ST) sesuai{" "}
               <span className="font-semibold text-[var(--ds-fg)]">Peraturan BKN No. 24/2017 & No. 7/2021</span>.
             </p>
@@ -602,10 +603,10 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
             variant="outline"
             size="sm"
             onClick={() => setIsBalanceDialogOpen(true)}
-            className="h-8.5 px-3 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface)] gap-1.5 shadow-2xs"
+            className="h-8 px-3 rounded-lg kpg-secondary text-xs font-semibold text-[var(--ds-fg)] gap-2 shadow-xs"
             title="Penyesuaian saldo awal khusus untuk pegawai pindahan atau mutasi"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+            <SlidersHorizontal className="w-4 h-4 text-[var(--ds-fg-muted)]" />
             <span className="hidden sm:inline">Sesuaikan Saldo Awal</span>
           </Button>
 
@@ -613,7 +614,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="px-3.5 py-1.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs font-bold text-[var(--ds-fg)] outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] shadow-xs" aria-label="Tahun:"
+            className="px-3 py-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs font-bold text-[var(--ds-fg)] outline-none focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] shadow-xs" aria-label="Tahun:"
           >
             {[currentYear + 1, currentYear, currentYear - 1, currentYear - 2, currentYear - 3].map((y) => (
               <option key={y} value={y}>
@@ -634,16 +635,16 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           {/* Top Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Card 1: Total Hak Cuti Tahun Ini */}
-            <div className="border border-[var(--ds-accent-soft-border)] rounded-2xl p-4.5 relative overflow-hidden shadow-xs">
+            <div className="border border-[var(--ds-accent-soft-border)] rounded-3xl p-4 relative overflow-hidden shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-[var(--ds-accent-fg)]">Total Hak Cuti {selectedYear}</span>
                 <Award className="w-4 h-4 text-[var(--ds-accent-fg)]" />
               </div>
-              <div className="mt-2.5 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[var(--ds-accent-fg)] tracking-tight">{calc.totalHak}</span>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-[var(--ds-accent-fg)] tracking-tight">{calc.totalHak}</span>
                 <span className="text-xs font-bold text-[var(--ds-accent-fg)]">Hari Kerja</span>
               </div>
-              <div className="mt-2 pt-2 border-t border-[var(--ds-accent-soft-border)] flex flex-wrap items-center gap-1.5 text-xs text-[var(--ds-accent-fg)]">
+              <div className="mt-2 pt-2 border-t border-[var(--ds-accent-soft-border)] flex flex-wrap items-center gap-2 text-xs text-[var(--ds-accent-fg)]">
                 <span className="font-semibold">Pokok: {calc.hakN}</span>
                 <span>•</span>
                 <span>Sisa {selectedYear - 1}: +{calc.hakN1}</span>
@@ -653,43 +654,43 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
             </div>
 
             {/* Card 2: Sisa Cuti Tersedia Saat Ini */}
-            <div className="border border-[var(--ds-status-success-border)] rounded-2xl p-4.5 relative overflow-hidden shadow-xs">
+            <div className="border border-[var(--ds-status-success-border)] rounded-3xl p-4 relative overflow-hidden shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-[var(--ds-status-success-fg)]">Sisa Cuti Tersedia</span>
                 <CheckCircle2 className="w-4 h-4 text-[var(--ds-status-success-fg)]" />
               </div>
-              <div className="mt-2.5 flex items-baseline gap-2">
-                <span className="text-3xl font-extrabold text-[var(--ds-status-success-fg)] tracking-tight">{calc.sisaTersedia}</span>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-[var(--ds-status-success-fg)] tracking-tight">{calc.sisaTersedia}</span>
                 <span className="text-xs font-bold text-[var(--ds-status-success-fg)]">Hari Kerja</span>
               </div>
               <div className="mt-2 pt-2 border-t border-[var(--ds-status-success-border)] text-xs text-[var(--ds-status-success-fg)] flex items-center justify-between">
                 <span>Terpakai tahun ini:</span>
-                <span className="font-bold bg-[var(--ds-status-success-bg)] px-2 py-0.5 rounded-md text-[var(--ds-status-success-fg)]">
+                <span className="font-bold bg-[var(--ds-status-success-bg)] px-2 py-1 rounded-lg text-[var(--ds-status-success-fg)]">
                   {calc.usedN0} Hari
                 </span>
               </div>
             </div>
 
             {/* Card 3: Status Akumulasi Klausa 24 Hari */}
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4.5 flex flex-col justify-between shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex flex-col justify-between shadow-xs">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-[var(--ds-fg)]">Klausa Akumulasi Cuti</span>
                   <ShieldCheck className="w-4 h-4 text-[var(--ds-fg-muted)]" />
                 </div>
                 {calc.isEligible24 ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] px-2.5 py-1 rounded-lg">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)] shrink-0" />
+                  <div className="inline-flex items-center gap-2 text-xs font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] px-3 py-1 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-[var(--ds-status-success-fg)] shrink-0" />
                     <span>Akumulasi 24 Hari Aktif</span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] px-2.5 py-1 rounded-lg">
-                    <Clock className="w-3.5 h-3.5 text-[var(--ds-fg-muted)] shrink-0" />
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 px-3 py-1 rounded-lg">
+                    <Clock className="w-4 h-4 text-[var(--ds-fg-muted)] shrink-0" />
                     <span>Maksimal Standar 18 Hari</span>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-[var(--ds-fg-muted)] mt-2.5 leading-relaxed">
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-3 leading-relaxed">
                 {calc.isEligible24
                   ? "2 Tahun berturut-turut tanpa pemakaian cuti. Kuota akumulasi maksimal 24 hari diizinkan."
                   : "Sisa cuti tahun lalu (N-1) diakui maksimal 6 hari kerja sesuai ketentuan PerBKN 24/2017."}
@@ -698,9 +699,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           </div>
 
           {/* Section: Riwayat Surat Izin / Penetapan Cuti Resmi (Buku Kendali BKSDA) */}
-          <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[var(--ds-border-subtle)] pb-3.5">
-              <div className="flex items-center gap-2.5">
+          <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200/70 dark:border-zinc-800 pb-3">
+              <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                   <FileCheck2 className="w-4 h-4" />
                 </div>
@@ -714,7 +715,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
               <div className="flex items-center gap-2 self-stretch sm:self-auto">
                 {/* Filter toggle: Tahun Ini vs Semua Tahun */}
-                <div className="inline-flex p-0.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] text-xs">
+                <div className="inline-flex p-1 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 text-xs">
                   <button
                     type="button"
                     onClick={() => setFilterScope("year")}
@@ -743,9 +744,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   type="button"
                   onClick={handleOpenCreateDialog}
                   size="sm"
-                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold rounded-xl gap-1.5 h-8.5 px-3.5 shadow-xs"
+                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold rounded-lg gap-2 h-8 px-3 shadow-xs"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   Catat Surat Izin
                 </Button>
               </div>
@@ -753,10 +754,10 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
             {/* Table: Fit 100% without horizontal scrolling */}
             {filteredRequests.length === 0 ? (
-              <div className="p-8 text-center rounded-xl bg-[var(--ds-surface)] border border-dashed border-[var(--ds-border-subtle)]">
+              <div className="p-8 text-center rounded-lg bg-[var(--ds-surface)] border border-dashed border-slate-200/80 dark:border-zinc-800">
                 <FileText className="w-8 h-8 text-[var(--ds-fg-muted)] mx-auto mb-2" />
                 <p className="text-xs font-semibold text-[var(--ds-fg)]">Belum ada riwayat surat izin cuti tercatat</p>
-                <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   {filterScope === "year"
                     ? `Tidak ada transaksi cuti pada tahun ${selectedYear}.`
                     : "Belum ada penetapan cuti untuk pegawai ini."}
@@ -766,76 +767,74 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleOpenCreateDialog}
-                  className="mt-3 text-xs font-bold gap-1.5"
+                  className="mt-3 rounded-lg text-xs font-bold gap-2"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   Tambah Cuti Pertama
                 </Button>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
+              <div className="overflow-x-auto rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)]">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] font-bold border-b border-[var(--ds-border-subtle)]">
+                  <thead className="bg-slate-50/70 dark:bg-zinc-800/30 text-[var(--ds-fg-muted)] font-bold border-b border-slate-200/70 dark:border-zinc-800">
                     <tr>
-                      <th className="py-2.5 px-3 w-8 text-center">No</th>
-                      <th className="py-2.5 px-3 w-[28%]">Surat Persetujuan (SI / ST)</th>
-                      <th className="py-2.5 px-3 w-[16%]">Jenis Cuti</th>
-                      <th className="py-2.5 px-3 w-[22%]">Pelaksanaan & Durasi</th>
-                      <th className="py-2.5 px-3 w-[18%]">Alasan Cuti</th>
-                      <th className="py-2.5 px-3 w-[16%] text-right">Status & Aksi</th>
+                      <th className="py-3 px-3 w-10 text-center whitespace-nowrap">No</th>
+                      <th className="py-3 px-3 whitespace-nowrap">Surat Persetujuan (SI / ST)</th>
+                      <th className="py-3 px-3">Jenis &amp; Alasan Cuti</th>
+                      <th className="py-3 px-3 whitespace-nowrap">Pelaksanaan &amp; Durasi</th>
+                      <th className="py-3 px-3 text-right whitespace-nowrap">Status &amp; Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+                  <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                     {filteredRequests.map((req, idx) => (
-                      <tr key={req.id} className="hover:bg-[var(--ds-surface)] transition-colors">
-                        <td className="py-3 px-3 text-center font-bold text-[var(--ds-fg-muted)] align-top">{idx + 1}</td>
-                        <td className="py-3 px-3 align-top">
-                          <div className="font-bold text-[var(--ds-fg)] font-mono text-xs break-all leading-tight">
+                      <tr key={req.id} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors">
+                        <td className="py-3 px-3 text-center font-bold text-[var(--ds-fg-muted)] align-top whitespace-nowrap">{idx + 1}</td>
+                        <td className="py-3 px-3 align-top whitespace-nowrap">
+                          <div className="font-bold text-[var(--ds-fg)] font-mono text-xs whitespace-nowrap leading-tight">
                             {req.nomor_pengajuan || "-"}
                           </div>
-                          <div className="text-xs text-[var(--ds-fg-muted)] mt-1 flex items-center gap-1">
-                            <CalendarDays className="w-3 h-3 text-[var(--ds-fg-muted)] shrink-0" />
-                            <span>Tgl Surat: {formatDate(req.tanggal_pengajuan)}</span>
+                          <div className="text-xs text-[var(--ds-fg-muted)] mt-1 whitespace-nowrap leading-tight">
+                            Tgl Surat: {formatDate(req.tanggal_pengajuan)}
                           </div>
                         </td>
-                        <td className="py-3 px-3 align-top">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-md text-xs font-semibold leading-snug ${
-                              req.jenis_cuti.toLowerCase().includes("tahunan")
-                                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
-                                : req.jenis_cuti.toLowerCase().includes("sakit")
-                                ? "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border border-[var(--ds-status-danger-border)]"
-                                : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
-                            }`}
+                        <td className="py-3 px-3 align-top max-w-[240px]">
+                          <div
+                            className={cn(
+                              "text-xs font-bold whitespace-nowrap leading-tight",
+                              req.jenis_cuti.toLowerCase().includes("sakit")
+                                ? "text-[var(--ds-status-danger-fg)]"
+                                : "text-[var(--ds-accent-fg)]"
+                            )}
                           >
                             {req.jenis_cuti}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 align-top">
-                          <div className="font-medium text-[var(--ds-fg)] text-xs">
-                            {formatDate(req.tanggal_mulai)} s.d. {formatDate(req.tanggal_selesai)}
                           </div>
                           <div className="mt-1">
-                            <span className="inline-block font-bold text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] px-1.5 py-0.5 rounded text-xs">
-                              {req.jumlah_hari} {req.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari"}
-                            </span>
+                            {(() => {
+                              const raw = req.alasan_cuti || req.catatan_atasan;
+                              if (!raw || raw.toLowerCase().includes("sisa cuti")) {
+                                return <span className="block text-[var(--ds-fg-muted)] text-xs italic leading-tight">-</span>;
+                              }
+                              return (
+                                <span
+                                  className="block text-xs font-medium text-[var(--ds-fg-muted)] truncate leading-tight"
+                                  title={raw}
+                                >
+                                  {raw}
+                                </span>
+                              );
+                            })()}
                           </div>
                         </td>
-                        <td className="py-3 px-3 align-top">
-                          {(() => {
-                            const raw = req.alasan_cuti || req.catatan_atasan;
-                            if (!raw || raw.toLowerCase().includes("sisa cuti")) {
-                              return <span className="text-[var(--ds-fg-muted)] text-xs italic">-</span>;
-                            }
-                            return (
-                              <span className="inline-block text-xs font-medium text-[var(--ds-fg)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border-subtle)] px-2 py-0.5 rounded-md leading-snug">
-                                {raw}
-                              </span>
-                            );
-                          })()}
+                        <td className="py-3 px-3 align-top whitespace-nowrap">
+                          <div className="font-bold text-[var(--ds-fg)] text-xs whitespace-nowrap leading-tight">
+                            {formatDate(req.tanggal_mulai)} s.d. {formatDate(req.tanggal_selesai)}
+                          </div>
+                          <div className="text-xs font-semibold text-[var(--ds-fg-muted)] mt-1 whitespace-nowrap leading-tight">
+                            {req.jumlah_hari} {req.jenis_cuti.toLowerCase().includes("tahunan") ? "Hari Kerja" : "Hari"}
+                          </div>
                         </td>
-                        <td className="py-3 px-3 align-top text-right">
-                          <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1.5">
+                        <td className="py-3 px-3 align-top text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                             {(() => {
                               const st = (req.status || "PENGAJUAN").toUpperCase();
                               const isApproved = st === "DISETUJUI" || st === "APPROVED";
@@ -844,18 +843,18 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                               return (
                                 <span
                                   className={cn(
-                                    "inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs shrink-0 uppercase tracking-wider",
+                                    "inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full border shrink-0 whitespace-nowrap uppercase tracking-wider",
                                     isApproved
-                                      ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]   "
+                                      ? "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)]"
                                       : isRejected
-                                      ? "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]   "
-                                      : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]   "
+                                      ? "bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] border-[var(--ds-status-danger-border)]"
+                                      : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]"
                                   )}
                                 >
                                   {isApproved ? (
                                     <CheckCircle2 className="w-3 h-3 text-[var(--ds-status-success-fg)]" />
                                   ) : isRejected ? (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-danger-solid)]" />
+                                    <span className="w-2 h-2 rounded-full bg-[var(--ds-danger-solid)]" />
                                   ) : (
                                     <span className="relative flex h-2 w-2 shrink-0">
                                       <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--ds-status-warning-fg)] opacity-75" />
@@ -872,7 +871,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                               const uploadedCount = (hasSuratIzin ? 1 : 0) + (hasFormulir ? 1 : 0);
 
                               return (
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-2 shrink-0">
                                   {/* Berkas Dropdown Menu */}
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild
@@ -882,27 +881,27 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                                       <button
                                         type="button"
                                         className={cn(
-                                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer",
+                                          "inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold border transition-colors cursor-pointer whitespace-nowrap shrink-0",
                                           uploadedCount === 2
-                                            ? "text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] hover:bg-[var(--ds-status-success-bg)]"
+                                            ? "text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)]"
                                             : uploadedCount === 1
-                                            ? "text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] hover:bg-[var(--ds-status-warning-bg)]"
-                                            : "text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)]"
+                                            ? "text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)]"
+                                            : "text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]"
                                         )}
                                         title="Kelola & Lihat Berkas Scan Cuti"
                                       >
                                         {uploadedCount === 2 ? (
-                                          <CheckCircle2 className="w-3 h-3 text-[var(--ds-status-success-fg)]" />
+                                          <CheckCircle2 className="w-3 h-3 text-[var(--ds-status-success-fg)] shrink-0" />
                                         ) : uploadedCount === 1 ? (
-                                          <Clock className="w-3 h-3 text-[var(--ds-status-warning-fg)]" />
+                                          <Clock className="w-3 h-3 text-[var(--ds-status-warning-fg)] shrink-0" />
                                         ) : (
-                                          <FileUp className="w-3 h-3 text-[var(--ds-accent-fg)]" />
+                                          <FileUp className="w-3 h-3 text-[var(--ds-accent-fg)] shrink-0" />
                                         )}
-                                        <span>{uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
-                                        <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                                        <span className="whitespace-nowrap">{uploadedCount > 0 ? `Berkas (${uploadedCount})` : "+ Berkas"}</span>
+                                        <ChevronDown className="w-3 h-3 opacity-60 shrink-0" />
                                       </button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-60 p-1.5 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+                                    <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-60 p-2 rounded-lg shadow-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
                                       <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] px-2 py-1">
                                         Berkas Scan Cuti
                                       </DropdownMenuLabel>
@@ -914,14 +913,14 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                                             fileName: req.scan_surat_izin_nama || req.scan_surat_nama,
                                             title: "Surat Izin Cuti Resmi (TTE Kepala Balai)",
                                           })}
-                                        className="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl cursor-pointer"
+                                        className="flex items-center justify-between text-xs py-2 px-2 rounded-lg cursor-pointer"
                                       >
                                         <div className="flex items-center gap-2">
                                           <FileCheck className={cn("w-4 h-4", hasSuratIzin ? "text-[var(--ds-status-success-fg)]" : "text-[var(--ds-fg-muted)]")} />
                                           <span className={cn("font-medium", !hasSuratIzin && "text-[var(--ds-fg-muted)]")}>Surat Izin (TTE)</span>
                                         </div>
                                         {hasSuratIzin ? (
-                                          <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
+                                          <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)]">
                                             Lihat
                                           </span>
                                         ) : (
@@ -936,14 +935,14 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                                             fileName: req.scan_formulir_nama,
                                             title: "Scan Formulir Permohonan Cuti (TTD Manual & Cap Balai)",
                                           })}
-                                        className="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl cursor-pointer"
+                                        className="flex items-center justify-between text-xs py-2 px-2 rounded-lg cursor-pointer"
                                       >
                                         <div className="flex items-center gap-2">
                                           <FileText className={cn("w-4 h-4", hasFormulir ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]")} />
                                           <span className={cn("font-medium", !hasFormulir && "text-[var(--ds-fg-muted)]")}>Formulir (Scan)</span>
                                         </div>
                                         {hasFormulir ? (
-                                          <span className="text-xs font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+                                          <span className="text-xs font-bold px-2 py-1 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
                                             Lihat
                                           </span>
                                         ) : (
@@ -951,13 +950,13 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                                         )}
                                       </DropdownMenuItem>
 
-                                      <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
+                                      <DropdownMenuSeparator className="my-1 border-slate-200/70 dark:border-zinc-800" />
 
                                       <DropdownMenuItem
                                         onClick={() => setUploadScanItem(req)}
-                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer font-semibold"
+                                        className="flex items-center gap-2 text-xs py-2 px-2 rounded-lg text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] cursor-pointer font-semibold"
                                       >
-                                        <FileUp className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                                        <FileUp className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                                         <span>{uploadedCount > 0 ? "Unggah Ulang Berkas" : "Unggah Berkas Scan"}</span>
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -974,21 +973,21 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                                         className="p-1 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg transition-colors cursor-pointer"
                                         title="Aksi Lainnya"
                                       >
-                                        <MoreHorizontal className="w-3.5 h-3.5" />
+                                        <MoreHorizontal className="w-4 h-4" />
                                       </button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-40 p-1 rounded-2xl shadow-xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)]">
+                                    <DropdownMenuContent data-module="kepegawaian" align="end" className="kpg-ui w-40 p-1 rounded-lg shadow-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800">
                                       <DropdownMenuItem
                                         onClick={() => handleOpenEditDialog(req)}
-                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl cursor-pointer text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] font-medium"
+                                        className="flex items-center gap-2 text-xs py-2 px-2 rounded-lg cursor-pointer text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-status-warning-bg)] font-medium"
                                       >
                                         <Pencil className="w-3 h-3" />
                                         <span>Edit Cuti</span>
                                       </DropdownMenuItem>
-                                      <DropdownMenuSeparator className="my-1 border-[var(--ds-border-subtle)]" />
+                                      <DropdownMenuSeparator className="my-1 border-slate-200/70 dark:border-zinc-800" />
                                       <DropdownMenuItem
                                         onClick={() => setDeleteConfirmId(req.id)}
-                                        className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-xl cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
+                                        className="flex items-center gap-2 text-xs py-2 px-2 rounded-lg cursor-pointer text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] font-medium"
                                       >
                                         <Trash2 className="w-3 h-3" />
                                         <span>Hapus Cuti</span>
@@ -1013,9 +1012,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
       {/* Modal Dialog: Penyesuaian Saldo Awal (Khusus Pindahan / Mutasi) */}
       <Dialog open={isBalanceDialogOpen} onOpenChange={setIsBalanceDialogOpen}>
-        <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui max-w-md">
+        <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui max-w-md rounded-3xl shadow-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">
+            <DialogTitle className="text-xl font-bold text-[var(--ds-fg)]">
               Penyesuaian Saldo Awal (Tahun {selectedYear})
             </DialogTitle>
             <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
@@ -1029,7 +1028,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               saveBalanceMutation.mutate();
               setIsBalanceDialogOpen(false);
             }}
-            className="space-y-3.5 py-2"
+            className="space-y-4 py-2"
           >
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -1042,7 +1041,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   onChange={(e) => setBalanceForm({ ...balanceForm, hak_cuti_n: Number(e.target.value) })}
                   className="mt-1 text-xs h-9"
                 />
-                <span className="text-xs text-[var(--ds-fg-muted)] mt-0.5 block">Standar PNS: 12 hari</span>
+                <span className="text-xs text-[var(--ds-fg-muted)] mt-1 block">Standar PNS: 12 hari</span>
               </div>
               <div>
                 <label className="text-xs font-bold text-[var(--ds-fg)]">Sisa Cuti Tahun {selectedYear - 1} (N-1)</label>
@@ -1054,7 +1053,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   onChange={(e) => setBalanceForm({ ...balanceForm, sisa_cuti_n1: Number(e.target.value) })}
                   className="mt-1 text-xs h-9"
                 />
-                <span className="text-xs text-[var(--ds-fg-muted)] mt-0.5 block">Diakui maks. 6 hari</span>
+                <span className="text-xs text-[var(--ds-fg-muted)] mt-1 block">Diakui maks. 6 hari</span>
               </div>
             </div>
 
@@ -1075,7 +1074,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsBalanceDialogOpen(false)}
-                className="text-xs font-bold"
+                className="rounded-lg text-xs font-bold"
               >
                 Batal
               </Button>
@@ -1083,9 +1082,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 type="submit"
                 size="sm"
                 disabled={saveBalanceMutation.isPending}
-                className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold gap-1.5"
+                className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-bold gap-2"
               >
-                <Save className="w-3.5 h-3.5" />
+                <Save className="w-4 h-4" />
                 {saveBalanceMutation.isPending ? "Menyimpan..." : "Simpan Penyesuaian"}
               </Button>
             </DialogFooter>
@@ -1095,17 +1094,17 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
       {/* Modal Dialog: Tambah / Edit Surat Izin Cuti */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui sm:max-w-2xl max-w-[95vw] p-6">
-          <DialogHeader className="pb-3 border-b border-[var(--ds-border-subtle)]">
+        <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui sm:max-w-2xl max-w-[95vw] p-6 rounded-3xl shadow-lg">
+          <DialogHeader className="pb-3 border-b border-slate-200/70 dark:border-zinc-800">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
                 <FileCheck2 className="w-5 h-5" />
               </div>
               <div>
-                <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">
+                <DialogTitle className="text-xl font-bold text-[var(--ds-fg)]">
                   {editingRecord ? "Edit Surat Izin Penetapan Cuti" : "Catat Surat Izin Penetapan Cuti"}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+                <DialogDescription className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   Pencatatan data surat keputusan izin cuti resmi (SI / ST) untuk buku kendali cuti pegawai.
                 </DialogDescription>
               </div>
@@ -1113,10 +1112,10 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           </DialogHeader>
 
           {/* Interactive Employee Leave Balance Card */}
-          <div className="rounded-xl border border-[var(--ds-accent-soft-border)] p-3.5 mt-1">
+          <div className="rounded-lg border border-[var(--ds-accent-soft-border)] p-4 mt-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--ds-fg)]">
+                <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)]">
                   <Award className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                   <span>Sisa Kuota Cuti Pegawai (Tahun {selectedYear}):</span>
                 </div>
@@ -1138,7 +1137,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
             {/* Live simulation of remaining balance if Cuti Tahunan / cuts quota */}
             {isTahunan && recordForm.jumlah_hari > 0 && (
-              <div className="mt-2.5 pt-2 border-t border-[var(--ds-accent-soft-border)] flex items-center justify-between text-xs">
+              <div className="mt-3 pt-2 border-t border-[var(--ds-accent-soft-border)] flex items-center justify-between text-xs">
                 <span className="text-[var(--ds-fg-muted)]">Simulasi sisa setelah cuti ini ({recordForm.jumlah_hari} hari):</span>
                 {(() => {
                   const projectedDiff = editingRecord
@@ -1148,14 +1147,14 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   if (projectedRemaining < 0) {
                     return (
                       <span className="font-bold text-[var(--ds-status-danger-fg)] flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" />
+                        <AlertCircle className="w-4 h-4" />
                         Melebihi kuota (kurang {Math.abs(projectedRemaining)} hari)
                       </span>
                     );
                   }
                   return (
                     <span className="font-bold text-[var(--ds-status-success-fg)] flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <CheckCircle2 className="w-4 h-4" />
                       Sisa {projectedRemaining} Hari
                     </span>
                   );
@@ -1172,7 +1171,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
             className="space-y-4 pt-1 pb-1"
           >
             {/* Grid Baris 1: Surat Persetujuan & Tanggal Terbit */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
               <div className="sm:col-span-7">
                 <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1">
                   Nomor Surat Persetujuan (SI / ST) <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -1182,7 +1181,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   value={recordForm.nomor_pengajuan}
                   onChange={(e) => setRecordForm({ ...recordForm, nomor_pengajuan: e.target.value })}
                   placeholder="Contoh: SI.80/K.18/TU/PEG.12.1/B/04/2025"
-                  className="mt-1 text-xs font-mono h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors"
+                  className="mt-1 text-xs font-mono h-9 bg-[var(--ds-surface)] transition-colors"
                 />
               </div>
 
@@ -1195,13 +1194,13 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   required
                   value={recordForm.tanggal_pengajuan}
                   onChange={(e) => setRecordForm({ ...recordForm, tanggal_pengajuan: e.target.value })}
-                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors"
+                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] transition-colors"
                 />
               </div>
             </div>
 
             {/* Grid Baris 2: Jenis Cuti & Alasan Cuti (1 Baris Side-by-Side) */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
               <div className="sm:col-span-6">
                 <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1">
                   Jenis Cuti / Izin <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -1209,7 +1208,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 <select
                   value={recordForm.jenis_cuti}
                   onChange={(e) => handleJenisCutiChange(e.target.value)}
-                  className="w-full mt-1 h-9 px-3 rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] focus:bg-white text-xs font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-none transition-colors" aria-label="Jenis Cuti / Izin"
+                  className="w-full mt-1 h-9 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-medium focus:ring-2 focus:ring-[var(--ds-accent-soft-border)] outline-none transition-colors" aria-label="Jenis Cuti / Izin"
                 >
                   {availableLeaveTypeNames.map((opt) => (
                     <option key={opt} value={opt}>
@@ -1224,7 +1223,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   <label className="text-xs font-semibold text-[var(--ds-fg)]">
                     Alasan / Keperluan Cuti
                   </label>
-                  <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded-full font-medium">
+                  <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full font-medium">
                     Opsional
                   </span>
                 </div>
@@ -1232,13 +1231,13 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   value={recordForm.alasan_cuti}
                   onChange={(e) => setRecordForm({ ...recordForm, alasan_cuti: e.target.value })}
                   placeholder="Opsional (otomatis sesuai jenis cuti)"
-                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors"
+                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] transition-colors"
                 />
               </div>
             </div>
 
             {/* Grid Baris 3: Rentang Tanggal Mulai & Selesai */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1">
                   Tanggal Mulai Pelaksanaan <span className="text-[var(--ds-status-danger-fg)]">*</span>
@@ -1248,7 +1247,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   required
                   value={recordForm.tanggal_mulai}
                   onChange={(e) => handleDateChange("tanggal_mulai", e.target.value)}
-                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors"
+                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] transition-colors"
                 />
               </div>
 
@@ -1261,13 +1260,13 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   required
                   value={recordForm.tanggal_selesai}
                   onChange={(e) => handleDateChange("tanggal_selesai", e.target.value)}
-                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] focus:bg-white transition-colors"
+                  className="mt-1 text-xs h-9 bg-[var(--ds-surface)] transition-colors"
                 />
               </div>
             </div>
 
             {/* Grid Baris 4 (DI BAWAH Tanggal Mulai & Selesai): Lama Cuti Otomatis Terhitung */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
               <div className="sm:col-span-5">
                 <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center justify-between">
                   <span>Lama Cuti <span className="text-[var(--ds-status-danger-fg)]">*</span></span>
@@ -1289,7 +1288,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                     required
                     value={recordForm.jumlah_hari}
                     onChange={(e) => setRecordForm({ ...recordForm, jumlah_hari: Number(e.target.value) })}
-                    className="text-xs font-bold h-9 pr-14 bg-[var(--ds-surface)] focus:bg-white transition-colors"
+                    className="text-xs font-bold h-9 pr-14 bg-[var(--ds-surface)] transition-colors"
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-xs font-medium text-[var(--ds-fg-muted)]">
                     Hari
@@ -1298,8 +1297,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               </div>
 
               <div className="sm:col-span-7 flex flex-col justify-end">
-                <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
-                  <Info className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
+                <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
+                  <Info className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                   <span>
                     {(selectedLeaveType
                       ? selectedLeaveType.hitung_hari === "hari_kerja"
@@ -1317,26 +1316,28 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               {/* Slot 1: Scan Surat Pengantar dan Formulir Cuti */}
               <div className="flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-1 gap-1">
-                  <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1.5 truncate">
-                    <FileText className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
+                  <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-2 truncate">
+                    <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                     <span className="truncate">1. Scan Surat Pengantar & Formulir</span>
                   </label>
-                  <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                  <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full font-medium shrink-0">
                     Opsional
                   </span>
                 </div>
 
                 {editingRecord?.scan_formulir_nama && !fileScanFormulir && (
-                  <div className="mb-1.5 p-1.5 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs text-[var(--ds-accent-fg)] flex items-center justify-between gap-1">
-                    <span className="flex items-center gap-1 truncate">
-                      <FileCheck className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
-                      <span className="truncate font-semibold">{editingRecord.scan_formulir_nama}</span>
-                    </span>
-                    <span className="text-xs text-[var(--ds-accent-fg)] font-medium shrink-0">Tersimpan</span>
-                  </div>
+                  <ActiveScanFileRow
+                    fileName={editingRecord.scan_formulir_nama}
+                    slot="formulir"
+                    label=""
+                    className="mb-2"
+                    busy={saveRecordMutation.isPending || deleteRecordScanMutation.isPending}
+                    deleting={deleteRecordScanMutation.isPending && deleteRecordScanMutation.variables?.type === "formulir"}
+                    onDelete={(type) => deleteRecordScanMutation.mutateAsync({ id: editingRecord.id, type })}
+                  />
                 )}
 
-                <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-accent-soft-border)] rounded-xl p-2.5 text-center bg-[var(--ds-surface)] transition-colors">
+                <div className="border border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-accent-soft-border)] rounded-lg p-3 text-center bg-[var(--ds-surface)] transition-colors">
                   <input
                     type="file"
                     id="file_scan_formulir_manual"
@@ -1353,8 +1354,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   />
                   <label htmlFor="file_scan_formulir_manual" className="kpg-upload cursor-pointer block rounded-lg p-2">
                     {fileScanFormulir ? (
-                      <div className="flex items-center justify-center gap-1.5 text-[var(--ds-accent-fg)] font-semibold text-xs">
-                        <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                      <div className="flex items-center justify-center gap-2 text-[var(--ds-accent-fg)] font-semibold text-xs">
+                        <FileCheck className="w-4 h-4 shrink-0" />
                         <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanFormulir.name}</span>
                         <span className="text-xs text-[var(--ds-fg-muted)] font-normal shrink-0">
                           ({(fileScanFormulir.size / 1024 / 1024).toFixed(1)} MB)
@@ -1381,26 +1382,28 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               {/* Slot 2: Surat Izin Cuti Resmi (TTE) */}
               <div className="flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-1 gap-1">
-                  <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-1.5 truncate">
-                    <FileCheck className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)] shrink-0" />
+                  <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center gap-2 truncate">
+                    <FileCheck className="w-4 h-4 text-[var(--ds-status-success-fg)] shrink-0" />
                     <span className="truncate">2. Scan Surat Izin Resmi (TTE)</span>
                   </label>
-                  <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                  <span className="text-xs text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full font-medium shrink-0">
                     Opsional
                   </span>
                 </div>
 
                 {(editingRecord?.scan_surat_izin_nama || editingRecord?.scan_surat_nama) && !fileScanSuratIzin && (
-                  <div className="mb-1.5 p-1.5 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-xs text-[var(--ds-status-success-fg)] flex items-center justify-between gap-1">
-                    <span className="flex items-center gap-1 truncate">
-                      <FileCheck className="w-3.5 h-3.5 text-[var(--ds-status-success-fg)] shrink-0" />
-                      <span className="truncate font-semibold">{editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama}</span>
-                    </span>
-                    <span className="text-xs text-[var(--ds-status-success-fg)] font-medium shrink-0">Tersimpan</span>
-                  </div>
+                  <ActiveScanFileRow
+                    fileName={(editingRecord.scan_surat_izin_nama || editingRecord.scan_surat_nama)!}
+                    slot="surat_izin"
+                    label=""
+                    className="mb-2"
+                    busy={saveRecordMutation.isPending || deleteRecordScanMutation.isPending}
+                    deleting={deleteRecordScanMutation.isPending && deleteRecordScanMutation.variables?.type === "surat_izin"}
+                    onDelete={(type) => deleteRecordScanMutation.mutateAsync({ id: editingRecord.id, type })}
+                  />
                 )}
 
-                <div className="border border-dashed border-[var(--ds-border-subtle)] hover:border-[var(--ds-status-success-border)] rounded-xl p-2.5 text-center bg-[var(--ds-surface)] transition-colors">
+                <div className="border border-dashed border-slate-200/80 dark:border-zinc-800 hover:border-[var(--ds-status-success-border)] rounded-lg p-3 text-center bg-[var(--ds-surface)] transition-colors">
                   <input
                     type="file"
                     id="file_scan_surat_izin_manual"
@@ -1417,8 +1420,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                   />
                   <label htmlFor="file_scan_surat_izin_manual" className="kpg-upload cursor-pointer block rounded-lg p-2">
                     {fileScanSuratIzin ? (
-                      <div className="flex items-center justify-center gap-1.5 text-[var(--ds-status-success-fg)] font-semibold text-xs">
-                        <FileCheck className="w-3.5 h-3.5 shrink-0" />
+                      <div className="flex items-center justify-center gap-2 text-[var(--ds-status-success-fg)] font-semibold text-xs">
+                        <FileCheck className="w-4 h-4 shrink-0" />
                         <span className="truncate max-w-[130px] sm:max-w-[160px]">{fileScanSuratIzin.name}</span>
                         <span className="text-xs text-[var(--ds-fg-muted)] font-normal shrink-0">
                           ({(fileScanSuratIzin.size / 1024 / 1024).toFixed(1)} MB)
@@ -1443,14 +1446,16 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               </div>
             </div>
 
+            <UploadProgressBar progress={saveRecordMutation.isPending ? recordUpload.progress : null} />
+
             {/* Footer */}
-            <DialogFooter className="gap-2 pt-3 border-t border-[var(--ds-border-subtle)]">
+            <DialogFooter className="gap-2 pt-3 border-t border-slate-200/70 dark:border-zinc-800">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setIsDialogOpen(false)}
-                className="text-xs font-semibold"
+                className="rounded-lg text-xs font-semibold"
               >
                 Batal
               </Button>
@@ -1458,14 +1463,14 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 type="submit"
                 size="sm"
                 disabled={saveRecordMutation.isPending}
-                className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-semibold gap-1.5 shadow-xs"
+                className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] text-xs font-semibold gap-2 shadow-xs"
               >
-                <Save className="w-3.5 h-3.5" />
-                {saveRecordMutation.isPending
-                  ? "Menyimpan..."
-                  : editingRecord
-                  ? "Simpan Perubahan"
-                  : "Simpan Penetapan Cuti"}
+                <Save className="w-4 h-4" />
+                {formatPendingUploadLabel(
+                  saveRecordMutation.isPending,
+                  recordUpload.progress,
+                  editingRecord ? "Simpan Perubahan" : "Simpan Penetapan Cuti"
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -1474,9 +1479,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
       {/* Confirmation Dialog: Delete Record */}
       <Dialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
-        <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui max-w-md">
+        <DialogContent {...focusReturn} data-module="kepegawaian" className="kpg-ui max-w-md rounded-3xl shadow-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-[var(--ds-fg)]">Hapus Penetapan Cuti?</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-[var(--ds-fg)]">Hapus Penetapan Cuti?</DialogTitle>
             <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
               Apakah Anda yakin ingin menghapus data penetapan cuti ini? Saldo cuti terpakai akan otomatis dikurangi
               kembali.
@@ -1488,7 +1493,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               variant="outline"
               size="sm"
               onClick={() => setDeleteConfirmId(null)}
-              className="text-xs font-bold"
+              className="rounded-lg text-xs font-bold"
             >
               Batal
             </Button>
@@ -1497,9 +1502,9 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               size="sm"
               disabled={deleteRecordMutation.isPending}
               onClick={() => deleteConfirmId && deleteRecordMutation.mutate(deleteConfirmId)}
-              className="bg-[var(--ds-danger-solid)] hover:bg-[var(--ds-danger-solid)] text-[var(--ds-accent-on-solid)] text-xs font-bold gap-1.5" variant="destructive"
+              className="rounded-lg text-xs font-bold gap-2" variant="destructive"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-4 h-4" />
               {deleteRecordMutation.isPending ? "Menghapus..." : "Ya, Hapus"}
             </Button>
           </DialogFooter>
@@ -1530,6 +1535,8 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
           employee: { nama_lengkap: apiResponse?.employee?.nama_lengkap || "Pegawai" },
         } : null}
         isPending={uploadRecordScanMutation.isPending}
+        uploadProgress={scanUpload.progress}
+        deletingSlot={deleteRecordScanMutation.isPending ? deleteRecordScanMutation.variables?.type ?? null : null}
         onClose={() => setUploadScanItem(null)}
         onUpload={({ fileFormulir, fileSuratIzin }) => {
           if (uploadScanItem) {
@@ -1538,6 +1545,11 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
               fileFormulir,
               fileSuratIzin,
             });
+          }
+        }}
+        onDeleteScan={(type) => {
+          if (uploadScanItem) {
+            return deleteRecordScanMutation.mutateAsync({ id: uploadScanItem.id, type });
           }
         }}
       />

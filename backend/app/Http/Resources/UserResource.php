@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role,
             'access_modules' => $this->access_modules ?? [], // Kembalikan array kosong jika null
+            'module_roles' => $this->moduleRolesPayload(),
             'permissions' => $this->permissions,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toIso8601String(),

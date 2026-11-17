@@ -166,19 +166,19 @@ export function EmailConnectDialog({
     <>
       {/* Banner Notifikasi jika email belum aktif/resmi */}
       {needsVerification && (
-        <div className="w-full rounded-2xl border border-[#fef3c7] bg-[#fffbeb] py-2.5 px-3.5 sm:px-4 shadow-2xs dark:border-amber-900/40 dark:from-amber-950/30 dark:via-amber-950/20 dark:to-orange-950/10">
+        <div className="w-full rounded-3xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-4 shadow-xs">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#fef3c7] text-[#d97706] dark:bg-amber-400/10 dark:text-amber-400">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)]">
                 <AlertTriangle className="h-4 w-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-[#b45309] dark:text-amber-300">
+                <h4 className="text-xs font-bold text-[var(--ds-status-warning-fg)]">
                   {isLocalEmail
                     ? "Hubungkan Akun Gmail Pribadi Anda"
                     : "Email Anda Belum Terverifikasi"}
                 </h4>
-                <p className="text-[11px] text-[#92400e]/90 dark:text-amber-200/80 mt-0.5 max-w-xl leading-normal">
+                <p className="text-xs text-[var(--ds-status-warning-fg)] mt-1 max-w-xl leading-normal">
                   {isLocalEmail
                     ? "Akun Anda saat ini menggunakan email placeholder sistem. Hubungkan Gmail Anda untuk menerima notifikasi persetujuan cuti, surat tugas, dan pemulihan kata sandi mandiri."
                     : `Tautan verifikasi telah dikirim ke ${currentEmail}. Segera periksa kotak masuk Gmail Anda agar fitur notifikasi aktif.`}
@@ -193,7 +193,7 @@ export function EmailConnectDialog({
                   setOpen(true);
                 }}
                 size="sm"
-                className="shrink-0 bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold shadow-sm"
+                className="shrink-0 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold rounded-lg shadow-xs cursor-pointer"
               >
                 <Mail className="w-4 h-4 mr-2" />
                 Hubungkan Gmail
@@ -203,9 +203,9 @@ export function EmailConnectDialog({
                 <Button
                   disabled
                   size="sm"
-                  className="bg-amber-600/70 dark:bg-amber-700/60 text-white font-semibold shadow-sm cursor-not-allowed opacity-90"
+                  className="bg-amber-600/80 dark:bg-amber-700/70 text-white font-semibold rounded-lg shadow-xs cursor-not-allowed opacity-90 tabular-nums"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin text-amber-200" />
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin text-amber-100" />
                   Tunggu ({cooldown}s)
                 </Button>
                 <Button
@@ -216,9 +216,9 @@ export function EmailConnectDialog({
                     setShowChangeForm(true);
                     setOpen(true);
                   }}
-                  className="text-xs border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 bg-white/70 dark:bg-slate-900/70 font-semibold"
+                  className="text-xs rounded-lg border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] hover:bg-[var(--ds-surface)] bg-[var(--ds-surface)] font-semibold cursor-pointer"
                 >
-                  <Pencil className="w-3.5 h-3.5 mr-1" />
+                  <Pencil className="w-4 h-4 mr-1" />
                   Ganti Email
                 </Button>
               </div>
@@ -229,7 +229,7 @@ export function EmailConnectDialog({
                   setOpen(true);
                 }}
                 size="sm"
-                className="shrink-0 bg-[#ea580c] hover:bg-[#c2410c] text-white font-semibold shadow-sm"
+                className="shrink-0 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold rounded-lg shadow-xs cursor-pointer"
               >
                 <Mail className="w-4 h-4 mr-2" />
                 Kirim Ulang / Ganti
@@ -241,21 +241,21 @@ export function EmailConnectDialog({
 
       {/* Modal Hubungkan / Perbarui Email */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent data-module="portal" className="sm:max-w-md rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-6 shadow-lg">
           <DialogHeader>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eff5ee] text-[#1e5433] border border-[#dce8dd] dark:bg-emerald-400/10 dark:text-emerald-400 mb-2">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] mb-2">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <DialogTitle className="text-center text-lg font-bold">
+            <DialogTitle className="text-center text-xl font-bold text-[var(--ds-fg)]">
               {isLocalEmail ? "Hubungkan Alamat Email" : "Verifikasi Alamat Email"}
             </DialogTitle>
-            <DialogDescription className="text-center text-xs text-slate-500">
+            <DialogDescription className="text-center text-xs text-[var(--ds-fg-muted)]">
               Gunakan akun Gmail pribadi atau dinas aktif Anda. Kami akan mengirimkan tautan konfirmasi untuk mengaktifkannya.
             </DialogDescription>
           </DialogHeader>
 
           {errorMsg && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400">
+            <div className="rounded-lg border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-3 text-xs text-[var(--ds-status-danger-fg)]">
               {errorMsg}
             </div>
           )}
@@ -263,14 +263,14 @@ export function EmailConnectDialog({
           {/* Skenario 1: Email asli sudah terisi tapi belum diverifikasi */}
           {!isLocalEmail && !showChangeForm ? (
             <div className="space-y-4 pt-2">
-              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 space-y-2 text-center">
-                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+              <div className="p-4 rounded-lg bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] space-y-2 text-center">
+                <span className="text-xs text-[var(--ds-fg-muted)] block font-medium">
                   Alamat Email Terdaftar
                 </span>
-                <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block font-mono">
+                <span className="text-sm font-bold text-[var(--ds-fg)] block font-mono">
                   {currentEmail}
                 </span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--ds-surface)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
                   <AlertTriangle className="w-3 h-3" />
                   Belum Terverifikasi
                 </span>
@@ -281,7 +281,7 @@ export function EmailConnectDialog({
                   type="button"
                   onClick={handleResendVerification}
                   disabled={resending || cooldown > 0}
-                  className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm gap-2"
+                  className="w-full h-11 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs rounded-lg shadow-xs gap-2 cursor-pointer tabular-nums"
                 >
                   {resending ? (
                     <>
@@ -290,7 +290,7 @@ export function EmailConnectDialog({
                     </>
                   ) : cooldown > 0 ? (
                     <>
-                      <RefreshCw className="w-4 h-4 animate-spin text-emerald-200" />
+                      <RefreshCw className="w-4 h-4 animate-spin" />
                       <span>Tautan Telah Dikirim (Tunggu {cooldown}s)</span>
                     </>
                   ) : (
@@ -305,9 +305,9 @@ export function EmailConnectDialog({
                   type="button"
                   variant="ghost"
                   onClick={() => setShowChangeForm(true)}
-                  className="w-full text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 font-semibold"
+                  className="w-full text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] font-semibold rounded-lg cursor-pointer"
                 >
-                  <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                  <Pencil className="w-4 h-4 mr-2" />
                   Ganti ke Alamat Email Lain
                 </Button>
               </div>
@@ -315,8 +315,8 @@ export function EmailConnectDialog({
           ) : (
             /* Skenario 2: Form Input Email Baru (Wajib kata sandi saat ini) */
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="new-email" className="text-xs font-semibold">
+              <div className="space-y-2">
+                <Label htmlFor="new-email" className="text-xs font-semibold text-[var(--ds-fg)]">
                   Alamat Gmail Baru
                 </Label>
                 <Input
@@ -326,15 +326,15 @@ export function EmailConnectDialog({
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   required
-                  className="h-10 text-sm rounded-xl"
+                  className="h-10 text-sm rounded-lg"
                   autoFocus
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="current-pw" className="text-xs font-semibold flex items-center justify-between">
+              <div className="space-y-2">
+                <Label htmlFor="current-pw" className="text-xs font-semibold flex items-center justify-between text-[var(--ds-fg)]">
                   <span>Kata Sandi Akun Saat Ini</span>
-                  <span className="text-[10px] text-slate-400 font-normal">Wajib diisi</span>
+                  <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Wajib diisi</span>
                 </Label>
                 <Input
                   id="current-pw"
@@ -344,9 +344,9 @@ export function EmailConnectDialog({
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   required
-                  className="h-10 text-sm rounded-xl"
+                  className="h-10 text-sm rounded-lg"
                 />
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs text-[var(--ds-fg-muted)]">
                   Diperlukan untuk memverifikasi bahwa perubahan dilakukan oleh pemilik akun sah.
                 </p>
               </div>
@@ -359,7 +359,7 @@ export function EmailConnectDialog({
                     size="sm"
                     onClick={() => setShowChangeForm(false)}
                     disabled={loading}
-                    className="text-xs rounded-xl"
+                    className="text-xs rounded-lg cursor-pointer"
                   >
                     Kembali
                   </Button>
@@ -370,7 +370,7 @@ export function EmailConnectDialog({
                   size="sm"
                   onClick={() => setOpen(false)}
                   disabled={loading}
-                  className="text-xs rounded-xl"
+                  className="text-xs rounded-lg cursor-pointer"
                 >
                   Batal
                 </Button>
@@ -378,7 +378,7 @@ export function EmailConnectDialog({
                   type="submit"
                   size="sm"
                   disabled={loading}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl"
+                  className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold text-xs rounded-lg shadow-xs cursor-pointer"
                 >
                   {loading ? (
                     <>
@@ -388,7 +388,7 @@ export function EmailConnectDialog({
                   ) : (
                     <>
                       Simpan & Kirim Tautan
-                      <ArrowRight className="w-4 h-4 ml-1.5" />
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>

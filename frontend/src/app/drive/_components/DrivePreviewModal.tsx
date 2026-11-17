@@ -7,9 +7,8 @@ import {
   Loader2,
   FileText,
   FileQuestion,
-  ExternalLink,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
@@ -58,7 +57,7 @@ export function DrivePreviewModal({ file, onClose }: DrivePreviewModalProps) {
     api
       .get(`/drive/files/${file.id}/url?download=1`)
       .then((resp) => {
-        window.open(resp.data.url, "_blank");
+        window.open(resp.data.url, "_blank", "noopener,noreferrer");
       })
       .catch(() => {
         toast.error("Gagal memulai unduhan.");

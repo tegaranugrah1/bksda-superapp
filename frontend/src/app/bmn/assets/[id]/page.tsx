@@ -44,13 +44,16 @@ import { toast } from "sonner";
 import { TagBadge } from "@/app/bmn/_components/TagBadge";
 import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
 import { type IBmnTag } from "@/app/bmn/_lib/tag-utils";
-import { ALL_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
+import {
+  SIMAN_LOKASI_RUANG_OPTIONS,
+  STRUKTUR_LOKASI_OPTIONS,
+  mergeLokasiOptions,
+} from "@/app/bmn/_lib/location-options";
+import { useMasterLocations } from "@/lib/locations";
 import { cn } from "@/lib/utils";
 
 import "../assets.css";
 import "./detail.css";
-
-const LOKASI_RUANG_OPTIONS = ALL_LOKASI_RUANG_OPTIONS;
 const KONDISI_OPTIONS = ["Baik", "Rusak Ringan", "Rusak Berat"];
 
 export default function BmnAssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -89,6 +92,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
     },
     enabled: canWrite,
   });
+
+  const { data: masterLocations = [] } = useMasterLocations(true);
 
   const [activeTab, setActiveTab] = useState("identitas");
   const [failedHeroUrl, setFailedHeroUrl] = useState<string | null>(null);
@@ -203,16 +208,18 @@ function AssetDetail({ assetId }: { assetId: string }) {
         }
       });
 
-      if (payload.pengguna && payload.pengguna !== asset.pengguna) {
+      if ("pengguna" in payload && !("nama_pengguna" in payload)) {
         payload.nama_pengguna = payload.pengguna;
       }
-      if (payload.nama_pengguna && payload.nama_pengguna !== asset.nama_pengguna) {
+      if ("nama_pengguna" in payload && !("pengguna" in payload)) {
         payload.pengguna = payload.nama_pengguna;
       }
 
       if ("pengguna" in payload || "nama_pengguna" in payload) {
-        const empName = payload.pengguna || payload.nama_pengguna;
+        const empName = String(payload.pengguna ?? payload.nama_pengguna ?? "").trim();
         if (!empName) {
+          payload.pengguna = null;
+          payload.nama_pengguna = null;
           payload.employee_id = null;
         } else {
           const matched = employees.find(
@@ -258,7 +265,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
     return (
       <div data-module="bmn" className="bmn-assets-ui bmn-detail-ui p-8 text-center max-w-md mx-auto mt-12">
         <Package className="w-12 h-12 mx-auto mb-3 text-[var(--ds-fg-muted)]" />
-        <h3 className="text-base font-bold text-[var(--ds-fg)] mb-1">Aset tidak ditemukan</h3>
+        <h3 className="text-sm font-bold text-[var(--ds-fg)] mb-1">Aset tidak ditemukan</h3>
         <p className="text-xs text-[var(--ds-fg-muted)] mb-4">Aset mungkin telah dipindahkan atau dihapus dari sistem.</p>
         <Button asChild variant="outline" size="sm" className="rounded-lg gap-2"><Link href="/bmn/assets"><ArrowLeft className="w-4 h-4" /> Kembali ke Katalog</Link></Button>
       </div>
@@ -338,23 +345,24 @@ function AssetDetail({ assetId }: { assetId: string }) {
     return "-";
   };
 
-  const allLokasiRuangOptions = Array.from(
-    new Set([
-      ...(currentData.lokasi_ruang ? [currentData.lokasi_ruang] : []),
-      ...LOKASI_RUANG_OPTIONS,
-    ])
+  const allLokasiRuangOptions = mergeLokasiOptions(
+    [currentData.lokasi_ruang],
+    masterLocations.length > 0
+      ? masterLocations.map((l) => l.name)
+      : STRUKTUR_LOKASI_OPTIONS,
+    SIMAN_LOKASI_RUANG_OPTIONS
   );
 
   return (
     <div data-module="bmn" className="bmn-assets-ui bmn-detail-ui min-h-screen bg-[var(--ds-canvas)]">
       {/* ==================== TOP OPERATIONAL COCKPIT BAR ==================== */}
-      <header className="sticky top-0 z-30 bg-[var(--ds-surface)] backdrop-blur-md px-6 lg:px-10 py-3.5 flex items-center justify-between border-b border-[var(--ds-border-subtle)] shadow-xs">
+      <header className="sticky top-0 z-30 bg-[var(--ds-surface)] backdrop-blur-md px-4 sm:px-6 py-4 flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 shadow-xs">
         {/* Navigation & Breadcrumbs */}
         <div className="flex items-center gap-2 sm:gap-3 text-xs flex-wrap min-w-0">
           <button
             aria-label="Kembali ke Data Aset"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 font-semibold text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors shrink-0"
+            className="inline-flex items-center gap-2 font-semibold text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Kembali</span>
@@ -364,11 +372,11 @@ function AssetDetail({ assetId }: { assetId: string }) {
             {asset.jenis_bmn || "Aset BMN"}
           </span>
           <span className="text-[var(--ds-fg-muted)] hidden sm:inline">/</span>
-          <span className="font-mono font-semibold text-[var(--ds-fg-muted)] hidden sm:inline">
+          <span className="font-mono font-semibold text-[var(--ds-fg-muted)] hidden sm:inline tabular-nums">
             {asset.kode_barang}
           </span>
           <span className="text-[var(--ds-fg-muted)] hidden sm:inline">/</span>
-          <span className="font-mono font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-0.5 rounded-md text-xs">
+          <span className="font-mono font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-full text-xs tabular-nums">
             NUP {asset.nup}
           </span>
         </div>
@@ -378,9 +386,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
           {canWrite && !isEditMode && (
             <button
               onClick={startEditMode}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 shadow-xs bmn-button bmn-primary"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 shadow-xs bmn-button bmn-primary"
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <Pencil className="w-4 h-4" />
               <span>Edit Aset</span>
             </button>
           )}
@@ -390,17 +398,17 @@ function AssetDetail({ assetId }: { assetId: string }) {
               <button
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="bmn-button bmn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] disabled:opacity-50"
+                className="bmn-button bmn-secondary inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] disabled:opacity-50"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
                 <span>Batal</span>
               </button>
               <button
                 onClick={handleSaveAll}
                 disabled={isSaving}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 shadow-xs bmn-button bmn-primary disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 shadow-xs bmn-button bmn-primary disabled:opacity-50"
               >
-                {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 <span>Simpan Perubahan</span>
               </button>
             </>
@@ -409,13 +417,13 @@ function AssetDetail({ assetId }: { assetId: string }) {
       </header>
 
       {/* ==================== MAIN WORKSPACE ==================== */}
-      <main className={cn("p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col gap-6", isEditMode && "max-sm:pb-24")}>
+      <main className={cn("p-4 sm:p-6 max-w-7xl mx-auto w-full flex flex-col gap-6", isEditMode && "max-sm:pb-24")}>
         {/* ==================== SECTION 1: EXECUTIVE OPERATIONS COCKPIT (BENTO MATRIX) ==================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* TILE 1: Primary Geotag Visual Hero Box (Col 5) */}
-          <div className="lg:col-span-5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 flex flex-col justify-between shadow-xs">
+          <div className="lg:col-span-5 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex flex-col justify-between shadow-xs">
             {heroDisplayUrl && failedHeroUrl !== heroDisplayUrl ? (
-              <div className="relative rounded-xl overflow-hidden border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] flex-1 min-h-[360px] flex flex-col justify-between">
+              <div className="relative rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] flex-1 min-h-[360px] flex flex-col justify-between">
                 {/* Asset Hero Image */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -429,8 +437,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
                 {/* Interactive Corner Top Bar */}
                 <div className="relative z-10 p-3 flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs font-semibold border border-[var(--ds-border-subtle)]">
-                    <Camera className="w-3.5 h-3.5" />
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs font-semibold border border-slate-200/80 dark:border-zinc-800">
+                    <Camera className="w-4 h-4" />
                     {heroPhotoCandidate?.label || "Foto Utama"}
                   </span>
 
@@ -444,12 +452,12 @@ function AssetDetail({ assetId }: { assetId: string }) {
                 </div>
 
                 {/* Interactive Corner Bottom Bar */}
-                <div className="relative z-10 p-3.5 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ds-accent-fg)]">
-                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <div className="relative z-10 p-4 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-col gap-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-[var(--ds-accent-fg)]">
+                    <MapPin className="w-4 h-4 shrink-0" />
                     <span className="truncate">{currentData.lokasi_ruang || "Lokasi belum ditentukan"}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-[var(--ds-fg-muted)] border-t border-[var(--ds-border-subtle)] pt-1.5">
+                  <div className="flex items-center justify-between text-xs text-[var(--ds-fg-muted)] border-t border-slate-200/70 dark:border-zinc-800 pt-2 tabular-nums">
                     <span>
                       {asset.verified_at
                         ? `Diverifikasi: ${new Date(asset.verified_at).toLocaleDateString("id-ID", {
@@ -459,7 +467,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                           })}`
                         : "Belum diverifikasi BMN"}
                     </span>
-                    <span className="font-mono text-xs bg-[var(--ds-surface-muted)] px-1.5 py-0.5 rounded backdrop-blur-xs">
+                    <span className="font-mono text-xs bg-[var(--ds-surface-muted)] px-2 py-1 rounded-full backdrop-blur-xs tabular-nums">
                       KD: {asset.kode_barang}
                     </span>
                   </div>
@@ -467,8 +475,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
               </div>
             ) : (
               /* Fallback Placeholder when NO photos uploaded */
-              <div className="rounded-xl border-2 border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] flex-1 min-h-[360px] flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center mb-3">
+              <div className="rounded-lg border-2 border-dashed border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] flex-1 min-h-[360px] flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-14 h-14 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center mb-3">
                   <Camera className="w-7 h-7" />
                 </div>
                 <h4 className="text-sm font-bold text-[var(--ds-fg)]">{heroDisplayUrl ? "Foto tidak dapat dimuat" : "Belum ada Foto Fisik"}</h4>
@@ -480,8 +488,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
             {/* Quick Action Under-Image Strip */}
             <div className="flex items-center justify-between mt-3 px-1 text-xs text-[var(--ds-fg-muted)]">
-              <span className="flex items-center gap-1 font-medium">
-                <Camera className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 font-medium tabular-nums">
+                <Camera className="w-4 h-4" />
                 <span>NUP: {asset.nup}</span>
               </span>
               {heroDisplayUrl && (
@@ -498,17 +506,17 @@ function AssetDetail({ assetId }: { assetId: string }) {
           </div>
 
           {/* TILE 2: Core Asset Identity & Metric Cluster (Col 7) */}
-          <div className="lg:col-span-7 flex flex-col gap-5">
+          <div className="lg:col-span-7 flex flex-col gap-4">
             {/* Sub-Tile 2A: Asset Title, Classification & Badges */}
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-5 flex flex-col justify-between flex-1 shadow-xs">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex flex-col justify-between flex-1 shadow-xs">
               <div>
                 {/* Top Row: Code Badge, Status Flags */}
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] text-xs font-mono font-bold">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] text-xs font-mono font-bold tabular-nums">
                       #{asset.kode_barang}
                     </span>
-                    <span className="text-xs text-[var(--ds-fg-muted)]">
+                    <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                       NUP: <span className="font-semibold text-[var(--ds-fg)]">{asset.nup}</span>
                     </span>
                     {asset.jenis_bmn && (
@@ -523,7 +531,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
                   <div className="flex items-center gap-2">
                     {asset.active_loan && (
-                      <span data-status="info" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border border-[var(--ds-status-info-border)] text-xs font-bold">
+                      <span data-status="info" className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border border-[var(--ds-status-info-border)] text-xs font-bold">
                         <span className="w-2 h-2 rounded-full bg-current" />
                         Dipinjam
                       </span>
@@ -538,8 +546,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
                 </div>
 
                 {/* Asset Headline */}
-                <div className="flex items-start gap-3.5 mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0 mt-0.5">
+                <div className="flex items-start gap-4 mb-3">
+                  <div className="w-12 h-12 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0 mt-1">
                     {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" ? (
                       <Car className="w-6 h-6" />
                     ) : asset.jenis_bmn === "BANGUNAN DAN GEDUNG" ? (
@@ -549,7 +557,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2.5 flex-wrap">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <h2 className="text-2xl font-bold text-[var(--ds-fg)] tracking-tight leading-tight">
                         {asset.nama_barang}
                       </h2>
@@ -558,10 +566,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
                         currentData.no_polisi.trim() !== "" &&
                         currentData.no_polisi.trim() !== "-" && (
                           <span
-                            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-900 dark:bg-zinc-950 text-white font-mono font-bold text-xs tracking-wider border border-slate-700/80 dark:border-zinc-700 shadow-xs select-all"
+                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-mono font-bold text-xs tracking-wider border border-slate-200/80 dark:border-zinc-800 shadow-xs select-all tabular-nums"
                             title={`Nomor Polisi: ${currentData.no_polisi}`}
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
+                            <span className="w-2 h-2 rounded-full bg-[var(--ds-fg-muted)]" />
                             {currentData.no_polisi.toUpperCase()}
                           </span>
                         )}
@@ -575,10 +583,10 @@ function AssetDetail({ assetId }: { assetId: string }) {
               </div>
 
               {/* Tags Bar */}
-              <div className="pt-3 border-t border-[var(--ds-border-subtle)] flex items-center justify-between flex-wrap gap-2 mt-2">
+              <div className="pt-3 border-t border-slate-200/70 dark:border-zinc-800 flex items-center justify-between flex-wrap gap-2 mt-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)] flex items-center gap-1">
-                    <TagIcon className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                    <TagIcon className="w-4 h-4 text-[var(--ds-accent-fg)]" />
                     Tag Aset:
                   </span>
                   {asset.tags && asset.tags.length > 0 ? (
@@ -600,48 +608,48 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
             {/* Sub-Tile 2B: Financial & Lifecycle Bento Matrix (3 Interconnected Metric Micro-Tiles) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+              <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex flex-col justify-between shadow-xs">
                 <div className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   NILAI PEROLEHAN
                 </div>
-                <div className="text-base sm:text-lg font-bold text-[var(--ds-fg)] my-1 break-words tabular-nums">
+                <div className="text-xl font-bold text-[var(--ds-fg)] my-1 break-words tabular-nums">
                   {formatCurrency(currentData.nilai_perolehan)}
                 </div>
                 <div className="text-xs text-[var(--ds-fg-muted)]">Harga Awal Pengadaan</div>
               </div>
 
-              <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+              <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex flex-col justify-between shadow-xs">
                 <div className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   NILAI BUKU
                 </div>
-                <div className="text-base sm:text-lg font-bold text-[var(--ds-accent-fg)] my-1 break-words tabular-nums">
+                <div className="text-xl font-bold text-[var(--ds-accent-fg)] my-1 break-words tabular-nums">
                   {formatCurrency(currentData.nilai_buku)}
                 </div>
                 <div className="text-xs text-[var(--ds-fg-muted)]">Sisa Nilai Akuntansi</div>
               </div>
 
-              <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-3.5 flex flex-col justify-between shadow-xs">
+              <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex flex-col justify-between shadow-xs">
                 <div className="text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   TAHUN PEROLEHAN
                 </div>
-                <div className="text-base sm:text-lg font-bold text-[var(--ds-fg)] my-1">
+                <div className="text-xl font-bold text-[var(--ds-fg)] my-1 tabular-nums">
                   {currentData.tahun_perolehan || "-"}
                 </div>
-                <div className="text-xs text-[var(--ds-fg-muted)]">Usia: {calculateAge()}</div>
+                <div className="text-xs text-[var(--ds-fg-muted)] tabular-nums">Usia: {calculateAge()}</div>
               </div>
             </div>
 
             {/* Sub-Tile 2C: Physical Location & Warehouse Custodian Bento Tile */}
-            <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3 shadow-xs">
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-[var(--ds-surface-muted)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
+            <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex items-center justify-between flex-wrap gap-3 shadow-xs">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-[var(--ds-surface-muted)] flex items-center justify-center text-[var(--ds-accent-fg)] shrink-0">
                   <Warehouse className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="text-xs uppercase font-bold text-[var(--ds-fg-muted)] tracking-wider">
                     LOKASI PENYIMPANAN FISIK
                   </div>
-                  <div className="text-sm font-semibold text-[var(--ds-fg)] flex flex-wrap items-center gap-2 mt-0.5">
+                  <div className="text-sm font-semibold text-[var(--ds-fg)] flex flex-wrap items-center gap-2 mt-1">
                     <span>{currentData.lokasi_ruang || "Belum ditentukan"}</span>
                     {(currentData.pengguna || currentData.nama_pengguna) && (
                       <>
@@ -690,9 +698,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
         />
 
         {/* ==================== SECTION 3: TECHNICAL & COMPLIANCE BENTO PANEL ==================== */}
-        <section className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-3 sm:p-6 shadow-xs">
+        <section className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 sm:p-6 shadow-xs">
           {/* Tab Navigation Bar with Sliding Indicator */}
-          <div role="tablist" aria-label="Informasi aset" className="flex items-center gap-1.5 border-b border-[var(--ds-border-subtle)] overflow-x-auto pb-3">
+          <div role="tablist" aria-label="Informasi aset" className="flex items-center gap-2 border-b border-slate-200/70 dark:border-zinc-800 overflow-x-auto pb-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               return (
@@ -713,7 +721,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   }}
                   onClick={() => setActiveTab(tab.key)}
                   className={cn(
-                    "relative px-3.5 py-3 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0 transition-colors select-none cursor-pointer",
+                    "relative px-4 py-3 rounded-lg text-xs font-semibold flex items-center gap-2 shrink-0 transition-colors select-none cursor-pointer",
                     isActive
                       ? "text-[var(--ds-accent-fg)] bg-[var(--ds-surface-muted)] font-bold"
                       : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)]"
@@ -723,7 +731,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                     <motion.span
                       layoutId={`${tabsId}-indicator`}
                       initial={false}
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--ds-accent-fg)]"
+                      className="absolute bottom-0 left-0 right-0 h-1 rounded-full bg-[var(--ds-accent-fg)]"
                       transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
                     />
                   )}
@@ -734,7 +742,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   {typeof tab.count === "number" && tab.count > 0 && (
                     <span
                       className={cn(
-                        "relative z-10 px-1.5 py-0.5 rounded-full text-xs font-bold leading-none",
+                        "relative z-10 px-2 py-1 rounded-full text-xs font-bold leading-none tabular-nums",
                         isActive
                           ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                           : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
@@ -1141,6 +1149,13 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   isEditMode={isEditMode}
                   employees={employees}
                 />
+                {!isEditMode && (currentData.employee_id || currentData.pengguna || currentData.nama_pengguna) && (
+                  <div className="pt-1 flex items-center justify-end">
+                    <span className={cn("inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border", currentData.employee_id ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)]" : "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)]")}>
+                      {currentData.employee_id ? "Tertaut akun pegawai (notifikasi aktif)" : "Belum tertaut akun pegawai (notifikasi Portal tidak terkirim)"}
+                    </span>
+                  </div>
+                )}
               </DetailSection>
             )}
 
@@ -1190,20 +1205,20 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
       {/* Sticky Mobile Edit Actions */}
       {canWrite && isEditMode && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-[var(--ds-surface)] backdrop-blur-md border-t border-[var(--ds-border-subtle)] p-3 flex items-center justify-between gap-3 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-[var(--ds-surface)] backdrop-blur-md border-t border-slate-200/70 dark:border-zinc-800 p-3 flex items-center justify-between gap-3 shadow-lg">
           <button
             onClick={handleCancelEdit}
             disabled={isSaving}
-            className="bmn-button bmn-secondary flex-1 py-2 rounded-xl text-xs font-semibold border border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)] hover:bg-[var(--ds-secondary-hover)] disabled:opacity-50"
+            className="bmn-button bmn-secondary flex-1 py-2 rounded-lg text-xs font-semibold border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:bg-[var(--ds-secondary-hover)] disabled:opacity-50"
           >
             Batal
           </button>
           <button
             onClick={handleSaveAll}
             disabled={isSaving}
-            className="flex-1 py-2 rounded-xl text-xs font-semibold bmn-button bmn-primary flex items-center justify-center gap-1.5 shadow-xs disabled:opacity-50"
+            className="flex-1 py-2 rounded-lg text-xs font-semibold bmn-button bmn-primary flex items-center justify-center gap-2 shadow-xs disabled:opacity-50"
           >
-            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             Simpan Perubahan
           </button>
         </div>
@@ -1220,27 +1235,27 @@ function StnkCountdown({ tanggal, label }: { tanggal: string; label: string }) {
 
   if (diffDays < 0) {
     return (
-      <span data-status="danger" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold">
+      <span data-status="danger" className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold tabular-nums">
         🚨 {label} expired {Math.abs(diffDays)} hari lalu
       </span>
     );
   }
   if (diffDays <= 30) {
     return (
-      <span data-status="warning" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold">
+      <span data-status="warning" className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold tabular-nums">
         ⚠️ {diffDays} hari lagi
       </span>
     );
   }
   if (diffDays <= 90) {
     return (
-      <span data-status="info" className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold">
+      <span data-status="info" className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold tabular-nums">
         {diffDays} hari lagi
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] tabular-nums">
       ✓ {diffDays} hari lagi
     </span>
   );
@@ -1260,7 +1275,7 @@ function HistoryTab({ updates, isEditMode }: { updates: HistoryUpdate[]; isEditM
   return (
     <div className="space-y-4">
       {isEditMode && (
-        <div className="p-3.5 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-xl flex items-center gap-3 text-[var(--ds-status-warning-fg)] text-xs">
+        <div className="p-4 bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] rounded-lg flex items-center gap-3 text-[var(--ds-status-warning-fg)] text-xs">
           <AlertCircle className="w-4 h-4 shrink-0 text-[var(--ds-status-warning-fg)]" />
           <div>
             <span className="font-bold">Mode Edit Sedang Aktif:</span> Perubahan data yang sedang diedit tersimpan dalam draft. Klik tombol <strong>&ldquo;Simpan Perubahan&rdquo;</strong> di header atas untuk menyimpan perubahan dan mencatatnya ke riwayat ini.
@@ -1269,7 +1284,7 @@ function HistoryTab({ updates, isEditMode }: { updates: HistoryUpdate[]; isEditM
       )}
 
       {updates.length === 0 ? (
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-8 text-center">
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-8 text-center">
           <History className="w-10 h-10 mx-auto mb-3 text-[var(--ds-fg-muted)]" />
           <p className="text-sm font-semibold text-[var(--ds-fg-muted)]">Belum ada riwayat perubahan data</p>
           <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
@@ -1277,23 +1292,23 @@ function HistoryTab({ updates, isEditMode }: { updates: HistoryUpdate[]; isEditM
           </p>
         </div>
       ) : (
-        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-xs">
-          <div className="px-5 py-3.5 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] flex items-center justify-between">
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
+          <div className="px-4 py-3 border-b border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <History className="w-4 h-4 text-[var(--ds-accent-fg)]" />
               <h4 className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">
                 Riwayat Perubahan Data Aset (Asset Data Change History)
               </h4>
             </div>
-            <span className="text-xs text-[var(--ds-fg-muted)] font-medium">{updates.length} log perubahan</span>
+            <span className="text-xs text-[var(--ds-fg-muted)] font-medium tabular-nums">{updates.length} log perubahan</span>
           </div>
-          <div className="divide-y divide-[var(--ds-border-subtle)] max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-slate-200/70 dark:divide-zinc-800 max-h-[420px] overflow-y-auto">
             {updates.map((update) => (
-              <div key={update.id} className="px-5 py-3 hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
+              <div key={update.id} className="px-4 py-3 hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-full">
                         {update.field_changed}
                       </span>
                       <span className="text-xs text-[var(--ds-fg-muted)]">oleh {update.author?.name || "System"}</span>
@@ -1309,7 +1324,7 @@ function HistoryTab({ updates, isEditMode }: { updates: HistoryUpdate[]; isEditM
                       <p className="text-xs text-[var(--ds-fg-muted)] mt-1 italic">{update.alasan_perubahan}</p>
                     )}
                   </div>
-                  <span className="text-xs text-[var(--ds-fg-muted)] shrink-0">
+                  <span className="text-xs text-[var(--ds-fg-muted)] shrink-0 tabular-nums">
                     {new Date(update.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "short",

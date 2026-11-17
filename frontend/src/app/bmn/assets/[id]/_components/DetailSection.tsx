@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils";
 
 export function DetailSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-[var(--ds-surface)] rounded-2xl shadow-xs border border-[var(--ds-border-subtle)] overflow-visible">
-      <div className="px-3 sm:px-5 py-3.5 border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] flex items-center gap-2.5 rounded-t-2xl">
-        <span className="p-1.5 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">{icon}</span>
+    <div className="bg-[var(--ds-surface)] rounded-3xl shadow-xs border border-slate-200/80 dark:border-zinc-800 overflow-hidden">
+      <div className="px-4 py-3 border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 flex items-center gap-3">
+        <span className="p-2 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">{icon}</span>
         <h3 className="text-xs font-bold text-[var(--ds-fg)] uppercase tracking-wider">{title}</h3>
       </div>
-      <div className="divide-y divide-[var(--ds-border-subtle)]">{children}</div>
+      <div className="divide-y divide-slate-200/70 dark:divide-zinc-800">{children}</div>
     </div>
   );
 }
@@ -19,9 +19,9 @@ export function DetailRow({ label, value, badge }: { label: string; value: strin
   const display = value === null || value === undefined || value === "" || value === 0 ? "-" : String(value);
   const isEmpty = display === "-";
   return (
-    <div className="flex hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
-      <div className="w-2/5 px-3 sm:px-5 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
-      <div className={cn("w-3/5 min-w-0 break-words px-3 sm:px-5 py-2.5 text-xs flex items-center gap-2", isEmpty ? "text-[var(--ds-fg-muted)]" : "text-[var(--ds-fg)] font-medium")}>
+    <div className="flex hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
+      <div className="w-2/5 px-3 sm:px-5 py-3 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
+      <div className={cn("w-3/5 min-w-0 break-words px-3 sm:px-5 py-3 text-xs flex items-center gap-2", isEmpty ? "text-[var(--ds-fg-muted)]" : "text-[var(--ds-fg)] font-medium")}>
         {display}
         {badge}
       </div>
@@ -50,16 +50,16 @@ export function FormInputRow({
     return <DetailRow label={label} value={value} badge={badge} />;
   }
   return (
-    <div className="flex items-center hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
-      <div className="w-2/5 px-3 sm:px-5 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
-      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-1.5 flex items-center gap-2">
+    <div className="flex items-center hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
+      <div className="w-2/5 px-3 sm:px-5 py-3 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
+      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-2 flex items-center gap-2">
         <input
           aria-label={label}
           type={type}
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder || `Isi ${label}...`}
-          className="w-full h-8 px-2.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none"
+          className="w-full h-8 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none"
         />
         {badge}
       </div>
@@ -88,14 +88,14 @@ export function FormSelectRow({
     return <DetailRow label={label} value={value} badge={badge} />;
   }
   return (
-    <div className="flex items-center hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
-      <div className="w-2/5 px-3 sm:px-5 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
-      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-1.5 flex items-center gap-2">
+    <div className="flex items-center hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
+      <div className="w-2/5 px-3 sm:px-5 py-3 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
+      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-2 flex items-center gap-2">
         <select
           aria-label={label}
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-8 px-2.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none"
+          className="w-full h-8 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none"
         >
           <option value="">{placeholder}</option>
           {options.map((opt) => (
@@ -126,11 +126,11 @@ export function FormCurrencyRow({
     return <CurrencyRow label={label} value={num} />;
   }
   return (
-    <div className="flex items-center hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
-      <div className="w-2/5 px-3 sm:px-5 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
-      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-1.5">
-        <div className="flex items-center h-8 px-2.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] bmn-currency-field">
-          <span className="text-xs text-[var(--ds-fg-muted)] mr-1.5 font-medium">Rp</span>
+    <div className="flex items-center hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
+      <div className="w-2/5 px-3 sm:px-5 py-3 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
+      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-2">
+        <div className="flex items-center h-8 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] bmn-currency-field">
+          <span className="text-xs text-[var(--ds-fg-muted)] mr-2 font-medium">Rp</span>
           <input
             aria-label={label}
             type="text"
@@ -140,7 +140,7 @@ export function FormCurrencyRow({
               onChange(raw);
             }}
             placeholder="0"
-            className="w-full text-xs bg-transparent outline-none text-[var(--ds-fg)] font-medium"
+            className="w-full text-xs bg-transparent outline-none text-[var(--ds-fg)] font-medium tabular-nums"
           />
         </div>
       </div>
@@ -166,16 +166,16 @@ export function FormEmployeeRow({
   }
   const datalistId = `emp-list-${label.replace(/[^a-zA-Z0-9]/g, "_")}`;
   return (
-    <div className="flex items-center hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
-      <div className="w-2/5 px-3 sm:px-5 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
-      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-1.5">
+    <div className="flex items-center hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
+      <div className="w-2/5 px-3 sm:px-5 py-3 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
+      <div className="w-3/5 min-w-0 break-words px-3 sm:px-5 py-2">
         <input
           aria-label={label}
           list={datalistId}
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Pilih atau ketik nama pegawai..."
-          className="w-full h-8 px-2.5 rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none"
+          className="w-full h-8 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none"
         />
         <datalist id={datalistId}>
           {employees.map((emp) => (
@@ -194,9 +194,9 @@ export function CurrencyRow({ label, value }: { label: string; value: number | n
   const display = num === 0 ? "-" : new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
   const isEmpty = num === 0;
   return (
-    <div className="flex hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
-      <div className="w-2/5 px-3 sm:px-5 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
-      <div className={cn("w-3/5 min-w-0 break-words px-3 sm:px-5 py-2.5 text-xs font-bold", isEmpty ? "text-[var(--ds-fg-muted)]" : "text-[var(--ds-fg)]")}>{display}</div>
+    <div className="flex hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
+      <div className="w-2/5 px-3 sm:px-5 py-3 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
+      <div className={cn("w-3/5 min-w-0 break-words px-3 sm:px-5 py-3 text-xs font-bold tabular-nums", isEmpty ? "text-[var(--ds-fg-muted)]" : "text-[var(--ds-fg)]")}>{display}</div>
     </div>
   );
 }
@@ -206,9 +206,9 @@ export function AreaRow({ label, value }: { label: string; value: number | null 
   const display = num === 0 ? "-" : `${num.toLocaleString("id-ID")} m²`;
   const isEmpty = num === 0;
   return (
-    <div className="flex hover:bg-[var(--ds-surface-muted)] transition-colors duration-150">
-      <div className="w-2/5 px-3 sm:px-5 py-2.5 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
-      <div className={cn("w-3/5 min-w-0 break-words px-3 sm:px-5 py-2.5 text-xs", isEmpty ? "text-[var(--ds-fg-muted)]" : "text-[var(--ds-fg)] font-medium")}>{display}</div>
+    <div className="flex hover:bg-slate-50/60 dark:hover:bg-zinc-800/30 transition-colors duration-150">
+      <div className="w-2/5 px-3 sm:px-5 py-3 text-xs font-semibold text-[var(--ds-fg-muted)]">{label}</div>
+      <div className={cn("w-3/5 min-w-0 break-words px-3 sm:px-5 py-3 text-xs tabular-nums", isEmpty ? "text-[var(--ds-fg-muted)]" : "text-[var(--ds-fg)] font-medium")}>{display}</div>
     </div>
   );
 }

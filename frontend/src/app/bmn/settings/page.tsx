@@ -29,7 +29,7 @@ export default function BmnSettingsPage() {
   const [activeTab, setActiveTab] = useState<"tags" | "locations" | "asset-types">("tags");
 
   const { hasPermission, isSuperAdmin } = useRole();
-  const canManage = hasPermission("bmn.asset.update");
+  const canManage = isSuperAdmin || hasPermission("bmn.manage");
 
   // ==========================================
   // DATA QUERIES
@@ -45,7 +45,7 @@ export default function BmnSettingsPage() {
   const locationsQuery = useQuery<IBmnLocation[]>({
     queryKey: ["bmn-locations"],
     queryFn: async () => {
-      const res = await api.get("/bmn/locations");
+      const res = await api.get("/locations");
       return res.data.data || [];
     },
   });
@@ -71,10 +71,10 @@ export default function BmnSettingsPage() {
   return (
     <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--ds-border-subtle)] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/70 dark:border-zinc-800 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--ds-fg)] flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+          <h1 className="text-2xl font-bold text-[var(--ds-fg)] flex items-center gap-3">
+            <span className="p-2 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
               <Layers className="w-5 h-5" />
             </span>
             Pengaturan & Master Data BMN
@@ -85,7 +85,7 @@ export default function BmnSettingsPage() {
         </div>
       </div>
 
-      <div role="tablist" aria-label="Pengaturan master BMN" className="flex border-b border-[var(--ds-border-subtle)] gap-4 overflow-x-auto">
+      <div role="tablist" aria-label="Pengaturan master BMN" className="flex border-b border-slate-200/70 dark:border-zinc-800 gap-4 overflow-x-auto">
         {tabs.map((tab) => {
           const active = activeTab === tab.id;
           const Icon = tab.icon;
@@ -103,9 +103,9 @@ export default function BmnSettingsPage() {
               target?.scrollIntoView({ block: "nearest", inline: "nearest" });
             }}
             className={cn("relative py-3 px-2 text-sm font-semibold flex items-center gap-2 shrink-0 rounded-t-lg hover:bg-[var(--ds-surface-muted)]", active ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]")}>
-            {active && <motion.span layoutId={`${tabsId}-underline`} initial={false} className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--ds-accent-fg)]" transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }} />}
+            {active && <motion.span layoutId={`${tabsId}-underline`} initial={false} className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--ds-accent-fg)] rounded-full" transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }} />}
             <Icon className="w-4 h-4" /> {tab.label}
-            <span className="text-xs rounded-full px-2 py-0.5 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">{tab.count}</span>
+            <span className="text-xs rounded-full px-2 py-1 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] tabular-nums">{tab.count}</span>
           </button>;
         })}
       </div>

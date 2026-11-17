@@ -62,11 +62,12 @@ import {
   displayName,
   signatureName,
   formatSpelledDate,
-  resolvePhotoUrl as resolveSharedPhotoUrl,
+  collectPrintPhotoUrls,
   chunkPhotoAssets as chunkPhotoItems,
   printReportDocumentWindow,
   PHOTO_LAMPIRAN_PRINT_STYLES,
 } from "../_lib/report-utils";
+import { PhotoLampiranPages } from "./PhotoLampiranPages";
 
 function dataCell(value?: string | number | null) {
   const text = fallback(value);
@@ -89,26 +90,7 @@ function renderFormattedClause(text: string) {
   );
 }
 
-function resolvePhotoUrl(url?: string | null): string | null {
-  return resolveSharedPhotoUrl(url, resolveApiUrl);
-}
-
-function getItemPrintPhotos(item: HandoverItem): string[] {
-  const rawUrls: string[] = [];
-
-  if (item.photos && Array.isArray(item.photos)) {
-    rawUrls.push(...item.photos.filter(Boolean));
-  }
-  if (item.foto_depan_url) rawUrls.push(item.foto_depan_url);
-  if (item.foto_belakang_url) rawUrls.push(item.foto_belakang_url);
-  if (item.foto_kiri_url) rawUrls.push(item.foto_kiri_url);
-  if (item.foto_kanan_url) rawUrls.push(item.foto_kanan_url);
-  if (item.foto_geotag_url) rawUrls.push(item.foto_geotag_url);
-  if (item.foto_url) rawUrls.push(item.foto_url);
-
-  const resolved = Array.from(new Set(rawUrls.map(resolvePhotoUrl).filter(Boolean) as string[]));
-  return resolved.slice(0, 2);
-}
+const getItemPrintPhotos = (item: HandoverItem) => collectPrintPhotoUrls(item, resolveApiUrl);
 
 const HANDOVER_PRINT_STYLES = `
   @page { size: A4 portrait; margin: 0 !important; }
@@ -218,7 +200,13 @@ export function HandoverAgreementDocument({
   const page2Items = isMultiPage ? items.slice(PAGE_1_MAX_ITEMS) : [];
 
   // Group items for Photo Lampiran pages (3 items per page with Kop Surat header)
-  const photoPages = chunkPhotoItems(items, 3);
+  const photoPages = chunkPhotoItems(items, 3).map((group, pageIdx) =>
+    group.map((item, idx) => ({
+      key: `${pageIdx}-${idx}`,
+      title: `${item.name || item.vehicle_type || `Barang #${idx + 1}`} ( NUP ${item.nup || "-"} )`,
+      photos: getItemPrintPhotos(item),
+    }))
+  );
 
   const firstPartyIdPrefix = firstParty.idType === "NIK" ? "NIK." : "NIP.";
   const secondPartyIdPrefix = secondParty.idType === "NIK" ? "NIK." : "NIP.";
@@ -543,56 +531,7 @@ export function HandoverAgreementDocument({
                   </div>
         </article>
 
-        {/* Halaman Baru Lampiran Dokumentasi Foto Aset BMN (3 Aset per Halaman Memenuhi Layar) */}
-        {photoPages.map((pageGroup, pageIndex) => (
-          <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
-            <div className="handover-header">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/header-paling-baru.png" alt="Kop Surat" />
-            </div>
-
-            {/* Title ONLY on pageIndex === 0 */}
-            {pageIndex === 0 && (
-              <div className="photo-lampiran-title">
-                <p>LAMPIRAN DOKUMENTASI FOTO BARANG MILIK NEGARA</p>
-              </div>
-            )}
-
-            {pageGroup.map((item, index) => {
-              const photos = getItemPrintPhotos(item);
-              const itemName = item.name || item.vehicle_type || `Barang #${index + 1}`;
-              return (
-                <div key={`photo-${index}`} className="photo-asset-block avoid-break">
-                  <p className="photo-asset-title">
-                    {itemName} ( NUP {item.nup || "-"} )
-                  </p>
-                  <div className="photo-grid-row">
-                    {photos.length > 0 ? (
-                      photos.map((photoUrl, idx) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          key={idx}
-                          src={photoUrl}
-                          alt={`${itemName} ${idx + 1}`}
-                          className="photo-img"
-                        />
-                      ))
-                    ) : (
-                      <>
-                        <div className="photo-placeholder">
-                          <span>Foto 1 (Tampak Depan)</span>
-                        </div>
-                        <div className="photo-placeholder">
-                          <span>Foto 2 (Tampak Belakang)</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </article>
-        ))}
+        <PhotoLampiranPages pages={photoPages} headerSrc="/header-paling-baru.png" headerClassName="handover-header" />
       </div>
     </div>
   );

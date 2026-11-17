@@ -11,17 +11,19 @@
   flex-direction: column;
   background: var(--ds-surface);
   border: 1px solid var(--ds-border-subtle);
-  border-radius: 12px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
 }
 .bmn-asset-card[data-selected="true"] { border-color: var(--ds-accent-fg); background: var(--ds-accent-soft); }
-.bmn-asset-photo { aspect-ratio: 4 / 3; width: 100%; border-radius: 11px 11px 0 0; }
+.bmn-asset-photo { aspect-ratio: 4 / 3; width: 100%; border-radius: 0; }
 .bmn-photo-placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
+  padding: 16px;
   text-align: center;
   font-size: 12px;
   background: var(--ds-surface-muted);
@@ -29,19 +31,18 @@
 }
 .bmn-photo-trigger { position: relative; display: block; overflow: hidden; cursor: zoom-in; }
 .bmn-photo-trigger img { width: 100%; height: 100%; object-fit: cover; }
-.bmn-photo-affordance { position: absolute; right: 8px; bottom: 8px; padding: 6px; border-radius: 8px; color: var(--ds-accent-fg); background: var(--ds-surface); }
+.bmn-photo-affordance { position: absolute; right: 8px; bottom: 8px; padding: 8px; border-radius: 8px; color: var(--ds-accent-fg); background: var(--ds-surface); }
 .bmn-card-checkbox { position: absolute; left: 8px; top: 8px; display: flex; padding: 8px; background: var(--ds-surface); border-radius: 8px; }
-.bmn-card-body { display: flex; flex: 1; flex-direction: column; gap: 8px; padding: 12px; overflow-wrap: anywhere; }
+.bmn-card-body { display: flex; flex: 1; flex-direction: column; gap: 8px; padding: 16px; overflow-wrap: anywhere; }
 .bmn-card-name { font-size: 14px; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .bmn-card-name:hover { color: var(--ds-accent-fg); text-decoration: underline; }
 .bmn-card-code { font-size: 12px; font-weight: 600; color: var(--ds-accent-fg); font-variant-numeric: tabular-nums; }
 @media (min-width: 1024px) {
   .bmn-asset-photo { aspect-ratio: auto; height: 144px; }
-  .bmn-card-body { gap: 6px; }
 }
 .bmn-assets-ui.bmn-photo-dialog { max-width: min(960px, calc(100vw - 2rem)); max-height: 90dvh; overflow-y: auto; }
 .bmn-photo-full { display: block; width: 100%; height: min(65dvh, 680px); object-fit: contain; background: var(--ds-surface-muted); border-radius: 8px; }
-.bmn-grid-panel > .bmn-pagination { margin-top: 16px; border: 1px solid var(--ds-border-subtle); border-radius: 12px; background: var(--ds-surface); }
+.bmn-grid-panel > .bmn-pagination { margin-top: 16px; border: 1px solid var(--ds-border-subtle); border-radius: 24px; background: var(--ds-surface); }
 
 .bmn-assets-ui {
   color: var(--ds-fg);
@@ -85,13 +86,21 @@
 .bmn-assets-ui .bmn-primary:active { background-color: var(--ds-accent-active); }
 
 .bmn-assets-ui .bmn-secondary {
-  background-color: var(--ds-secondary-bg);
+  background-color: var(--ds-surface-raised);
   color: var(--ds-secondary-fg);
-  border-color: transparent;
+  border: 1px solid var(--ds-border-subtle);
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.06);
 }
 .bmn-assets-ui .bmn-secondary:hover {
+  background-color: var(--ds-surface-muted);
+  border-color: var(--ds-border-control);
+}
+.dark .bmn-assets-ui .bmn-secondary {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+}
+.dark .bmn-assets-ui .bmn-secondary:hover {
   background-color: var(--ds-secondary-hover);
-  border-color: var(--ds-accent-soft-border);
+  border-color: var(--ds-border-control);
 }
 .bmn-assets-ui .bmn-secondary:active { background-color: var(--ds-secondary-active); }
 

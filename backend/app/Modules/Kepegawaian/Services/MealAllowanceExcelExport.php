@@ -82,8 +82,9 @@ class MealAllowanceExcelExport
             $groupKey = "{$typePrefix}_{$code}";
 
             if (!isset($groups[$groupKey])) {
+                $safeGroupTitle = preg_replace('/[:\\\\\/?*\[\]]/', '', $groupKey) ?: 'LAIN';
                 $groups[$groupKey] = [
-                    'title' => substr($groupKey, 0, 31),
+                    'title' => substr($safeGroupTitle, 0, 31),
                     'items' => [],
                 ];
             }
@@ -92,9 +93,10 @@ class MealAllowanceExcelExport
             // Kumpulkan ke daftar nominatif bank terkait
             $nomKey = $code === 'MNDRI' ? 'MANDIRI' : $code;
             if (!isset($nominatifBanks[$nomKey])) {
+                $safeBankName = preg_replace('/[:\\\\\/?*\[\]\x00-\x1F]/', '', strtoupper($rawBank)) ?: 'LAIN';
                 $nominatifBanks[$nomKey] = [
-                    'title' => 'BANK ' . strtoupper($rawBank),
-                    'sheet_title' => substr('Nominatif ' . strtoupper($rawBank), 0, 31),
+                    'title' => 'BANK ' . $safeBankName,
+                    'sheet_title' => substr('Nominatif ' . $safeBankName, 0, 31),
                     'items' => [],
                 ];
             }
@@ -336,7 +338,7 @@ class MealAllowanceExcelExport
         $sheet->getPageSetup()->setFitToHeight(0);
 
         // Judul Sheet Nominatif
-        $sheet->setCellValue('A1', 'DAFTAR NOMINATIF PEMBAYARAN UANG MAKAN PEGAWAI (' . $bankTitle . ')');
+        $sheet->setCellValue('A1', $this->safeCell('DAFTAR NOMINATIF PEMBAYARAN UANG MAKAN PEGAWAI (' . $bankTitle . ')'));
         $sheet->setCellValue('A2', 'BALAI KONSERVASI SUMBER DAYA ALAM KALIMANTAN TIMUR');
         $sheet->setCellValue('A3', "PERIODE : {$namaBulanUpper} {$tahun}");
         $sheet->getStyle('A1:A3')->getFont()->setBold(true)->setSize(11);
@@ -441,17 +443,11 @@ class MealAllowanceExcelExport
             return $value ?? '-';
         }
 
-        $trimmed = ltrim($value);
-        return preg_match('/^[=+\-@\t\r]/', $trimmed) === 1 ? "'{$value}" : $value;
+        return preg_match('/^(?:[\s\x00-\x1F]*[=+\-@]|[\t\r])/', $value) === 1 ? "'{$value}" : $value;
     }
 
     protected function namaBulanIndo(int $m): string
     {
-        $bulan = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
-        ];
-        return $bulan[$m] ?? '';
+        return \Carbon\Carbon::create(2026, max(1, min(12, $m)), 1)->locale('id')->translatedFormat('F');
     }
 }

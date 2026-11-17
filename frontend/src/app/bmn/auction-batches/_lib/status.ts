@@ -47,10 +47,6 @@ export function canEditDraft(status: AuctionBatchStatus): boolean {
   return status === "DRAFT";
 }
 
-export function canShowScheduleTab(status: AuctionBatchStatus): boolean {
-  return status !== "DRAFT";
-}
-
 export function canShowRealizationTab(status: AuctionBatchStatus): boolean {
   return status !== "DRAFT" && status !== "DIAJUKAN";
 }

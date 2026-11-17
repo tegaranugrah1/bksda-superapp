@@ -8,6 +8,7 @@ Nilai token lengkap tetap mengacu pada [pedoman warna aplikasi](../DESIGN_SYSTEM
 
 | Elemen | Aturan BMN |
 | --- | --- |
+| Header Banner Dashboard | Mengikuti standar anatomi **Dashboard Kepegawaian** (`frontend/src/app/kepegawaian/page.tsx`): kontainer `rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 md:px-6 md:py-4`, ikon modul `w-10 h-10 rounded-xl` di sebelah kiri, judul `<h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">Dashboard BMN</h1>` tanpa overline tambahan di atas `<h1>`, serta subjudul `<p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">...</p>`. |
 | Kanvas dan surface | Netral sesuai token canvas/surface light dan dark; jangan memberi latar hijau pada seluruh halaman atau setiap baris. |
 | Aksi utama | Accent-solid, teks accent-on-solid; hover/pressed memakai alias aksen yang sesuai tema. Light memakai Emerald gelap dengan teks putih; dark memakai Emerald terang dengan teks gelap. |
 | Export, Impor, Reset, Batal | Pasangan secondary-bg/fg; **border normal transparan**, hover memakai secondary-hover dan accent-soft-border. Jangan membuat semua aksi menjadi tombol utama. |

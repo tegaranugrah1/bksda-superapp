@@ -48,9 +48,10 @@ class MealAllowanceController extends Controller
                     }
                 },
             ],
-            'file' => 'nullable|file|max:51200',
-            'periode' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+            'file' => 'nullable|file|mimes:xls,xlsx,zip,html,htm|extensions:xls,xlsx,zip,html,htm|max:51200',
+            'periode' => ['nullable', 'string', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
             'overrides' => 'nullable|array',
+            'overrides.*' => 'nullable|array',
         ]);
 
         $uploadedFiles = [];
@@ -122,13 +123,7 @@ class MealAllowanceController extends Controller
         $year = (int) $carbonPeriod->format('Y');
         $month = (int) $carbonPeriod->format('m');
         $holidays = HolidayCalendarHelper::getHolidaysForMonth($year, $month);
-
-        $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
-        $detectedPeriodLabel = ($monthNames[$month] ?? $month) . ' ' . $year;
+        $detectedPeriodLabel = $carbonPeriod->copy()->locale('id')->translatedFormat('F') . ' ' . $year;
 
         $reconciledItems = [];
         $totalBruto = 0;
@@ -138,7 +133,7 @@ class MealAllowanceController extends Controller
 
         foreach ($parsedList as $parsedEmployee) {
             $cleanNip = $parsedEmployee['clean_nip'];
-            $empOverrides = $manualOverrides[$cleanNip] ?? [];
+            $empOverrides = is_array($manualOverrides[$cleanNip] ?? null) ? $manualOverrides[$cleanNip] : [];
 
             $reconciled = $this->reconcilerService->reconcile($parsedEmployee, $targetPeriode, $empOverrides);
             $reconciledItems[] = $reconciled;
@@ -190,12 +185,13 @@ class MealAllowanceController extends Controller
         $request->merge($input);
 
         $validated = $request->validate([
-            'periode_bulan' => 'required|string|regex:/^\d{4}-\d{2}$/',
+            'periode_bulan' => ['required', 'string', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
             'nama_batch' => 'required|string|max:255',
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
             'penandatangan_jabatan' => 'nullable|string|max:255',
-            'items' => 'required|array|min:1',
+            'items' => 'required|array|min:1|max:2000',
+            'items.*' => 'array',
             'items.*.employee_id' => 'nullable|integer|exists:kpg_employees,id',
             'items.*.nip' => 'required|string',
             'items.*.nama_lengkap' => 'required|string|max:255',
@@ -222,16 +218,40 @@ class MealAllowanceController extends Controller
             'items.*.override_logs' => 'nullable|array',
         ]);
 
-        $batch = DB::transaction(function () use ($validated, $request) {
-            $totalBruto = collect($validated['items'])->sum('uang_makan_bruto');
-            $totalPph21 = collect($validated['items'])->sum('potongan_pph21');
-            $totalNetto = collect($validated['items'])->sum('uang_makan_netto');
-            $totalHariKerja = $validated['items'][0]['jml_hari_kerja'] ?? 22;
+        $cleanNamaBatch = strip_tags(trim($validated['nama_batch']));
+        if ($cleanNamaBatch === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nama batch tidak valid.',
+                'errors' => ['nama_batch' => ['Nama batch wajib diisi.']],
+            ], 422);
+        }
+
+        $batch = DB::transaction(function () use ($validated, $cleanNamaBatch, $request) {
+            $recomputedItems = collect($validated['items'])->map(function (array $item) {
+                $hadir = (int) $item['jml_hadir'];
+                $tarif = (float) $item['tarif_harian'];
+                $persenPph = max(0.0, min(100.0, (float) $item['persen_pph21']));
+                $bruto = round($hadir * $tarif, 2);
+                $pph21 = round($bruto * ($persenPph / 100.0), 2);
+                $netto = round($bruto - $pph21, 2);
+
+                return array_merge($item, [
+                    'uang_makan_bruto' => $bruto,
+                    'potongan_pph21' => $pph21,
+                    'uang_makan_netto' => $netto,
+                ]);
+            });
+
+            $totalBruto = $recomputedItems->sum('uang_makan_bruto');
+            $totalPph21 = $recomputedItems->sum('potongan_pph21');
+            $totalNetto = $recomputedItems->sum('uang_makan_netto');
+            $totalHariKerja = $recomputedItems->first()['jml_hari_kerja'] ?? 22;
 
             $batch = MealAllowanceBatch::create([
                 'periode_bulan' => $validated['periode_bulan'],
-                'nama_batch' => strip_tags($validated['nama_batch']),
-                'total_pegawai' => count($validated['items']),
+                'nama_batch' => $cleanNamaBatch,
+                'total_pegawai' => $recomputedItems->count(),
                 'total_hari_kerja' => $totalHariKerja,
                 'total_bruto' => $totalBruto,
                 'total_pph21' => $totalPph21,
@@ -243,19 +263,19 @@ class MealAllowanceController extends Controller
                 'created_by' => $request->user()?->id,
             ]);
 
-            foreach ($validated['items'] as $item) {
+            foreach ($recomputedItems as $item) {
                 MealAllowanceItem::create([
                     'batch_id' => $batch->id,
                     'employee_id' => $item['employee_id'] ?? null,
                     'nip' => preg_replace('/[^0-9]/', '', $item['nip']),
                     'nama_lengkap' => strip_tags($item['nama_lengkap']),
                     'jabatan' => strip_tags($item['jabatan'] ?? ''),
-                    'jenis_pegawai' => $item['jenis_pegawai'] ?? 'PNS',
+                    'jenis_pegawai' => strip_tags((string) ($item['jenis_pegawai'] ?? 'PNS')),
                     'tahun_angkatan' => $item['tahun_angkatan'] ?? null,
                     'satuan_kerja' => strip_tags($item['satuan_kerja'] ?? ''),
                     'golongan' => strip_tags($item['golongan'] ?? ''),
-                    'nama_bank' => $item['nama_bank'] ?? 'BRI',
-                    'nomor_rekening' => $item['nomor_rekening'] ?? null,
+                    'nama_bank' => strip_tags(trim((string) ($item['nama_bank'] ?? 'BRI'))) ?: 'BRI',
+                    'nomor_rekening' => isset($item['nomor_rekening']) ? strip_tags(trim((string) $item['nomor_rekening'])) : null,
                     'tarif_harian' => $item['tarif_harian'],
                     'persen_pph21' => $item['persen_pph21'],
                     'jml_hari_kerja' => $item['jml_hari_kerja'],
@@ -293,11 +313,13 @@ class MealAllowanceController extends Controller
             ->orderBy('periode_bulan', 'desc')
             ->orderBy('created_at', 'desc');
 
-        if ($request->filled('periode')) {
-            $query->where('periode_bulan', $request->query('periode'));
+        $periode = $request->query('periode');
+        if (is_string($periode) && trim($periode) !== '') {
+            $query->where('periode_bulan', trim($periode));
         }
 
-        $batches = $query->paginate($request->integer('per_page', 10));
+        $perPage = min(100, max(1, $request->integer('per_page', 10)));
+        $batches = $query->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -342,11 +364,14 @@ class MealAllowanceController extends Controller
     {
         $request->validate([
             'batch_id' => 'nullable|integer',
-            'periode_bulan' => 'nullable|string|regex:/^\d{4}-\d{2}$/',
+            'periode_bulan' => ['nullable', 'string', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
+            'year' => 'nullable|integer|min:2000|max:2100',
+            'month' => 'nullable|integer|min:1|max:12',
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
             'penandatangan_jabatan' => 'nullable|string|max:255',
-            'items' => 'nullable|array',
+            'items' => 'nullable|array|max:2000',
+            'items.*' => 'array',
         ]);
 
         $items = [];
@@ -403,6 +428,10 @@ class MealAllowanceController extends Controller
      */
     public function getCalendar(Request $request): JsonResponse
     {
+        $request->validate([
+            'year' => 'nullable|integer|min:2000|max:2100',
+            'month' => 'nullable|integer|min:1|max:12',
+        ]);
         $year = (int) ($request->input('year') ?: Carbon::now()->format('Y'));
         $month = (int) ($request->input('month') ?: Carbon::now()->format('m'));
         $targetPeriode = sprintf('%04d-%02d', $year, $month);
@@ -411,19 +440,13 @@ class MealAllowanceController extends Controller
 
         $holidays = HolidayCalendarHelper::getHolidaysForMonth($year, $month);
 
-        $monthNames = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
-
         return response()->json([
             'success' => true,
             'data' => [
                 'periode_bulan' => $targetPeriode,
                 'year' => $year,
                 'month' => $month,
-                'month_name' => $monthNames[$month] ?? (string)$month,
+                'month_name' => $carbonPeriod->copy()->locale('id')->translatedFormat('F'),
                 'days_in_month' => $daysInMonth,
                 'holidays' => $holidays,
             ],
@@ -436,6 +459,9 @@ class MealAllowanceController extends Controller
      */
     public function getHolidaySettings(Request $request): JsonResponse
     {
+        $request->validate([
+            'year' => 'nullable|integer|min:2000|max:2100',
+        ]);
         $year = (int) ($request->input('year') ?: Carbon::now()->format('Y'));
         $holidays = HolidayCalendarHelper::getAllHolidaysForYear($year);
 
@@ -461,13 +487,22 @@ class MealAllowanceController extends Controller
             'is_cuti_bersama' => ['nullable', 'boolean'],
         ]);
 
+        $cleanNama = strip_tags(trim($validated['nama']));
+        if ($cleanNama === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nama hari libur tidak valid.',
+                'errors' => ['nama' => ['Nama hari libur wajib diisi.']],
+            ], 422);
+        }
+
         $year = (int) substr($validated['tanggal'], 0, 4);
 
         $holiday = Holiday::updateOrCreate(
             ['tanggal' => $validated['tanggal']],
             [
                 'tahun' => $year,
-                'nama' => $validated['nama'],
+                'nama' => $cleanNama,
                 'is_cuti_bersama' => (bool) ($validated['is_cuti_bersama'] ?? false),
             ]
         );
@@ -485,7 +520,8 @@ class MealAllowanceController extends Controller
      */
     public function destroyHolidaySetting(int|string $id): JsonResponse
     {
-        $holiday = Holiday::find($id);
+        $holidayId = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $holiday = $holidayId !== false ? Holiday::find($holidayId) : null;
         if (!$holiday) {
             return response()->json([
                 'success' => false,
@@ -513,26 +549,28 @@ class MealAllowanceController extends Controller
             'inactive_reason', 'inactive_effective_date',
         ])->effectiveActive();
 
-        if ($request->filled('search')) {
-            $s = trim((string) $request->input('search'));
-            $escaped = addcslashes($s, '%_\\');
+        $rawSearch = $request->input('search');
+        if (is_string($rawSearch) && trim($rawSearch) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($rawSearch)) . '%';
             $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($escaped, $likeOp) {
-                $q->where('nama_lengkap', $likeOp, "%{$escaped}%")
-                  ->orWhere('nip', $likeOp, "%{$escaped}%");
+            $query->where(function ($q) use ($pattern, $likeOp) {
+                $q->whereRaw("nama_lengkap {$likeOp} ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("nip {$likeOp} ? ESCAPE '!'", [$pattern]);
             });
         }
 
-        if ($request->filled('bank')) {
-            $b = trim((string) $request->input('bank'));
+        $rawBank = $request->input('bank');
+        if (is_string($rawBank)) {
+            $b = trim($rawBank);
             if ($b !== 'all' && $b !== '') {
                 $query->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($b)]);
             }
         }
 
-        if ($request->filled('group')) {
-            $g = strtoupper(trim((string) $request->input('group')));
-            if (in_array($g, ['PNS', 'PPPK', 'MMP'])) {
+        $rawGroup = $request->input('group');
+        if (is_string($rawGroup)) {
+            $g = strtoupper(trim($rawGroup));
+            if (in_array($g, ['PNS', 'PPPK', 'MMP'], true)) {
                 $query->ofJenis($g);
             }
         }
@@ -572,14 +610,17 @@ class MealAllowanceController extends Controller
     public function batchUpdateEmployeeBanks(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'employee_ids' => ['required', 'array', 'min:1'],
+            'employee_ids' => ['required', 'array', 'min:1', 'max:1000'],
             'employee_ids.*' => ['required', 'integer', 'exists:kpg_employees,id'],
             'nama_bank' => [
                 'nullable',
                 'string',
                 'max:50',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    $b = trim((string) $value);
+                    if (! is_string($value)) {
+                        return;
+                    }
+                    $b = trim($value);
                     if ($b !== '') {
                         $exists = DB::table('kpg_registered_banks')
                             ->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($b)])
@@ -789,6 +830,9 @@ class MealAllowanceController extends Controller
     private function normalizeItems(array $items): array
     {
         foreach ($items as &$it) {
+            if (! is_array($it)) {
+                continue;
+            }
             if (empty($it['nama_lengkap']) && !empty($it['nama'])) $it['nama_lengkap'] = $it['nama'];
             if (!isset($it['tarif_harian']) && isset($it['tarif'])) $it['tarif_harian'] = $it['tarif'];
             if (!isset($it['persen_pph21']) && isset($it['pph_rate'])) $it['persen_pph21'] = $it['pph_rate'];

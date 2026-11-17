@@ -123,6 +123,11 @@ class DocumentHistoryController extends Controller
         ]);
     }
 
+    private function jsonCastType(): string
+    {
+        return DB::connection()->getDriverName() === 'pgsql' ? 'TEXT' : 'CHAR';
+    }
+
     private function usageHistoryQuery(?int $employeeId, string $search)
     {
         $query = UsageAgreement::query()
@@ -139,11 +144,12 @@ class DocumentHistoryController extends Controller
 
         if ($search !== '') {
             $needle = '%' . $search . '%';
-            $query->where(function ($q) use ($needle) {
+            $castType = $this->jsonCastType();
+            $query->where(function ($q) use ($needle, $castType) {
                 $q->where('number', 'LIKE', $needle)
-                    ->orWhereRaw('CAST(first_party_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(second_party_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(assets_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw("CAST(first_party_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(second_party_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(assets_snapshot AS {$castType}) LIKE ?", [$needle])
                     ->orWhereHas('employee', function ($employeeQuery) use ($needle) {
                         $employeeQuery->where('nama_lengkap', 'LIKE', $needle)
                             ->orWhere('nip', 'LIKE', $needle);
@@ -174,13 +180,14 @@ class DocumentHistoryController extends Controller
 
         if ($search !== '') {
             $needle = '%' . $search . '%';
-            $query->where(function ($q) use ($needle) {
+            $castType = $this->jsonCastType();
+            $query->where(function ($q) use ($needle, $castType) {
                 $q->where('number', 'LIKE', $needle)
                     ->orWhere('title', 'LIKE', $needle)
                     ->orWhere('variant', 'LIKE', $needle)
-                    ->orWhereRaw('CAST(first_party_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(second_party_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(items_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw("CAST(first_party_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(second_party_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(items_snapshot AS {$castType}) LIKE ?", [$needle])
                     ->orWhereHas('generator', fn ($generatorQuery) => $generatorQuery->where('name', 'LIKE', $needle));
             });
         }
@@ -204,11 +211,12 @@ class DocumentHistoryController extends Controller
 
         if ($search !== '') {
             $needle = '%' . $search . '%';
-            $query->where(function ($q) use ($needle) {
+            $castType = $this->jsonCastType();
+            $query->where(function ($q) use ($needle, $castType) {
                 $q->where('number', 'LIKE', $needle)
-                    ->orWhereRaw('CAST(first_party_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(second_party_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(assets_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw("CAST(first_party_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(second_party_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(assets_snapshot AS {$castType}) LIKE ?", [$needle])
                     ->orWhereHas('employee', function ($employeeQuery) use ($needle) {
                         $employeeQuery->where('nama_lengkap', 'LIKE', $needle)
                             ->orWhere('nip', 'LIKE', $needle);
@@ -236,14 +244,15 @@ class DocumentHistoryController extends Controller
 
         if ($search !== '') {
             $needle = '%' . $search . '%';
-            $query->where(function ($q) use ($needle) {
+            $castType = $this->jsonCastType();
+            $query->where(function ($q) use ($needle, $castType) {
                 $q->where('number', 'LIKE', $needle)
                     ->orWhere('regarding', 'LIKE', $needle)
                     ->orWhere('recipient_title', 'LIKE', $needle)
                     ->orWhere('recipient_location', 'LIKE', $needle)
-                    ->orWhereRaw('CAST(sender_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(receiver_snapshot AS CHAR) LIKE ?', [$needle])
-                    ->orWhereRaw('CAST(items_snapshot AS CHAR) LIKE ?', [$needle])
+                    ->orWhereRaw("CAST(sender_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(receiver_snapshot AS {$castType}) LIKE ?", [$needle])
+                    ->orWhereRaw("CAST(items_snapshot AS {$castType}) LIKE ?", [$needle])
                     ->orWhereHas('senderEmployee', function ($employeeQuery) use ($needle) {
                         $employeeQuery->where('nama_lengkap', 'LIKE', $needle)
                             ->orWhere('nip', 'LIKE', $needle);

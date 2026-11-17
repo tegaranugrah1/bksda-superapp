@@ -31,6 +31,7 @@ import { DriveFileItem } from "./DriveFileList";
 interface DriveShareDialogProps {
   file: DriveFileItem | null;
   open: boolean;
+  units?: Array<{ id: number; name: string }>;
   onOpenChange: (open: boolean) => void;
 }
 
@@ -50,6 +51,7 @@ interface ShareItem {
 export function DriveShareDialog({
   file,
   open,
+  units = [],
   onOpenChange,
 }: DriveShareDialogProps) {
   const [tab, setTab] = useState<"public" | "internal">("public");
@@ -85,15 +87,20 @@ export function DriveShareDialog({
 
   useEffect(() => {
     if (open && file) {
+      setPassword("");
+      setTargetId("");
+      setInternalRole("viewer");
+      setTargetType("user");
+      setCopied(false);
+      setTab("public");
       loadShares();
-      // Load user list for internal share
-      api.get("/kepegawaian/employees?per_page=100")
+      api.get("/drive/shares/candidates")
         .then((res) => {
-          const empList = res.data?.data || [];
-          setAvailableUsers(empList.map((e: any) => ({
-            id: e.user_id || e.id,
-            name: e.name,
-            email: e.email || `${e.nip}@bksda.local`,
+          const list = res.data?.data || [];
+          setAvailableUsers(list.map((u: any) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
           })));
         })
         .catch(() => {});
@@ -315,21 +322,55 @@ export function DriveShareDialog({
           /* TAB 2: INTERNAL SHARE */
           <div className="space-y-4 pt-2">
             <form onSubmit={handleCreateInternalShare} className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">Tipe Penerima</Label>
+                  <select
+                    value={targetType}
+                    onChange={(e) => {
+                      setTargetType(e.target.value as "user" | "unit");
+                      setTargetId("");
+                    }}
+                    className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="user">Pegawai</option>
+                    <option value="unit">Unit Kerja</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px] font-bold text-slate-700 dark:text-slate-300">Izin Akses</Label>
+                  <select
+                    value={internalRole}
+                    onChange={(e) => setInternalRole(e.target.value as "viewer" | "editor")}
+                    className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="viewer">Viewer (Baca/Unduh)</option>
+                    <option value="editor">Editor (Kelola)</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Pilih Pegawai
+                  {targetType === "user" ? "Pilih Pegawai" : "Pilih Unit Kerja"}
                 </Label>
                 <select
                   value={targetId}
                   onChange={(e) => setTargetId(e.target.value)}
                   className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="">-- Pilih Pegawai --</option>
-                  {availableUsers.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.email})
-                    </option>
-                  ))}
+                  <option value="">{targetType === "user" ? "-- Pilih Pegawai --" : "-- Pilih Unit Kerja --"}</option>
+                  {targetType === "user"
+                    ? availableUsers.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name} ({u.email})
+                        </option>
+                      ))
+                    : units.map((un) => (
+                        <option key={un.id} value={un.id}>
+                          {un.name}
+                        </option>
+                      ))}
                 </select>
               </div>
 
@@ -338,7 +379,7 @@ export function DriveShareDialog({
                 disabled={!targetId || submittingInternal}
                 className="w-full h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
               >
-                {submittingInternal ? <Loader2 className="w-4 h-4 animate-spin" /> : "Tambahkan Pegawai"}
+                {submittingInternal ? <Loader2 className="w-4 h-4 animate-spin" /> : "Bagikan Akses"}
               </Button>
             </form>
 

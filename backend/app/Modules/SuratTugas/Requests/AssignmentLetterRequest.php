@@ -121,7 +121,7 @@ class AssignmentLetterRequest extends FormRequest
             }],
             'penandatangan_nama' => 'nullable|string|max:255',
             'penandatangan_nip' => 'nullable|string|max:50',
-            'employees' => 'nullable|array',
+            'employees' => 'nullable|array|max:50',
             'employees.*.id' => [
                 'required_with:employees',
                 'integer',

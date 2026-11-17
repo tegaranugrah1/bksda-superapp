@@ -96,30 +96,63 @@ export function LembarDisposisi2UpPrint({
         }
       `}</style>
 
-      {/* Side-by-side 2-Up / 1-Up Landscape Grid Container (Symmetric 50-50 Grid with 5mm Cut Line Gap) */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 w-full h-[186mm] print:w-[322mm] print:h-[204mm] p-1 print:p-0">
-        {/* Left Disposisi Sheet Column */}
-        <div className={`w-full h-full flex flex-col ${!showLeftSheet ? "invisible print-invisible opacity-0" : ""}`}>
-          <LembarDisposisiSheet
-            data={leftSuratData}
-            customDiteruskanList={leftDiteruskan.length > 0 ? leftDiteruskan : undefined}
-            catatanDisposisi={leftCatatan}
-          />
-        </div>
+      <Disposisi2UpSheetGrid
+        leftData={leftSuratData}
+        rightData={rightSuratData}
+        leftDiteruskan={leftDiteruskan}
+        rightDiteruskan={rightDiteruskan}
+        leftCatatan={leftCatatan}
+        rightCatatan={rightCatatan}
+        showLeft={showLeftSheet}
+        showRight={showRightSheet}
+        rightScaled={isOneUpKanan}
+        className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-3 w-full h-[186mm] print:w-[322mm] print:h-[204mm] p-1 print:p-0"
+      />
+    </div>
+  );
+}
 
-        {/* Vertical Dashed Cut Line Guide (No Text) */}
-        <div className="relative flex items-center justify-center w-5 h-full overflow-hidden">
-          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-zinc-400 print:border-black" />
-        </div>
-
-        {/* Right Disposisi Sheet Column (Scaled to 98% when 1-Up Posisi Kanan to enlarge left, top, bottom while keeping right edge aligned) */}
-        <div className={`w-full h-full flex flex-col transition-transform ${!showRightSheet ? "invisible print-invisible opacity-0" : ""} ${isOneUpKanan ? "scale-[0.98] origin-right" : ""}`}>
-          <LembarDisposisiSheet
-            data={rightSuratData}
-            customDiteruskanList={rightDiteruskan.length > 0 ? rightDiteruskan : undefined}
-            catatanDisposisi={rightCatatan}
-          />
-        </div>
+export function Disposisi2UpSheetGrid({
+  leftData,
+  rightData,
+  leftDiteruskan,
+  rightDiteruskan,
+  leftCatatan,
+  rightCatatan,
+  showLeft = true,
+  showRight = true,
+  rightScaled = false,
+  className = "batch-clean-grid",
+}: {
+  leftData: SuratMasuk;
+  rightData: SuratMasuk;
+  leftDiteruskan?: string[];
+  rightDiteruskan?: string[];
+  leftCatatan?: string;
+  rightCatatan?: string;
+  showLeft?: boolean;
+  showRight?: boolean;
+  rightScaled?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <div className={`w-full h-full flex flex-col ${!showLeft ? "invisible print-invisible opacity-0" : ""}`}>
+        <LembarDisposisiSheet
+          data={leftData}
+          customDiteruskanList={leftDiteruskan && leftDiteruskan.length > 0 ? leftDiteruskan : undefined}
+          catatanDisposisi={leftCatatan}
+        />
+      </div>
+      <div className="relative flex items-center justify-center w-5 h-full overflow-hidden">
+        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-zinc-400 print:border-black" />
+      </div>
+      <div className={`w-full h-full flex flex-col transition-transform ${!showRight ? "invisible print-invisible opacity-0" : ""} ${rightScaled ? "scale-[0.98] origin-right" : ""}`}>
+        <LembarDisposisiSheet
+          data={rightData}
+          customDiteruskanList={rightDiteruskan && rightDiteruskan.length > 0 ? rightDiteruskan : undefined}
+          catatanDisposisi={rightCatatan}
+        />
       </div>
     </div>
   );

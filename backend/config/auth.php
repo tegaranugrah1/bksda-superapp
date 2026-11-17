@@ -114,4 +114,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'two_factor_enforce' => (bool) env('TWO_FACTOR_ENFORCE', false),
+
 ];

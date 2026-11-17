@@ -394,7 +394,7 @@ export default function SuratTugasForm() {
   return (
     <div className="st-page-enter">
       {isSearching && (
-        <div className="rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 mb-4 flex flex-col items-center justify-center">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 mb-4 shadow-xs flex flex-col items-center justify-center">
           <div className="w-6 h-6 border-2 border-[var(--ds-accent-fg)] border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-sm font-bold text-[var(--ds-fg-muted)]">
             Tunggu sebentar, memuat pegawai...
@@ -403,7 +403,7 @@ export default function SuratTugasForm() {
       )}
 
       {employeeError && (
-        <div role="alert" className="mb-4 rounded-xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 text-sm text-[var(--ds-status-danger-fg)]">
+        <div role="alert" className="mb-4 rounded-3xl border border-[var(--ds-status-danger-border)] bg-[var(--ds-status-danger-bg)] p-4 shadow-xs text-sm text-[var(--ds-status-danger-fg)]">
           Daftar pegawai gagal dimuat.
           <button type="button" className="st-secondary ml-3 rounded-lg px-3 py-2 font-semibold" onClick={() => retryEmployees()}>Coba lagi</button>
         </div>
@@ -411,18 +411,18 @@ export default function SuratTugasForm() {
       {/* Progress pengajuan */}
       <div className="mb-8 max-w-md mx-auto px-4">
         <div className="flex items-center justify-between relative">
-          <div className="absolute left-6 right-6 top-4 h-0.5 bg-[var(--ds-surface-muted)] z-0"></div>
+          <div className="absolute left-6 right-6 top-4 h-1 rounded-full bg-[var(--ds-surface-muted)] z-0"></div>
           <div
-            className="absolute left-6 top-4 h-0.5 bg-[var(--ds-accent-solid)] transition-[width] duration-150 z-0"
+            className="absolute left-6 top-4 h-1 rounded-full bg-[var(--ds-accent-solid)] transition-[width] duration-150 z-0"
             style={{ width: step === 1 ? "0%" : step === 2 ? "50%" : "88%" }}
           ></div>
 
           <div className="relative z-10 flex flex-col items-center">
             <div
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold tabular-nums transition-all",
                 step >= 1
-                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm ring-4 ring-[var(--ds-accent-soft-border)]"
+                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xs ring-4 ring-[var(--ds-accent-soft-border)]"
                   : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
               )}
             >
@@ -430,7 +430,7 @@ export default function SuratTugasForm() {
             </div>
             <span
               className={cn(
-                "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
+                "text-xs font-bold mt-2 uppercase tracking-wider",
                 step >= 1 ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]"
               )}
             >
@@ -441,9 +441,9 @@ export default function SuratTugasForm() {
           <div className="relative z-10 flex flex-col items-center">
             <div
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold tabular-nums transition-all",
                 step >= 2
-                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm ring-4 ring-[var(--ds-accent-soft-border)]"
+                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xs ring-4 ring-[var(--ds-accent-soft-border)]"
                   : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
               )}
             >
@@ -451,7 +451,7 @@ export default function SuratTugasForm() {
             </div>
             <span
               className={cn(
-                "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
+                "text-xs font-bold mt-2 uppercase tracking-wider",
                 step >= 2 ? "text-[var(--ds-accent-fg)]" : "text-[var(--ds-fg-muted)]"
               )}
             >
@@ -462,9 +462,9 @@ export default function SuratTugasForm() {
           <div className="relative z-10 flex flex-col items-center">
             <div
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold tabular-nums transition-all",
                 step === 3
-                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-sm ring-4 ring-[var(--ds-status-success-border)]"
+                  ? "bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xs ring-4 ring-[var(--ds-status-success-border)]"
                   : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
               )}
             >
@@ -472,7 +472,7 @@ export default function SuratTugasForm() {
             </div>
             <span
               className={cn(
-                "text-[10px] font-bold mt-1.5 uppercase tracking-wider",
+                "text-xs font-bold mt-2 uppercase tracking-wider",
                 step === 3 ? "text-[var(--ds-status-success-fg)] font-bold" : "text-[var(--ds-fg-muted)]"
               )}
             >

@@ -34,19 +34,25 @@ class StTaskTypeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $isSuperAdmin = $request->user()?->role === 'super_admin';
         $query = StTaskType::query();
+        if (! $isSuperAdmin) {
+            $query->where('is_active', true);
+        }
 
-        if ($search = trim((string) $request->input('search'))) {
-            $escapedSearch = addcslashes($search, '%_');
+        $rawSearch = $request->input('search');
+        if (is_string($rawSearch) && trim($rawSearch) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($rawSearch)) . '%';
             $likeOp = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($escapedSearch, $likeOp) {
-                $q->where('nama', $likeOp, "%{$escapedSearch}%")
-                  ->orWhere('kode', $likeOp, "%{$escapedSearch}%")
-                  ->orWhere('keterangan', $likeOp, "%{$escapedSearch}%");
+            $query->where(function ($q) use ($pattern, $likeOp) {
+                $q->whereRaw("nama {$likeOp} ? ESCAPE '!'", [$pattern])
+                    ->orWhereRaw("kode {$likeOp} ? ESCAPE '!'", [$pattern])
+                    ->orWhereRaw("keterangan {$likeOp} ? ESCAPE '!'", [$pattern]);
             });
         }
 
-        if ($status = $request->input('status')) {
+        $status = $request->input('status');
+        if (is_string($status)) {
             if ($status === 'active') {
                 $query->where('is_active', true);
             } elseif ($status === 'inactive') {
@@ -62,12 +68,24 @@ class StTaskTypeController extends Controller
         ]);
     }
 
+    private function sanitizePayload(array $validated): array
+    {
+        foreach (['nama', 'contoh_format', 'keterangan'] as $field) {
+            if (array_key_exists($field, $validated) && is_string($validated[$field])) {
+                $cleaned = strip_tags(trim($validated[$field]));
+                $validated[$field] = $cleaned !== '' ? $cleaned : ($field === 'nama' ? '' : null);
+            }
+        }
+
+        return $validated;
+    }
+
     /**
      * Store new task type (Admin).
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $this->sanitizePayload($request->validate([
             'nama' => ['required', 'string', 'max:255'],
             'kode' => ['nullable', 'string', 'max:100', Rule::unique('st_task_types', 'kode')],
             'mode_lokasi' => ['required', 'string', 'in:luar_wilayah,dalam_kawasan,tempat_saja'],
@@ -77,10 +95,17 @@ class StTaskTypeController extends Controller
             'keterangan' => ['nullable', 'string', 'max:1000'],
             'urutan' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
-        ]);
+        ]));
+
+        if (($validated['nama'] ?? '') === '') {
+            return response()->json([
+                'message' => 'Nama jenis tugas tidak valid.',
+                'errors' => ['nama' => ['Nama jenis tugas wajib diisi.']],
+            ], 422);
+        }
 
         if (empty($validated['kode'])) {
-            $base = Str::slug($validated['nama'], '_');
+            $base = Str::slug($validated['nama'], '_') ?: 'tugas';
             $slug = $base;
             $counter = 1;
             while (StTaskType::withTrashed()->where('kode', $slug)->exists()) {
@@ -93,9 +118,6 @@ class StTaskTypeController extends Controller
         $validated['created_by'] = $request->user()?->id;
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['default_sertakan_laporan'] = $request->boolean('default_sertakan_laporan', true);
-        if (isset($validated['nama'])) $validated['nama'] = strip_tags(trim((string) $validated['nama']));
-        if (isset($validated['contoh_format'])) $validated['contoh_format'] = strip_tags(trim((string) $validated['contoh_format']));
-        if (isset($validated['keterangan'])) $validated['keterangan'] = strip_tags(trim((string) $validated['keterangan']));
 
         $type = StTaskType::create($validated);
 
@@ -113,7 +135,7 @@ class StTaskTypeController extends Controller
     {
         $type = StTaskType::findOrFail($id);
 
-        $validated = $request->validate([
+        $validated = $this->sanitizePayload($request->validate([
             'nama' => ['sometimes', 'required', 'string', 'max:255'],
             'kode' => ['sometimes', 'required', 'string', 'max:100', Rule::unique('st_task_types', 'kode')->ignore($type->id)],
             'mode_lokasi' => ['sometimes', 'required', 'string', 'in:luar_wilayah,dalam_kawasan,tempat_saja'],
@@ -123,12 +145,16 @@ class StTaskTypeController extends Controller
             'keterangan' => ['nullable', 'string', 'max:1000'],
             'urutan' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
-        ]);
+        ]));
+
+        if (array_key_exists('nama', $validated) && $validated['nama'] === '') {
+            return response()->json([
+                'message' => 'Nama jenis tugas tidak valid.',
+                'errors' => ['nama' => ['Nama jenis tugas wajib diisi.']],
+            ], 422);
+        }
 
         $validated['updated_by'] = $request->user()?->id;
-        if (isset($validated['nama'])) $validated['nama'] = strip_tags(trim((string) $validated['nama']));
-        if (isset($validated['contoh_format'])) $validated['contoh_format'] = strip_tags(trim((string) $validated['contoh_format']));
-        if (isset($validated['keterangan'])) $validated['keterangan'] = strip_tags(trim((string) $validated['keterangan']));
 
         $type->update($validated);
 

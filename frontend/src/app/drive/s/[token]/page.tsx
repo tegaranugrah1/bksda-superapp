@@ -16,22 +16,13 @@ import {
   AlertCircle,
   Loader2,
   Calendar,
-  HardDrive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import axios from "axios";
-
-function formatBytes(bytes: number, decimals = 1): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
-}
+import api from "@/lib/api";
+import { formatBytes } from "@/lib/utils";
 
 function getFileIcon(mime: string) {
   const m = (mime || "").toLowerCase();
@@ -66,13 +57,11 @@ export default function PublicSharePage() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://bksdakaltim.web.id/api";
-
   useEffect(() => {
     if (!token) return;
 
-    axios
-      .get(`${apiUrl}/drive/s/${token}`)
+    api
+      .get(`/drive/s/${token}`)
       .then((res) => {
         setFileInfo(res.data);
       })
@@ -85,7 +74,7 @@ export default function PublicSharePage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [token, apiUrl]);
+  }, [token]);
 
   const handleDownload = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -98,7 +87,7 @@ export default function PublicSharePage() {
     setPasswordError(null);
 
     try {
-      const res = await axios.post(`${apiUrl}/drive/s/${token}/download`, {
+      const res = await api.post(`/drive/s/${token}/download`, {
         password: password.trim() || undefined,
       });
 

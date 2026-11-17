@@ -7,7 +7,9 @@ use App\Models\DriveFolder;
 use App\Models\DriveShare;
 use App\Models\DriveUnit;
 use App\Models\User;
+use App\Modules\Bmn\Models\Location;
 use App\Modules\Kepegawaian\Models\Employee;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Pengatur Hak Akses (RBAC) BKSDA Drive.
@@ -38,7 +40,10 @@ class DriveAccess
             self::$employeeCache = new \WeakMap();
         }
         if (! isset(self::$employeeCache[$user])) {
-            self::$employeeCache[$user] = Employee::where('nip', $user->username)->first();
+            self::$employeeCache[$user] = Employee::with('location.parent')
+                ->where('nip', $user->username)
+                ->effectiveActive()
+                ->first();
         }
         return self::$employeeCache[$user];
     }
@@ -65,18 +70,16 @@ class DriveAccess
             return $member->pivot->role;
         }
 
-        // 2. Cek kecocokan otomatis berdasarkan Satuan Kerja Pegawai
+        // 2. Cek kecocokan otomatis berdasarkan penempatan Master Lokasi / Satuan Kerja Pegawai
         $employee = self::getEmployee($user);
-        if ($employee && ! empty($employee->satuan_kerja)) {
-            $sk = strtolower((string) $employee->satuan_kerja);
-            $slug = strtolower((string) $unit->slug);
+        if ($employee) {
+            $empUnitId = self::resolveEmployeeDriveUnitId($employee);
+            if ($empUnitId && (int) $empUnitId === (int) $unit->id) {
+                return 'editor';
+            }
 
-            if (
-                ($slug === 'balai-samarinda' && (str_contains($sk, 'balai') || str_contains($sk, 'samarinda'))) ||
-                ($slug === 'skw-1-berau' && (str_contains($sk, 'wilayah i') || str_contains($sk, 'skw i') || str_contains($sk, 'berau'))) ||
-                ($slug === 'skw-2-tenggarong' && (str_contains($sk, 'wilayah ii') || str_contains($sk, 'skw ii') || str_contains($sk, 'tenggarong'))) ||
-                ($slug === 'skw-3-balikpapan' && (str_contains($sk, 'wilayah iii') || str_contains($sk, 'skw iii') || str_contains($sk, 'balikpapan')))
-            ) {
+            $empSlug = self::resolveEmployeeUnitSlug($employee);
+            if ($empSlug !== null && strtolower((string) $unit->slug) === $empSlug) {
                 return 'editor';
             }
         }
@@ -115,151 +118,367 @@ class DriveAccess
     }
 
     /**
-     * Otorisasi Membaca Folder (dengan isolasi folder resor/ruangan dan anti-bypass)
+     * Otorisasi Membaca Folder (dengan isolasi folder resor/ruangan dan anti-bypass).
      */
     public static function canReadFolder(User $user, DriveFolder $folder): bool
     {
-        if (self::isDriveAdmin($user)) {
-            return true;
-        }
-
-        // Pemilik / Admin Resor yang ditunjuk berhak membaca
-        if ($folder->user_id === $user->id) {
-            return true;
-        }
-
-        // Jika folder terisolasi (Resor / Ruangan Tertutup)
-        if ($folder->is_restricted) {
-            // 1. Cek izin eksplisit di tabel drive_shares
-            $userUnitIds = self::getUserUnitIds($user);
-            $hasShare = DriveShare::where('folder_id', $folder->id)
-                ->where(function ($q) use ($user, $userUnitIds) {
-                    $q->where('user_id', $user->id)->orWhereIn('unit_id', $userUnitIds);
-                })
-                ->exists();
-
-            if ($hasShare) {
-                return true;
-            }
-
-            // 2. Cek kecocokan otomatis penempatan resor pegawai
-            if ($folder->resor_code) {
-                $employee = self::getEmployee($user);
-                return $employee && (string) $employee->resor === (string) $folder->resor_code;
-            }
-
-            return false;
-        }
-
-        // Folder umum: warisi hak akses unit
-        if ($folder->unit_id) {
-            $unit = $folder->unit ?? DriveUnit::find($folder->unit_id);
-            return $unit ? self::canRead($user, $unit) : false;
-        }
-
-        // Folder drive pribadi: hanya milik user
-        return $folder->user_id === $user->id;
+        return self::checkFolderAccess($user, $folder, write: false);
     }
 
     /**
-     * Otorisasi Menulis Folder (dengan isolasi folder resor/ruangan)
+     * Otorisasi Menulis Folder (dengan isolasi folder resor/ruangan).
      */
     public static function canWriteFolder(User $user, DriveFolder $folder): bool
     {
+        return self::checkFolderAccess($user, $folder, write: true);
+    }
+
+    private static function checkFolderAccess(User $user, DriveFolder $folder, bool $write): bool
+    {
         if (self::isDriveAdmin($user)) {
             return true;
         }
 
-        if ($folder->user_id === $user->id) {
+        if (self::canUseCreatorOwnershipBypass($user, (int) $folder->user_id, $folder->unit_id ? (int) $folder->unit_id : null, $folder)) {
             return true;
         }
 
-        if ($folder->is_restricted) {
-            $userUnitIds = self::getUserUnitIds($user);
-            $share = DriveShare::where('folder_id', $folder->id)
-                ->where(function ($q) use ($user, $userUnitIds) {
-                    $q->where('user_id', $user->id)->orWhereIn('unit_id', $userUnitIds);
-                })
-                ->first();
+        // Personal My Drive (unit_id null): hanya pemilik atau penerima share langsung
+        if ($folder->unit_id === null) {
+            return self::hasInternalFolderShare($user, $folder, $write);
+        }
 
-            if ($share && in_array($share->role, ['manager', 'editor'], true)) {
+        $unit = $folder->unit ?? DriveUnit::find($folder->unit_id);
+        $isExplicitManager = $unit && $unit->members()
+            ->where('user_id', $user->id)
+            ->wherePivot('role', 'manager')
+            ->exists();
+
+        if ($folder->is_restricted) {
+            if ($isExplicitManager) {
                 return true;
             }
 
+            if (self::hasInternalFolderShare($user, $folder, $write)) {
+                return true;
+            }
+
+            $employee = self::getEmployee($user);
+            if (! $employee) {
+                return false;
+            }
+
+            // Penempatan Master Lokasi sebagai sumber utama RBAC ruangan/resor terbatas
+            if ($folder->location_id && $employee->location_id) {
+                return (string) $employee->location_id === (string) $folder->location_id;
+            }
+
             if ($folder->resor_code) {
-                $employee = self::getEmployee($user);
-                return $employee && (string) $employee->resor === (string) $folder->resor_code;
+                $empResorCode = Location::extractResorCode($employee->resor) ?? trim((string) $employee->resor);
+                return $empResorCode !== '' && strcasecmp($empResorCode, (string) $folder->resor_code) === 0;
+            }
+
+            if ($folder->room_code) {
+                $empRoomCode = $employee->location?->code;
+                return $empRoomCode !== null && strcasecmp((string) $empRoomCode, (string) $folder->room_code) === 0;
             }
 
             return false;
         }
 
-        if ($folder->unit_id) {
-            $unit = $folder->unit ?? DriveUnit::find($folder->unit_id);
-            return $unit ? self::canWrite($user, $unit) : false;
+        if ($unit && ($write ? self::canWrite($user, $unit) : self::canRead($user, $unit))) {
+            return true;
         }
 
-        return $folder->user_id === $user->id;
+        return self::hasInternalFolderShare($user, $folder, $write);
+    }
+
+    private static function hasInternalFolderShare(User $user, DriveFolder $folder, bool $write): bool
+    {
+        $userUnitIds = self::getUserUnitIds($user);
+
+        return DriveShare::where('folder_id', $folder->id)
+            ->where('share_type', 'internal')
+            ->when($write, fn ($q) => $q->whereIn('role', ['manager', 'editor']))
+            ->where(function ($q) use ($user, $userUnitIds) {
+                $q->where('user_id', $user->id);
+                if ($userUnitIds->isNotEmpty()) {
+                    $q->orWhereIn('unit_id', $userUnitIds);
+                }
+            })
+            ->exists();
     }
 
     /**
-     * Otorisasi Membaca Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi)
+     * Otorisasi Membaca Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi).
      */
     public static function canReadFile(User $user, DriveFile $file): bool
     {
-        if (self::isDriveAdmin($user)) {
-            return true;
-        }
-
-        // Pemilik berkas selalu berhak membaca berkasnya
-        if ($file->user_id === $user->id) {
-            return true;
-        }
-
-        // Anti-IDOR: Jika berkas berada di dalam folder, wajib memvalidasi izin folder induknya!
-        if ($file->folder_id) {
-            $folder = $file->folder ?? DriveFolder::withTrashed()->find($file->folder_id);
-            if ($folder) {
-                if (! self::canReadFolder($user, $folder)) {
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        if ($file->unit_id) {
-            $unit = $file->unit ?? DriveUnit::find($file->unit_id);
-            return $unit ? self::canRead($user, $unit) : false;
-        }
-
-        return $file->shares()->where('user_id', $user->id)->exists();
+        return self::checkFileAccess($user, $file, write: false);
     }
 
     /**
-     * Otorisasi Menulis/Mengelola Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi)
+     * Otorisasi Menulis/Mengelola Berkas (Anti-IDOR: memeriksa folder induk jika terisolasi).
      */
     public static function canWriteFile(User $user, DriveFile $file): bool
+    {
+        return self::checkFileAccess($user, $file, write: true);
+    }
+
+    private static function checkFileAccess(User $user, DriveFile $file, bool $write): bool
     {
         if (self::isDriveAdmin($user)) {
             return true;
         }
 
-        if ($file->user_id === $user->id) {
+        $folder = $file->folder_id ? ($file->folder ?? DriveFolder::withTrashed()->find($file->folder_id)) : null;
+
+        if (self::canUseCreatorOwnershipBypass(
+            $user,
+            (int) $file->user_id,
+            $file->unit_id ? (int) $file->unit_id : ($folder?->unit_id ? (int) $folder->unit_id : null),
+            $folder,
+            $file->source_module
+        )) {
             return true;
         }
 
-        if ($file->folder_id) {
-            $folder = $file->folder ?? DriveFolder::withTrashed()->find($file->folder_id);
-            if ($folder) {
-                return self::canWriteFolder($user, $folder);
-            }
+        $userUnitIds = self::getUserUnitIds($user);
+        $hasDirectShare = $file->shares()
+            ->where('share_type', 'internal')
+            ->when($write, fn ($q) => $q->whereIn('role', ['manager', 'editor']))
+            ->where(function ($q) use ($user, $userUnitIds) {
+                $q->where('user_id', $user->id);
+                if ($userUnitIds->isNotEmpty()) {
+                    $q->orWhereIn('unit_id', $userUnitIds);
+                }
+            })
+            ->exists();
+
+        if ($hasDirectShare) {
+            return true;
+        }
+
+        if ($folder) {
+            return self::checkFolderAccess($user, $folder, $write);
         }
 
         if ($file->unit_id) {
             $unit = $file->unit ?? DriveUnit::find($file->unit_id);
-            return $unit ? self::canWrite($user, $unit) : false;
+            return $unit ? ($write ? self::canWrite($user, $unit) : self::canRead($user, $unit)) : false;
         }
 
         return false;
+    }
+
+    /**
+     * Kepemilikan user_id berlaku penuh di My Drive pribadi, serta untuk akun tanpa profil pegawai konflik.
+     * Bagi pegawai aktif/nonaktif, mutasi penempatan atau lokasi terbatas tetap mencabut akses organisasi lama.
+     */
+    private static function canUseCreatorOwnershipBypass(User $user, int $ownerUserId, ?int $unitId, ?DriveFolder $scopeFolder = null, ?string $sourceModule = null): bool
+    {
+        if ($ownerUserId !== (int) $user->id || ! $user->is_active) {
+            return false;
+        }
+
+        if ($unitId === null && $scopeFolder === null) {
+            return true;
+        }
+
+        if ($scopeFolder && $scopeFolder->is_restricted
+            && ($scopeFolder->location_id || $scopeFolder->resor_code || $scopeFolder->room_code)) {
+            $emp = self::getEmployee($user);
+            if (! $emp) {
+                return false;
+            }
+        }
+
+        $employeeExists = ! empty($user->username) && Employee::where('nip', $user->username)->exists();
+        if (! $employeeExists) {
+            if ($unitId !== null && $sourceModule !== 'dereporting') {
+                $unit = DriveUnit::find($unitId);
+                return $unit ? self::unitRole($user, $unit) !== null : false;
+            }
+            return true;
+        }
+
+        $activeEmployee = self::getEmployee($user);
+        if (! $activeEmployee) {
+            return false;
+        }
+
+        if ($scopeFolder && $scopeFolder->is_restricted
+            && ($scopeFolder->location_id || $scopeFolder->resor_code || $scopeFolder->room_code)) {
+            return false;
+        }
+
+        if ($unitId !== null) {
+            $empUnitId = self::resolveEmployeeDriveUnitId($activeEmployee);
+            if ($empUnitId !== null && $empUnitId !== $unitId) {
+                return false;
+            }
+
+            $empSlug = self::resolveEmployeeUnitSlug($activeEmployee);
+            $unitSlug = strtolower((string) DriveUnit::where('id', $unitId)->value('slug'));
+            if ($empSlug !== null && $unitSlug !== '' && $empSlug !== $unitSlug) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Sinkronkan hak akses & cabut akses lama secara atomik saat pegawai dimutasi/dinonaktifkan.
+     */
+    public static function syncEmployeePlacement(Employee $employee, array $oldPlacement = [], ?User $explicitUser = null): void
+    {
+        $employee->loadMissing('location.parent');
+        $nip = trim((string) $employee->nip);
+        $user = $explicitUser ?? ($nip !== '' ? User::where('username', $nip)->first() : null);
+
+        self::clearCache();
+
+        if (! $user) {
+            return;
+        }
+
+        $isActive = $employee->isEffectiveActive();
+        $newUnitId = $isActive ? self::resolveEmployeeDriveUnitId($employee) : null;
+        if ($isActive && ! $newUnitId && ($slug = self::resolveEmployeeUnitSlug($employee))) {
+            $newUnitId = DriveUnit::where('slug', $slug)->value('id');
+        }
+        $newLocationId = $isActive ? $employee->location_id : null;
+
+        $oldLocationId = $oldPlacement['location_id'] ?? null;
+        $oldResor = $oldPlacement['resor'] ?? null;
+        $oldSatker = $oldPlacement['satuan_kerja'] ?? null;
+        $oldUnitId = $oldPlacement['drive_unit_id'] ?? null;
+        if (! $oldUnitId && $oldLocationId) {
+            $oldUnitId = Location::with('parent')->find($oldLocationId)?->effectiveDriveUnitId();
+        }
+        if (! $oldUnitId && ($oldSlug = Location::resolveUnitSlug($oldResor, $oldSatker))) {
+            $oldUnitId = DriveUnit::where('slug', $oldSlug)->value('id');
+        }
+
+        if (! $isActive) {
+            DB::table('drive_unit_members')->where('user_id', $user->id)->delete();
+            DriveShare::where('user_id', $user->id)->delete();
+            DriveShare::where('created_by', $user->id)->where('share_type', 'public')->delete();
+            self::revokeUserOrgSharesAndFolderOwnership($user->id, null, null);
+            self::clearCache();
+            return;
+        }
+
+        $unitChanged = $oldUnitId && (int) $oldUnitId !== (int) $newUnitId;
+        $locChanged = ($oldLocationId && (string) $oldLocationId !== (string) $newLocationId)
+            || ($oldResor && strcasecmp((string) $oldResor, (string) $employee->resor) !== 0);
+
+        if ($unitChanged) {
+            DB::table('drive_unit_members')
+                ->where('user_id', $user->id)
+                ->where('drive_unit_id', (int) $oldUnitId)
+                ->delete();
+        }
+
+        if ($unitChanged || $locChanged) {
+            self::revokeUserOrgSharesAndFolderOwnership(
+                $user->id,
+                $unitChanged ? (int) $oldUnitId : null,
+                $oldLocationId ? (string) $oldLocationId : null,
+                $oldResor ? (string) $oldResor : null
+            );
+        }
+
+        self::clearCache();
+    }
+
+    private static function revokeUserOrgSharesAndFolderOwnership(
+        int $userId,
+        ?int $oldUnitId,
+        ?string $oldLocationId,
+        ?string $oldResor = null
+    ): void {
+        if ($oldUnitId === null && $oldLocationId === null && $oldResor === null) {
+            // Nonaktif penuh: cabut seluruh share internal & ownership folder organisasi (unit_id IS NOT NULL)
+            $orgFolderIds = DriveFolder::withTrashed()->whereNotNull('unit_id')->pluck('id')->all();
+            if (! empty($orgFolderIds)) {
+                DriveShare::where('user_id', $userId)->whereIn('folder_id', $orgFolderIds)->delete();
+                if ($ownerId = Location::resolveSystemOwnerId()) {
+                    DriveFolder::withTrashed()
+                        ->whereIn('id', $orgFolderIds)
+                        ->where('user_id', $userId)
+                        ->update(['user_id' => $ownerId]);
+                }
+            }
+            $orgFileIds = DriveFile::withTrashed()->whereNotNull('unit_id')->pluck('id')->all();
+            if (! empty($orgFileIds)) {
+                DriveShare::where('user_id', $userId)->whereIn('file_id', $orgFileIds)->delete();
+            }
+            return;
+        }
+
+        $rootQuery = DriveFolder::withTrashed()->whereNotNull('unit_id');
+        $rootQuery->where(function ($q) use ($oldUnitId, $oldLocationId, $oldResor) {
+            if ($oldUnitId) {
+                $q->orWhere('unit_id', $oldUnitId);
+            }
+            if ($oldLocationId) {
+                $q->orWhere('location_id', $oldLocationId);
+            }
+            if ($oldResor) {
+                $q->orWhere('resor_code', $oldResor);
+            }
+        });
+
+        $rootIds = $rootQuery->pluck('id')->all();
+        $descendantIds = ! empty($rootIds) ? DriveFolder::collectDescendantIds($rootIds, withTrashed: true) : [];
+        $targetFolderIds = array_values(array_unique(array_merge($rootIds, $descendantIds)));
+
+        if (! empty($targetFolderIds)) {
+            DriveShare::where('user_id', $userId)->whereIn('folder_id', $targetFolderIds)->delete();
+            if ($ownerId = Location::resolveSystemOwnerId()) {
+                DriveFolder::withTrashed()
+                    ->whereIn('id', $targetFolderIds)
+                    ->where('user_id', $userId)
+                    ->update(['user_id' => $ownerId]);
+            }
+        }
+
+        $fileIds = [];
+        if (! empty($targetFolderIds)) {
+            $fileIds = DriveFile::withTrashed()->whereIn('folder_id', $targetFolderIds)->pluck('id')->all();
+        }
+        if ($oldUnitId) {
+            $unitRootFileIds = DriveFile::withTrashed()
+                ->where('unit_id', $oldUnitId)
+                ->whereNull('folder_id')
+                ->pluck('id')
+                ->all();
+            $fileIds = array_values(array_unique(array_merge($fileIds, $unitRootFileIds)));
+        }
+
+        if (! empty($fileIds)) {
+            DriveShare::where('user_id', $userId)->whereIn('file_id', $fileIds)->delete();
+        }
+    }
+
+    private static function resolveEmployeeDriveUnitId(Employee $employee): ?int
+    {
+        if ($employee->location_id) {
+            $loc = $employee->relationLoaded('location')
+                ? $employee->location
+                : Location::with('parent')->find($employee->location_id);
+            if ($loc) {
+                return $loc->effectiveDriveUnitId();
+            }
+        }
+
+        return null;
+    }
+
+    private static function resolveEmployeeUnitSlug(Employee $employee): ?string
+    {
+        return Location::resolveUnitSlug($employee->resor, $employee->satuan_kerja);
     }
 }

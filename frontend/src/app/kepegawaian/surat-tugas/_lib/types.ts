@@ -100,7 +100,5 @@ export interface EmployeeDateRange {
   selesai: string;
 }
 
-export type EmployeeDates = Record<string, EmployeeDateRange>;
-
 export type TemplateType = "bmn-pemeriksaan" | "beda-hari" | "plh" | null;
 

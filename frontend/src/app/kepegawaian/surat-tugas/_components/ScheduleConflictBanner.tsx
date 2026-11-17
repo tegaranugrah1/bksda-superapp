@@ -25,17 +25,17 @@ export function ScheduleConflictBanner({ conflicts }: ScheduleConflictBannerProp
   if (!conflicts || conflicts.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-3 sm:p-3.5 text-[var(--ds-status-warning-fg)] shadow-sm">
-      <div className="flex items-start gap-2.5">
-        <AlertTriangle className="w-4 h-4 text-[var(--ds-status-warning-fg)] shrink-0 mt-0.5" />
+    <div className="rounded-3xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] p-4 text-[var(--ds-status-warning-fg)] shadow-xs">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="w-4 h-4 text-[var(--ds-status-warning-fg)] shrink-0 mt-1" />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-[var(--ds-status-warning-fg)] tracking-tight">
             Jadwal Tugas / Cuti Bentrok
           </p>
-          <ul className="mt-1.5 space-y-1 text-xs text-[var(--ds-status-warning-fg)]">
+          <ul className="mt-2 space-y-1 text-xs text-[var(--ds-status-warning-fg)]">
             {conflicts.map((c, idx) => (
-              <li key={`${c.employee_id}-${c.reference_id}-${idx}`} className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-status-warning-fg)] shrink-0" />
+              <li key={`${c.employee_id}-${c.reference_id}-${idx}`} className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--ds-status-warning-fg)] shrink-0" />
                 <span>
                   <strong>{c.employee_name}</strong>: Ada {c.type === "cuti" ? "Cuti Aktif" : "Surat Tugas"} pada tanggal{" "}
                   <span className="font-semibold underline decoration-amber-400">{c.range_formatted}</span>

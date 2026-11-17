@@ -8,7 +8,7 @@ class EmployeeIncomingLetterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return in_array($this->user()?->role, ['super_admin', 'admin'], true);
+        return (bool) $this->user()?->isAdminFor('kepegawaian');
     }
 
     protected function prepareForValidation(): void
@@ -16,9 +16,10 @@ class EmployeeIncomingLetterRequest extends FormRequest
         $fields = ['no_agenda', 'no_surat_masuk', 'asal_surat', 'perihal', 'catatan', 'no_surat_balasan'];
         $clean = [];
         foreach ($fields as $field) {
-            if ($this->has($field)) {
-                $val = trim((string) $this->input($field));
-                $clean[$field] = $val !== '' ? strip_tags($val) : null;
+            $raw = $this->input($field);
+            if ($this->has($field) && is_string($raw)) {
+                $val = strip_tags(trim($raw));
+                $clean[$field] = $val !== '' ? $val : null;
             }
         }
         if (!empty($clean)) {

@@ -9,6 +9,8 @@ class HandoverAgreementResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $viewerToken = $request->bearerToken() ?: $request->query('token');
+
         return [
             'id' => $this->id,
             'document_type' => 'handover_agreement',
@@ -23,7 +25,7 @@ class HandoverAgreementResource extends JsonResource
             'first_party_snapshot' => $this->first_party_snapshot,
             'second_party_snapshot' => $this->second_party_snapshot,
             'witness_snapshot' => $this->witness_snapshot,
-            'items_snapshot' => $this->items_snapshot,
+            'items_snapshot' => AssetResource::attachViewerQueryToken($this->items_snapshot, $viewerToken),
             'asset_ids' => $this->asset_ids,
             'metadata' => $this->metadata,
             'notes' => $this->notes,

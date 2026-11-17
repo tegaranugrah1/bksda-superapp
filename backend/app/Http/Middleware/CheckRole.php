@@ -35,8 +35,26 @@ class CheckRole
             return $next($request);
         }
 
-        // 3. VALIDASI UTAMA: Apakah role user ada di dalam daftar role yang diizinkan?
-        if (! in_array($user->role, $roles)) {
+        // 3. VALIDASI UTAMA: Mendukung parameter `module:<slug>` atau deteksi otomatis modul dari path API.
+        $moduleScope = null;
+        $allowedRoles = [];
+        foreach ($roles as $item) {
+            if (str_starts_with($item, 'module:')) {
+                $moduleScope = substr($item, 7);
+            } else {
+                $allowedRoles[] = $item;
+            }
+        }
+
+        if ($moduleScope === null) {
+            $moduleScope = $this->detectModuleFromRequest($request);
+        }
+
+        $effectiveRole = $moduleScope !== null && $moduleScope !== ''
+            ? $user->roleFor($moduleScope)
+            : $user->role;
+
+        if (! in_array($effectiveRole, $allowedRoles, true)) {
             // Jika tidak cocok, tolak dengan format error terstandar
             return response()->json([
                 'error' => 'Forbidden',
@@ -47,5 +65,26 @@ class CheckRole
 
         // 4. Jika lolos penjagaan, teruskan request
         return $next($request);
+    }
+
+    private function detectModuleFromRequest(Request $request): ?string
+    {
+        $path = ltrim($request->path(), '/');
+        if (str_starts_with($path, 'api/')) {
+            $path = substr($path, 4);
+        }
+
+        return match (true) {
+            str_starts_with($path, 'surat-tugas') => 'surat_tugas',
+            str_starts_with($path, 'kepegawaian') => 'kepegawaian',
+            str_starts_with($path, 'surat') => 'surat',
+            str_starts_with($path, 'bmn') => 'bmn',
+            str_starts_with($path, 'keuangan') => 'keuangan',
+            str_starts_with($path, 'dereporting') => 'dereporting',
+            str_starts_with($path, 'inventory') => 'inventory',
+            str_starts_with($path, 'drive') => 'drive',
+            str_starts_with($path, 'cms') => 'cms',
+            default => null,
+        };
     }
 }

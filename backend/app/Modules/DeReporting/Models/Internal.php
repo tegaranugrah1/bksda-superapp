@@ -16,6 +16,7 @@ class Internal extends Model
 
     protected $fillable = [
         'user_id',
+        'target_scope',
         'tahun_id',
         'bidang_id',
         'jenis_id',
@@ -26,7 +27,14 @@ class Internal extends Model
         'judul_laporan',
         'file_path',
         'keterangan',
+        'review_status',
+        'review_notes',
     ];
+
+    public function recipients()
+    {
+        return $this->hasMany(InternalRecipient::class, 'internal_id');
+    }
 
     public function uploader()
     {

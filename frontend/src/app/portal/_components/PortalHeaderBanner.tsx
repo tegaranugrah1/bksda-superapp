@@ -39,7 +39,7 @@ export function PortalHeaderBanner({
   const greeting = getGreeting();
 
   return (
-    <div className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1e5433] via-[#164227] to-[#153e24] p-5 sm:p-6 text-white shadow-sm border border-[#164227] flex flex-col justify-between", className)}>
+    <div className={cn("relative overflow-hidden rounded-3xl bg-linear-to-r from-[#1e5433] via-[#164227] to-[#153e24] p-4 sm:p-6 text-white shadow-xs border border-[#164227] flex flex-col justify-between", className)}>
       {/* Ambient background decoration glow */}
       <motion.div
         animate={{
@@ -61,14 +61,14 @@ export function PortalHeaderBanner({
       <div className="relative z-10 flex flex-col justify-between h-full gap-4">
         {/* Top: Tanggal Hari Ini */}
         <div className="flex items-center gap-2 text-emerald-100 text-xs font-semibold tracking-wide">
-          <div className="inline-flex items-center gap-1.5">
+          <div className="inline-flex items-center gap-2">
             {greeting.icon}
-            <span>{formatDate()}</span>
+            <span className="tabular-nums">{formatDate()}</span>
           </div>
         </div>
 
         {/* Middle: Title & Subtitle without AI sparkles */}
-        <div className="space-y-1.5 my-auto py-1">
+        <div className="space-y-2 my-auto py-1">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-tight">
             {greeting.text}, {((displayName || "").trim() || "Pegawai").split(",")[0]}!
           </h1>
@@ -79,15 +79,15 @@ export function PortalHeaderBanner({
 
         {/* Bottom: Action Buttons & Sistem Terintegrasi Indicator */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
             {onOpenKalkulator && (
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                 <Button
                   type="button"
                   onClick={onOpenKalkulator}
-                  className="rounded-xl border border-white/20 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white shadow-2xs backdrop-blur-xs hover:bg-white/20 hover:text-white transition-all cursor-pointer"
+                  className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xs backdrop-blur-xs hover:bg-white/20 hover:text-white transition-all cursor-pointer"
                 >
-                  <Calculator className="mr-1.5 h-4 w-4 text-emerald-200" />
+                  <Calculator className="mr-2 h-4 w-4 text-emerald-200" />
                   Kalkulator Dinas
                 </Button>
               </motion.div>
@@ -98,17 +98,17 @@ export function PortalHeaderBanner({
                 <Button
                   type="button"
                   onClick={onOpenVisum}
-                  className="rounded-xl border border-white/20 bg-white px-3.5 py-2 text-xs font-bold text-[#1e5433] shadow-xs backdrop-blur-xs hover:bg-[#edf3ee] transition-all cursor-pointer"
+                  className="rounded-lg border border-white/20 bg-white px-4 py-2 text-xs font-bold text-[#1e5433] shadow-xs backdrop-blur-xs hover:bg-[#edf3ee] transition-all cursor-pointer"
                 >
-                  <FileSpreadsheet className="mr-1.5 h-4 w-4 text-amber-500" />
+                  <FileSpreadsheet className="mr-2 h-4 w-4 text-amber-500" />
                   Buat Visum SPD
                 </Button>
               </motion.div>
             )}
           </div>
 
-          <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-emerald-200/80 font-medium">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+          <div className="hidden lg:flex items-center gap-2 text-xs text-emerald-200/80 font-medium">
+            <ShieldCheck className="w-4 h-4 text-emerald-300" />
             <span>Sistem Terintegrasi Kemenhut</span>
           </div>
         </div>

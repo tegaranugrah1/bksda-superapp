@@ -154,17 +154,16 @@ export function EmployeeLifecycleModal({
   return (
     <KepegawaianDialog title="Kelola status kepegawaian" onClose={() => onOpenChange(false)} busy={submitting} className="sm:max-w-lg">
       <div
-
-        className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
+        className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-6 w-full max-w-lg shadow-lg space-y-4 max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border-subtle)]">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/70 dark:border-zinc-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)] flex items-center justify-center shrink-0">
               {employee.is_active ? <UserX className="w-5 h-5" /> : <UserCheck className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="text-base font-bold text-[var(--ds-fg)]">
+              <h3 className="text-xl font-bold text-[var(--ds-fg)]">
                 Kelola Status Kepegawaian (Lifecycle)
               </h3>
               <p className="text-xs text-[var(--ds-fg-muted)] font-mono">
@@ -176,16 +175,16 @@ export function EmployeeLifecycleModal({
             type="button"
             aria-label="Tutup pengaturan status pegawai"
             onClick={() => onOpenChange(false)}
-            className="p-1 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
+            className="p-1 rounded-lg text-[var(--ds-fg-muted)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tanggungan BMN Check Box */}
-        <div className="p-3.5 rounded-2xl bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] text-xs space-y-2">
+        <div className="p-4 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs space-y-2">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-[var(--ds-fg)] flex items-center gap-1.5">
+            <span className="font-bold text-[var(--ds-fg)] flex items-center gap-2">
               <Package className="w-4 h-4 text-[var(--ds-fg-muted)]" />
               Pemeriksaan Tanggungan BMN
             </span>
@@ -194,11 +193,11 @@ export function EmployeeLifecycleModal({
                 <Loader2 className="w-3 h-3 animate-spin" /> Memeriksa...
               </span>
             ) : bmnData?.unique_asset_count && bmnData.unique_asset_count > 0 ? (
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
+              <span className="px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)] border border-[var(--ds-status-warning-border)]">
                 {bmnData.unique_asset_count} Aset Aktif
               </span>
             ) : bmnData?.status_check === "ok" ? (
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)] flex items-center gap-1">
+              <span className="px-2 py-1 rounded-full text-xs font-bold bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)] flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" /> Bebas Tanggungan
               </span>
             ) : (
@@ -213,9 +212,9 @@ export function EmployeeLifecycleModal({
                 initial={{ opacity: reducedMotion ? 1 : 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: reducedMotion ? 1 : 0 }}
-                className="py-1 text-xs text-[var(--ds-fg-muted)] flex items-center gap-1.5"
+                className="py-1 text-xs text-[var(--ds-fg-muted)] flex items-center gap-2"
               >
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Memeriksa status tanggungan BMN...
+                <Loader2 className="w-4 h-4 animate-spin" /> Memeriksa status tanggungan BMN...
               </motion.div>
             ) : bmnData?.unique_asset_count && bmnData.unique_asset_count > 0 ? (
               <motion.div
@@ -224,16 +223,16 @@ export function EmployeeLifecycleModal({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: reducedMotion ? 1 : 0 }}
                 transition={{ duration: reducedMotion ? 0 : 0.15 }}
-                className="p-2.5 rounded-xl bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] text-xs leading-relaxed"
+                className="p-3 rounded-lg bg-[var(--ds-status-warning-bg)] border border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)] text-xs leading-relaxed"
               >
                 <p className="font-semibold flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-[var(--ds-status-warning-fg)] shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-[var(--ds-status-warning-fg)] shrink-0" />
                   Pegawai masih memiliki {bmnData.unique_asset_count} aset BMN yang perlu ditindaklanjuti.
                 </p>
                 <p className="mt-1 text-[var(--ds-fg-muted)]">
                   Penonaktifan akses tetap dapat diproses; penyelesaian pengembalian aset diselesaikan melalui modul BMN.
                 </p>
-                <div className="mt-1.5 space-y-0.5">
+                <div className="mt-2 space-y-1">
                   {bmnData.assets.slice(0, 3).map((ast) => (
                     <p key={ast.id} className="font-mono text-xs text-[var(--ds-fg)]">
                       • {ast.nama_barang} ({ast.nup ? `NUP ${ast.nup}` : ast.kode_barang}) [{ast.tipe_tanggungan}]
@@ -253,7 +252,7 @@ export function EmployeeLifecycleModal({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: reducedMotion ? 1 : 0 }}
                 transition={{ duration: reducedMotion ? 0 : 0.15 }}
-                className="p-2.5 rounded-xl bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] text-xs leading-relaxed flex items-center gap-2"
+                className="p-3 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] text-xs leading-relaxed flex items-center gap-2"
               >
                 <CheckCircle2 className="w-4 h-4 text-[var(--ds-status-success-fg)] shrink-0" />
                 <span>Pegawai bersih dari tanggungan BMN aktif. Penonaktifan aman dilanjutkan.</span>
@@ -266,7 +265,7 @@ export function EmployeeLifecycleModal({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Action Tabs */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-2">
               Tindakan Status
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -275,10 +274,10 @@ export function EmployeeLifecycleModal({
                   <button
                     type="button"
                     onClick={() => setAction("deactivate")}
-                    className={`px-3 py-2.5 rounded-xl font-bold border transition-colors cursor-pointer text-center ${
+                    className={`px-3 py-2 rounded-lg font-bold border transition-colors cursor-pointer text-center ${
                       action === "deactivate"
-                        ? "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)]   "
-                        : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]   "
+                        ? "bg-[var(--ds-status-danger-bg)] border-[var(--ds-status-danger-border)] text-[var(--ds-status-danger-fg)]"
+                        : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                     }`}
                   >
                     Nonaktifkan / Pensiun
@@ -287,10 +286,10 @@ export function EmployeeLifecycleModal({
                     <button
                       type="button"
                       onClick={() => setAction("cancel_schedule")}
-                      className={`px-3 py-2.5 rounded-xl font-bold border transition-colors cursor-pointer text-center ${
+                      className={`px-3 py-2 rounded-lg font-bold border transition-colors cursor-pointer text-center ${
                         action === "cancel_schedule"
-                          ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)]   "
-                          : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]   "
+                          ? "bg-[var(--ds-status-warning-bg)] border-[var(--ds-status-warning-border)] text-[var(--ds-status-warning-fg)]"
+                          : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                       }`}
                     >
                       Batalkan Jadwal Nonaktif
@@ -301,10 +300,10 @@ export function EmployeeLifecycleModal({
                 <button
                   type="button"
                   onClick={() => setAction("reactivate")}
-                  className={`col-span-2 px-3 py-2.5 rounded-xl font-bold border transition-colors cursor-pointer text-center ${
+                  className={`col-span-2 px-3 py-2 rounded-lg font-bold border transition-colors cursor-pointer text-center ${
                     action === "reactivate"
-                      ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)]   "
-                      : "bg-[var(--ds-surface)] border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]   "
+                      ? "bg-[var(--ds-status-success-bg)] border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)]"
+                      : "bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
                   }`}
                 >
                   Aktifkan Kembali Pegawai
@@ -317,13 +316,13 @@ export function EmployeeLifecycleModal({
           {action === "deactivate" && (
             <>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-2">
                   Alasan Nonaktif <span className="text-[var(--ds-status-danger-fg)]">*</span>
                 </label>
                 <select
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-warning-border)]" aria-label="Alasan Nonaktif"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-warning-border)]" aria-label="Alasan Nonaktif"
                 >
                   {REASONS.map((r) => (
                     <option key={r.value} value={r.value}>
@@ -334,14 +333,14 @@ export function EmployeeLifecycleModal({
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-2">
                   TMT Nonaktif (Tanggal Efektif) <span className="text-[var(--ds-status-danger-fg)]">*</span>
                 </label>
                 <input
                   type="date"
                   value={effectiveDate}
                   onChange={(e) => setEffectiveDate(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-warning-border)]"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-warning-border)]"
                   required
                 />
                 <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
@@ -354,11 +353,11 @@ export function EmployeeLifecycleModal({
           )}
 
           {action === "reactivate" && (
-            <div className="p-3 rounded-xl bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] text-xs leading-relaxed">
+            <div className="p-3 rounded-lg bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] text-[var(--ds-status-success-fg)] text-xs leading-relaxed">
               <p className="font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Informasi Pengaktifan Kembali
+                <CheckCircle2 className="w-4 h-4" /> Informasi Pengaktifan Kembali
               </p>
-              <p className="mt-0.5">
+              <p className="mt-1">
                 Mengaktifkan pegawai memulihkan status kepegawaian aktif. Demi keamanan, akun akses portal pegawai tetap non-aktif sampai Anda membuka aksesnya melalui modul IAM.
               </p>
             </div>
@@ -366,7 +365,7 @@ export function EmployeeLifecycleModal({
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)] mb-2">
               Catatan / Nomor SK
               {(reason === "lainnya" || isBackdate || action === "reactivate") && (
                 <span className="text-[var(--ds-status-danger-fg)]"> * (Wajib)</span>
@@ -377,19 +376,19 @@ export function EmployeeLifecycleModal({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Contoh: SK Pensiun No. 800/123/2026 atau catatan alasan"
               rows={3}
-              className="w-full px-3 py-2.5 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-warning-border)]" aria-label="Contoh: SK Pensiun No. 800/123/2026 atau catatan alasan"
+              className="w-full px-3 py-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs text-[var(--ds-fg)] outline-none focus:border-[var(--ds-status-warning-border)]" aria-label="Contoh: SK Pensiun No. 800/123/2026 atau catatan alasan"
             />
           </div>
 
           {/* Submit Actions */}
-          <div className="pt-3 flex items-center justify-end gap-2 border-t border-[var(--ds-border-subtle)]">
+          <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-200/70 dark:border-zinc-800">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => onOpenChange(false)}
               disabled={submitting}
-              className="rounded-xl text-xs cursor-pointer"
+              className="rounded-lg text-xs cursor-pointer"
             >
               Batal
             </Button>
@@ -397,12 +396,12 @@ export function EmployeeLifecycleModal({
               type="submit"
               size="sm"
               disabled={submitting}
-              className="rounded-xl text-xs font-bold cursor-pointer"
+              className="rounded-lg text-xs font-bold cursor-pointer"
               variant={action === "deactivate" ? "destructive" : "default"}
             >
               {submitting ? (
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
                 </span>
               ) : action === "reactivate" ? (
                 "Aktifkan Kembali Pegawai"

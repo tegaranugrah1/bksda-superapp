@@ -67,18 +67,18 @@ export function ExportReportsTab() {
         return (
           <div
             key={report.title}
-            className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-6 flex flex-col"
+            className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs flex flex-col"
           >
-            <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center mb-4">
               {report.icon}
             </div>
-            <h3 className="text-base font-bold text-[var(--ds-fg)] mb-1">{report.title}</h3>
+            <h3 className="text-sm font-bold text-[var(--ds-fg)] mb-1">{report.title}</h3>
             <p className="text-xs text-[var(--ds-fg-muted)] mb-6 flex-1">{report.desc}</p>
             <Button
               aria-label={`${report.buttonLabel} ${report.title}`}
               onClick={report.action}
               disabled={report.loading}
-              className="bmn-primary w-full rounded-xl font-semibold"
+              className="bmn-primary w-full rounded-lg font-semibold"
             >
               {report.loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ButtonIcon className="w-4 h-4 mr-2" />}
               {report.buttonLabel}

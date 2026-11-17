@@ -177,44 +177,44 @@ export function AssetTypeManagementTab({
     <div className="space-y-6">
       {/* Quick Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
+        <div className="bg-[var(--ds-surface)] p-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Total Jenis BMN
             </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1 tabular-nums">
               {assetTypes.length}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Box className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
+        <div className="bg-[var(--ds-surface)] p-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Kategori Form Aset
             </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1 tabular-nums">
               4 Mode
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Layers className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between sm:col-span-2 lg:col-span-1">
+        <div className="bg-[var(--ds-surface)] p-4 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between sm:col-span-2 lg:col-span-1">
           <div>
             <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
               Aset Terklasifikasi
             </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
+            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1 tabular-nums">
               {totalAssetsInTypes}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
             <Package className="w-6 h-6" />
           </div>
         </div>
@@ -234,7 +234,7 @@ export function AssetTypeManagementTab({
                 setTypeSearch(e.target.value);
                 setTypePage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+              className="w-full pl-9 pr-4 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm"
             />
           </div>
           <select
@@ -244,7 +244,7 @@ export function AssetTypeManagementTab({
               setCategoryModeFilter(e.target.value);
               setTypePage(1);
             }}
-            className="h-9 px-3 text-xs border border-[var(--ds-border-subtle)] rounded-xl bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)]"
+            className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)]"
           >
             <option value="Semua">Semua Kategori Form</option>
             <option value="kendaraan">Kendaraan</option>
@@ -257,7 +257,7 @@ export function AssetTypeManagementTab({
           <Button
             onClick={handleOpenCreateType}
             size="sm"
-            className="rounded-xl gap-2 text-xs bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] shrink-0"
+            className="rounded-lg gap-2 text-xs shrink-0"
           >
             <Plus className="w-4 h-4" /> Tambah Jenis BMN
           </Button>
@@ -265,31 +265,31 @@ export function AssetTypeManagementTab({
       </div>
 
       {/* Asset Types Table */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className={`${totalTypeItems > 0 ? "bmn-wide-table" : ""} w-full text-left`}>
             <thead className={totalTypeItems > 0 ? "" : "hidden sm:table-header-group"}>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Jenis BMN
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Kategori Form Spesifik
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
                   Deskripsi Cakupan
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">
                   Aset Terkait
                 </th>
                 {canManage && (
-                  <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center w-28">
+                  <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center w-28">
                     Aksi
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {isLoading ? (
                 <tr>
                   <td colSpan={canManage ? 5 : 4} className="p-12 text-center">
@@ -311,9 +311,9 @@ export function AssetTypeManagementTab({
                         onClick={handleOpenCreateType}
                         variant="outline"
                         size="sm"
-                        className="mt-3 rounded-xl gap-2 text-xs"
+                        className="mt-3 rounded-lg gap-2 text-xs"
                       >
-                        <Plus className="w-3.5 h-3.5" /> Buat Jenis BMN Pertama
+                        <Plus className="w-4 h-4" /> Buat Jenis BMN Pertama
                       </Button>
                     )}
                   </td>
@@ -324,16 +324,16 @@ export function AssetTypeManagementTab({
                     key={t.id}
                     className="bmn-table-row group"
                   >
-                    <td className="px-5 py-3.5">
-                      <span className="font-semibold text-xs text-[var(--ds-fg)] flex items-center gap-1.5">
-                        <Box className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
+                    <td className="px-4 py-3">
+                      <span className="font-semibold text-xs text-[var(--ds-fg)] flex items-center gap-2">
+                        <Box className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                         {t.name}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-4 py-3">
                       <span
                         data-status="neutral"
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold"
                       >
                         {t.category_mode === "kendaraan" && <Car className="w-3 h-3" />}
                         {t.category_mode === "tanah" && <Landmark className="w-3 h-3" />}
@@ -342,30 +342,30 @@ export function AssetTypeManagementTab({
                         <span className="capitalize">{t.category_mode}</span>
                       </span>
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-4 py-3">
                       <p className="text-xs text-[var(--ds-fg-muted)] max-w-sm truncate">
                         {t.description || "—"}
                       </p>
                     </td>
-                    <td className="px-5 py-3.5 text-center">
+                    <td className="px-4 py-3 text-center">
                       <span
                         className={cn(
-                          "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold",
+                          "inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold tabular-nums",
                           (t.assets_count || 0) > 0
-                            ? "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border border-[var(--ds-accent-soft-border)] "
-                            : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)]"
+                            ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
+                            : "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]"
                         )}
                       >
                         {t.assets_count || 0}
                       </span>
                     </td>
                     {canManage && (
-                      <td className="px-5 py-3.5 text-center">
+                      <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleOpenEditType(t)}
                             title="Edit Jenis BMN"
-                            className="bmn-icon-action p-1.5 rounded-lg"
+                            className="bmn-icon-action p-2 rounded-lg"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
@@ -378,10 +378,10 @@ export function AssetTypeManagementTab({
                                 : "Hapus Jenis BMN"
                             }
                             className={cn(
-                              "bmn-icon-danger p-1.5 rounded-lg",
+                              "bmn-icon-danger p-2 rounded-lg",
                               (t.assets_count || 0) > 0
-                                ? "text-[var(--ds-fg-muted)]  cursor-not-allowed"
-                                : "bmn-icon-danger "
+                                ? "text-[var(--ds-fg-muted)] cursor-not-allowed"
+                                : "bmn-icon-danger"
                             )}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -409,10 +409,10 @@ export function AssetTypeManagementTab({
 
       {/* DIALOG: CREATE / EDIT JENIS BMN */}
       <Dialog open={isTypeFormOpen} onOpenChange={setIsTypeFormOpen}>
-        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); formTrigger.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl max-h-[90dvh] overflow-y-auto">
+        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); formTrigger.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800 max-h-[90dvh] overflow-y-auto">
           <form onSubmit={handleSubmitType}>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
                 <Box className="w-5 h-5 text-[var(--ds-accent-fg)]" />
                 {editingType ? "Edit Jenis BMN" : "Tambah Jenis BMN Baru"}
               </DialogTitle>
@@ -433,7 +433,7 @@ export function AssetTypeManagementTab({
                   aria-label="Nama Jenis BMN"
                   value={typeName}
                   onChange={(e) => setTypeName(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm uppercase"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm uppercase"
                 />
                 <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
                   Standar penamaan menggunakan huruf kapital (UPPERCASE).
@@ -448,7 +448,7 @@ export function AssetTypeManagementTab({
                   aria-label="Mode Formulir Spesifik"
                   value={typeCategoryMode}
                   onChange={(e) => setTypeCategoryMode(e.target.value as "kendaraan" | "tanah" | "bangunan" | "peralatan")}
-                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm"
                 >
                   <option value="peralatan">Peralatan / Mesin (Non Kendaraan)</option>
                   <option value="kendaraan">Kendaraan (Memerlukan No Polisi, STNK, BPKB)</option>
@@ -470,7 +470,7 @@ export function AssetTypeManagementTab({
                   aria-label="Deskripsi Cakupan"
                   value={typeDescription}
                   onChange={(e) => setTypeDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm"
                 />
               </div>
             </div>
@@ -481,14 +481,14 @@ export function AssetTypeManagementTab({
                 variant="outline"
                 onClick={() => setIsTypeFormOpen(false)}
                 disabled={isSubmittingType}
-                className="rounded-xl"
+                className="rounded-lg"
               >
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmittingType || !typeName.trim()}
-                className="rounded-xl gap-2"
+                className="rounded-lg gap-2"
               >
                 {isSubmittingType ? (
                   <>

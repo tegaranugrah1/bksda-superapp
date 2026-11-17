@@ -24,34 +24,34 @@ export function PortalInfoSidebar({
       {/* WIDGET 1: PENGUMUMAN BALAI */}
       <motion.div
         whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-3"
+        className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs transition-colors space-y-3"
       >
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white border-b border-[#edf3ee] dark:border-slate-800 pb-2">
-          <Megaphone className="w-4 h-4 text-[#1e5433]" />
+        <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)] border-b border-slate-200/70 dark:border-zinc-800 pb-2">
+          <Megaphone className="w-4 h-4 text-[var(--ds-accent-fg)]" />
           <span>Pengumuman Resmi</span>
         </div>
 
         <div className="space-y-3 text-xs">
-          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-[#edf3ee] dark:border-slate-800 transition-colors hover:border-emerald-200">
-            <span className="text-[10px] font-bold text-[#1e5433] dark:text-emerald-300 bg-[#dff0e2] dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-[#dce8dd]">
+          <div className="space-y-1 p-3 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 transition-colors hover:border-[var(--ds-border-control)]">
+            <span className="inline-block text-xs font-bold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-full border border-[var(--ds-accent-soft-border)] tabular-nums">
               DIPA 2026
             </span>
-            <p className="font-semibold text-slate-800 dark:text-slate-200 pt-1">
+            <p className="font-semibold text-[var(--ds-fg)] pt-1">
               Pembaruan Tata Kerja & DIPA TA 2026
             </p>
-            <p className="text-[11px] text-slate-500 line-clamp-2">
+            <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-2 tabular-nums">
               DIPA Balai KSDA Kalimantan Timur Nomor: DIPA-143.04.2.693614/2026 terbit 08 Juli 2026.
             </p>
           </div>
 
-          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-[#edf3ee] dark:border-slate-800 transition-colors hover:border-blue-200">
-            <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-950 px-2 py-0.5 rounded">
+          <div className="space-y-1 p-3 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 transition-colors hover:border-[var(--ds-border-control)]">
+            <span className="inline-block text-xs font-bold text-[var(--ds-status-info-fg)] bg-[var(--ds-status-info-bg)] px-2 py-1 rounded-full border border-[var(--ds-status-info-border)]">
               ASET BMN
             </span>
-            <p className="font-semibold text-slate-800 dark:text-slate-200 pt-1">
+            <p className="font-semibold text-[var(--ds-fg)] pt-1">
               Inventarisasi BMN Berkala
             </p>
-            <p className="text-[11px] text-slate-500 line-clamp-2">
+            <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-2">
               Pelaksanaan opname fisik ATK & BMN di Seksi KSDA Wilayah I Berau dan Seksi Wilayah II Tenggarong.
             </p>
           </div>
@@ -61,29 +61,29 @@ export function PortalInfoSidebar({
       {/* WIDGET 2: PANDUAN LAPORAN SURAT TUGAS */}
       <motion.div
         whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-        className="bg-gradient-to-br from-[#164227] to-[#153e24] text-white rounded-2xl p-4 shadow-xs hover:shadow-md transition-shadow space-y-3 border border-[#164227]"
+        className="bg-linear-to-br from-[#164227] to-[#153e24] text-white rounded-3xl p-4 shadow-xs transition-colors space-y-3 border border-[#164227]"
       >
-        <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+        <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
           <BookOpen className="w-4 h-4" />
           <span>Panduan Laporan ST</span>
         </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          Setiap Surat Tugas wajib dibuatkan Laporan Pelaksanaan paling lambat <span className="text-emerald-400 font-bold">7 hari kerja</span> setelah selesai kegiatan.
+        <p className="text-xs text-slate-200 leading-relaxed tabular-nums">
+          Setiap Surat Tugas wajib dibuatkan Laporan Pelaksanaan paling lambat <span className="text-emerald-300 font-bold">7 hari kerja</span> setelah selesai kegiatan.
         </p>
         <div className="pt-1">
           {onOpenReport ? (
             <button
               type="button"
               onClick={onOpenReport}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:translate-x-1 cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs font-bold text-emerald-300 hover:text-emerald-200 transition-all hover:translate-x-1 cursor-pointer"
             >
               <span>Format Laporan Resmi</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+            <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-300">
               <span>Format Laporan Resmi</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </span>
           )}
         </div>
@@ -92,16 +92,16 @@ export function PortalInfoSidebar({
       {/* WIDGET 3: PUSAT BANTUAN */}
       <motion.div
         whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-[#dce8dd] dark:border-slate-800 p-4 shadow-xs hover:shadow-md transition-shadow space-y-2 text-xs"
+        className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 p-4 shadow-xs transition-colors space-y-2 text-xs"
       >
-        <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-          <HelpCircle className="w-4 h-4 text-[#1e5433] dark:text-emerald-400" />
+        <div className="flex items-center gap-2 font-bold text-[var(--ds-fg)]">
+          <HelpCircle className="w-4 h-4 text-[var(--ds-accent-fg)]" />
           <span>Pusat Bantuan Subbag TU</span>
         </div>
-        <p className="text-slate-500 text-[11px]">
+        <p className="text-[var(--ds-fg-muted)] text-xs">
           Kendala akun, reset password, atau modul akses? Hubungi Admin Subbag Tata Usaha BKSDA Kaltim.
         </p>
-        <p className="text-emerald-700 dark:text-emerald-400 font-mono font-bold text-[11px] pt-1">
+        <p className="text-[var(--ds-accent-fg)] font-mono font-bold text-xs pt-1">
           tu.bksdakaltim@ksdae.go.id
         </p>
       </motion.div>

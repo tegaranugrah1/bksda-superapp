@@ -32,7 +32,7 @@ export function TembusanSection({ items, onChange, disabled = false }: TembusanS
           </p>
         )}
         {items.map((item, idx) => (
-          <div key={idx} className="flex items-center gap-1.5">
+          <div key={idx} className="flex items-center gap-2">
             <span className="text-xs font-bold text-[var(--ds-fg-muted)] w-4">{idx + 1}.</span>
             <input
               value={item ?? ""}
@@ -43,16 +43,16 @@ export function TembusanSection({ items, onChange, disabled = false }: TembusanS
                 onChange(updated);
               }}
               placeholder="Nama penerima tembusan..."
-              className="flex-1 px-3 py-1.5 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-xs outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 px-3 py-2 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-xs outline-none focus:border-[var(--ds-accent-fg)] text-[var(--ds-fg)] disabled:opacity-60 disabled:cursor-not-allowed"
             />
             {!disabled && (
               <button
                 type="button"
                 onClick={() => onChange(items.filter((_, i) => i !== idx))}
                 title="Hapus tembusan"
-                className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] p-1.5 rounded-lg transition-colors cursor-pointer"
+                className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] p-2 rounded-lg transition-colors cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>

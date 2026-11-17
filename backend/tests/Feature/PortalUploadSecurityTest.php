@@ -322,7 +322,8 @@ class PortalUploadSecurityTest extends TestCase
 
     public function test_all_scan_writers_reject_real_mime_extension_spoofs_and_oversize_for_each_field(): void
     {
-        [$admin, $employee] = $this->actor('Dummy Scan Admin', 'admin', ['kepegawaian']);
+        [$admin] = $this->actor('Dummy Scan Admin', 'admin', ['kepegawaian']);
+        [, $employee] = $this->actor('Dummy Scan Target');
         $leave = $this->leave($employee);
         Sanctum::actingAs($admin);
         $cases = [
@@ -351,7 +352,8 @@ class PortalUploadSecurityTest extends TestCase
 
     public function test_all_scan_writers_accept_pdf_and_image_only_in_server_chosen_private_paths(): void
     {
-        [$admin, $employee] = $this->actor('Dummy Successful Scan Admin', 'admin', ['kepegawaian']);
+        [$admin] = $this->actor('Dummy Successful Scan Admin', 'admin', ['kepegawaian']);
+        [, $employee] = $this->actor('Dummy Successful Scan Target');
         Sanctum::actingAs($admin);
         foreach (self::WRITERS as $writer) {
             foreach (self::FIELDS as $field) {

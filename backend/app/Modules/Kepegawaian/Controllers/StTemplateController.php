@@ -21,7 +21,7 @@ class StTemplateController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $includeInactive = in_array($request->user()?->role, ['super_admin', 'admin'], true)
+        $includeInactive = $request->user()?->role === 'super_admin'
             && $request->boolean('include_inactive');
 
         return StTemplateResource::collection(
@@ -32,7 +32,7 @@ class StTemplateController extends Controller
     public function show(Request $request, int $id): StTemplateResource
     {
         $query = StTemplate::with('defaultSigner');
-        if (! in_array($request->user()?->role, ['super_admin', 'admin'], true)) {
+        if ($request->user()?->role !== 'super_admin') {
             $query->where('is_active', true);
         }
 

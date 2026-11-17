@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense, useDeferredValue, useMemo } from "react";
+import React, { useState, useEffect, Suspense, useDeferredValue, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,21 +19,29 @@ import {
   UserCheck,
   ListOrdered,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   Sparkles,
   ChevronDown,
   UserRound,
   Users,
   ClipboardPaste,
+  Table2,
   FileCheck,
   Download,
   FileDown,
   Loader2,
-  AlertCircle,
+  Paperclip,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { formatNipLabel } from "@/lib/letter-utils";
+import {
+  InlineTextFormat,
+  formatNipLabel,
+  handleInlineFormatShortcut,
+  toggleInlineFormat,
+} from "@/lib/letter-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,30 +53,135 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   SuratDinasDocument,
   SuratDinasData,
   PersonItem,
   TemplateType,
-  DEFAULT_SURAT_DINAS_DATA,
+  ParagrafItem,
+  ParagrafRincianRow,
+  ParagrafTableBlock,
+  LampiranOrientation,
+  LampiranPageData,
   getDefaultDataForTemplate,
   getDefaultNomorForTemplate,
   getDefaultNomorPrefix,
+  getDefaultLampiranHeaderTitle,
+  createDefaultLampiranPage,
   handlePrintSuratDinas,
   getTodayIndoDate,
   formatIsoDateToIndo,
-  getDefaultNomorSurat,
   parseYthList,
   formatYthList,
   detectPointLevel,
-  getPointLevelClassName,
-  parseRawDocumentText,
   splitPointMarkerAndText,
+  parseRawDocumentText,
   getNextMarkerForSection,
   reindexParagraphMarkers,
-  PointLevel,
+  isRincianBlock,
+  createDefaultRincianBlock,
+  isTableBlock,
+  createDefaultTableBlock,
+  isTableSectionRow,
+  getTableRowCellsAndSpans,
+  updateTableDataCell,
+  mergeTableCellRight,
+  splitTableCell,
+  addTableColumnToRow,
+  removeTableColumnFromRow,
+  rebalanceColWidthsOnAdd,
+  rebalanceColWidthsOnRemove,
+  parseDelimitedTableText,
+  getPrevTextPointLevel,
+  isNoColumnHeader,
+  migrateLegacyUndanganPayload,
+  InlineFormatButtons,
+  InlineFormatTarget,
 } from "../../_components/SuratDinasDocument";
+import { TabelBlockEditor } from "../../_components/TabelBlockEditor";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
 import { exportSuratDinasWord, exportSuratDinasPdf } from "../../_lib/export-surat-dinas";
+
+const RINCIAN_QUICK_PRESETS = [
+  "Hari/Tanggal",
+  "Waktu",
+  "Tempat",
+  "Agenda",
+  "Pakaian",
+  "Narahubung",
+] as const;
+
+const LEVEL_SWITCH_CONTROLS: {
+  level: "romanUpper" | "letterUpper" | "num" | "letter" | "roman" | "bracket" | "plain";
+  label: string;
+  title: string;
+  isActive: (lvl: number, text: string) => boolean;
+  activeClass: string;
+  hoverClass: string;
+}[] = [
+  {
+    level: "romanUpper",
+    label: "I.",
+    title: "Jadikan Bab Romawi I. (Huruf Besar Tebal)",
+    isActive: (lvl) => lvl === 5,
+    activeClass: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-700 font-bold",
+    hoverClass: "hover:border-blue-300 dark:hover:border-blue-700",
+  },
+  {
+    level: "letterUpper",
+    label: "A.",
+    title: "Jadikan Sub-Bab Kapital A. (Tebal)",
+    isActive: (lvl) => lvl === 6,
+    activeClass: "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950/60 dark:text-teal-200 dark:border-teal-700 font-bold",
+    hoverClass: "hover:border-teal-300 dark:hover:border-teal-700",
+  },
+  {
+    level: "num",
+    label: "1.",
+    title: "Jadikan Poin 1.",
+    isActive: (lvl) => lvl === 1,
+    activeClass: "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] font-bold",
+    hoverClass: "hover:border-[var(--ds-accent-soft-border)]",
+  },
+  {
+    level: "letter",
+    label: "a.",
+    title: "Jadikan Sub-Poin a.",
+    isActive: (lvl) => lvl === 2,
+    activeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-bold",
+    hoverClass: "hover:border-amber-300 dark:hover:border-amber-700",
+  },
+  {
+    level: "roman",
+    label: "i.",
+    title: "Jadikan Romawi i.",
+    isActive: (lvl, text) => lvl === 3 && /^(?:i{1,3}|iv|v)\./i.test(text.trim()),
+    activeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-bold",
+    hoverClass: "hover:border-amber-300 dark:hover:border-amber-700",
+  },
+  {
+    level: "bracket",
+    label: "1)",
+    title: "Jadikan Kurung 1)",
+    isActive: (lvl, text) => lvl === 3 && /^[0-9]+\)/.test(text.trim()),
+    activeClass: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700 font-bold",
+    hoverClass: "hover:border-blue-300 dark:hover:border-blue-700",
+  },
+  {
+    level: "plain",
+    label: "Teks",
+    title: "Jadikan Teks Biasa (Hapus Prefix)",
+    isActive: (lvl) => lvl === 0,
+    activeClass: "bg-zinc-200 text-zinc-800 border-zinc-300 dark:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-600 font-bold",
+    hoverClass: "hover:border-zinc-400 dark:hover:border-zinc-500",
+  },
+];
 
 interface PartySelectorBlockProps {
   label: string;
@@ -113,20 +226,20 @@ function PartySelectorBlock({
   };
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
+    <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-[var(--ds-surface-muted)] space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-200">
-          <UserRound className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+        <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)]">
+          <UserRound className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
           {label}
         </div>
-        <div className="flex rounded-lg border border-zinc-200 p-0.5 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+        <div className="flex rounded-lg border border-slate-200/80 dark:border-zinc-800 p-1 bg-[var(--ds-surface)]">
           <button
             type="button"
             onClick={() => handleTypeChange("internal")}
-            className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+            className={`px-2 py-1 rounded-lg text-xs font-semibold transition ${
               currentPartyType === "internal"
-                ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
             }`}
           >
             Pegawai (NIP)
@@ -134,10 +247,10 @@ function PartySelectorBlock({
           <button
             type="button"
             onClick={() => handleTypeChange("external")}
-            className={`px-2 py-0.5 rounded-md text-[11px] font-semibold transition ${
+            className={`px-2 py-1 rounded-lg text-xs font-semibold transition ${
               currentPartyType === "external"
-                ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
             }`}
           >
             Pihak Luar (NIK)
@@ -150,7 +263,7 @@ function PartySelectorBlock({
           <select
             onChange={(e) => handleSelectEmployee(e.target.value)}
             defaultValue=""
-            className="w-full text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-zinc-800 dark:text-zinc-200"
+            className="w-full text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
           >
             <option value="">-- Pilih dari Database Pegawai --</option>
             {employeeOptions?.map((emp: any) => {
@@ -167,25 +280,25 @@ function PartySelectorBlock({
         </div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Input
           value={party?.nama || ""}
           onChange={(e) => onChange({ ...(party || {} as PersonItem), nama: e.target.value })}
           placeholder="Nama Lengkap"
-          className="h-8 text-xs bg-white dark:bg-zinc-950"
+          className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
         />
         <div className="grid grid-cols-2 gap-2">
           <Input
             value={party?.nip || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), nip: e.target.value })}
             placeholder={currentPartyType === "external" ? "NIK (16 digit)" : "NIP (18 digit)"}
-            className="h-8 text-xs bg-white dark:bg-zinc-950 font-mono"
+            className="h-8 text-xs bg-[var(--ds-surface)] font-mono rounded-lg"
           />
           <Input
             value={party?.jabatan || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), jabatan: e.target.value })}
             placeholder={currentPartyType === "external" ? "Jabatan / Instansi" : "Jabatan Kedinasan"}
-            className="h-8 text-xs bg-white dark:bg-zinc-950"
+            className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
           />
         </div>
         {showAddress && (
@@ -193,7 +306,7 @@ function PartySelectorBlock({
             value={party?.alamat || ""}
             onChange={(e) => onChange({ ...(party || {} as PersonItem), alamat: e.target.value })}
             placeholder="Alamat Domisili / Instansi"
-            className="h-8 text-xs bg-white dark:bg-zinc-950"
+            className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
           />
         )}
       </div>
@@ -290,6 +403,8 @@ function GenerateSuratDinasContent() {
   const deferredData = useDeferredValue(data);
   const activeTemplate = data.templateType || templateParam || "surat_dinas";
 
+  type EditorTab = "main" | "lampiran";
+  const [editorTab, setEditorTab] = useState<EditorTab>("main");
   const [editingSuratKeluarId, setEditingSuratKeluarId] = useState<string | null>(idParam);
   const [editingSuratKeluarStatus, setEditingSuratKeluarStatus] = useState<string>("terdaftar");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -297,7 +412,51 @@ function GenerateSuratDinasContent() {
   const [isPickerModalOpen, setIsPickerModalOpen] = useState(false);
   const [showSmartPaste, setShowSmartPaste] = useState(false);
   const [smartPasteText, setSmartPasteText] = useState("");
+  const [expandedTableTarget, setExpandedTableTarget] = useState<{ scope: EditorTab; idx: number } | null>(null);
   const [isExporting, setIsExporting] = useState<"word" | "pdf" | null>(null);
+
+  type FormatSection = "perihal" | "yth" | "body" | "tembusan" | "lampiranHeader" | "lampiranTitle";
+  const formatTargetsRef = useRef<Partial<Record<FormatSection, InlineFormatTarget>>>({});
+  const sectionContainerRefs = useRef<Partial<Record<FormatSection, HTMLElement | null>>>({});
+
+  const registerSectionTarget = React.useCallback(
+    (
+      section: FormatSection,
+      el: HTMLInputElement | HTMLTextAreaElement,
+      apply: (nextVal: string) => void
+    ) => {
+      formatTargetsRef.current[section] = { el, apply };
+    },
+    []
+  );
+
+  const bindSectionFormat = (section: FormatSection, onApply: (nextVal: string) => void) => ({
+    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      registerSectionTarget(section, e.currentTarget, onApply);
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      handleInlineFormatShortcut(e, e.currentTarget.value, onApply);
+    },
+  });
+
+  const triggerSectionFormat = (section: FormatSection, format: InlineTextFormat) => {
+    let target = formatTargetsRef.current[section];
+    if (!target || !target.el.isConnected) {
+      const container = sectionContainerRefs.current[section];
+      const firstInput = container?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+        "textarea, input[type='text'], input:not([type])"
+      );
+      if (firstInput) {
+        firstInput.focus();
+        target = formatTargetsRef.current[section];
+      }
+    }
+    if (!target || !target.el.isConnected) {
+      toast.info("Klik kolom teks pada bagian tersebut terlebih dahulu.");
+      return;
+    }
+    toggleInlineFormat(target.el, target.el.value, format, target.apply);
+  };
 
   const handleExportWord = async () => {
     try {
@@ -397,15 +556,24 @@ function GenerateSuratDinasContent() {
           if (item.document_payload) {
             const loadedTemplate = (item.document_payload.templateType || item.template_type || templateParam) as TemplateType;
             const defData = getDefaultDataForTemplate(loadedTemplate);
-            setData({
-              ...defData,
-              ...item.document_payload,
-              paragraf: Array.isArray(item.document_payload.paragraf) ? item.document_payload.paragraf : (defData.paragraf || []),
-              tembusan: Array.isArray(item.document_payload.tembusan) ? item.document_payload.tembusan : (defData.tembusan || []),
-              ythList: Array.isArray(item.document_payload.ythList)
-                ? item.document_payload.ythList
-                : parseYthList(item.document_payload.yth || defData.yth),
-            });
+            const rawLampiran = item.document_payload.lampiranPage;
+            const normalizedLampiran =
+              rawLampiran && rawLampiran.enabled
+                ? createDefaultLampiranPage(loadedTemplate, rawLampiran)
+                : undefined;
+            setData(
+              migrateLegacyUndanganPayload({
+                ...defData,
+                ...item.document_payload,
+                templateType: loadedTemplate,
+                paragraf: Array.isArray(item.document_payload.paragraf) ? item.document_payload.paragraf : (defData.paragraf || []),
+                tembusan: Array.isArray(item.document_payload.tembusan) ? item.document_payload.tembusan : (defData.tembusan || []),
+                ythList: Array.isArray(item.document_payload.ythList)
+                  ? item.document_payload.ythList
+                  : parseYthList(item.document_payload.yth || defData.yth),
+                lampiranPage: normalizedLampiran,
+              })
+            );
           } else {
             const loadedTemplate = (item.template_type as TemplateType) || templateParam || "surat_dinas";
             const defData = getDefaultDataForTemplate(loadedTemplate);
@@ -444,6 +612,7 @@ function GenerateSuratDinasContent() {
   // Switch template
   const handleSwitchTemplate = (newTpl: TemplateType) => {
     if (newTpl === activeTemplate) return;
+    setExpandedTableTarget(null);
     const newData = getDefaultDataForTemplate(newTpl);
     setData(newData);
     const newUrl = editingSuratKeluarId
@@ -451,6 +620,95 @@ function GenerateSuratDinasContent() {
       : `/surat/keluar/dinas?template=${newTpl}`;
     window.history.replaceState(null, "", newUrl);
     toast.info(`Format dialihkan ke: ${newTpl.replace("_", " ").toUpperCase()}`);
+  };
+
+  const hasLampiran = Boolean(data.lampiranPage?.enabled);
+  const lampiranData = data.lampiranPage;
+  const defaultLampiranTitle = getDefaultLampiranHeaderTitle(activeTemplate);
+
+  const handleSwitchEditorTab = (tab: EditorTab) => {
+    setEditorTab(tab);
+    setShowSmartPaste(false);
+    formatTargetsRef.current.body = undefined;
+    if (tab === "lampiran" && data.lampiranPage?.enabled) {
+      requestAnimationFrame(() => {
+        document.querySelector(".pkpknl-lampiran-page")?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      });
+    }
+  };
+
+  const updateLampiranField = <K extends keyof LampiranPageData>(
+    field: K,
+    value: LampiranPageData[K]
+  ) => {
+    setData((prev) => ({
+      ...prev,
+      lampiranPage: {
+        ...createDefaultLampiranPage(prev.templateType || activeTemplate, prev.lampiranPage),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleAddLampiran = () => {
+    setData((prev) => {
+      const tpl = prev.templateType || activeTemplate;
+      const currentLamp = prev.lampiran?.trim() ?? "";
+      const nextLampiranMeta = !currentLamp || currentLamp === "-" ? "1 Berkas" : prev.lampiran;
+      return {
+        ...prev,
+        lampiran: nextLampiranMeta,
+        lampiranPage: createDefaultLampiranPage(
+          tpl,
+          prev.lampiranPage ? { ...prev.lampiranPage, enabled: true } : undefined
+        ),
+      };
+    });
+    setEditorTab("lampiran");
+    requestAnimationFrame(() => {
+      document.querySelector(".pkpknl-lampiran-page")?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  };
+
+  const handleRemoveLampiran = () => {
+    setExpandedTableTarget((cur) => (cur?.scope === "lampiran" ? null : cur));
+    setShowSmartPaste(false);
+    setData((prev) => {
+      const next = { ...prev };
+      delete next.lampiranPage;
+      return next;
+    });
+  };
+
+  const updateParagrafByScope = (
+    scope: EditorTab,
+    updater: (list: ParagrafItem[]) => ParagrafItem[]
+  ) => {
+    setData((prev) => {
+      if (scope === "lampiran") {
+        const currentLampiran = createDefaultLampiranPage(
+          prev.templateType || activeTemplate,
+          prev.lampiranPage
+        );
+        return {
+          ...prev,
+          lampiranPage: {
+            ...currentLampiran,
+            paragraf: updater([...(currentLampiran.paragraf || [])]),
+          },
+        };
+      }
+      return {
+        ...prev,
+        paragraf: updater([...(prev.paragraf || [])]),
+      };
+    });
   };
 
   const handleSelectEmployee = (empId: string) => {
@@ -471,66 +729,301 @@ function GenerateSuratDinasContent() {
     toast.success(`Pejabat penandatangan dipilih: ${empName}`);
   };
 
+  const resolveInsertIndex = (list: ParagrafItem[], atIndex?: number, scope: EditorTab = "main") => {
+    if (atIndex !== undefined) return atIndex;
+    if (scope === "lampiran") return list.length;
+    const lastItem = list[list.length - 1];
+    const endsWithClosingText =
+      typeof lastItem === "string" && detectPointLevel(lastItem) === 0 && list.length > 1;
+    return endsWithClosingText ? list.length - 1 : list.length;
+  };
+
   // Ponytail unified helper: Tambah / sisipkan butir dengan auto-scroll dan auto-focus
   const handleInsertPoint = (
-    type: "plain" | "num" | "letter" | "roman" | "bracket",
-    atIndex?: number
+    type: "plain" | "romanUpper" | "letterUpper" | "num" | "letter" | "roman" | "bracket" | "rincian" | "table",
+    atIndex?: number,
+    scope: EditorTab = editorTab
   ) => {
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
-      let insertAt = atIndex;
-      if (insertAt === undefined) {
-        // Ponytail: Sisipkan di sebelum penutup jika paragraf terakhir adalah teks penutup biasa (Level 0)
-        const lastItem = list[list.length - 1] || "";
-        const lastLvl = detectPointLevel(lastItem);
-        insertAt = lastLvl === 0 && list.length > 1 ? list.length - 1 : list.length;
-      }
-      const marker = type === "plain" ? "" : getNextMarkerForSection(list, insertAt, type);
-      list.splice(insertAt, 0, marker);
-      return { ...prev, paragraf: reindexParagraphMarkers(list) };
+    let resolvedIdx = atIndex ?? 0;
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, (list) => {
+      const insertAt = resolveInsertIndex(list, atIndex, scope);
+      resolvedIdx = insertAt;
+      const newItem: ParagrafItem =
+        type === "rincian"
+          ? createDefaultRincianBlock()
+          : type === "table"
+          ? createDefaultTableBlock()
+          : type === "plain"
+          ? ""
+          : getNextMarkerForSection(list, insertAt, type);
+      list.splice(insertAt, 0, newItem);
+      return reindexParagraphMarkers(list);
     });
     setTimeout(() => {
-      const textareas = document.querySelectorAll<HTMLTextAreaElement>(".paragraf-textarea");
-      const targetIdx = atIndex !== undefined ? atIndex : Math.max(0, textareas.length - 2);
-      const target = textareas[targetIdx];
+      const target = document.querySelector<HTMLTextAreaElement | HTMLInputElement>(
+        `[data-paragraf-focus="${resolvedIdx}"]`
+      );
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.focus();
-        const len = target.value.length;
-        target.setSelectionRange(len, len);
+        if ("setSelectionRange" in target) {
+          const len = target.value.length;
+          target.setSelectionRange(len, len);
+        }
       }
     }, 60);
   };
 
-  const handleAddParagraph = () => handleInsertPoint("plain");
-  const handleAddPoint = () => handleInsertPoint("num");
-  const handleAddSubPointLetter = () => handleInsertPoint("letter");
-  const handleAddSubPointRoman = () => handleInsertPoint("roman");
-  const handleAddSubPointBracket = () => handleInsertPoint("bracket");
-
   // Ubah Level Poin pada Baris Tertentu
-  const handleChangeParagraphLevel = (index: number, targetType: "plain" | "num" | "letter" | "roman" | "bracket") => {
-    setData((prev) => {
-      const list = [...(prev.paragraf || [])];
-      const current = list[index] || "";
-      const cleaned = current
-        .replace(/^(?:[0-9]+[.)]|[a-z][.)]|(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.)\s*/i, "")
-        .trim();
+  const handleChangeParagraphLevel = (
+    index: number,
+    targetType: "plain" | "romanUpper" | "letterUpper" | "num" | "letter" | "roman" | "bracket",
+    scope: EditorTab = editorTab
+  ) => {
+    updateParagrafByScope(scope, (list) => {
+      const current = list[index];
+      if (typeof current !== "string") return list;
+      const cleaned = splitPointMarkerAndText(current).content.trim();
 
-      let prefix = "";
-      if (targetType === "plain") {
-        prefix = "";
-      } else {
-        prefix = getNextMarkerForSection(list, index, targetType);
-      }
+      const prefix = targetType === "plain" ? "" : getNextMarkerForSection(list, index, targetType);
 
       list[index] = prefix + cleaned;
-      return { ...prev, paragraf: reindexParagraphMarkers(list) };
+      return reindexParagraphMarkers(list);
     });
   };
 
+  const handleMoveParagraph = (index: number, direction: -1 | 1, scope: EditorTab = editorTab) => {
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, (list) => {
+      const target = index + direction;
+      if (target < 0 || target >= list.length) return list;
+      [list[index], list[target]] = [list[target], list[index]];
+      return reindexParagraphMarkers(list);
+    });
+  };
+
+  const updateRincianItems = (
+    blockIndex: number,
+    updater: (items: ParagrafRincianRow[]) => ParagrafRincianRow[],
+    scope: EditorTab = editorTab
+  ) => {
+    updateParagrafByScope(scope, (list) =>
+      list.map((p, i) => (i === blockIndex && isRincianBlock(p) ? { ...p, items: updater(p.items) } : p))
+    );
+  };
+
+  const handleUpdateRincianRow = (
+    blockIndex: number,
+    rowIndex: number,
+    field: keyof ParagrafRincianRow,
+    val: string,
+    scope: EditorTab = editorTab
+  ) => {
+    updateRincianItems(
+      blockIndex,
+      (items) => items.map((row, rIdx) => (rIdx === rowIndex ? { ...row, [field]: val } : row)),
+      scope
+    );
+  };
+
+  const handleAddRincianRow = (blockIndex: number, presetLabel = "", scope: EditorTab = editorTab) => {
+    updateRincianItems(blockIndex, (items) => [...items, { label: presetLabel, value: "" }], scope);
+  };
+
+  const handleRemoveRincianRow = (blockIndex: number, rowIndex: number, scope: EditorTab = editorTab) => {
+    updateRincianItems(
+      blockIndex,
+      (items) => (items.length > 1 ? items.filter((_, rIdx) => rIdx !== rowIndex) : items),
+      scope
+    );
+  };
+
+  const updateTableBlock = (
+    blockIndex: number,
+    updater: (block: ParagrafTableBlock) => ParagrafTableBlock,
+    scope: EditorTab = editorTab
+  ) => {
+    updateParagrafByScope(scope, (list) =>
+      list.map((p, i) => (i === blockIndex && isTableBlock(p) ? updater(p) : p))
+    );
+  };
+
+  const handleUpdateTableHeader = (blockIndex: number, colIndex: number, val: string, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      headers: block.headers.map((h, i) => (i === colIndex ? val : h)),
+    }), scope);
+  };
+
+  const handleUpdateTableCell = (
+    blockIndex: number,
+    rowIndex: number,
+    colIndex: number,
+    val: string,
+    scope: EditorTab = editorTab
+  ) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      rows: block.rows.map((row, rIdx) =>
+        rIdx === rowIndex ? updateTableDataCell(row, block.headers.length, colIndex, val) : row
+      ),
+    }), scope);
+  };
+
+  const handleUpdateTableSectionRow = (blockIndex: number, rowIndex: number, val: string, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      rows: block.rows.map((row, rIdx) =>
+        rIdx === rowIndex ? { kind: "section", text: val } : row
+      ),
+    }), scope);
+  };
+
+  const handleAddTableRow = (blockIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => {
+      const dataCount = block.rows.filter((r) => !isTableSectionRow(r)).length;
+      const nextNo = String(dataCount + 1);
+      const newRow = block.headers.map((h, cIdx) =>
+        cIdx === 0 && isNoColumnHeader(h) ? nextNo : ""
+      );
+      return { ...block, rows: [...block.rows, newRow] };
+    }, scope);
+  };
+
+  const handleAddTableSectionRow = (blockIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      rows: [...block.rows, { kind: "section", text: "" }],
+    }), scope);
+  };
+
+  const handleMoveTableRow = (blockIndex: number, rowIndex: number, direction: -1 | 1, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => {
+      const target = rowIndex + direction;
+      if (target < 0 || target >= block.rows.length) return block;
+      const nextRows = [...block.rows];
+      [nextRows[rowIndex], nextRows[target]] = [nextRows[target], nextRows[rowIndex]];
+      return { ...block, rows: nextRows };
+    }, scope);
+  };
+
+  const handleRemoveTableRow = (blockIndex: number, rowIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => {
+      if (block.rows.length <= 1) return block;
+      const filtered = block.rows.filter((_, rIdx) => rIdx !== rowIndex);
+      const hasAutoNo = block.headers.length > 0 && isNoColumnHeader(block.headers[0]);
+      const dataOnly = filtered.filter((r) => !isTableSectionRow(r));
+      const allNumeric =
+        hasAutoNo &&
+        dataOnly.every((r) => {
+          const { cells, spans } = getTableRowCellsAndSpans(r, block.headers.length);
+          return spans[0] === 1 && /^\d*$/.test((cells[0] ?? "").trim());
+        });
+      if (!allNumeric) return { ...block, rows: filtered };
+      let seq = 0;
+      const normalized = filtered.map((r) => {
+        if (isTableSectionRow(r)) return r;
+        seq++;
+        return updateTableDataCell(r, block.headers.length, 0, String(seq));
+      });
+      return { ...block, rows: normalized };
+    }, scope);
+  };
+
+  const handleMergeTableCellRight = (blockIndex: number, rowIndex: number, colIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => mergeTableCellRight(block, rowIndex, colIndex), scope);
+  };
+
+  const handleSplitTableCell = (blockIndex: number, rowIndex: number, colIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => splitTableCell(block, rowIndex, colIndex), scope);
+  };
+
+  const handleAddTableCol = (blockIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      headers: [...block.headers, `Kolom ${block.headers.length + 1}`],
+      rows: block.rows.map((row) => addTableColumnToRow(row, block.headers.length)),
+      colWidths: rebalanceColWidthsOnAdd(block.colWidths, block.headers),
+    }), scope);
+  };
+
+  const handleRemoveTableCol = (blockIndex: number, colIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => {
+      if (block.headers.length <= 1) return block;
+      return {
+        ...block,
+        headers: block.headers.filter((_, i) => i !== colIndex),
+        rows: block.rows.map((row) => removeTableColumnFromRow(row, colIndex, block.headers.length)),
+        colWidths: rebalanceColWidthsOnRemove(block.colWidths, colIndex, block.headers),
+      };
+    }, scope);
+  };
+
+  const handleToggleTableColumnNumbers = (blockIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      showColumnNumbers: !block.showColumnNumbers,
+    }), scope);
+  };
+
+  const handleChangeTableColWidths = (blockIndex: number, widths: number[], scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => ({
+      ...block,
+      colWidths: widths,
+    }), scope);
+  };
+
+  const handleResetTableColWidths = (blockIndex: number, scope: EditorTab = editorTab) => {
+    updateTableBlock(blockIndex, (block) => {
+      const next = { ...block };
+      delete next.colWidths;
+      return next;
+    }, scope);
+  };
+
+  const handleApplyTablePaste = (blockIndex: number, rawText: string, firstRowHeader: boolean, scope: EditorTab = editorTab): boolean => {
+    const parsed = parseDelimitedTableText(rawText, firstRowHeader);
+    if (!parsed) {
+      toast.error("Format tabel tidak dikenali. Tempel minimal 2 kolom yang dipisah Tab (Excel/Word) atau '|'.");
+      return false;
+    }
+    updateTableBlock(blockIndex, (prev) => ({
+      ...parsed,
+      showColumnNumbers: prev.showColumnNumbers,
+      colWidths:
+        prev.colWidths && prev.colWidths.length === parsed.headers.length
+          ? prev.colWidths
+          : undefined,
+    }), scope);
+    toast.success(`Tabel diperbarui (${parsed.headers.length} kolom, ${parsed.rows.length} baris).`);
+    return true;
+  };
+
+  const buildTableEditorProps = (blockIdx: number, scope: EditorTab = editorTab) => ({
+    blockIdx,
+    onUpdateHeader: (cIdx: number, val: string) => handleUpdateTableHeader(blockIdx, cIdx, val, scope),
+    onUpdateCell: (rIdx: number, cIdx: number, val: string) => handleUpdateTableCell(blockIdx, rIdx, cIdx, val, scope),
+    onUpdateSectionRow: (rIdx: number, val: string) => handleUpdateTableSectionRow(blockIdx, rIdx, val, scope),
+    onAddRow: () => handleAddTableRow(blockIdx, scope),
+    onAddSectionRow: () => handleAddTableSectionRow(blockIdx, scope),
+    onMoveRow: (rIdx: number, dir: -1 | 1) => handleMoveTableRow(blockIdx, rIdx, dir, scope),
+    onRemoveRow: (rIdx: number) => handleRemoveTableRow(blockIdx, rIdx, scope),
+    onMergeRight: (rIdx: number, cIdx: number) => handleMergeTableCellRight(blockIdx, rIdx, cIdx, scope),
+    onSplitCell: (rIdx: number, cIdx: number) => handleSplitTableCell(blockIdx, rIdx, cIdx, scope),
+    onAddCol: () => handleAddTableCol(blockIdx, scope),
+    onRemoveCol: (cIdx: number) => handleRemoveTableCol(blockIdx, cIdx, scope),
+    onToggleColumnNumbers: () => handleToggleTableColumnNumbers(blockIdx, scope),
+    onChangeColWidths: (widths: number[]) => handleChangeTableColWidths(blockIdx, widths, scope),
+    onResetColWidths: () => handleResetTableColWidths(blockIdx, scope),
+    onApplyPaste: (raw: string, firstRowHeader: boolean) => handleApplyTablePaste(blockIdx, raw, firstRowHeader, scope),
+    onRegisterFormatTarget: (target: InlineFormatTarget) => {
+      formatTargetsRef.current.body = target;
+    },
+  });
+
   // Terapkan Salin-Tempel Teks Utuh
-  const handleApplySmartPaste = (rawTextToApply?: string) => {
+  const handleApplySmartPaste = (rawTextToApply?: string, scope: EditorTab = editorTab) => {
     const text = rawTextToApply || smartPasteText;
     if (!text.trim()) {
       toast.error("Teks naskah dinas masih kosong.");
@@ -541,47 +1034,23 @@ function GenerateSuratDinasContent() {
       toast.error("Gagal memecah teks menjadi paragraf.");
       return;
     }
-    setData((prev) => ({
-      ...prev,
-      paragraf: reindexParagraphMarkers(parsed),
-    }));
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, () => reindexParagraphMarkers(parsed));
     setShowSmartPaste(false);
     setSmartPasteText("");
-    toast.success(`Berhasil menerapkan ${parsed.length} butir paragraf ke naskah dinas!`);
+    toast.success(`Berhasil menerapkan ${parsed.length} butir paragraf ke ${scope === "lampiran" ? "halaman lampiran" : "naskah dinas"}!`);
   };
 
-  const handleRemoveParagraph = (index: number) => {
-    setData((prev) => {
-      const p = prev.paragraf || [];
+  const handleRemoveParagraph = (index: number, scope: EditorTab = editorTab) => {
+    setExpandedTableTarget(null);
+    updateParagrafByScope(scope, (p) => {
       const updated = p.length > 1 ? p.filter((_, i) => i !== index) : p;
-      return {
-        ...prev,
-        paragraf: reindexParagraphMarkers(updated),
-      };
+      return reindexParagraphMarkers(updated);
     });
   };
 
-  const handleParagraphChange = (index: number, val: string) => {
-    setData((prev) => ({
-      ...prev,
-      paragraf: (prev.paragraf || []).map((p, i) => (i === index ? val : p)),
-    }));
-  };
-
-  // Berita Acara Poin management
-  const handleAddPoinBeritaAcara = () => {
-    setData((prev) => ({ ...prev, poinBeritaAcara: [...(prev.poinBeritaAcara || []), ""] }));
-  };
-
-  const handleRemovePoinBeritaAcara = (idx: number) => {
-    setData((prev) => ({ ...prev, poinBeritaAcara: (prev.poinBeritaAcara || []).filter((_, i) => i !== idx) }));
-  };
-
-  const handlePoinBeritaAcaraChange = (idx: number, val: string) => {
-    setData((prev) => ({
-      ...prev,
-      poinBeritaAcara: (prev.poinBeritaAcara || []).map((p, i) => (i === idx ? val : p)),
-    }));
+  const handleParagraphChange = (index: number, val: string, scope: EditorTab = editorTab) => {
+    updateParagrafByScope(scope, (list) => list.map((p, i) => (i === index ? val : p)));
   };
 
   // Surat Pengantar row management
@@ -753,6 +1222,8 @@ function GenerateSuratDinasContent() {
   const handleCreateNew = () => {
     setEditingSuratKeluarId(null);
     setEditingSuratKeluarStatus("terdaftar");
+    setExpandedTableTarget(null);
+    setEditorTab("main");
     window.history.replaceState(null, "", `/surat/keluar/dinas?template=${activeTemplate}`);
     setData(getDefaultDataForTemplate(activeTemplate));
     toast.info(`Membuat ${activeTemplate.replace("_", " ")} baru.`);
@@ -760,6 +1231,7 @@ function GenerateSuratDinasContent() {
 
   // Blank form
   const handleBlankForm = () => {
+    setExpandedTableTarget(null);
     setData((prev) => ({
       ...prev,
       nomor: getDefaultNomorForTemplate(activeTemplate),
@@ -774,71 +1246,699 @@ function GenerateSuratDinasContent() {
       dari: "",
       paragraf: [""],
       tembusan: [],
+      lampiranPage: undefined,
     }));
     toast.info("Form telah dikosongkan.");
   };
 
   // Reset template
   const handleResetTemplate = () => {
+    setExpandedTableTarget(null);
     setData(getDefaultDataForTemplate(activeTemplate));
     toast.info(`Template di-reset ke format baku ${activeTemplate.replace("_", " ").toUpperCase()}.`);
   };
 
   const activeTabMeta = ALL_TEMPLATES.find((t) => t.id === activeTemplate) || ALL_TEMPLATES[0];
 
-  return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100">
-      {/* Top Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
-        <div className="flex items-center gap-3">
-          <Link href="/surat/keluar">
-            <Button variant="outline" size="sm" className="h-9 w-9 p-0 rounded-xl" title="Kembali ke Daftar Surat Keluar">
-              <ArrowLeft className="h-4 w-4" />
+  const renderParagrafBlocksCard = (scope: EditorTab, cardTitle: string) => {
+    const pList = scope === "lampiran" ? lampiranData?.paragraf || [] : data.paragraf || [];
+    const isMainScope = scope === "main";
+    const labelContext = isMainScope ? "Batang Tubuh" : "Isi Lampiran";
+
+    return (
+      <div
+        className={cn(
+          "rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-0 shadow-xs",
+          !isMainScope && "lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto"
+        )}
+      >
+        {/* Sticky Top Toolbar */}
+        <div
+          className={cn(
+            "sticky z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md p-4 rounded-t-3xl border-b border-slate-200/70 dark:border-zinc-800 flex flex-col gap-2",
+            isMainScope ? "top-2" : "top-2 lg:top-0"
+          )}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+              <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+              {cardTitle}
+            </h2>
+            <InlineFormatButtons
+              compact
+              labelContext={labelContext}
+              onTrigger={(f) => triggerSectionFormat("body", f)}
+            />
+          </div>
+          <div className="flex items-center flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("plain", undefined, scope)}
+              className="kpg-secondary h-7 text-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah paragraf biasa ke akhir"
+            >
+              <Plus className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
+              Paragraf
             </Button>
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center">
-                <activeTabMeta.icon className="w-4 h-4" />
-              </div>
-              <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                {editingSuratKeluarId ? `Edit ${activeTabMeta.name}` : `Buat ${activeTabMeta.name}`}
-              </h1>
-              {editingSuratKeluarId ? (
-                <div className="flex items-center gap-1.5">
-                  <Badge variant="outline" className="text-[10px] uppercase font-semibold text-blue-600 border-blue-300 bg-blue-50/50">
-                    Mode Edit: #{editingSuratKeluarId}
-                  </Badge>
-                  {editingSuratKeluarStatus === "draft" ? (
-                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-amber-700 border-amber-300 bg-amber-50">
-                      Draft
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-[10px] uppercase font-semibold text-emerald-700 border-emerald-300 bg-emerald-50">
-                      Terdaftar
-                    </Badge>
-                  )}
-                </div>
-              ) : (
-                <Badge variant="outline" className="text-[10px] uppercase font-semibold text-emerald-600 border-emerald-300">
-                  Permen Kehutanan 1/2025 (Hal. {activeTabMeta.hal})
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Generator naskah dinas resmi BKSDA Kalimantan Timur dengan pratinjau A4 presisi cetak.
-            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("romanUpper", undefined, scope)}
+              className="h-7 text-xs border-blue-300 text-blue-800 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-200 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-bold rounded-lg"
+              title="Tambah Bab Romawi Besar (I., II., III., ...) tebal ke akhir"
+            >
+              + Bab I.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("letterUpper", undefined, scope)}
+              className="h-7 text-xs border-teal-300 text-teal-800 bg-teal-50/80 hover:bg-teal-100 dark:border-teal-700/80 dark:text-teal-200 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 shadow-xs p-1 px-2 gap-1 font-bold rounded-lg"
+              title="Tambah Sub-Bab Huruf Kapital (A., B., C., ...) tebal ke akhir"
+            >
+              + Sub A.
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => handleInsertPoint("num", undefined, scope)}
+              className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
+            >
+              <ListOrdered className="w-3.5 h-3.5 text-[color:var(--ds-accent-on-solid)]/80" />
+              + Poin 1.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("letter", undefined, scope)}
+              className="h-7 text-xs border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/30 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
+            >
+              + Sub a.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("roman", undefined, scope)}
+              className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/80 hover:bg-amber-100 dark:border-amber-700/80 dark:text-amber-300 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
+            >
+              + Butir i.
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("bracket", undefined, scope)}
+              className="h-7 text-xs border-blue-200 text-blue-700 bg-blue-50/80 hover:bg-blue-100 dark:border-blue-700/80 dark:text-blue-300 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
+            >
+              + Butir 1)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("rincian", undefined, scope)}
+              className="h-7 text-xs border-teal-200 text-teal-800 bg-teal-50/80 hover:bg-teal-100 dark:border-teal-700/80 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah blok rincian (Hari/Tanggal, Tempat, Agenda, dll.)"
+            >
+              <Calendar className="w-3 h-3" />
+              + Rincian
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInsertPoint("table", undefined, scope)}
+              className="h-7 text-xs border-sky-200 text-sky-800 bg-sky-50/80 hover:bg-sky-100 dark:border-sky-700/80 dark:text-sky-300 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+              title="Tambah blok tabel bebas (default: No, Nama, Keterangan)"
+            >
+              <Table2 className="w-3 h-3" />
+              + Tabel
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSmartPaste(!showSmartPaste)}
+              className="kpg-secondary h-7 text-xs p-1 px-3 gap-1 font-semibold rounded-lg"
+              title="Tempel teks utuh naskah dinas bertingkat"
+            >
+              <ClipboardPaste className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+              Tempel Teks Utuh
+            </Button>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Body Card Wrapper */}
+        <div className="p-4 space-y-3">
+        {/* Smart Paste Drawer */}
+        {showSmartPaste && (
+          <div className="p-3 bg-slate-50/70 dark:bg-zinc-950/60 border border-[var(--ds-accent-soft-border)] rounded-lg space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--ds-accent-fg)] flex items-center gap-2">
+                <ClipboardPaste className="w-3.5 h-3.5" />
+                Tempel &amp; Parse Naskah Dinas Bertingkat Otomatis
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowSmartPaste(false)}
+                className="text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-xs text-[var(--ds-fg-muted)] leading-normal">
+              Salin teks nota dinas/undangan/edaran/TOR utuh (termasuk kalimat pembuka, Bab I. / Sub A., poin 1., sub a., butir i. / 1), rincian Hari/Tanggal : ... / Tempat : ... / Agenda : ..., tabel Excel/Word bertab, dan penutup). Sistem otomatis memecah dan menata hierarki serta tabel secara presisi.
+            </p>
+            <Textarea
+              value={smartPasteText}
+              onChange={(e) => setSmartPasteText(e.target.value)}
+              rows={6}
+              placeholder="Tempel teks di sini..."
+              className="text-xs font-mono bg-[var(--ds-surface)] leading-relaxed rounded-lg"
+            />
+            <div className="flex items-center justify-between pt-1">
+              {isMainScope ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
+                    handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT, scope);
+                  }}
+                  className="h-7 text-xs bg-[var(--ds-surface-raised)] border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 font-medium rounded-lg"
+                  title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
+                >
+                  <Sparkles className="w-3 h-3 text-[var(--ds-accent-fg)]" />
+                  Muat Contoh Simata BKN (31 Butir)
+                </Button>
+              ) : (
+                <span />
+              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSmartPaste(false)}
+                  className="h-7 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] rounded-lg"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => handleApplySmartPaste(undefined, scope)}
+                  className="h-7 text-xs bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold gap-1 rounded-lg"
+                >
+                  <FileCheck className="w-3 h-3" />
+                  Terapkan ke {isMainScope ? "Dokumen" : "Lampiran"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div
+          ref={(el) => { sectionContainerRefs.current.body = el; }}
+          className="space-y-2 text-xs"
+        >
+          {pList.map((pItem, idx) => {
+            const isRincian = isRincianBlock(pItem);
+            const isTable = isTableBlock(pItem);
+            const isStructured = isRincian || isTable;
+            const prevLvl = getPrevTextPointLevel(pList, idx);
+            const lvl = isStructured ? 0 : detectPointLevel(pItem);
+            const refLvl = isStructured ? prevLvl : lvl;
+            const isPenutup = isMainScope && !isStructured && idx === pList.length - 1 && pList.length > 1;
+            const isPembuka = isMainScope && !isStructured && idx === 0;
+
+            const indentClass = isRincian
+              ? prevLvl >= 2
+                ? "ml-6 sm:ml-10 border-l-2 border-teal-400"
+                : "ml-3 sm:ml-5 border-l-2 border-teal-400"
+              : isTable
+              ? prevLvl >= 2
+                ? "ml-6 sm:ml-10 border-l-2 border-sky-400"
+                : prevLvl === 1
+                ? "ml-3 sm:ml-5 border-l-2 border-sky-400"
+                : ""
+              : lvl === 5
+              ? "border-l-4 border-blue-500"
+              : lvl === 6
+              ? "ml-3 sm:ml-4 border-l-2 border-teal-500"
+              : lvl === 2
+              ? "ml-3 sm:ml-5 border-l-2 border-[var(--ds-accent-soft-border)]"
+              : lvl === 3
+              ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
+              : lvl === 4
+              ? "ml-9 sm:ml-14 border-l-2 border-blue-400"
+              : "";
+
+            return (
+              <div
+                key={idx}
+                className={`relative rounded-lg border p-3 space-y-2 transition-colors ${indentClass} ${
+                  isRincian
+                    ? "border-teal-200 dark:border-teal-800/70 bg-teal-50/30 dark:bg-teal-950/20"
+                    : isTable
+                    ? "border-sky-200 dark:border-sky-800/70 bg-sky-50/30 dark:bg-sky-950/20"
+                    : isPenutup
+                    ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
+                    : lvl === 5
+                    ? "border-blue-300 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30"
+                    : lvl === 6
+                    ? "border-teal-300 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-950/25"
+                    : lvl === 1
+                    ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]/50"
+                    : lvl === 2
+                    ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20"
+                    : lvl === 3
+                    ? "border-blue-200 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/20"
+                    : lvl === 4
+                    ? "border-zinc-300 dark:border-zinc-700 bg-zinc-100/50 dark:bg-zinc-800/40"
+                    : "border-slate-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
+                }`}
+              >
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-[var(--ds-fg-secondary)]">
+                      {idx + 1}.
+                    </span>
+                    {isRincian ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-700/80 dark:bg-teal-950/60 dark:text-teal-300 flex items-center gap-1 rounded-lg">
+                        <Calendar className="w-3 h-3" />
+                        Blok Rincian / Jadwal
+                      </Badge>
+                    ) : isTable ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700/80 dark:bg-sky-950/60 dark:text-sky-300 flex items-center gap-1 rounded-lg">
+                        <Table2 className="w-3 h-3" />
+                        Blok Tabel ({pItem.headers.length}×{pItem.rows.length})
+                      </Badge>
+                    ) : isPenutup ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-300 rounded-lg">
+                        Penutup (Bawah)
+                      </Badge>
+                    ) : lvl === 5 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-200 rounded-lg">
+                        Bab Utama (I.)
+                      </Badge>
+                    ) : lvl === 6 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-800/80 dark:bg-teal-950/60 dark:text-teal-200 rounded-lg">
+                        Sub-Bab (A.)
+                      </Badge>
+                    ) : lvl === 1 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center gap-1 rounded-lg">
+                        <ListOrdered className="w-2.5 h-2.5" />
+                        Poin Utama (Tingkat 1)
+                      </Badge>
+                    ) : lvl === 2 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/60 dark:text-amber-300 rounded-lg">
+                        Sub-Poin (Tingkat 2)
+                      </Badge>
+                    ) : lvl === 3 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300 rounded-lg">
+                        Sub-Butir (Tingkat 3)
+                      </Badge>
+                    ) : lvl === 4 ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 rounded-lg">
+                        Sub-Butir (Tingkat 4)
+                      </Badge>
+                    ) : isPembuka ? (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-zinc-600 border-zinc-200 bg-white dark:text-zinc-300 dark:border-zinc-700 dark:bg-zinc-800/80 rounded-lg">
+                        Pembuka
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs px-2 py-0 font-medium text-blue-700 border-blue-200 bg-blue-50/70 dark:text-blue-300 dark:border-blue-800/80 dark:bg-blue-950/50 rounded-lg">
+                        Paragraf Biasa
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Reorder, Insert Below, Quick Level Switchers & Delete */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveParagraph(idx, -1, scope)}
+                      disabled={idx === 0}
+                      className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                      title="Geser ke atas"
+                      aria-label={`Geser butir ${idx + 1} ke atas`}
+                    >
+                      <ArrowUp className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveParagraph(idx, 1, scope)}
+                      disabled={idx === pList.length - 1}
+                      className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors mr-1"
+                      title="Geser ke bawah"
+                      aria-label={`Geser butir ${idx + 1} ke bawah`}
+                    >
+                      <ArrowDown className="w-3 h-3" />
+                    </button>
+
+                    {!isPenutup && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft-border)]/40 border border-[var(--ds-accent-soft-border)] px-2 py-1 rounded-lg transition-colors cursor-pointer mr-1"
+                            title="Sisipkan butir baru tepat di bawah ini"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Sisipkan</span>
+                            <ChevronDown className="w-3 h-3 opacity-60" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          data-module="persuratan"
+                          align="end"
+                          className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-1 z-50 text-xs"
+                        >
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleInsertPoint(
+                                refLvl === 5
+                                  ? "letterUpper"
+                                  : refLvl === 6
+                                    ? "num"
+                                    : refLvl === 1
+                                      ? "letter"
+                                      : refLvl === 2
+                                        ? "roman"
+                                        : refLvl === 3
+                                          ? "bracket"
+                                          : "num",
+                                idx + 1,
+                                scope
+                              )
+                            }
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
+                          >
+                            <span>↳ + Sub-Butir Anak</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleInsertPoint(
+                                refLvl === 5
+                                  ? "romanUpper"
+                                  : refLvl === 6
+                                    ? "letterUpper"
+                                    : refLvl === 1
+                                      ? "num"
+                                      : refLvl === 2
+                                        ? "letter"
+                                        : refLvl === 3
+                                          ? "roman"
+                                          : refLvl === 4
+                                            ? "bracket"
+                                            : "plain",
+                                idx + 1,
+                                scope
+                              )
+                            }
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium"
+                          >
+                            <span>= + Poin Setara</span>
+                          </DropdownMenuItem>
+                          <div className="my-1 border-t border-slate-200/70 dark:border-zinc-800" />
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("romanUpper", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-blue-700 dark:text-blue-300 w-4">I.</span> Bab (Romawi Besar)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("letterUpper", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-teal-700 dark:text-teal-300 w-4">A.</span> Sub-Bab (Huruf Kapital)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("num", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-[var(--ds-accent-fg)] w-4">1.</span> Poin Utama
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("letter", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">a.</span> Sub-Poin Huruf
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("roman", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 w-4">i.</span> Butir Romawi
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("bracket", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] text-xs"
+                          >
+                            <span className="font-mono font-bold text-blue-600 dark:text-blue-400 w-4">1)</span> Butir Kurung
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("plain", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-xs"
+                          >
+                            <span className="font-mono w-4">¶</span> Paragraf Biasa
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("rincian", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-teal-50 dark:hover:bg-teal-950/50 text-teal-800 dark:text-teal-300 font-semibold text-xs"
+                          >
+                            <Calendar className="w-3 h-3 shrink-0" />
+                            Rincian (Hari/Tempat/Agenda)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleInsertPoint("table", idx + 1, scope)}
+                            className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-sky-50 dark:hover:bg-sky-950/50 text-sky-800 dark:text-sky-300 font-semibold text-xs"
+                          >
+                            <Table2 className="w-3 h-3 shrink-0" />
+                            Tabel (No / Nama / Keterangan)
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+
+                    {!isStructured && typeof pItem === "string" && (
+                      <>
+                        <span className="text-xs text-[var(--ds-fg-muted)]">Level:</span>
+                        {LEVEL_SWITCH_CONTROLS.map((ctrl) => {
+                          const active = ctrl.isActive(lvl, pItem);
+                          return (
+                            <button
+                              key={ctrl.level}
+                              type="button"
+                              onClick={() => handleChangeParagraphLevel(idx, ctrl.level, scope)}
+                              className={cn(
+                                "text-xs px-2 py-1 rounded-lg border transition-colors",
+                                active
+                                  ? ctrl.activeClass
+                                  : cn("text-zinc-600 dark:text-zinc-400 border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
+                              )}
+                              title={ctrl.title}
+                            >
+                              {ctrl.label}
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+
+                    {!isPenutup && pList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveParagraph(idx, scope)}
+                        className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 ml-1 rounded-lg transition-colors"
+                        title="Hapus butir ini"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {isRincian ? (
+                  <div className="space-y-2">
+                    <div className="space-y-2">
+                      {pItem.items.map((row, rIdx) => (
+                        <div key={rIdx} className="flex items-start gap-1">
+                          <Input
+                            value={row.label}
+                            onChange={(e) => handleUpdateRincianRow(idx, rIdx, "label", e.target.value, scope)}
+                            {...bindSectionFormat("body", (v) =>
+                              handleUpdateRincianRow(idx, rIdx, "label", v, scope)
+                            )}
+                            placeholder="Label (mis: Hari/Tanggal)"
+                            aria-label={`Label rincian baris ${rIdx + 1}`}
+                            className="w-24 sm:w-28 shrink-0 h-8 text-xs font-semibold bg-white dark:bg-zinc-900 rounded-lg"
+                          />
+                          <span className="pt-2 px-1 text-xs font-bold text-[var(--ds-fg-muted)] select-none">:</span>
+                          <Textarea
+                            data-paragraf-focus={rIdx === 0 ? idx : undefined}
+                            value={row.value}
+                            onChange={(e) => handleUpdateRincianRow(idx, rIdx, "value", e.target.value, scope)}
+                            {...bindSectionFormat("body", (v) =>
+                              handleUpdateRincianRow(idx, rIdx, "value", v, scope)
+                            )}
+                            rows={Math.min(5, Math.max(1, row.value.split("\n").length))}
+                            placeholder="Isi rincian (tekan Enter untuk alamat/uraian multi-baris)..."
+                            aria-label={`Isi ${row.label || `rincian baris ${rIdx + 1}`}`}
+                            className="flex-1 min-w-0 min-h-8 py-1 text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRincianRow(idx, rIdx, scope)}
+                            disabled={pItem.items.length <= 1}
+                            className="mt-1 p-1 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                            title="Hapus baris rincian"
+                            aria-label={`Hapus baris rincian ${rIdx + 1}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center flex-wrap gap-1 pt-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddRincianRow(idx, "", scope)}
+                        className="h-7 text-xs px-2 py-1 gap-1 rounded-lg border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white dark:bg-zinc-900 hover:bg-teal-50 dark:hover:bg-teal-950/60"
+                      >
+                        <Plus className="w-3 h-3" />
+                        Baris
+                      </Button>
+                      {RINCIAN_QUICK_PRESETS.filter(
+                        (preset) =>
+                          !pItem.items.some(
+                            (r) => r.label.trim().toLowerCase() === preset.toLowerCase()
+                          )
+                      ).map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => handleAddRincianRow(idx, preset, scope)}
+                          className="h-7 text-xs px-2 py-1 rounded-lg border border-dashed border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white/80 dark:bg-zinc-900/60 hover:bg-teal-50 dark:hover:bg-teal-950/60 transition-colors"
+                        >
+                          + {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : isTable ? (
+                  <TabelBlockEditor
+                    block={pItem}
+                    {...buildTableEditorProps(idx, scope)}
+                    onOpenExpand={() => setExpandedTableTarget({ scope, idx })}
+                  />
+                ) : typeof pItem === "string" ? (
+                  <Textarea
+                    data-paragraf-focus={idx}
+                    value={pItem}
+                    onChange={(e) => handleParagraphChange(idx, e.target.value, scope)}
+                    {...bindSectionFormat("body", (v) => handleParagraphChange(idx, v, scope))}
+                    rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
+                    placeholder={
+                      isPenutup
+                        ? "Tulis isi penutup naskah..."
+                        : lvl === 1
+                        ? "Tulis isi poin utama..."
+                        : lvl === 2
+                        ? "Tulis isi sub-poin..."
+                        : lvl === 3
+                        ? "Tulis isi butir..."
+                        : isMainScope
+                        ? "Tulis isi paragraf..."
+                        : "Tulis isi lampiran..."
+                    }
+                    className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
+                  />
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="psr-ui w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)]">
+      {/* Enterprise Header Card */}
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Link href="/surat/keluar">
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Kembali ke Agenda Surat Keluar"
+                className="kpg-secondary h-10 w-10 p-0 rounded-lg shrink-0"
+                title="Kembali ke Agenda Surat Keluar"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+              <activeTabMeta.icon className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
+                  {editingSuratKeluarId ? `Edit ${activeTabMeta.name}` : `Buat ${activeTabMeta.name}`}
+                </h1>
+                {editingSuratKeluarId ? (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] rounded-lg">
+                      Mode Edit: #{editingSuratKeluarId}
+                    </Badge>
+                    {editingSuratKeluarStatus === "draft" ? (
+                      <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-status-warning-fg)] border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] rounded-lg">
+                        Draft
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-status-success-fg)] border-[var(--ds-status-success-border)] bg-[var(--ds-status-success-bg)] rounded-lg">
+                        Terdaftar
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <Badge variant="outline" className="text-xs uppercase font-semibold text-[var(--ds-accent-fg)] border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] rounded-lg">
+                    Permen Kehutanan 1/2025 (Hal. {activeTabMeta.hal})
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
+                Generator naskah dinas resmi BKSDA Kalimantan Timur dengan pratinjau A4 presisi cetak.
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
           {editingSuratKeluarId && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleCreateNew}
-              className="rounded-xl text-xs gap-1.5 border-emerald-300 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50"
+              className="kpg-secondary rounded-lg text-xs gap-2"
               title="Keluar dari mode edit dan buat dokumen baru"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -849,7 +1949,7 @@ function GenerateSuratDinasContent() {
             variant="outline"
             size="sm"
             onClick={handleResetTemplate}
-            className="rounded-xl text-xs gap-1.5"
+            className="kpg-secondary rounded-lg text-xs gap-2"
             title="Reset ke template standar naskah ini"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -859,7 +1959,7 @@ function GenerateSuratDinasContent() {
             variant="outline"
             size="sm"
             onClick={handleBlankForm}
-            className="rounded-xl text-xs gap-1.5 text-zinc-600 hover:text-zinc-900"
+            className="kpg-secondary rounded-lg text-xs gap-2"
             title="Kosongkan form"
           >
             <Eraser className="w-3.5 h-3.5" />
@@ -870,7 +1970,7 @@ function GenerateSuratDinasContent() {
             size="sm"
             onClick={() => handleSaveSuratKeluar("draft")}
             disabled={isRegistering}
-            className="rounded-xl text-xs gap-1.5 border-amber-300 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+            className="rounded-lg text-xs gap-2 bg-[var(--ds-surface-raised)] dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/70 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 shadow-xs"
             title="Simpan sebagai draf di Daftar Surat Keluar"
           >
             <Bookmark className="w-3.5 h-3.5" />
@@ -880,95 +1980,55 @@ function GenerateSuratDinasContent() {
             size="sm"
             onClick={() => handleSaveSuratKeluar("terdaftar")}
             disabled={isRegistering}
-            className="rounded-xl text-xs gap-1.5 shadow-sm text-white bg-emerald-600 hover:bg-emerald-700"
+            className="rounded-lg text-xs gap-2 font-semibold text-[var(--ds-accent-on-solid)] bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)]"
             title="Daftarkan resmi ke Daftar Surat Keluar"
           >
             <Send className="w-3.5 h-3.5" />
             {isRegistering ? "Menyimpan..." : editingSuratKeluarId ? "Update Naskah" : "Daftarkan Resmi"}
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isExporting !== null}
-                className="rounded-xl text-xs gap-1.5 shadow-sm text-slate-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
-              >
-                {isExporting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-0.5 text-blue-600" />
-                ) : (
-                  <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                )}
-                <span>Unduh</span>
-                <ChevronDown className="w-3 h-3 opacity-60" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
-              <DropdownMenuItem
-                onClick={handleExportPdf}
-                disabled={isExporting !== null}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
-              >
-                <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
-                <div className="flex flex-col text-left">
-                  <span>Unduh PDF (.pdf)</span>
-                  <span className="text-[10px] text-zinc-400 font-normal">Berkas fisik PDF</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleExportWord}
-                disabled={isExporting !== null}
-                className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
-              >
-                <FileText className="w-4 h-4 text-blue-600 shrink-0" />
-                <div className="flex flex-col text-left">
-                  <span>Unduh Word (.doc)</span>
-                  <span className="text-[10px] text-zinc-400 font-normal">Microsoft Word editable</span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SuratDinasDownloadDropdown isExporting={isExporting} onPdf={handleExportPdf} onWord={handleExportWord} />
 
           <Button
             size="sm"
             variant="outline"
             onClick={handlePrintSuratDinas}
-            className="rounded-xl text-xs gap-1.5 shadow-sm"
+            className="kpg-secondary rounded-lg text-xs gap-2"
           >
             <Printer className="w-3.5 h-3.5" />
             Cetak Dokumen
           </Button>
         </div>
       </div>
+      </div>
 
       {/* Template Selector Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-zinc-200/80 dark:border-zinc-800">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setIsPickerModalOpen(true)}
-            className="group flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-zinc-800/80 transition-all text-xs shadow-xs"
+            className="group flex items-center gap-2 px-4 py-2 rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-surface-muted)] transition-all text-xs cursor-pointer"
           >
-            <div className="w-6 h-6 rounded-lg bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
               <activeTabMeta.icon className="w-3.5 h-3.5" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-zinc-900 dark:text-zinc-100">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-[var(--ds-fg)]">
                 {activeTabMeta.name}
               </span>
-              <span className="text-[10px] font-mono text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+              <span className="text-xs font-mono text-[var(--ds-fg-muted)] bg-[var(--ds-surface-muted)] px-2 py-1 rounded-lg">
                 Hal. {activeTabMeta.hal}
               </span>
             </div>
-            <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 pl-2 border-l border-zinc-200 dark:border-zinc-700">
+            <span className="text-xs font-semibold text-[var(--ds-accent-fg)] flex items-center gap-1 pl-2 border-l border-slate-200/70 dark:border-zinc-800">
               Ganti Format (20 Naskah)
               <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
             </span>
           </button>
         </div>
 
-        <div className="text-[11px] text-zinc-400 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+        <div className="text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] inline-block" />
           <span>Format resmi Permen Kehutanan 1/2025</span>
         </div>
       </div>
@@ -976,50 +2036,97 @@ function GenerateSuratDinasContent() {
       {/* Main Split Layout: Form Left, Preview Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: Editor Form (5 cols on lg) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 lg:self-stretch">
+          {/* Tab Switcher: Naskah Utama vs Halaman Lampiran */}
+          <div
+            role="tablist"
+            aria-label="Bagian Naskah Dinas"
+            className="flex items-center gap-1 p-1 rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={editorTab === "main"}
+              onClick={() => handleSwitchEditorTab("main")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
+                editorTab === "main"
+                  ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
+                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+              )}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Naskah Utama</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={editorTab === "lampiran"}
+              onClick={() => handleSwitchEditorTab("lampiran")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
+                editorTab === "lampiran"
+                  ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]"
+                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+              )}
+            >
+              <Paperclip className="w-3.5 h-3.5" />
+              <span>Lampiran</span>
+              {hasLampiran && (
+                <span className="px-2 py-0 rounded-full text-xs font-bold bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]">
+                  Aktif
+                </span>
+              )}
+            </button>
+          </div>
+
+          {editorTab === "main" ? (
+            <>
           {/* Card 1: Metadata Surat */}
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 border-b border-zinc-100 dark:border-zinc-800 pb-2">
-              <Calendar className="w-3.5 h-3.5 text-blue-500" />
-              1. Identitas & Meta Dokumen
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+              1. Identitas &amp; Meta Dokumen
             </h2>
 
             <div className="space-y-3 text-xs">
               {/* Nomor Surat Editor */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nomor Naskah</label>
-                  <span className="font-mono text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 whitespace-pre">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="font-semibold text-[var(--ds-fg)]">Nomor Naskah</label>
+                  <span className="font-mono text-xs font-medium text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-lg whitespace-pre">
                     {data.nomor}
                   </span>
                 </div>
 
                 {/* Toggle Switcher: Pola Nomor Baku vs Nomor Naskah (${nomor_naskah}) */}
-                <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-xs">
+                <div className="flex items-center p-1 bg-slate-100/80 dark:bg-zinc-950/60 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-xs">
                   <button
                     type="button"
+                    aria-pressed={!isAutoNomorNaskah}
                     onClick={() => {
                       const prefix = getDefaultNomorPrefix(activeTemplate);
                       const klasifikasi = nomorSegments.kodeKlasifikasi || "KSA.01.05";
                       updateField("nomor", `${prefix}/K.18/TU/${klasifikasi}/B/${currentMonthSuffix}`);
                     }}
                     className={cn(
-                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      "flex-1 py-2 px-3 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       !isAutoNomorNaskah
-                        ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-semibold shadow-xs"
-                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
+                        : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
                     Pola Nomor Baku
                   </button>
                   <button
                     type="button"
+                    aria-pressed={isAutoNomorNaskah}
                     onClick={() => updateField("nomor", "${nomor_naskah}")}
                     className={cn(
-                      "flex-1 py-1.5 px-2.5 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
+                      "flex-1 py-2 px-3 rounded-lg transition-all text-center cursor-pointer font-medium text-xs",
                       isAutoNomorNaskah
-                        ? "bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-semibold shadow-xs"
-                        : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                        ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
+                        : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
                     )}
                   >
                     Nomor Naskah (${"{nomor_naskah}"})
@@ -1027,30 +2134,31 @@ function GenerateSuratDinasContent() {
                 </div>
 
                 {isAutoNomorNaskah ? (
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700">
-                      <span className="text-slate-500 dark:text-zinc-400 font-semibold text-xs shrink-0 font-mono">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 h-9 transition-[border-color,box-shadow] focus-within:border-[var(--ds-accent-fg)] focus-within:ring-[3px] focus-within:ring-[var(--ds-accent-fg)]/15">
+                      <span className="text-[var(--ds-fg-muted)] font-medium text-xs shrink-0 font-mono">
                         Nomor :
                       </span>
-                      <Input
+                      <input
+                        data-plain="true"
                         type="text"
                         placeholder="${nomor_naskah}"
                         value={data.nomor}
                         onChange={(e) => updateField("nomor", e.target.value)}
-                        className="w-full font-mono text-xs font-semibold bg-white dark:bg-zinc-900 h-8 border-slate-200 dark:border-zinc-700 text-zinc-900 dark:text-white"
+                        className="w-full min-w-0 bg-transparent font-mono text-xs font-medium text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] outline-none focus:outline-none"
                       />
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
-                    <div className="grid grid-cols-12 gap-1.5 items-end">
+                  <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-950/40 p-3 space-y-2">
+                    <div className="grid grid-cols-12 gap-2 items-end">
                       <div className="col-span-4">
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-[10px] font-bold text-zinc-500">Awalan/No</label>
+                          <label className="text-xs font-medium text-[var(--ds-fg-muted)]">Awalan/No</label>
                           <button
                             type="button"
                             onClick={() => handleUpdateNomorUrut(getDefaultNomorPrefix(activeTemplate))}
-                            className="text-[9px] px-1 py-0.2 rounded border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 font-mono"
+                            className="text-xs px-1 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 hover:bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] font-mono"
                             title="Format baku"
                           >
                             {getDefaultNomorPrefix(activeTemplate)}
@@ -1060,41 +2168,41 @@ function GenerateSuratDinasContent() {
                           value={nomorSegments.nomorUrut}
                           onChange={(e) => handleUpdateNomorUrut(e.target.value)}
                           placeholder="Contoh: S.888 atau ND.102"
-                          className="h-8 text-xs font-mono font-bold text-left bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-2"
+                          className="h-8 text-xs font-mono font-medium text-left bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] px-2 rounded-lg"
                         />
                       </div>
 
                       <div className="col-span-3 text-center pb-2">
-                        <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
+                        <span className="text-xs font-mono font-normal text-[var(--ds-fg-muted)] select-none">
                           /K.18/TU/
                         </span>
                       </div>
 
                       <div className="col-span-3">
-                        <label className="text-[10px] font-bold text-zinc-500 block mb-1">Klasifikasi</label>
+                        <label className="text-xs font-medium text-[var(--ds-fg-muted)] block mb-1">Klasifikasi</label>
                         <Input
                           value={nomorSegments.kodeKlasifikasi}
                           onChange={(e) => handleUpdateKlasifikasi(e.target.value)}
                           placeholder="KSA.01.05"
-                          className="h-8 text-xs font-mono font-bold bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 px-1.5"
+                          className="h-8 text-xs font-mono font-medium bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] px-2 rounded-lg"
                         />
                       </div>
 
                       <div className="col-span-2 text-center pb-2">
-                        <span className="text-[11px] font-mono font-bold text-zinc-400 dark:text-zinc-500 select-none">
+                        <span className="text-xs font-mono font-normal text-[var(--ds-fg-muted)] select-none">
                           /B/{currentMonthSuffix}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-1.5 border-t border-zinc-200 dark:border-zinc-800">
-                      <span className="text-[10.5px]">
-                        Pola: <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/K.18/TU/</strong> ... <strong className="text-zinc-600 dark:text-zinc-300 font-mono">/B/{currentMonthSuffix}</strong>
+                    <div className="flex items-center justify-between text-xs text-[var(--ds-fg-muted)] pt-2 border-t border-slate-200/70 dark:border-zinc-800">
+                      <span className="text-xs">
+                        Pola: <span className="font-medium text-[var(--ds-fg-secondary)] font-mono">/K.18/TU/</span> ... <span className="font-medium text-[var(--ds-fg-secondary)] font-mono">/B/{currentMonthSuffix}</span>
                       </span>
                       <button
                         type="button"
                         onClick={() => setShowManualNomor(!showManualNomor)}
-                        className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline"
+                        className="text-xs text-[var(--ds-accent-fg)] hover:underline"
                       >
                         {showManualNomor ? "Tutup manual" : "Edit teks penuh"}
                       </button>
@@ -1106,7 +2214,7 @@ function GenerateSuratDinasContent() {
                           value={data.nomor}
                           onChange={(e) => updateField("nomor", e.target.value)}
                           placeholder="Ketik nomor surat lengkap..."
-                          className="h-8 text-xs font-mono bg-white dark:bg-zinc-900"
+                          className="h-8 text-xs font-mono bg-[var(--ds-surface)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)] rounded-lg"
                         />
                       </div>
                     )}
@@ -1118,11 +2226,11 @@ function GenerateSuratDinasContent() {
               {(activeTemplate === "surat_dinas" || activeTemplate === "undangan") && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Sifat Naskah</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Sifat Naskah</label>
                     <select
                       value={data.sifat || "Biasa"}
                       onChange={(e) => updateField("sifat", e.target.value)}
-                      className="w-full mt-1 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-zinc-800 dark:text-zinc-200"
+                      className="w-full mt-1 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="Biasa">Biasa</option>
                       <option value="Penting">Penting</option>
@@ -1133,12 +2241,12 @@ function GenerateSuratDinasContent() {
                   </div>
 
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Lampiran</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Lampiran</label>
                     <Input
                       value={data.lampiran}
                       onChange={(e) => updateField("lampiran", e.target.value)}
                       placeholder="Contoh: - atau 1 Berkas"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </div>
@@ -1147,19 +2255,19 @@ function GenerateSuratDinasContent() {
               {/* Lampiran Saja (Khusus Nota Dinas & Memorandum: Sifat di-hidden) */}
               {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum") && (
                 <div>
-                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Lampiran</label>
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Lampiran</label>
                   <Input
                     value={data.lampiran}
                     onChange={(e) => updateField("lampiran", e.target.value)}
                     placeholder="Contoh: - atau 1 Berkas"
-                    className="mt-1 text-xs"
+                    className="mt-1 text-xs rounded-lg"
                   />
                 </div>
               )}
 
               {/* Tanggal Naskah */}
               <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Naskah</label>
+                <label className="font-semibold text-[var(--ds-fg-secondary)]">Tanggal Naskah</label>
                 <div className="flex items-center gap-2 mt-1">
                   <Input
                     type="date"
@@ -1169,20 +2277,20 @@ function GenerateSuratDinasContent() {
                         updateField("kotaTanggal", formatIsoDateToIndo(e.target.value));
                       }
                     }}
-                    className="w-44 text-xs"
+                    className="w-36 text-xs rounded-lg shrink-0"
                   />
                   <Input
                     value={data.kotaTanggal}
                     onChange={(e) => updateField("kotaTanggal", e.target.value)}
                     placeholder="Contoh: 24 September 2026"
-                    className="flex-1 text-xs"
+                    className="flex-1 text-xs rounded-lg"
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => updateField("kotaTanggal", getTodayIndoDate())}
-                    className="text-[11px] h-9 px-2.5 rounded-lg whitespace-nowrap"
+                    className="kpg-secondary text-xs h-9 px-3 rounded-lg whitespace-nowrap"
                   >
                     Hari Ini
                   </Button>
@@ -1190,36 +2298,54 @@ function GenerateSuratDinasContent() {
               </div>
 
               {/* Perihal / Hal */}
-              <div>
-                <label className="font-semibold text-zinc-700 dark:text-zinc-300">Perihal / Judul Ringkas</label>
+              <div ref={(el) => { sectionContainerRefs.current.perihal = el; }}>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Perihal / Judul Ringkas</label>
+                  <InlineFormatButtons
+                    compact
+                    labelContext="Perihal"
+                    onTrigger={(f) => triggerSectionFormat("perihal", f)}
+                  />
+                </div>
                 <Textarea
                   value={data.perihal}
                   onChange={(e) => updateField("perihal", e.target.value)}
+                  {...bindSectionFormat("perihal", (v) => updateField("perihal", v))}
                   rows={2}
                   placeholder="Isi perihal naskah dinas..."
-                  className="mt-1 text-xs"
+                  className="mt-1 text-xs rounded-lg"
                 />
               </div>
             </div>
           </div>
 
           {/* Card 2: Field Spesifik Template */}
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 border-b border-zinc-100 dark:border-zinc-800 pb-2">
-              <Building className="w-3.5 h-3.5 text-emerald-500" />
-              2. Data Spesifik ({activeTabMeta.name})
-            </h2>
+          <div
+            ref={(el) => { sectionContainerRefs.current.yth = el; }}
+            className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+                <Building className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                2. Data Spesifik ({activeTabMeta.name})
+              </h2>
+              <InlineFormatButtons
+                compact
+                labelContext="Yth / Tujuan"
+                onTrigger={(f) => triggerSectionFormat("yth", f)}
+              />
+            </div>
 
             <div className="space-y-3 text-xs">
               {/* NOTA DINAS & MEMORANDUM */}
               {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum") && (
                 <>
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5">
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-indigo-500" />
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-2">
+                      <label className="font-semibold text-[var(--ds-fg-secondary)] flex items-center gap-2">
+                        <Users className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                         Yth. (Penerima)
-                        <span className="text-[10px] text-zinc-400 font-normal">
+                        <span className="text-xs text-[var(--ds-fg-muted)] font-normal">
                           ({currentYthList.filter((s) => s.trim()).length} penerima)
                         </span>
                       </label>
@@ -1228,7 +2354,7 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={handleAddYth}
-                        className="h-7 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 p-1 px-2.5 gap-1 rounded-md font-medium transition-colors"
+                        className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 px-3 gap-1 rounded-lg font-medium transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Tambah Penerima
@@ -1236,8 +2362,8 @@ function GenerateSuratDinasContent() {
                     </div>
 
                     {/* Pilihan Cepat / Preset Button Penerima */}
-                    <div className="flex flex-wrap gap-1.5 items-center">
-                      <span className="text-[10px] text-zinc-400 font-medium">Pilihan cepat:</span>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <span className="text-xs text-[var(--ds-fg-muted)] font-medium">Pilihan cepat:</span>
                       {COMMON_YTH_PRESETS.map((preset) => {
                         const shortLabel = preset
                           .replace(/^Kepala\s+/, "")
@@ -1250,10 +2376,10 @@ function GenerateSuratDinasContent() {
                             type="button"
                             onClick={() => handleAppendYthPreset(preset)}
                             disabled={isAdded}
-                            className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1 ${
+                            className={`text-xs px-2 py-1 rounded-full border transition-colors flex items-center gap-1 ${
                               isAdded
                                 ? "bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400 border-zinc-200 dark:border-zinc-800 cursor-not-allowed"
-                                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                : "bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-[var(--ds-accent-soft-border)] hover:text-[var(--ds-accent-fg)]"
                             }`}
                             title={isAdded ? "Sudah ada dalam daftar Yth" : `Klik untuk menambah ${preset}`}
                           >
@@ -1265,27 +2391,28 @@ function GenerateSuratDinasContent() {
                     </div>
 
                     {/* Baris Input Interaktif Tiap Penerima */}
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {currentYthList.map((item, idx) => (
                         <div key={idx} className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-zinc-400 w-5 text-right shrink-0">
+                          <span className="text-xs font-semibold text-[var(--ds-fg-muted)] w-5 text-right shrink-0">
                             {currentYthList.length > 1 ? `${idx + 1}.` : "•"}
                           </span>
                           <Input
                             value={item}
                             onChange={(e) => handleYthChange(idx, e.target.value)}
+                            {...bindSectionFormat("yth", (v) => handleYthChange(idx, v))}
                             placeholder={
                               idx === 0
                                 ? "Contoh: Kepala Seksi KSDA Wilayah I Berau"
                                 : `Penerima ke-${idx + 1}...`
                             }
-                            className="h-8 text-xs flex-1"
+                            className="h-8 text-xs flex-1 rounded-lg"
                           />
                           {currentYthList.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemoveYth(idx)}
-                              className="text-zinc-400 hover:text-red-500 p-1 shrink-0 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-950/30"
+                              className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 shrink-0 transition-colors rounded-lg hover:bg-[var(--ds-status-danger-bg)]"
                               title="Hapus penerima ini"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1297,12 +2424,12 @@ function GenerateSuratDinasContent() {
                   </div>
 
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Dari (Pengirim)</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Dari (Pengirim)</label>
                     <Input
                       value={data.dari || ""}
                       onChange={(e) => updateField("dari", e.target.value)}
                       placeholder="Contoh: Kepala Subbagian Tata Usaha"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </>
@@ -1312,17 +2439,18 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "surat_pengantar" && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tujuan Pengiriman (Yth.)</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Tujuan Pengiriman (Yth.)</label>
                     <Input
                       value={data.tujuanKepada || ""}
                       onChange={(e) => updateField("tujuanKepada", e.target.value)}
+                      {...bindSectionFormat("yth", (v) => updateField("tujuanKepada", v))}
                       placeholder="Contoh: Kepala Kantor Pelayanan Perbendaharaan Negara Samarinda"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                      <span className="font-semibold text-[var(--ds-fg-secondary)]">
                         Daftar Berkas Dikirim ({data.tabelPengantar?.length || 0})
                       </span>
                       <Button
@@ -1330,19 +2458,19 @@ function GenerateSuratDinasContent() {
                         variant="ghost"
                         size="sm"
                         onClick={handleAddPengantarRow}
-                        className="h-6 text-xs text-emerald-600 gap-1 p-1"
+                        className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] gap-1 p-1 rounded-lg"
                       >
                         <Plus className="w-3 h-3" /> Tambah Baris
                       </Button>
                     </div>
                     {(data.tabelPengantar || []).map((row, rIdx) => (
-                      <div key={rIdx} className="p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1.5 bg-zinc-50/50">
+                      <div key={rIdx} className="p-2 rounded-lg border border-slate-200/80 dark:border-zinc-800 space-y-2 bg-zinc-50/50 dark:bg-zinc-950/40">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-[11px]">Berkas #{rIdx + 1}</span>
+                          <span className="font-bold text-xs">Berkas #{rIdx + 1}</span>
                           <button
                             type="button"
                             onClick={() => handleRemovePengantarRow(rIdx)}
-                            className="text-zinc-400 hover:text-red-500"
+                            className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)]"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1351,20 +2479,20 @@ function GenerateSuratDinasContent() {
                           value={row.naskah}
                           onChange={(e) => handlePengantarRowChange(rIdx, "naskah", e.target.value)}
                           placeholder="Nama naskah dinas..."
-                          className="h-8 text-xs"
+                          className="h-8 text-xs rounded-lg"
                         />
                         <div className="grid grid-cols-2 gap-2">
                           <Input
                             value={row.banyaknya}
                             onChange={(e) => handlePengantarRowChange(rIdx, "banyaknya", e.target.value)}
                             placeholder="Banyaknya (mis: 1 Berkas)"
-                            className="h-8 text-xs"
+                            className="h-8 text-xs rounded-lg"
                           />
                           <Input
                             value={row.keterangan}
                             onChange={(e) => handlePengantarRowChange(rIdx, "keterangan", e.target.value)}
                             placeholder="Keterangan..."
-                            className="h-8 text-xs"
+                            className="h-8 text-xs rounded-lg"
                           />
                         </div>
                       </div>
@@ -1375,58 +2503,32 @@ function GenerateSuratDinasContent() {
 
               {/* UNDANGAN INTERNAL */}
               {activeTemplate === "undangan" && (
-                <>
-                  <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Yth. / Kepada</label>
-                    <Input
-                      value={data.tujuanKepada || ""}
-                      onChange={(e) => updateField("tujuanKepada", e.target.value)}
-                      placeholder="Contoh: Para Pejabat Struktural dan Kepala Seksi Wilayah"
-                      className="mt-1 text-xs"
-                    />
-                  </div>
-                  <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
-                    <span className="font-bold text-zinc-700 dark:text-zinc-200 block text-[11px]">Rincian Acara</span>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        value={data.acaraHariTanggal || ""}
-                        onChange={(e) => updateField("acaraHariTanggal", e.target.value)}
-                        placeholder="Hari, Tanggal"
-                        className="h-8 text-xs"
-                      />
-                      <Input
-                        value={data.acaraWaktu || ""}
-                        onChange={(e) => updateField("acaraWaktu", e.target.value)}
-                        placeholder="Waktu"
-                        className="h-8 text-xs"
-                      />
-                    </div>
-                    <Input
-                      value={data.acaraTempat || ""}
-                      onChange={(e) => updateField("acaraTempat", e.target.value)}
-                      placeholder="Tempat Acara"
-                      className="h-8 text-xs"
-                    />
-                    <Input
-                      value={data.acaraNama || ""}
-                      onChange={(e) => updateField("acaraNama", e.target.value)}
-                      placeholder="Nama Acara"
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                </>
+                <div>
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Yth. / Kepada</label>
+                  <Input
+                    value={data.tujuanKepada || ""}
+                    onChange={(e) => updateField("tujuanKepada", e.target.value)}
+                    {...bindSectionFormat("yth", (v) => updateField("tujuanKepada", v))}
+                    placeholder="Contoh: Para Pejabat Struktural dan Kepala Seksi Wilayah"
+                    className="mt-1 text-xs rounded-lg"
+                  />
+                  <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
+                    Rincian acara (Hari/Tanggal, Waktu, Tempat, Agenda) dikelola di bagian 3. Batang Tubuh / Isi.
+                  </p>
+                </div>
               )}
 
               {/* SURAT KUASA */}
               {activeTemplate === "surat_kuasa" && (
                 <div>
-                  <label className="font-semibold text-zinc-700 dark:text-zinc-300">Materi Yang Dikuasakan</label>
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Materi Yang Dikuasakan</label>
                   <Textarea
                     value={data.materiKuasa || ""}
                     onChange={(e) => updateField("materiKuasa", e.target.value)}
+                    {...bindSectionFormat("yth", (v) => updateField("materiKuasa", v))}
                     rows={3}
                     placeholder="Untuk mewakili..."
-                    className="mt-1 text-xs"
+                    className="mt-1 text-xs rounded-lg"
                   />
                 </div>
               )}
@@ -1435,21 +2537,21 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "berita_acara" && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Hari & Tanggal Acara</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Hari & Tanggal Acara</label>
                     <Input
                       value={data.hariTanggalAcara || ""}
                       onChange={(e) => updateField("hariTanggalAcara", e.target.value)}
                       placeholder="Contoh: Kamis, 24 September 2026"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tempat Dibuat</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Tempat Dibuat</label>
                     <Input
                       value={data.lokasiDibuat || ""}
                       onChange={(e) => updateField("lokasiDibuat", e.target.value)}
                       placeholder="Contoh: Samarinda"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </div>
@@ -1459,31 +2561,31 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "perjanjian" && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Judul Perjanjian Kerja Sama</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Judul Perjanjian Kerja Sama</label>
                     <Input
                       value={data.judulPerjanjian || ""}
                       onChange={(e) => updateField("judulPerjanjian", e.target.value)}
                       placeholder="PERJANJIAN KERJA SAMA ANTARA ... DENGAN ..."
-                      className="mt-1 text-xs uppercase"
+                      className="mt-1 text-xs uppercase rounded-lg"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Hari & Tanggal Perjanjian</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Hari & Tanggal Perjanjian</label>
                       <Input
                         value={data.hariTanggalAcara || ""}
                         onChange={(e) => updateField("hariTanggalAcara", e.target.value)}
                         placeholder="Contoh: Kamis, 24 September 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tempat Dibuat</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Tempat Dibuat</label>
                       <Input
                         value={data.lokasiDibuat || ""}
                         onChange={(e) => updateField("lokasiDibuat", e.target.value)}
                         placeholder="Samarinda"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   </div>
@@ -1494,22 +2596,22 @@ function GenerateSuratDinasContent() {
               {(activeTemplate === "piagam" || activeTemplate === "sertifikat") && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Diberikan Kepada</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Diberikan Kepada</label>
                     <Input
                       value={data.diberikanKepada || ""}
                       onChange={(e) => updateField("diberikanKepada", e.target.value)}
                       placeholder="Nama Penerima / Lembaga"
-                      className="mt-1 text-xs font-bold"
+                      className="mt-1 text-xs font-bold rounded-lg"
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Atas Peran / Prestasi</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Atas Peran / Prestasi</label>
                     <Textarea
                       value={data.atasPeran || ""}
                       onChange={(e) => updateField("atasPeran", e.target.value)}
                       rows={3}
                       placeholder="Uraian prestasi..."
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </>
@@ -1519,21 +2621,23 @@ function GenerateSuratDinasContent() {
               {activeTemplate === "surat_dinas" && (
                 <>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Kepada Yth.</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Kepada Yth.</label>
                     <Input
                       value={data.tujuanKepada || ""}
                       onChange={(e) => updateField("tujuanKepada", e.target.value)}
+                      {...bindSectionFormat("yth", (v) => updateField("tujuanKepada", v))}
                       placeholder="Contoh: Direktur PT. Hutan Lindung Kelian Lestari"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tempat (Di -)</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Tempat (Di -)</label>
                     <Input
                       value={data.tujuanDi || ""}
                       onChange={(e) => updateField("tujuanDi", e.target.value)}
+                      {...bindSectionFormat("yth", (v) => updateField("tujuanDi", v))}
                       placeholder="Contoh: Kutai Barat atau Samarinda"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                 </>
@@ -1549,55 +2653,90 @@ function GenerateSuratDinasContent() {
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jenis Cuti</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Jenis Cuti</label>
                       <Input
                         value={data.jenisCuti || ""}
                         onChange={(e) => updateField("jenisCuti", e.target.value)}
                         placeholder="Contoh: Alasan Penting / Tahunan"
-                        className="mt-1 text-xs font-semibold"
+                        className="mt-1 text-xs font-semibold rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jumlah Hari</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Jumlah Hari</label>
                       <div className="grid grid-cols-2 gap-2 mt-1">
                         <Input
                           type="number"
                           value={data.jumlahHari ?? ""}
                           onChange={(e) => updateField("jumlahHari", Number(e.target.value))}
                           placeholder="5"
-                          className="text-xs"
+                          className="text-xs rounded-lg"
                         />
                         <Input
                           value={data.terbilangHari || ""}
                           onChange={(e) => updateField("terbilangHari", e.target.value)}
                           placeholder="lima"
-                          className="text-xs"
+                          className="text-xs rounded-lg"
                         />
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Mulai Cuti</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Tanggal Mulai Cuti</label>
                       <Input
                         value={data.tanggalMulai || ""}
                         onChange={(e) => updateField("tanggalMulai", e.target.value)}
                         placeholder="Contoh: 22 Oktober 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Tanggal Selesai Cuti</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Tanggal Selesai Cuti</label>
                       <Input
                         value={data.tanggalSelesai || ""}
                         onChange={(e) => updateField("tanggalSelesai", e.target.value)}
                         placeholder="Contoh: 28 Oktober 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-[var(--ds-fg-secondary)] block">
+                      Satuan Hitung Hari Cuti
+                    </label>
+                    <div className="flex items-center gap-1 p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-950/60">
+                      {([
+                        { id: "hari_kerja", label: "Hari Kerja" },
+                        { id: "hari_kalender", label: "Hari Kalender" },
+                      ] as const).map((opt) => {
+                        const lowerJenis = (data.jenisCuti || "Tahunan").toLowerCase();
+                        const effectiveHitungHari =
+                          data.hitungHari ||
+                          (lowerJenis.includes("tahunan") || lowerJenis.includes("bersama")
+                            ? "hari_kerja"
+                            : "hari_kalender");
+                        const active = effectiveHitungHari === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => updateField("hitungHari", opt.id)}
+                            className={cn(
+                              "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                              active
+                                ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
+                                : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Satuan Kerja</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Satuan Kerja</label>
                     <Input
                       value={data.pegawai?.satuanKerja || (data.pegawai as any)?.unit || ""}
                       onChange={(e) =>
@@ -1607,17 +2746,17 @@ function GenerateSuratDinasContent() {
                         })
                       }
                       placeholder="Balai Konservasi Sumber Daya Alam Kalimantan Timur"
-                      className="mt-1 text-xs"
+                      className="mt-1 text-xs rounded-lg"
                     />
                   </div>
                   {data.jenisCuti?.toLowerCase().includes("tahunan") && (
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Akumulasi Tahun Cuti (Opsional)</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Akumulasi Tahun Cuti (Opsional)</label>
                       <Input
                         value={data.tahunCutiText || ""}
                         onChange={(e) => updateField("tahunCutiText", e.target.value)}
                         placeholder="Contoh: untuk tahun 2025 dan tahun 2026"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   )}
@@ -1627,382 +2766,14 @@ function GenerateSuratDinasContent() {
           </div>
 
           {/* Card 3: Paragraf Isi */}
-          {activeTemplate !== "surat_pengantar" && activeTemplate !== "surat_izin_cuti" && (
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
-              {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
-              <div className="sticky top-2 z-20 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-2xl border-b border-zinc-100 dark:border-zinc-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5">
-                  <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
-                  3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
-                </h2>
-                <div className="flex items-center flex-wrap gap-1.5">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("plain")}
-                    className="h-7 text-xs text-zinc-700 hover:text-zinc-900 border-zinc-200 dark:border-zinc-800 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah paragraf biasa ke akhir"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-zinc-500" />
-                    Paragraf
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    onClick={() => handleInsertPoint("num")}
-                    className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white p-1 px-2 gap-1 font-semibold shadow-xs"
-                    title="Tambah Poin Utama (1., 2., 3., ...) ke akhir"
-                  >
-                    <ListOrdered className="w-3.5 h-3.5 text-indigo-200" />
-                    + Poin 1.
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("letter")}
-                    className="h-7 text-xs border-emerald-300 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100 dark:border-emerald-800 dark:text-emerald-300 dark:bg-emerald-950/40 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah Sub-Poin Huruf (a., b., c., ...) ke akhir"
-                  >
-                    + Sub a.
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("roman")}
-                    className="h-7 text-xs border-amber-300 text-amber-800 bg-amber-50/60 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/40 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah Sub-Sub Poin Romawi (i., ii., iii., ...) ke akhir"
-                  >
-                    + Butir i.
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleInsertPoint("bracket")}
-                    className="h-7 text-xs border-violet-300 text-violet-800 bg-violet-50/60 hover:bg-violet-100 dark:border-violet-800 dark:text-violet-300 dark:bg-violet-950/40 p-1 px-2 gap-1 font-semibold"
-                    title="Tambah Butir Angka Kurung (1), 2), 3), ...) ke akhir"
-                  >
-                    + Butir 1)
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setShowSmartPaste(!showSmartPaste)}
-                    className="h-7 text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 p-1 px-2.5 gap-1 font-semibold"
-                    title="Tempel teks utuh naskah dinas bertingkat"
-                  >
-                    <ClipboardPaste className="w-3.5 h-3.5 text-indigo-500" />
-                    Tempel Teks Utuh
-                  </Button>
-                </div>
-              </div>
-
-              {/* Smart Paste Drawer */}
-              {showSmartPaste && (
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-indigo-200 dark:border-indigo-900 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-                      <ClipboardPaste className="w-3.5 h-3.5" />
-                      Tempel & Parse Naskah Dinas Bertingkat Otomatis
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowSmartPaste(false)}
-                      className="text-xs text-zinc-400 hover:text-zinc-600"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <p className="text-[11px] text-zinc-500 leading-normal">
-                    Salin teks nota dinas/memorandum utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), dan penutup). Sistem otomatis memecah dan menata hierarki indentasi secara presisi.
-                  </p>
-                  <Textarea
-                    value={smartPasteText}
-                    onChange={(e) => setSmartPasteText(e.target.value)}
-                    rows={6}
-                    placeholder="Tempel teks nota dinas di sini..."
-                    className="text-xs font-mono bg-white dark:bg-zinc-900 leading-relaxed"
-                  />
-                  <div className="flex items-center justify-between pt-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSmartPasteText(SAMPLE_SIMATA_BKN_TEXT);
-                        handleApplySmartPaste(SAMPLE_SIMATA_BKN_TEXT);
-                      }}
-                      className="h-7 text-xs border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300 gap-1 font-medium"
-                      title="Muat contoh resmi Surat Edaran Manajemen Talenta Simata BKN (31 Butir)"
-                    >
-                      <Sparkles className="w-3 h-3 text-indigo-500" />
-                      Muat Contoh Simata BKN (31 Butir)
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowSmartPaste(false)}
-                        className="h-7 text-xs text-zinc-500"
-                      >
-                        Batal
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => handleApplySmartPaste()}
-                        className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-1"
-                      >
-                        <FileCheck className="w-3 h-3" />
-                        Terapkan ke Dokumen
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2.5 text-xs">
-                {(data.paragraf || []).map((pText, idx) => {
-                  const pList = data.paragraf || [];
-                  const isPenutup = idx === pList.length - 1;
-                  const isPembuka = idx === 0;
-                  const lvl = detectPointLevel(pText);
-
-                  const indentClass =
-                    lvl === 2
-                      ? "ml-3 sm:ml-5 border-l-2 border-emerald-400"
-                      : lvl === 3
-                      ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
-                      : lvl === 4
-                      ? "ml-9 sm:ml-14 border-l-2 border-violet-400"
-                      : "";
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`relative rounded-xl border p-2.5 space-y-1.5 transition-colors ${indentClass} ${
-                        isPenutup
-                          ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
-                          : lvl === 1
-                          ? "border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20"
-                          : lvl === 2
-                          ? "border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/30 dark:bg-emerald-950/20"
-                          : lvl === 3
-                          ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/20"
-                          : lvl === 4
-                          ? "border-violet-200 dark:border-violet-900/50 bg-violet-50/30 dark:bg-violet-950/20"
-                          : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between flex-wrap gap-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[11px] font-bold text-zinc-700 dark:text-zinc-200">
-                            {idx + 1}.
-                          </span>
-                          {isPenutup ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
-                              Penutup (Bawah)
-                            </Badge>
-                          ) : lvl === 1 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 flex items-center gap-1">
-                              <ListOrdered className="w-2.5 h-2.5" />
-                              Poin Utama (Tingkat 1)
-                            </Badge>
-                          ) : lvl === 2 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                              Sub-Poin (Tingkat 2)
-                            </Badge>
-                          ) : lvl === 3 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                              Sub-Butir (Tingkat 3)
-                            </Badge>
-                          ) : lvl === 4 ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-bold border-violet-300 bg-violet-50 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300">
-                              Sub-Butir (Tingkat 4)
-                            </Badge>
-                          ) : isPembuka ? (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-zinc-500 border-zinc-200">
-                              Pembuka
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 font-medium text-blue-600 border-blue-200 bg-blue-50/50 dark:text-blue-400">
-                              Paragraf Biasa
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Quick Level Switchers, Insert Below & Delete */}
-                        <div className="flex items-center gap-1">
-                          {/* Mini Dropdown: + Sisipkan Tepat di Bawah Butir Ini */}
-                          {!isPenutup && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 px-1.5 py-0.5 rounded transition-colors cursor-pointer mr-0.5"
-                                  title="Sisipkan butir baru tepat di bawah ini"
-                                >
-                                  <Plus className="w-2.5 h-2.5" />
-                                  <span>Sisipkan</span>
-                                  <ChevronDown className="w-2.5 h-2.5 opacity-60" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-lg rounded-xl p-1 z-50 text-xs">
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint(lvl === 1 ? "letter" : lvl === 2 ? "roman" : "bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-semibold"
-                                >
-                                  <span>↳ + Sub-Butir Anak</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint(lvl === 1 ? "num" : lvl === 2 ? "letter" : lvl === 3 ? "roman" : "bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 font-medium"
-                                >
-                                  <span>= + Poin Setara</span>
-                                </DropdownMenuItem>
-                                <div className="my-1 border-t border-zinc-100 dark:border-zinc-800" />
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("num", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
-                                >
-                                  <span className="font-mono font-bold text-indigo-600 w-4">1.</span> Poin Utama
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("letter", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
-                                >
-                                  <span className="font-mono font-bold text-emerald-600 w-4">a.</span> Sub-Poin Huruf
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("roman", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
-                                >
-                                  <span className="font-mono font-bold text-amber-600 w-4">i.</span> Butir Romawi
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("bracket", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-600 text-[11px]"
-                                >
-                                  <span className="font-mono font-bold text-violet-600 w-4">1)</span> Butir Kurung
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleInsertPoint("plain", idx + 1)}
-                                  className="flex items-center gap-2 px-2.5 py-1 cursor-pointer rounded-lg hover:bg-zinc-100 text-zinc-500 text-[11px]"
-                                >
-                                  <span className="font-mono w-4">¶</span> Paragraf Biasa
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-
-                          <span className="text-[10px] text-zinc-400">Level:</span>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "num")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 1
-                                ? "bg-indigo-100 text-indigo-700 border-indigo-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-indigo-300"
-                            }`}
-                            title="Jadikan Poin 1."
-                          >
-                            1.
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "letter")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 2
-                                ? "bg-emerald-100 text-emerald-700 border-emerald-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-emerald-300"
-                            }`}
-                            title="Jadikan Sub-Poin a."
-                          >
-                            a.
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "roman")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 3 && /^(?:i{1,3}|iv|v)\./i.test(pText.trim())
-                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
-                            }`}
-                            title="Jadikan Romawi i."
-                          >
-                            i.
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "bracket")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 3 && /^[0-9]+\)/.test(pText.trim())
-                                ? "bg-amber-100 text-amber-700 border-amber-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-amber-300"
-                            }`}
-                            title="Jadikan Kurung 1)"
-                          >
-                            1)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleChangeParagraphLevel(idx, "plain")}
-                            className={`text-[9.5px] px-1.5 py-0.5 rounded border ${
-                              lvl === 0
-                                ? "bg-zinc-200 text-zinc-700 border-zinc-300 font-bold"
-                                : "text-zinc-500 border-zinc-200 hover:border-zinc-400"
-                            }`}
-                            title="Jadikan Teks Biasa (Hapus Prefix)"
-                          >
-                            Teks
-                          </button>
-
-                          {!isPenutup && pList.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveParagraph(idx)}
-                              className="text-zinc-400 hover:text-red-500 p-1 ml-1 rounded transition-colors"
-                              title="Hapus butir ini"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <Textarea
-                        value={pText}
-                        onChange={(e) => handleParagraphChange(idx, e.target.value)}
-                        rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
-                        placeholder={
-                          isPenutup
-                            ? "Tulis isi penutup naskah..."
-                            : lvl === 1
-                            ? `Tulis isi poin utama...`
-                            : lvl === 2
-                            ? `Tulis isi sub-poin...`
-                            : lvl === 3
-                            ? `Tulis isi butir...`
-                            : `Tulis isi paragraf...`
-                        }
-                        className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {activeTemplate !== "surat_pengantar" &&
+            activeTemplate !== "surat_izin_cuti" &&
+            renderParagrafBlocksCard("main", `3. Batang Tubuh / Isi (${(data.paragraf || []).length} Butir)`)}
 
           {/* Card 4: Penandatangan */}
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5 border-b border-zinc-100 dark:border-zinc-800 pb-2">
-              <UserCheck className="w-3.5 h-3.5 text-purple-500" />
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+              <UserCheck className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
               {activeTemplate === "berita_acara"
                 ? `4. Penandatangan Berita Acara (${data.signerCount || 2} Pihak)`
                 : activeTemplate === "perjanjian"
@@ -2038,19 +2809,19 @@ function GenerateSuratDinasContent() {
             {activeTemplate === "berita_acara" && (
               <div className="space-y-3">
                 {/* Toggle Jumlah Tanda Tangan: 2 TTD vs 3 TTD */}
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-2.5 bg-zinc-50/50 dark:bg-zinc-950/40">
+                <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-[var(--ds-surface-muted)]">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[11px] text-zinc-700 dark:text-zinc-200">
+                    <span className="font-bold text-xs text-[var(--ds-fg)]">
                       Format Penandatangan
                     </span>
-                    <div className="flex rounded-lg border border-zinc-200 p-0.5 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+                    <div className="flex rounded-lg border border-slate-200/80 dark:border-zinc-800 p-1 bg-[var(--ds-surface)]">
                       <button
                         type="button"
                         onClick={() => updateField("signerCount", 2)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                           (data.signerCount || 2) === 2
-                            ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                            : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                         }`}
                       >
                         2 Tanda Tangan (Pihak I & II)
@@ -2058,10 +2829,10 @@ function GenerateSuratDinasContent() {
                       <button
                         type="button"
                         onClick={() => updateField("signerCount", 3)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                           data.signerCount === 3
-                            ? "bg-white text-emerald-700 shadow-xs dark:bg-zinc-900 dark:text-emerald-400"
-                            : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                            ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                            : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)]"
                         }`}
                       >
                         3 Tanda Tangan (+ Mengetahui)
@@ -2120,16 +2891,16 @@ function GenerateSuratDinasContent() {
             {activeTemplate === "surat_pengantar" && (
               <div className="space-y-3">
                 {/* Pengirim (TTD Kanan) */}
-                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 dark:text-zinc-200">
-                    <UserRound className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-[var(--ds-surface-muted)] space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-[var(--ds-fg)]">
+                    <UserRound className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
                     Pengirim Naskah (TTD Kanan)
                   </div>
                   <div>
                     <select
                       onChange={(e) => handleSelectEmployee(e.target.value)}
                       defaultValue=""
-                      className="w-full text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-zinc-800 dark:text-zinc-200"
+                      className="w-full text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="">-- Pilih dari Database Pegawai --</option>
                       {employeeOptions?.map((emp: any) => {
@@ -2144,25 +2915,25 @@ function GenerateSuratDinasContent() {
                       })}
                     </select>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Input
                       value={data.namaPenandatangan}
                       onChange={(e) => updateField("namaPenandatangan", e.target.value)}
                       placeholder="Nama Pengirim"
-                      className="h-8 text-xs bg-white dark:bg-zinc-950 font-semibold"
+                      className="h-8 text-xs bg-[var(--ds-surface)] font-semibold rounded-lg"
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <Input
                         value={data.nipPenandatangan}
                         onChange={(e) => updateField("nipPenandatangan", e.target.value)}
                         placeholder="NIP Pengirim"
-                        className="h-8 text-xs bg-white dark:bg-zinc-950 font-mono"
+                        className="h-8 text-xs bg-[var(--ds-surface)] font-mono rounded-lg"
                       />
                       <Input
                         value={data.jabatanPenandatangan}
                         onChange={(e) => updateField("jabatanPenandatangan", e.target.value)}
                         placeholder="Jabatan Pengirim"
-                        className="h-8 text-xs bg-white dark:bg-zinc-950"
+                        className="h-8 text-xs bg-[var(--ds-surface)] rounded-lg"
                       />
                     </div>
                   </div>
@@ -2185,10 +2956,10 @@ function GenerateSuratDinasContent() {
               activeTemplate !== "surat_pengantar" && (
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="font-semibold text-zinc-700 dark:text-zinc-300">Pilih dari Database Pegawai</label>
+                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Pilih dari Database Pegawai</label>
                     <select
                       onChange={(e) => handleSelectEmployee(e.target.value)}
-                      className="w-full mt-1 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 text-zinc-800 dark:text-zinc-200"
+                      className="w-full mt-1 text-xs rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-2 text-[var(--ds-fg)]"
                     >
                       <option value="">-- Pilih Pejabat / Pegawai --</option>
                       {employeeOptions?.map((emp: any) => {
@@ -2206,37 +2977,37 @@ function GenerateSuratDinasContent() {
 
                   {activeTemplate !== "nota_dinas" && activeTemplate !== "memorandum" ? (
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Jabatan Penandatangan</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Jabatan Penandatangan</label>
                       <Input
                         value={data.jabatanPenandatangan}
                         onChange={(e) => updateField("jabatanPenandatangan", e.target.value)}
                         placeholder="Contoh: Kepala Balai,"
-                        className="mt-1 text-xs"
+                        className="mt-1 text-xs rounded-lg"
                       />
                     </div>
                   ) : (
-                    <div className="p-2 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 text-[11px] text-emerald-800 dark:text-emerald-300">
+                    <div className="p-2 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-xs text-[var(--ds-accent-fg)]">
                       Format {activeTemplate === "nota_dinas" ? "Nota Dinas" : "Memorandum"}: Langsung nama &amp; NIP (jabatan pengirim ada pada &apos;Dari&apos; di kepala surat).
                     </div>
                   )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">Nama Lengkap & Gelar</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">Nama Lengkap &amp; Gelar</label>
                       <Input
                         value={data.namaPenandatangan}
                         onChange={(e) => updateField("namaPenandatangan", e.target.value)}
                         placeholder="M. ARI WIBAWANTO, S.Hut., M.Sc."
-                        className="mt-1 text-xs font-semibold"
+                        className="mt-1 text-xs font-semibold rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="font-semibold text-zinc-700 dark:text-zinc-300">NIP</label>
+                      <label className="font-semibold text-[var(--ds-fg-secondary)]">NIP</label>
                       <Input
                         value={data.nipPenandatangan}
                         onChange={(e) => updateField("nipPenandatangan", e.target.value)}
                         placeholder="19740514 199903 1 001"
-                        className="mt-1 text-xs font-mono"
+                        className="mt-1 text-xs font-mono rounded-lg"
                       />
                     </div>
                   </div>
@@ -2254,37 +3025,48 @@ function GenerateSuratDinasContent() {
             activeTemplate === "surat_panggilan" ||
             activeTemplate === "surat_pernyataan"
           ) && (
-            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm space-y-3">
-              <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-zinc-400" />
+            <div
+              ref={(el) => { sectionContainerRefs.current.tembusan = el; }}
+              className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                   5. Tembusan ({(data.tembusan || []).length})
                 </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAddTembusan}
-                  className="h-7 text-xs text-emerald-600 hover:text-emerald-700 p-1 gap-1"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah Tembusan
-                </Button>
+                <div className="flex items-center gap-2">
+                  <InlineFormatButtons
+                    compact
+                    labelContext="Tembusan"
+                    onTrigger={(f) => triggerSectionFormat("tembusan", f)}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAddTembusan}
+                    className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 gap-1 rounded-lg"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Tambah Tembusan
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
                 {(data.tembusan || []).map((t, i) => (
                   <div key={t.id || i} className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-zinc-400 w-4">{(data.tembusan || []).length > 1 ? `${i + 1}.` : ""}</span>
+                    <span className="text-xs font-bold text-[var(--ds-fg-muted)] w-4">{(data.tembusan || []).length > 1 ? `${i + 1}.` : ""}</span>
                     <Input
                       value={t.text}
                       onChange={(e) => handleTembusanChange(t.id, e.target.value)}
+                      {...bindSectionFormat("tembusan", (v) => handleTembusanChange(t.id, v))}
                       placeholder="Nama instansi/pejabat tembusan..."
-                      className="h-8 text-xs flex-1"
+                      className="h-8 text-xs flex-1 rounded-lg"
                     />
                     <button
                       type="button"
                       onClick={() => handleRemoveTembusan(t.id)}
-                      className="text-zinc-400 hover:text-red-500 p-1"
+                      className="text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] p-1 rounded-lg"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -2295,77 +3077,247 @@ function GenerateSuratDinasContent() {
           )}
 
           {/* Integrasi Info */}
-          <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 p-3 text-xs text-zinc-500 flex items-center justify-between">
+          <div className="rounded-3xl border border-dashed border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-4 text-xs text-[var(--ds-fg-muted)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
               <span>Otomatis terhubung dengan <strong>Daftar Surat Keluar</strong> BKSDA Kaltim.</span>
             </div>
             <Link
               href="/surat/keluar"
-              className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-semibold inline-flex items-center gap-1 shrink-0 ml-2"
+              className="text-[var(--ds-accent-fg)] hover:underline font-semibold inline-flex items-center gap-1 shrink-0 ml-2"
             >
               Buka Surat Keluar &rarr;
             </Link>
           </div>
+            </>
+          ) : !hasLampiran ? (
+                <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
+                  <div className="flex items-start gap-3">
+                    <div className="kpg-support-icon w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+                      <Paperclip className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <h2 className="text-sm font-bold text-[var(--ds-fg)]">
+                        Halaman Lampiran (Halaman Baru)
+                      </h2>
+                      <p className="text-xs text-[var(--ds-fg-muted)] leading-normal">
+                        Tambahkan halaman lampiran terpisah tanpa Kop Surat. Nomor dan Tanggal otomatis mengikuti <strong>1. Identitas &amp; Meta Dokumen</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3 space-y-1 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[var(--ds-fg-muted)]">Default Judul Header:</span>
+                      <span className="font-semibold text-[var(--ds-fg)]">{defaultLampiranTitle}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[var(--ds-fg-muted)]">Nomor Naskah:</span>
+                      <span className="font-mono text-[var(--ds-fg)]">{data.nomor || "-"}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[var(--ds-fg-muted)]">Tanggal Naskah:</span>
+                      <span className="text-[var(--ds-fg)]">{data.kotaTanggal || "-"}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddLampiran}
+                    className="w-full h-9 rounded-lg text-xs font-semibold gap-2 bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tambah Halaman Lampiran
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Card 1: Kepala & Tata Letak Lampiran */}
+                  <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-4 shadow-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+                        <Paperclip className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                        1. Kepala &amp; Tata Letak Lampiran
+                      </h2>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemoveLampiran}
+                        className="h-7 px-2 rounded-lg text-xs gap-1 border-slate-200/80 dark:border-zinc-800 text-[var(--ds-status-danger-fg)] hover:bg-red-50 dark:hover:bg-red-950/30"
+                        title="Hapus halaman lampiran"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Hapus Lampiran
+                      </Button>
+                    </div>
+
+                    {/* Sync Info Nomor & Tanggal */}
+                    <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-3 space-y-1 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-[var(--ds-fg-secondary)]">
+                          Sinkron dari 1. Identitas &amp; Meta Dokumen
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSwitchEditorTab("main")}
+                          className="text-xs font-semibold text-[var(--ds-accent-fg)] hover:underline cursor-pointer"
+                        >
+                          Ubah Meta &rarr;
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 gap-1 pt-1 text-[var(--ds-fg)]">
+                        <div>
+                          <span className="text-[var(--ds-fg-muted)]">Nomor: </span>
+                          <span className="font-mono font-medium">{data.nomor || "-"}</span>
+                        </div>
+                        <div>
+                          <span className="text-[var(--ds-fg-muted)]">Tanggal: </span>
+                          <span>{data.kotaTanggal || "-"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Orientasi Kertas */}
+                    <div className="space-y-2 text-xs">
+                      <label className="font-semibold text-[var(--ds-fg-secondary)] block">
+                        Orientasi Halaman Lampiran
+                      </label>
+                      <div className="flex items-center gap-1 p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-950/60">
+                        {(["portrait", "landscape"] as LampiranOrientation[]).map((ori) => {
+                          const active = (lampiranData?.orientation || "portrait") === ori;
+                          return (
+                            <button
+                              key={ori}
+                              type="button"
+                              aria-pressed={active}
+                              onClick={() => updateLampiranField("orientation", ori)}
+                              className={cn(
+                                "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                                active
+                                  ? "bg-[var(--ds-surface-raised)] text-[var(--ds-accent-fg)] font-semibold border border-slate-200/80 dark:border-zinc-800 shadow-xs"
+                                  : "text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] border border-transparent"
+                              )}
+                            >
+                              {ori === "portrait" ? "A4 Portrait" : "A4 Landscape"}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Judul Header Lampiran (Kanan Atas) */}
+                    <div
+                      ref={(el) => { sectionContainerRefs.current.lampiranHeader = el; }}
+                      className="space-y-1 text-xs"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <label className="font-semibold text-[var(--ds-fg-secondary)]">
+                          Judul Header Lampiran (Kanan Atas)
+                        </label>
+                        <div className="flex items-center gap-1">
+                          {lampiranData?.headerTitle !== defaultLampiranTitle && (
+                            <button
+                              type="button"
+                              onClick={() => updateLampiranField("headerTitle", defaultLampiranTitle)}
+                              className="text-xs px-2 py-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] bg-[var(--ds-surface)]"
+                              title={`Kembalikan ke "${defaultLampiranTitle}"`}
+                            >
+                              Default
+                            </button>
+                          )}
+                          <InlineFormatButtons
+                            compact
+                            labelContext="Judul Header Lampiran"
+                            onTrigger={(f) => triggerSectionFormat("lampiranHeader", f)}
+                          />
+                        </div>
+                      </div>
+                      <Input
+                        value={lampiranData?.headerTitle ?? defaultLampiranTitle}
+                        onChange={(e) => updateLampiranField("headerTitle", e.target.value)}
+                        {...bindSectionFormat("lampiranHeader", (v) =>
+                          updateLampiranField("headerTitle", v)
+                        )}
+                        placeholder={defaultLampiranTitle}
+                        className="text-xs rounded-lg"
+                      />
+                    </div>
+
+                    {/* Judul Tengah Opsional */}
+                    <div
+                      ref={(el) => { sectionContainerRefs.current.lampiranTitle = el; }}
+                      className="space-y-1 text-xs"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <label className="font-semibold text-[var(--ds-fg-secondary)]">
+                          Judul Tengah Isi Lampiran (Opsional)
+                        </label>
+                        <InlineFormatButtons
+                          compact
+                          labelContext="Judul Tengah Lampiran"
+                          onTrigger={(f) => triggerSectionFormat("lampiranTitle", f)}
+                        />
+                      </div>
+                      <Input
+                        value={lampiranData?.bodyTitle || ""}
+                        onChange={(e) => updateLampiranField("bodyTitle", e.target.value)}
+                        {...bindSectionFormat("lampiranTitle", (v) =>
+                          updateLampiranField("bodyTitle", v)
+                        )}
+                        placeholder="Contoh: SUSUNAN ACARA atau DAFTAR PEJABAT YANG DIUNDANG"
+                        className="text-xs rounded-lg"
+                      />
+                    </div>
+
+                    {/* Toggle Tanda Tangan di Lampiran */}
+                    <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] cursor-pointer text-xs">
+                      <input
+                        type="checkbox"
+                        checked={lampiranData?.showSignature ?? true}
+                        onChange={(e) => updateLampiranField("showSignature", e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded accent-teal-700 cursor-pointer shrink-0"
+                      />
+                      <div className="space-y-1">
+                        <span className="font-semibold text-[var(--ds-fg)] block">
+                          Tampilkan Tanda Tangan (${"{ttd_pengirim}"}) di Lampiran
+                        </span>
+                        <span className="text-[var(--ds-fg-muted)] block leading-normal">
+                          Sinkron dengan <strong>4. Pejabat Penandatangan</strong> ({data.namaPenandatangan || "-"})
+                          {(activeTemplate === "nota_dinas" || activeTemplate === "memorandum")
+                            ? " — tanpa jabatan di atas TTD."
+                            : "."}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Card 2: Isi Halaman Lampiran */}
+                  {renderParagrafBlocksCard(
+                    "lampiran",
+                    `2. Isi Halaman Lampiran (${(lampiranData?.paragraf || []).length} Butir)`
+                  )}
+                </>
+              )}
         </div>
 
         {/* RIGHT COLUMN: Live A4 Preview (7 cols on lg) */}
         <div className="lg:col-span-7 sticky top-4">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/70 dark:bg-zinc-900/50 p-3 lg:p-6 shadow-sm overflow-x-auto">
-            <div className="flex items-center justify-between mb-3 text-xs text-zinc-500">
-              <span className="flex items-center gap-1.5 font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--ds-fg-secondary)]">
+              <span className="flex items-center gap-2 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)]" />
                 Pratinjau A4 Standar Permen 1/2025 ({activeTabMeta.name})
               </span>
-              <div className="flex items-center gap-1.5">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isExporting !== null}
-                      className="h-7 text-xs gap-1 rounded-lg text-slate-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800"
-                    >
-                      {isExporting ? (
-                        <Loader2 className="w-3 h-3 animate-spin mr-0.5 text-blue-600" />
-                      ) : (
-                        <Download className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                      )}
-                      <span>Unduh</span>
-                      <ChevronDown className="w-2.5 h-2.5 opacity-60" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl p-1.5 z-50">
-                    <DropdownMenuItem
-                      onClick={handleExportPdf}
-                      disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
-                    >
-                      <FileDown className="w-4 h-4 text-rose-600 shrink-0" />
-                      <div className="flex flex-col text-left">
-                        <span>Unduh PDF (.pdf)</span>
-                        <span className="text-[10px] text-zinc-400 font-normal">Berkas fisik PDF</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleExportWord}
-                      disabled={isExporting !== null}
-                      className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg cursor-pointer"
-                    >
-                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
-                      <div className="flex flex-col text-left">
-                        <span>Unduh Word (.doc)</span>
-                        <span className="text-[10px] text-zinc-400 font-normal">Microsoft Word editable</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <div className="flex items-center gap-2">
+                <SuratDinasDownloadDropdown isExporting={isExporting} onPdf={handleExportPdf} onWord={handleExportWord} compact />
 
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handlePrintSuratDinas}
-                  className="h-7 text-xs gap-1 rounded-lg"
+                  className="kpg-secondary h-7 text-xs gap-1 rounded-lg"
                 >
                   <Printer className="w-3 h-3" />
                   Cetak Dokumen
@@ -2373,8 +3325,10 @@ function GenerateSuratDinasContent() {
               </div>
             </div>
 
-            <div className="w-fit mx-auto">
-              <SuratDinasDocument data={deferredData} onUpdateField={updateField} />
+            <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-950/40 p-4 overflow-x-auto">
+              <div className={cn("w-fit mx-auto", !hasLampiran && "shadow-xs")}>
+                <SuratDinasDocument data={deferredData} onUpdateField={updateField} />
+              </div>
             </div>
           </div>
         </div>
@@ -2386,11 +3340,113 @@ function GenerateSuratDinasContent() {
         onOpenChange={setIsPickerModalOpen}
         onSelectTemplate={(tplId) => handleSwitchTemplate(tplId as TemplateType)}
       />
+
+      {/* Modal Editor Tabel Lebar Penuh */}
+      {expandedTableTarget !== null && (() => {
+        const list =
+          expandedTableTarget.scope === "lampiran"
+            ? lampiranData?.paragraf || []
+            : data.paragraf || [];
+        const activeBlock = list[expandedTableTarget.idx];
+        if (!activeBlock || !isTableBlock(activeBlock)) return null;
+        return (
+          <Dialog open onOpenChange={(open) => !open && setExpandedTableTarget(null)}>
+            <DialogContent
+              data-module="persuratan"
+              className="psr-ui sm:max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-2xl space-y-3"
+            >
+              <DialogHeader>
+                <DialogTitle className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2">
+                  <Table2 className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+                  Editor Tabel {expandedTableTarget.scope === "lampiran" ? "Lampiran " : ""}Butir {expandedTableTarget.idx + 1} ({activeBlock.headers.length} Kolom × {activeBlock.rows.length} Baris)
+                </DialogTitle>
+                <DialogDescription className="text-xs text-[var(--ds-fg-muted)]">
+                  Geser batas pembatas judul kolom untuk mengatur lebar proporsional pada Pratinjau A4, PDF, dan Word.
+                </DialogDescription>
+              </DialogHeader>
+              <TabelBlockEditor
+                expanded
+                block={activeBlock}
+                {...buildTableEditorProps(expandedTableTarget.idx, expandedTableTarget.scope)}
+              />
+              <div className="flex justify-end pt-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setExpandedTableTarget(null)}
+                  className="h-8 text-xs px-4 rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[color:var(--ds-accent-on-solid)] font-semibold"
+                >
+                  Selesai
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }
 
-
+function SuratDinasDownloadDropdown({
+  isExporting,
+  onPdf,
+  onWord,
+  compact = false,
+}: {
+  isExporting: string | null;
+  onPdf: () => void;
+  onWord: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={isExporting !== null}
+          className={cn("kpg-secondary rounded-lg text-xs", compact ? "h-7 gap-1" : "gap-2")}
+        >
+          {isExporting ? (
+            <Loader2 className={cn("animate-spin mr-1 text-[var(--ds-accent-fg)]", compact ? "w-3 h-3" : "w-3.5 h-3.5")} />
+          ) : (
+            <Download className={cn("text-[var(--ds-accent-fg)]", compact ? "w-3 h-3" : "w-3.5 h-3.5")} />
+          )}
+          <span>Unduh</span>
+          <ChevronDown className={cn("opacity-60", compact ? "w-2.5 h-2.5" : "w-3 h-3")} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        data-module="persuratan"
+        align="end"
+        className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-2 z-50"
+      >
+        <DropdownMenuItem
+          onClick={onPdf}
+          disabled={isExporting !== null}
+          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+        >
+          <FileDown className="w-4 h-4 text-[var(--ds-status-danger-fg)] shrink-0" />
+          <div className="flex flex-col text-left">
+            <span>Unduh PDF (.pdf)</span>
+            <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Berkas fisik PDF</span>
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={onWord}
+          disabled={isExporting !== null}
+          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] rounded-lg cursor-pointer"
+        >
+          <FileText className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
+          <div className="flex flex-col text-left">
+            <span>Unduh Word (.doc)</span>
+            <span className="text-xs text-[var(--ds-fg-muted)] font-normal">Microsoft Word editable</span>
+          </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 const INDO_MONTH_MAP: Record<string, string> = {
   januari: "01", februari: "02", maret: "03", april: "04", mei: "05", juni: "06",
@@ -2408,7 +3464,7 @@ function parseIndoDateToIso(str?: string): string {
 
 export default function GenerateSuratDinasPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-zinc-400">Memuat generator naskah dinas...</div>}>
+    <Suspense fallback={<div className="psr-ui p-8 text-center text-xs text-[var(--ds-fg-muted)]">Memuat generator naskah dinas...</div>}>
       <GenerateSuratDinasContent />
     </Suspense>
   );

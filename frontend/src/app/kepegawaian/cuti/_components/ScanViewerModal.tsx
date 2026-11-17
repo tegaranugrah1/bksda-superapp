@@ -88,7 +88,9 @@ export function ScanViewerModal({
         } else if (
           resDataUrl &&
           typeof resDataUrl === "string" &&
-          (resDataUrl.startsWith("http://") || resDataUrl.startsWith("https://") || resDataUrl.startsWith("/"))
+          (resDataUrl.startsWith("http://") ||
+            resDataUrl.startsWith("https://") ||
+            (resDataUrl.startsWith("/") && !resDataUrl.startsWith("//")))
         ) {
           setPreviewUrl(resDataUrl);
         } else {
@@ -131,17 +133,17 @@ export function ScanViewerModal({
   };
 
   const viewer = (
-      <div className="scan-viewer flex w-full max-w-4xl max-h-[92dvh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+      <div className="scan-viewer flex w-full max-w-4xl max-h-[92dvh] flex-col overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-lg">
         {/* Header */}
         <div className="scan-viewer-header p-4 bg-slate-900 text-white flex flex-wrap gap-2 items-center justify-between border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="scan-viewer-icon w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="scan-viewer-icon w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
               <FileText className="w-4 h-4" />
             </div>
             <div>
               {contentModule ? <DialogTitle className="text-sm font-bold">{title}</DialogTitle> : <h3 className="text-sm font-bold text-slate-100">{title}</h3>}
               {currentDisplayName && (
-                <p className="text-[11px] text-slate-400 font-mono truncate max-w-md">
+                <p className="text-xs text-slate-400 font-mono truncate max-w-md">
                   {currentDisplayName}
                 </p>
               )}
@@ -156,20 +158,20 @@ export function ScanViewerModal({
                   size="sm"
                   variant="outline"
                   onClick={handleOpenExternal}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 text-xs h-8 gap-1.5 rounded-xl font-bold cursor-pointer"
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 text-xs h-8 gap-2 rounded-lg font-bold cursor-pointer"
                   title="Buka Berkas di Tab Baru"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-4 h-4" />
                   Buka Tab Baru
                 </Button>
                 <Button
                   type="button"
                   size="sm"
                   onClick={handleDownload}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 gap-1.5 rounded-xl font-bold shadow-xs cursor-pointer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 gap-2 rounded-lg font-bold shadow-xs cursor-pointer"
                   title="Unduh Berkas"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-4 h-4" />
                   Unduh
                 </Button>
               </>
@@ -180,7 +182,7 @@ export function ScanViewerModal({
               size="sm"
               aria-label="Tutup pratinjau"
               onClick={onClose}
-              className="text-slate-400 hover:text-white hover:bg-slate-800 h-8 w-8 p-0 rounded-xl cursor-pointer"
+              className="text-slate-400 hover:text-white hover:bg-slate-800 h-8 w-8 p-0 rounded-lg cursor-pointer"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -188,7 +190,7 @@ export function ScanViewerModal({
         </div>
 
         {/* Content Viewer */}
-        <div className="scan-viewer-body flex-1 p-4 bg-slate-100 dark:bg-slate-950/60 overflow-y-auto flex items-center justify-center min-h-[50vh]">
+        <div className="scan-viewer-body flex-1 p-4 bg-slate-100 dark:bg-zinc-950/60 overflow-y-auto flex items-center justify-center min-h-[50vh]">
           {isLoading ? (
             <div className="text-center py-16 space-y-3">
               <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
@@ -199,14 +201,14 @@ export function ScanViewerModal({
               <iframe
                 src={previewUrl}
                 title={title}
-                className="w-full h-[72vh] rounded-xl border border-slate-200 dark:border-slate-800 bg-white shadow-xs"
+                className="w-full h-[72vh] rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-white shadow-xs"
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={previewUrl}
                 alt={title}
-                className="max-h-[72vh] max-w-full mx-auto object-contain rounded-xl shadow-lg border border-slate-200 dark:border-slate-800"
+                className="max-h-[72vh] max-w-full mx-auto object-contain rounded-lg shadow-lg border border-slate-200/80 dark:border-zinc-800"
               />
             )
           ) : (
@@ -230,7 +232,7 @@ export function ScanViewerModal({
             event.preventDefault();
             returnFocusRef.current.focus();
           }}
-          className={`${contentModule === "kepegawaian" ? "kpg-ui" : "st-ui"} w-[calc(100%-2rem)] max-w-4xl gap-0 border-0 p-0 sm:max-w-4xl`}
+          className={`${contentModule === "kepegawaian" ? "kpg-ui" : "st-ui"} w-[calc(100%-2rem)] max-w-4xl gap-0 border-0 p-0 sm:max-w-4xl bg-transparent shadow-none ring-0 rounded-3xl overflow-hidden`}
         >
           {viewer}
         </DialogContent>

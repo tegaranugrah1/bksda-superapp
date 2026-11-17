@@ -8,6 +8,7 @@ use App\Modules\Kepegawaian\Models\EmployeeLeave;
 use App\Modules\Kepegawaian\Models\LeaveType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,14 @@ use Illuminate\Support\Facades\Storage;
 
 class EmployeeLeaveController extends Controller
 {
+    private function storeScanFile(UploadedFile $file, string $directory): array
+    {
+        return [
+            'path' => Storage::disk('local')->putFile($directory, $file),
+            'name' => basename(str_replace('\\', '/', $file->getClientOriginalName())),
+        ];
+    }
+
     /**
      * Get Leave Balance for specific employee and year
      */
@@ -23,6 +32,14 @@ class EmployeeLeaveController extends Controller
         return DB::transaction(function () use ($request, $employeeId) {
             $employee = Employee::lockForLeaveUpdate($employeeId);
             abort_if($employee->trashed(), 404);
+
+            $user = $request->user();
+            $isAdmin = $user && ($user->role === 'super_admin'
+                || ($user->isAdminFor('kepegawaian') && in_array('kepegawaian', $user->access_modules ?? [], true)));
+            $isSelf = $user && trim((string) $employee->nip) !== '' && trim((string) $employee->nip) === trim((string) $user->username);
+            if (! $isAdmin && ! $isSelf) {
+                abort(403, 'Anda tidak memiliki hak akses untuk melihat data cuti pegawai lain.');
+            }
 
             if ($employee->is_mmp) {
                 return response()->json([
@@ -173,11 +190,21 @@ class EmployeeLeaveController extends Controller
 
         $status = strtoupper($validated['status'] ?? 'DISETUJUI');
 
-        $startYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
-        $endYear = (int) date('Y', strtotime($validated['tanggal_selesai']));
+        $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+        $endDate = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+        $startYear = $startDate->year;
+        $endYear = $endDate->year;
         if ($startYear !== $endYear) {
             return response()->json([
                 'message' => 'Penetapan cuti tidak boleh lintas tahun kalender. Silakan catat terpisah per tahun anggaran sesuai PerBKN 24/2017.',
+            ], 422);
+        }
+
+        $calendarSpan = (int) $startDate->diffInDays($endDate) + 1;
+        $jumlahHari = (int) $validated['jumlah_hari'];
+        if ($jumlahHari > $calendarSpan) {
+            return response()->json([
+                'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi rentang tanggal yang dipilih ({$calendarSpan} hari).",
             ], 422);
         }
 
@@ -187,7 +214,13 @@ class EmployeeLeaveController extends Controller
             $leaveTypeObj = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
             $validated['jenis_cuti'] = $leaveTypeObj->nama;
 
-            $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            if ($leaveTypeObj->maks_hari && $jumlahHari > $leaveTypeObj->maks_hari) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal jenis cuti {$leaveTypeObj->nama} ({$leaveTypeObj->maks_hari} hari).",
+                ], 422);
+            }
+
             if ($leaveTypeObj->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($startDate)) {
                 $eligibleDate = $employee->annual_leave_eligible_date;
                 $msg = $eligibleDate
@@ -196,27 +229,40 @@ class EmployeeLeaveController extends Controller
                 DB::rollBack();
                 return response()->json(['message' => $msg], 422);
             }
-            $scanFormulirPath = null;
-            $scanFormulirNama = null;
-            $scanSuratIzinPath = null;
-            $scanSuratIzinNama = null;
+            $year = $startYear;
+            $leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $year);
+            $otherApprovedDays = (int) $leaveBalance->cuti_terpakai_n0;
+            $availableQuota = max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - $otherApprovedDays)
+                + (int) $leaveBalance->hak_n1_diakui
+                + (int) $leaveBalance->hak_n2_diakui;
+            if ($leaveTypeObj->potong_kuota_tahunan && in_array($status, ['DISETUJUI', 'APPROVED'], true) && $jumlahHari > $availableQuota) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Saldo cuti tahunan tidak mencukupi (tersedia {$availableQuota} hari, diajukan {$jumlahHari} hari).",
+                ], 422);
+            }
 
-            if ($request->hasFile('file_scan_formulir')) {
-                $f = $request->file('file_scan_formulir');
-                $scanFormulirPath = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
-                $scanFormulirNama = basename(str_replace('\\', '/', $f->getClientOriginalName()));
+            $newlyStored = [];
+            $formulir = $request->hasFile('file_scan_formulir')
+                ? $this->storeScanFile($request->file('file_scan_formulir'), 'cuti_scans/formulir')
+                : null;
+            if ($formulir) {
+                $newlyStored[] = $formulir['path'];
             }
 
             $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
-            if ($suratIzinFile) {
-                $scanSuratIzinPath = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
-                $scanSuratIzinNama = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
+            $suratIzin = $suratIzinFile
+                ? $this->storeScanFile($suratIzinFile, 'cuti_scans/surat_izin')
+                : null;
+            if ($suratIzin) {
+                $newlyStored[] = $suratIzin['path'];
             }
 
+            $scanFormulirPath = $formulir['path'] ?? null;
+            $scanFormulirNama = $formulir['name'] ?? null;
+            $scanSuratIzinPath = $suratIzin['path'] ?? null;
+            $scanSuratIzinNama = $suratIzin['name'] ?? null;
             $hasUploaded = $scanFormulirPath || $scanSuratIzinPath;
-            $year = (int) date('Y', strtotime($validated['tanggal_mulai']));
-            $leaveBalance = EmployeeLeave::forEmployeeYear($employeeId, $year);
-            $otherApprovedDays = (int) $leaveBalance->cuti_terpakai_n0;
 
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::create([
                 'employee_id' => $employeeId,
@@ -259,15 +305,25 @@ class EmployeeLeaveController extends Controller
 
             DB::commit();
 
+            if ($scanSuratIzinPath) {
+                $leaveReq->archiveSuratIzin(Auth::id());
+            }
+
             return response()->json([
                 'message' => 'Surat izin penetapan cuti berhasil dicatat!',
                 'data' => $leaveReq,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             return response()->json([
                 'error' => 'Gagal mencatat penetapan cuti',
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menyimpan penetapan cuti.',
@@ -319,11 +375,21 @@ class EmployeeLeaveController extends Controller
             ], 422);
         }
 
-        $newYear = (int) date('Y', strtotime($validated['tanggal_mulai']));
-        $endYear = (int) date('Y', strtotime($validated['tanggal_selesai']));
+        $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+        $endDate = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+        $newYear = $startDate->year;
+        $endYear = $endDate->year;
         if ($newYear !== $endYear) {
             return response()->json([
                 'message' => 'Penetapan cuti tidak boleh lintas tahun kalender. Silakan sesuaikan per tahun anggaran sesuai PerBKN 24/2017.',
+            ], 422);
+        }
+
+        $calendarSpan = (int) $startDate->diffInDays($endDate) + 1;
+        $jumlahHari = (int) $validated['jumlah_hari'];
+        if ($jumlahHari > $calendarSpan) {
+            return response()->json([
+                'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi rentang tanggal yang dipilih ({$calendarSpan} hari).",
             ], 422);
         }
 
@@ -335,7 +401,13 @@ class EmployeeLeaveController extends Controller
             $leaveTypeObj = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
             $validated['jenis_cuti'] = $leaveTypeObj->nama;
 
-            $startDate = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            if ($leaveTypeObj->maks_hari && $jumlahHari > $leaveTypeObj->maks_hari) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal jenis cuti {$leaveTypeObj->nama} ({$leaveTypeObj->maks_hari} hari).",
+                ], 422);
+            }
+
             if ($leaveTypeObj->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($startDate)) {
                 $eligibleDate = $employee->annual_leave_eligible_date;
                 $msg = $eligibleDate
@@ -352,6 +424,15 @@ class EmployeeLeaveController extends Controller
                 ->annual()
                 ->whereYear('tanggal_mulai', $newYear)
                 ->sum('jumlah_hari');
+            $availableQuota = max(0, (int) ($leaveBalance->hak_cuti_n ?? 12) - $otherApprovedDays)
+                + (int) $leaveBalance->hak_n1_diakui
+                + (int) $leaveBalance->hak_n2_diakui;
+            if ($leaveTypeObj->potong_kuota_tahunan && in_array($status, ['DISETUJUI', 'APPROVED'], true) && $jumlahHari > $availableQuota) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => "Saldo cuti tahunan tidak mencukupi (tersedia {$availableQuota} hari, diajukan {$jumlahHari} hari).",
+                ], 422);
+            }
             $updatePayload = [
                 'nomor_pengajuan' => !empty($validated['nomor_pengajuan']) ? strip_tags(trim($validated['nomor_pengajuan'])) : null,
                 'tanggal_pengajuan' => $validated['tanggal_pengajuan'],
@@ -371,30 +452,28 @@ class EmployeeLeaveController extends Controller
                 'catatan_atasan' => isset($validated['catatan_atasan']) ? strip_tags(trim($validated['catatan_atasan'])) : null,
             ];
 
+            $newlyStored = [];
+            $oldPathsToDelete = [];
             $hasUploaded = false;
             if ($request->hasFile('file_scan_formulir')) {
-                $f = $request->file('file_scan_formulir');
-                if ($leaveReq->scan_formulir_path && Storage::disk('local')->exists($leaveReq->scan_formulir_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_formulir_path);
-                }
-                $updatePayload['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $f);
-                $updatePayload['scan_formulir_nama'] = basename(str_replace('\\', '/', $f->getClientOriginalName()));
+                $oldPathsToDelete[] = $leaveReq->scan_formulir_path;
+                $stored = $this->storeScanFile($request->file('file_scan_formulir'), 'cuti_scans/formulir');
+                $newlyStored[] = $stored['path'];
+                $updatePayload['scan_formulir_path'] = $stored['path'];
+                $updatePayload['scan_formulir_nama'] = $stored['name'];
                 $hasUploaded = true;
             }
 
             $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
             if ($suratIzinFile) {
-                if ($leaveReq->scan_surat_izin_path && Storage::disk('local')->exists($leaveReq->scan_surat_izin_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_izin_path);
-                }
-                if ($leaveReq->scan_surat_path && Storage::disk('local')->exists($leaveReq->scan_surat_path)) {
-                    Storage::disk('local')->delete($leaveReq->scan_surat_path);
-                }
-                $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
-                $updatePayload['scan_surat_izin_path'] = $path;
-                $updatePayload['scan_surat_izin_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-                $updatePayload['scan_surat_path'] = $path;
-                $updatePayload['scan_surat_nama'] = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
+                $oldPathsToDelete[] = $leaveReq->scan_surat_izin_path;
+                $oldPathsToDelete[] = $leaveReq->scan_surat_path;
+                $stored = $this->storeScanFile($suratIzinFile, 'cuti_scans/surat_izin');
+                $newlyStored[] = $stored['path'];
+                $updatePayload['scan_surat_izin_path'] = $stored['path'];
+                $updatePayload['scan_surat_izin_nama'] = $stored['name'];
+                $updatePayload['scan_surat_path'] = $stored['path'];
+                $updatePayload['scan_surat_nama'] = $stored['name'];
                 $hasUploaded = true;
             }
 
@@ -422,15 +501,30 @@ class EmployeeLeaveController extends Controller
 
             DB::commit();
 
+            $stalePaths = array_values(array_unique(array_filter(array_diff($oldPathsToDelete, $newlyStored))));
+            if ($stalePaths !== []) {
+                Storage::disk('local')->delete($stalePaths);
+            }
+
+            if ($suratIzinFile) {
+                $leaveReq->fresh()?->archiveSuratIzin(Auth::id());
+            }
+
             return response()->json([
                 'message' => 'Penetapan cuti berhasil diperbarui!',
                 'data' => $leaveReq->fresh(),
             ]);
         } catch (\Illuminate\Validation\ValidationException|\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
+            if (!empty($newlyStored)) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             return response()->json([
                 'error' => 'Gagal memperbarui penetapan cuti',
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat memperbarui penetapan cuti.',
@@ -450,6 +544,7 @@ class EmployeeLeaveController extends Controller
             Employee::lockForLeaveUpdate($employeeId);
             $leaveReq = \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)->lockForUpdate()->findOrFail($requestId);
             $year = (int) date('Y', strtotime($leaveReq->tanggal_mulai));
+            $hadSuratIzin = ! empty($leaveReq->scan_surat_izin_path ?: $leaveReq->scan_surat_path);
             $leaveReq->delete();
 
             $approvedDays = (int) \App\Modules\Kepegawaian\Models\EmployeeLeaveRequest::where('employee_id', $employeeId)
@@ -464,6 +559,10 @@ class EmployeeLeaveController extends Controller
             }
 
             DB::commit();
+
+            if ($hadSuratIzin) {
+                $leaveReq->purgeSuratIzinArchive();
+            }
 
             return response()->json([
                 'message' => 'Penetapan cuti berhasil dihapus.',

@@ -206,24 +206,208 @@ export function isGeneratedFoluMenimbangText(text: string | null | undefined): b
     );
 }
 
+export type InlineTextFormat = "bold" | "italic";
+
+const FORMATTED_TEXT_TOKEN_RE =
+  /(\*\*\*(?!\s)[^\r\n]*?(?<!\s)\*\*\*|\*\*(?!\s)(?:[^\r\n*]|\*(?!\*))*?(?<!\s)\*\*|\*(?!\s)[^*\r\n]+?(?<!\s)\*)/g;
+
+/**
+ * Render teks dengan konversi markdown ringan (***tebal+miring***, **tebal**, *miring*)
+ * menjadi elemen React (<strong /> / <em />) yang aman dari XSS (hanya text node).
+ */
+export function renderFormattedText(text?: string | null): React.ReactNode {
+  if (!text) return null;
+  const parts = String(text).split(FORMATTED_TEXT_TOKEN_RE);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => {
+    if (part.startsWith("***") && part.endsWith("***") && part.length > 6) {
+      return React.createElement(
+        "strong",
+        {
+          key: i,
+          className: "font-bold italic",
+          style: { fontWeight: "bold", fontStyle: "italic" },
+        },
+        part.slice(3, -3)
+      );
+    }
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return React.createElement(
+        "strong",
+        { key: i, className: "font-bold", style: { fontWeight: "bold" } },
+        renderFormattedText(part.slice(2, -2))
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return React.createElement(
+        "em",
+        { key: i, className: "italic", style: { fontStyle: "italic" } },
+        part.slice(1, -1)
+      );
+    }
+    return part;
+  });
+}
+
 /**
  * Render teks dengan konversi markdown *teks miring* ke elemen React italic (<em ...>).
  * Aman dari XSS karena teks murni dipecah dan dimasukkan ke text node React.
  */
 export function renderFormattedItalic(text?: string | null): React.ReactNode {
-    if (!text) return null;
-    const parts = String(text).split(/(\*(?!\s)[^*\r\n]+?(?<!\s)\*)/g);
-    if (parts.length === 1) return text;
-    return parts.map((part, i) => {
-        if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
-            return React.createElement(
-                "em",
-                { key: i, className: "italic", style: { fontStyle: "italic" } },
-                part.slice(1, -1)
-            );
-        }
-        return part;
+  if (!text) return null;
+  const parts = String(text).split(/(\*(?!\s)[^*\r\n]+?(?<!\s)\*)/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => {
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return React.createElement(
+        "em",
+        { key: i, className: "italic", style: { fontStyle: "italic" } },
+        part.slice(1, -1)
+      );
+    }
+    return part;
+  });
+}
+
+function isWrappedWithMarker(str: string, format: InlineTextFormat): boolean {
+  if (format === "bold") {
+    return str.startsWith("**") && str.endsWith("**") && str.length > 4;
+  }
+  if (str.startsWith("***") && str.endsWith("***") && str.length > 6) return true;
+  return (
+    str.startsWith("*") &&
+    str.endsWith("*") &&
+    str.length > 2 &&
+    !str.startsWith("**") &&
+    !str.endsWith("**")
+  );
+}
+
+function hasOuterMarker(text: string, start: number, end: number, format: InlineTextFormat): boolean {
+  const mLen = format === "bold" ? 2 : 1;
+  if (start < mLen || text.length - end < mLen) return false;
+  const before = text.slice(0, start);
+  const after = text.slice(end);
+  if (format === "bold") {
+    return before.endsWith("**") && after.startsWith("**");
+  }
+  const hasTriple = before.endsWith("***") && after.startsWith("***");
+  const hasSingleOnly =
+    before.endsWith("*") &&
+    after.startsWith("*") &&
+    !before.endsWith("**") &&
+    !after.startsWith("**");
+  return hasTriple || hasSingleOnly;
+}
+
+/**
+ * Toggle/sisipkan pembungkus markdown (**tebal** / *miring*) pada <input> atau <textarea>.
+ */
+export function toggleInlineFormat(
+  field: HTMLTextAreaElement | HTMLInputElement,
+  currentValue: string,
+  format: InlineTextFormat,
+  onUpdate: (newValue: string) => void
+) {
+  const start = field.selectionStart ?? currentValue.length;
+  const end = field.selectionEnd ?? currentValue.length;
+  const text = currentValue || "";
+  const marker = format === "bold" ? "**" : "*";
+  const mLen = marker.length;
+
+  const restoreRange = (selStart: number, selEnd: number) => {
+    setTimeout(() => {
+      field.focus();
+      field.setSelectionRange(selStart, selEnd);
+    }, 0);
+  };
+
+  if (start !== end) {
+    const selected = text.slice(start, end);
+    if (isWrappedWithMarker(selected, format)) {
+      const unwrapped = selected.slice(mLen, -mLen);
+      onUpdate(text.slice(0, start) + unwrapped + text.slice(end));
+      restoreRange(start, start + unwrapped.length);
+    } else if (hasOuterMarker(text, start, end, format)) {
+      const nextText = text.slice(0, start - mLen) + selected + text.slice(end + mLen);
+      onUpdate(nextText);
+      restoreRange(start - mLen, end - mLen);
+    } else {
+      const wsMatch = selected.match(/^(\s*)([\s\S]*?)(\s*)$/);
+      const lead = wsMatch?.[1] ?? "";
+      const core = wsMatch?.[2] ?? selected;
+      const tail = wsMatch?.[3] ?? "";
+      if (!core) {
+        const inner = format === "bold" ? "teks tebal" : "teks miring";
+        const placeholder = `${marker}${inner}${marker}`;
+        onUpdate(text.slice(0, start) + placeholder + text.slice(end));
+        restoreRange(start + mLen, start + placeholder.length - mLen);
+      } else {
+        const coreWrappedStart = start + lead.length;
+        const wrapped = `${lead}${marker}${core}${marker}${tail}`;
+        onUpdate(text.slice(0, start) + wrapped + text.slice(end));
+        restoreRange(coreWrappedStart + mLen, coreWrappedStart + mLen + core.length);
+      }
+    }
+  } else {
+    const inner = format === "bold" ? "teks tebal" : "teks miring";
+    const placeholder = `${marker}${inner}${marker}`;
+    onUpdate(text.slice(0, start) + placeholder + text.slice(end));
+    restoreRange(start + mLen, start + placeholder.length - mLen);
+  }
+}
+
+/**
+ * Pintasan Ctrl+B / Ctrl+I (Cmd+B / Cmd+I di macOS) untuk input dan textarea teks surat.
+ */
+export function handleInlineFormatShortcut(
+  e: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>,
+  currentValue: string,
+  onUpdate: (newValue: string) => void
+): boolean {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return false;
+  const key = e.key.toLowerCase();
+  if (key !== "b" && key !== "i") return false;
+  e.preventDefault();
+  toggleInlineFormat(e.currentTarget, currentValue, key === "b" ? "bold" : "italic", onUpdate);
+  return true;
+}
+
+/**
+ * Konversi isi elemen contentEditable kembali ke string markdown ringan (**tebal**, *miring*).
+ */
+export function serializeEditableToMarkdown(root: HTMLElement): string {
+  const walk = (node: Node): string => {
+    if (node.nodeType === 3) return node.nodeValue || "";
+    if (node.nodeType !== 1) return "";
+    const el = node as HTMLElement;
+    const tag = el.tagName.toUpperCase();
+    if (tag === "SCRIPT" || tag === "STYLE") return "";
+    if (tag === "BR") return "\n";
+
+    let inner = "";
+    const children = Array.from(el.childNodes);
+    children.forEach((child, idx) => {
+      const childTag = child.nodeType === 1 ? (child as HTMLElement).tagName.toUpperCase() : "";
+      if ((childTag === "DIV" || childTag === "P") && idx > 0 && !inner.endsWith("\n")) {
+        inner += "\n";
+      }
+      inner += walk(child);
     });
+
+    if (!inner) return "";
+    const weight = el.style?.fontWeight?.toLowerCase();
+    const style = el.style?.fontStyle?.toLowerCase();
+    const isBold = tag === "STRONG" || tag === "B" || weight === "bold" || Number(weight) >= 600;
+    const isItalic = tag === "EM" || tag === "I" || style === "italic";
+
+    if (isBold && isItalic) return `***${inner}***`;
+    if (isBold) return `**${inner}**`;
+    if (isItalic) return `*${inner}*`;
+    return inner;
+  };
+
+  return walk(root).replace(/\u00a0/g, " ");
 }
 
 /**
@@ -231,40 +415,9 @@ export function renderFormattedItalic(text?: string | null): React.ReactNode {
  * Memanggil callback onUpdate dengan teks baru dan mempertahankan/mengatur seleksi cursor.
  */
 export function toggleItalicInTextarea(
-    textarea: HTMLTextAreaElement,
-    currentValue: string,
-    onUpdate: (newValue: string) => void
+  textarea: HTMLTextAreaElement,
+  currentValue: string,
+  onUpdate: (newValue: string) => void
 ) {
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = currentValue || "";
-
-    if (start !== end) {
-        const selected = text.slice(start, end);
-        if (selected.startsWith("*") && selected.endsWith("*") && selected.length >= 2) {
-            const unwrapped = selected.slice(1, -1);
-            const nextText = text.slice(0, start) + unwrapped + text.slice(end);
-            onUpdate(nextText);
-            setTimeout(() => {
-                textarea.focus();
-                textarea.setSelectionRange(start, start + unwrapped.length);
-            }, 0);
-        } else {
-            const wrapped = `*${selected}*`;
-            const nextText = text.slice(0, start) + wrapped + text.slice(end);
-            onUpdate(nextText);
-            setTimeout(() => {
-                textarea.focus();
-                textarea.setSelectionRange(start, start + wrapped.length);
-            }, 0);
-        }
-    } else {
-        const placeholder = "*teks miring*";
-        const nextText = text.slice(0, start) + placeholder + text.slice(end);
-        onUpdate(nextText);
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + 1, start + placeholder.length - 1);
-        }, 0);
-    }
+  toggleInlineFormat(textarea, currentValue, "italic", onUpdate);
 }

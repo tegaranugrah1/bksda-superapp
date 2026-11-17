@@ -288,11 +288,11 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   }
 
   return (
-    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-8 space-y-6">
+    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-6 space-y-6">
       {/* Enterprise Header Card */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-6 rounded-2xl shadow-xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 sm:p-6 rounded-3xl shadow-xs">
         <div className="flex min-w-0 flex-wrap items-center gap-4">
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="rounded-lg">
           <Link href="/bmn/import-review">
               <ArrowLeft className="w-4 h-4 mr-1" /> Kembali
           </Link>
@@ -303,11 +303,11 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                 <FileSpreadsheet className="w-5 h-5 shrink-0 mt-1 text-[var(--ds-accent-fg)]" />
                 <span className="min-w-0 break-words">{batch?.filename}</span>
               </h1>
-              <span data-status="neutral" className="text-xs font-medium px-2 py-0.5 rounded-full">
+              <span data-status="neutral" className="text-xs font-medium px-2 py-1 rounded-full">
                 Review Impor
               </span>
             </div>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1 tabular-nums">
               {batch?.total_rows} baris total •{" "}
               Diupload {batch?.created_at ? new Date(batch.created_at).toLocaleDateString("id-ID") : ""}
             </p>
@@ -320,7 +320,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               onClick={handleReject}
               disabled={isRejecting || isApproving || isFetching}
               variant="outline"
-              className="bmn-icon-danger"
+              className="bmn-icon-danger rounded-lg"
             >
               {isRejecting ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <XCircle className="w-4 h-4 mr-1" />}
               Tolak
@@ -328,7 +328,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
             <Button
               onClick={handleApprove}
               disabled={isApproving || isRejecting || isFetching || totalActionable === 0}
-              className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold"
+              className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold tabular-nums"
             >
               {isApproving ? (
                 <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Memproses...</>
@@ -341,9 +341,9 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       </div>
 
       {!canApprove && isPending && (
-        <div className="rounded-xl border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] px-4 py-3 text-sm text-[var(--ds-status-warning-fg)]">
+        <div className="rounded-lg border border-[var(--ds-status-warning-border)] bg-[var(--ds-status-warning-bg)] px-4 py-3 text-sm text-[var(--ds-status-warning-fg)]">
           <div className="flex items-start gap-2">
-            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <ShieldAlert className="mt-1 h-4 w-4 shrink-0" />
             <p>
               Batch ini masih menunggu review. Kamu bisa melihat detail perubahan, tetapi approval dan pengaturan seleksi hanya tersedia untuk admin.
             </p>
@@ -362,31 +362,31 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         <SummaryCard
           label="Baru"
           value={batch?.new_rows || 0}
-          icon={<Plus className="w-3.5 h-3.5" />}
+          icon={<Plus className="w-4 h-4" />}
           active={filter === "new"}
           onClick={() => handleStatusFilterChange("new")}
         />
         <SummaryCard
           label="Update"
           value={batch?.updated_rows || 0}
-          icon={<RefreshCw className="w-3.5 h-3.5" />}
+          icon={<RefreshCw className="w-4 h-4" />}
           active={filter === "updated"}
           onClick={() => handleStatusFilterChange("updated")}
         />
         <SummaryCard
           label="Tidak Berubah"
           value={batch?.unchanged_rows || 0}
-          icon={<Minus className="w-3.5 h-3.5" />}
+          icon={<Minus className="w-4 h-4" />}
           active={filter === "unchanged"}
           onClick={() => handleStatusFilterChange("unchanged")}
         />
       </div>
 
       {/* Identity Filters */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-4 shadow-xs">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <div className="min-w-0 flex-1">
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
               Kode Barang
             </label>
             <div className="relative">
@@ -396,12 +396,12 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                 value={identityFilters.kode_barang}
                 onChange={(event) => handleIdentityFilterChange("kode_barang", event.target.value)}
                 placeholder="Cari kode barang..."
-                className="h-10 pl-9 bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
+                className="h-10 pl-9 rounded-lg bg-[var(--ds-surface-muted)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)]"
               />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
               NUP
             </label>
             <div className="relative">
@@ -411,12 +411,12 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                 value={identityFilters.nup}
                 onChange={(event) => handleIdentityFilterChange("nup", event.target.value)}
                 placeholder="Cari NUP..."
-                className="h-10 pl-9 bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
+                className="h-10 pl-9 rounded-lg bg-[var(--ds-surface-muted)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)]"
               />
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
               Nama Barang
             </label>
             <div className="relative">
@@ -426,7 +426,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                 value={identityFilters.nama_barang}
                 onChange={(event) => handleIdentityFilterChange("nama_barang", event.target.value)}
                 placeholder="Cari nama barang..."
-                className="h-10 pl-9 bg-[var(--ds-surface-muted)] border-[var(--ds-border-subtle)] text-[var(--ds-fg)]"
+                className="h-10 pl-9 rounded-lg bg-[var(--ds-surface-muted)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)]"
               />
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               setPage(1);
               setIdentityFilters({ kode_barang: "", nup: "", nama_barang: "" });
             }}
-            className="h-10 shrink-0 border-[var(--ds-border-subtle)] text-[var(--ds-fg-secondary)]"
+            className="h-10 shrink-0 rounded-lg border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-secondary)]"
           >
             <X className="mr-1 h-4 w-4" />
             Reset
@@ -448,8 +448,8 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
 
       {/* Selection Toolbar */}
       {canWrite && isPending && (filteredNewTotal > 0 || selectionSummary.filtered_updated > 0) && (
-        <div className="flex flex-col gap-3 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl px-4 py-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
-          <span className="text-sm text-[var(--ds-fg-secondary)]">
+        <div className="flex flex-col gap-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl px-4 py-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
+          <span className="text-sm text-[var(--ds-fg-secondary)] tabular-nums">
             Dipilih: <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_new}</strong> baru, <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_updated}</strong> update
           </span>
           <div className="flex flex-wrap items-center gap-2">
@@ -459,9 +459,9 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               disabled={isFetching || bulkAction !== null}
               onClick={() => handleBulkSelection("select_changed")}
               variant="outline"
-              className="h-8"
+              className="h-8 rounded-lg tabular-nums"
             >
-              {bulkAction === "select_changed" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="mr-1 h-3.5 w-3.5" />}
+              {bulkAction === "select_changed" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1 h-4 w-4" />}
               Pilih semua ({filteredNewTotal + selectionSummary.filtered_updated})
             </Button>
             <Button
@@ -469,9 +469,9 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               size="sm"
               disabled={isFetching || bulkAction !== null || filteredNewTotal === 0}
               onClick={() => handleBulkSelection("select_new_only")}
-              className="h-8 bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)]"
+              className="h-8 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] tabular-nums"
             >
-              {bulkAction === "select_new_only" ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1 h-3.5 w-3.5" />}
+              {bulkAction === "select_new_only" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
               Pilih hanya aset baru ({filteredNewTotal})
             </Button>
           </div>
@@ -479,10 +479,10 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       )}
 
       {/* Rows Table */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-xs">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className={`${rows.length > 0 ? "bmn-wide-table" : ""} w-full text-sm`}>
-            <thead className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border-subtle)]">
+            <thead className="bg-slate-50/70 dark:bg-zinc-800/30 border-b border-slate-200/70 dark:border-zinc-800">
               <tr>
                 {canWrite && isPending && (
                   <th className="px-4 py-3 w-10">
@@ -510,7 +510,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                 <th className="px-4 py-3 text-left font-semibold text-[var(--ds-fg-secondary)]">Perubahan</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {rows.length === 0 ? (
                 <tr>
                   <td colSpan={canWrite && isPending ? 6 : 5} className="px-4 py-12 text-center text-[var(--ds-fg-muted)]">
@@ -543,10 +543,10 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                     <td className="px-4 py-3">
                       <DiffStatusBadge status={row.diff_status} />
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-fg-secondary)]">
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-fg-secondary)] tabular-nums">
                       {row.imported_data.kode_barang as string}
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-fg-secondary)]">
+                    <td className="px-4 py-3 font-mono text-xs text-[var(--ds-fg-secondary)] tabular-nums">
                       {row.imported_data.nup as string}
                     </td>
                     <td className="px-4 py-3 text-[var(--ds-fg)] font-medium max-w-[200px] truncate">
@@ -580,8 +580,8 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       </div>
 
       {rowsPagination && rowsPagination.last_page > 1 && (
-        <div className="flex flex-col gap-3 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-4 py-3 text-sm text-[var(--ds-fg-secondary)] shadow-xs md:flex-row md:items-center md:justify-between">
-          <span>
+        <div className="flex flex-col gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-4 py-3 text-sm text-[var(--ds-fg-secondary)] shadow-xs md:flex-row md:items-center md:justify-between">
+          <span className="tabular-nums">
             Menampilkan {rowsPagination.from || 0}-{rowsPagination.to || 0} dari {rowsPagination.total} baris hasil filter
           </span>
           <div className="flex items-center gap-2">
@@ -589,18 +589,20 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
               type="button"
               variant="outline"
               size="sm"
+              className="rounded-lg"
               disabled={isFetching || page <= 1}
               onClick={() => setPage((current) => Math.max(1, current - 1))}
             >
               Sebelumnya
             </Button>
-            <span className="text-xs text-[var(--ds-fg-muted)]">
+            <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
               Halaman {rowsPagination.current_page} / {rowsPagination.last_page}
             </span>
             <Button
               type="button"
               variant="outline"
               size="sm"
+              className="rounded-lg"
               disabled={isFetching || page >= rowsPagination.last_page}
               onClick={() => setPage((current) => Math.min(rowsPagination.last_page, current + 1))}
             >
@@ -617,20 +619,20 @@ function DiffStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "new":
       return (
-        <Badge data-status="success" className="text-xs">
-          <Plus className="w-3 h-3 mr-0.5" /> Baru
+        <Badge data-status="success" className="text-xs rounded-full">
+          <Plus className="w-3 h-3 mr-1" /> Baru
         </Badge>
       );
     case "updated":
       return (
-        <Badge data-status="info" className="text-xs">
-          <RefreshCw className="w-3 h-3 mr-0.5" /> Update
+        <Badge data-status="info" className="text-xs rounded-full">
+          <RefreshCw className="w-3 h-3 mr-1" /> Update
         </Badge>
       );
     case "unchanged":
       return (
-        <Badge data-status="neutral" className="text-xs">
-          <Minus className="w-3 h-3 mr-0.5" /> Sama
+        <Badge data-status="neutral" className="text-xs rounded-full">
+          <Minus className="w-3 h-3 mr-1" /> Sama
         </Badge>
       );
     default:
@@ -660,9 +662,9 @@ function DiffFields({
   const selectedCount = entries.filter(([, values]) => values.selected !== false).length;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {isPending && (
-        <div className="mb-1 text-xs font-medium text-[var(--ds-fg-muted)]">
+        <div className="mb-1 text-xs font-medium text-[var(--ds-fg-muted)] tabular-nums">
           Kolom disetujui: <span className="text-[var(--ds-fg-secondary)]">{selectedCount}</span>/{entries.length}
         </div>
       )}
@@ -680,7 +682,7 @@ function DiffFields({
               checked={values.selected !== false}
               disabled={isFetching || fieldAction === `${rowId}:${field}`}
               onCheckedChange={(checked) => onToggleField(rowId, field, checked === true)}
-              className="size-3.5 shrink-0"
+              className="size-4 shrink-0"
             />
           )}
           <span className="text-[var(--ds-fg-muted)] font-medium min-w-[100px]">
@@ -700,7 +702,7 @@ function DiffFields({
           type="button"
           aria-expanded={expanded}
           onClick={() => setExpanded(!expanded)}
-          className="text-xs text-[var(--ds-status-info-fg)] hover:text-[var(--ds-status-info-fg)] font-medium mt-1 cursor-pointer"
+          className="text-xs text-[var(--ds-status-info-fg)] hover:text-[var(--ds-status-info-fg)] font-medium mt-1 cursor-pointer tabular-nums"
         >
           {expanded ? "Sembunyikan perubahan lainnya" : `+${remaining} perubahan lainnya`}
         </button>
@@ -728,17 +730,17 @@ function SummaryCard({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "p-4 rounded-xl border transition-colors duration-150 ease-out text-left hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)]",
+        "p-4 rounded-3xl border shadow-xs transition-colors duration-150 ease-out text-left hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)]",
         active
           ? "border-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
-          : "border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)]"
+          : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)]"
       )}
     >
       <div className="flex items-center gap-2 mb-1">
         {icon}
         <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
       </div>
-      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-2xl font-bold tabular-nums">{value}</p>
     </button>
   );
 }

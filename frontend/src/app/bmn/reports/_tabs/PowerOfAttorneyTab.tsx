@@ -316,81 +316,28 @@ export function PowerOfAttorneyTab({
   };
 
   const duplicatePowerOfAttorney = (agreement: PowerOfAttorneyHistory) => {
-    if (onSetEditingDocument) {
-      onSetEditingDocument({
-        type: "power_of_attorney",
-        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
-        status: "draft",
-        item: { ...agreement, document_type: "power_of_attorney" },
-        isDuplicate: true,
-      });
-      return;
-    }
-
-    setPoaSequence("");
-    const kapVal = extractDocumentKap(agreement.number);
-    if (kapVal) setPoaKap(kapVal);
-    setPoaDate(todayInputValue());
-    setPoaFirstEmployeeId("");
-    setPoaFirstParty(agreement.first_party_snapshot || DEFAULT_POA_FIRST_PARTY);
-    setPoaSecondParty(agreement.second_party_snapshot || { name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" });
-    setPoaSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
-    setPoaNotes(agreement.notes || "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:");
-    setPoaKtpPreviewUrl(agreement.ktp_url || null);
-    setPoaKtpPath(agreement.ktp_path || null);
-    setPoaKtpFile(null);
-    toast.info("Arsip Surat Kuasa disalin sebagai dokumen baru. Silakan lengkapi nomor dan tanggal.");
+    onSetEditingDocument?.({
+      type: "power_of_attorney",
+      titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+      status: "draft",
+      item: { ...agreement, document_type: "power_of_attorney" },
+      isDuplicate: true,
+    });
   };
 
   const editPowerOfAttorney = async (agreement: PowerOfAttorneyHistory) => {
-    if (onSetEditingDocument) {
-      onSetEditingDocument({
-        id: agreement.id,
-        type: "power_of_attorney",
-        titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
-        status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
-        item: { ...agreement, document_type: "power_of_attorney" },
-        isDuplicate: false,
-      });
-      return;
-    }
-
-    const employeeId = agreement.second_party_snapshot?.id;
-    if (employeeId) {
-      setSelectedEmployeeId(String(employeeId));
-      await loadPoaData(String(employeeId));
-    }
-
-    const seq = extractDocumentSequence(agreement.number);
-    setPoaSequence(seq);
-    const kapVal = extractDocumentKap(agreement.number);
-    if (kapVal) setPoaKap(kapVal);
-
-    if (agreement.document_date) {
-      setPoaDate(agreement.document_date);
-    }
-    setPoaFirstEmployeeId("");
-    setPoaFirstParty(agreement.first_party_snapshot || DEFAULT_POA_FIRST_PARTY);
-    setPoaSecondParty(agreement.second_party_snapshot || { name: "", nip: "", position: "", address: "Jln. Teuku Umar Samarinda" });
-    setPoaSelectedAssetIds(agreement.asset_ids || agreement.assets_snapshot?.map((a) => a.id) || []);
-    setPoaNotes(agreement.notes || "Untuk melakukan pengecekan fisik kendaraan roda 2 (dua) dan 4 (empat) sebagai berikut:");
-    setPoaKtpPreviewUrl(agreement.ktp_url || null);
-    setPoaKtpPath(agreement.ktp_path || null);
-    setPoaKtpFile(null);
-    toast.info(`Mengedit dokumen: ${isDraftNumber(agreement.number) ? "Surat Kuasa Kendaraan (Draf)" : agreement.number}`);
+    onSetEditingDocument?.({
+      id: agreement.id,
+      type: "power_of_attorney",
+      titleOrNumber: isDraftNumber(agreement.number) ? "Dokumen (Draf)" : agreement.number,
+      status: agreement.status || (isDraftNumber(agreement.number) ? "draft" : "published"),
+      item: { ...agreement, document_type: "power_of_attorney" },
+      isDuplicate: false,
+    });
   };
 
-  const printPowerOfAttorneyHistory = (agreement: PowerOfAttorneyHistory) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      toast.error("Gagal membuka jendela cetak.");
-      return;
-    }
-    printWindow.document.write("<html><head><title>Cetak Surat Kuasa</title></head><body>");
-    printWindow.document.write(`<div id="print-root"></div>`);
-    printWindow.document.write("</body></html>");
-    printWindow.document.close();
-    window.setTimeout(() => handlePrintPowerOfAttorney("power-of-attorney-history-print-root"), 100);
+  const printPowerOfAttorneyHistory = () => {
+    handlePrintPowerOfAttorney("power-of-attorney-history-print-root");
   };
 
   const deletePowerOfAttorney = async (agreement: PowerOfAttorneyHistory) => {
@@ -488,17 +435,17 @@ export function PowerOfAttorneyTab({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-[var(--ds-fg)]">Generate Surat Kuasa Kendaraan</h2>
-          <p className="text-xs text-[var(--ds-fg-muted)]">
+          <h2 className="text-sm font-bold text-[var(--ds-fg)]">Generate Surat Kuasa Kendaraan</h2>
+          <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
             {selectedEmployee ? fullPoaNumber : "Pilih penerima kuasa untuk mulai membuat dokumen."}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button
             variant="outline"
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={savePowerOfAttorney}
             disabled={savingPowerOfAttorney || !selectedEmployee || !canGenerate}
           >
@@ -512,7 +459,7 @@ export function PowerOfAttorneyTab({
               : "Simpan Riwayat"}
           </Button>
           <Button
-            className="rounded-xl gap-2"
+            className="rounded-lg gap-2"
             onClick={() => handlePrintPowerOfAttorney()}
             disabled={!selectedEmployee}
           >
@@ -522,7 +469,7 @@ export function PowerOfAttorneyTab({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-[var(--ds-fg)]">1. Pilih Penerima Kuasa (Pihak Kedua)</h3>
@@ -535,7 +482,7 @@ export function PowerOfAttorneyTab({
                   value={selectedEmployeeId}
           onChange={(event) => handleEmployeeChange(event.target.value)}
           disabled={loadingEmployees}
-          className="h-12 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-sm outline-none"
+          className="h-10 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-sm outline-none"
         >
           <option value="">{loadingEmployees ? "Memuat pegawai..." : "Pilih pegawai"}</option>
           {employees.map((employee) => (
@@ -547,8 +494,8 @@ export function PowerOfAttorneyTab({
       </div>
 
       {!selectedEmployee ? (
-        <div className="rounded-2xl border border-dashed border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-10 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+        <div className="rounded-3xl border border-dashed border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-8 text-center shadow-xs">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
             <FileText className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-[var(--ds-fg)]">Belum ada dokumen yang dibuat</h3>
@@ -576,11 +523,11 @@ export function PowerOfAttorneyTab({
             onDelete={deletePowerOfAttorney}
           />
 
-          <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-[var(--ds-fg)]">2. Pilih Kendaraan Kuasa</h3>
-                <p className="text-xs text-[var(--ds-fg-muted)]">{poaSelectedAssetIds.length} dari {vehicleAssetOptions.length} kendaraan dipilih</p>
+                <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{poaSelectedAssetIds.length} dari {vehicleAssetOptions.length} kendaraan dipilih</p>
               </div>
             </div>
             <div className="mb-3 relative">
@@ -590,7 +537,7 @@ export function PowerOfAttorneyTab({
                   value={vehicleSearch}
                 onChange={(event) => setVehicleSearch(event.target.value)}
                 placeholder="Cari kendaraan, merk, tipe, nomor polisi, nomor mesin/rangka..."
-                className="h-10 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] pl-9 pr-3 text-sm outline-none"
+                className="h-10 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] pl-9 pr-3 text-sm outline-none"
               />
             </div>
             <AssetSelectionTable
@@ -613,25 +560,25 @@ export function PowerOfAttorneyTab({
                 {
                   header: "No. Polisi",
                   className: "text-[var(--ds-fg-muted)]",
-                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.no_polisi || "-"}</span>,
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)] tabular-nums">{asset.no_polisi || "-"}</span>,
                 },
                 {
                   header: "No. Mesin",
                   className: "text-[var(--ds-fg-muted)]",
-                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.no_mesin || "-"}</span>,
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)] tabular-nums">{asset.no_mesin || "-"}</span>,
                 },
                 {
                   header: "No. Rangka",
                   className: "text-[var(--ds-fg-muted)]",
-                  render: (asset) => <span className="text-[var(--ds-fg-muted)]">{asset.no_rangka || "-"}</span>,
+                  render: (asset) => <span className="text-[var(--ds-fg-muted)] tabular-nums">{asset.no_rangka || "-"}</span>,
                 },
               ]}
             />
           </div>
 
-          <div className="grid grid-cols-1 2xl:grid-cols-[430px_minmax(0,1fr)] gap-5">
-            <div className="space-y-5">
-              <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+          <div className="grid grid-cols-1 2xl:grid-cols-[430px_minmax(0,1fr)] gap-6">
+            <div className="space-y-4">
+              <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
                 <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">3. Detail Dokumen</h3>
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
@@ -641,7 +588,7 @@ export function PowerOfAttorneyTab({
                         value={poaSequence}
                         onChange={(event) => setPoaSequence(event.target.value)}
                         placeholder="contoh: 184"
-                        className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                       />
                     </label>
                     <label className="block">
@@ -650,7 +597,7 @@ export function PowerOfAttorneyTab({
                         value={poaKap}
                         onChange={(event) => setPoaKap(event.target.value)}
                         placeholder="KAP.03.02"
-                        className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                        className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                       />
                     </label>
                   </div>
@@ -661,7 +608,7 @@ export function PowerOfAttorneyTab({
                       type="date"
                       value={poaDate}
                       onChange={(event) => setPoaDate(event.target.value)}
-                      className="mt-1 w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none"
+                      className="mt-1 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm outline-none tabular-nums"
                     />
                   </label>
 
@@ -671,19 +618,19 @@ export function PowerOfAttorneyTab({
                     onChange={(event) => setPoaNotes(event.target.value)}
                     rows={3}
                     placeholder="Catatan / klausul kuasa..."
-                    className="w-full rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs outline-none"
                   />
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+              <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
                 <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">4. Pihak Pertama (Pemberi Kuasa)</h3>
                 <div className="space-y-2">
                   <select
                     aria-label="Pilih pemberi kuasa"
                   value={poaFirstEmployeeId}
                     onChange={(event) => handlePoaFirstPartyChange(event.target.value)}
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   >
                     <option value="">Default - Hardi Purnama</option>
                     {employees.map((employee) => (
@@ -697,33 +644,33 @@ export function PowerOfAttorneyTab({
                   value={poaFirstParty.name}
                     onChange={(event) => setPoaFirstParty({ ...poaFirstParty, name: event.target.value })}
                     placeholder="Nama Lengkap"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
                     aria-label="NIP pemberi kuasa"
                   value={poaFirstParty.nip || ""}
                     onChange={(event) => setPoaFirstParty({ ...poaFirstParty, nip: event.target.value })}
                     placeholder="NIP"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs tabular-nums"
                   />
                   <input
                     aria-label="Jabatan pemberi kuasa"
                   value={poaFirstParty.position || ""}
                     onChange={(event) => setPoaFirstParty({ ...poaFirstParty, position: event.target.value })}
                     placeholder="Jabatan"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
                     aria-label="Alamat pemberi kuasa"
                   value={poaFirstParty.address || ""}
                     onChange={(event) => setPoaFirstParty({ ...poaFirstParty, address: event.target.value })}
                     placeholder="Alamat"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+              <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
                 <h3 className="mb-4 text-sm font-bold text-[var(--ds-fg)]">5. Pihak Kedua (Penerima Kuasa)</h3>
                 <div className="space-y-2">
                   <input
@@ -731,34 +678,34 @@ export function PowerOfAttorneyTab({
                   value={poaSecondParty.name}
                     onChange={(event) => setPoaSecondParty({ ...poaSecondParty, name: event.target.value })}
                     placeholder="Nama Lengkap"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
                     aria-label="Identitas penerima kuasa"
                   value={poaSecondParty.nip || ""}
                     onChange={(event) => setPoaSecondParty({ ...poaSecondParty, nip: event.target.value })}
                     placeholder="NIP / No. Identitas"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs tabular-nums"
                   />
                   <input
                     aria-label="Jabatan penerima kuasa"
                   value={poaSecondParty.position || ""}
                     onChange={(event) => setPoaSecondParty({ ...poaSecondParty, position: event.target.value })}
                     placeholder="Jabatan"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <input
                     aria-label="Alamat penerima kuasa"
                   value={poaSecondParty.address || ""}
                     onChange={(event) => setPoaSecondParty({ ...poaSecondParty, address: event.target.value })}
                     placeholder="Alamat"
-                    className="w-full rounded-lg border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 py-2 text-xs"
+                    className="w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-xs"
                   />
                   <div>
                     <label className="block text-xs font-semibold text-[var(--ds-fg-secondary)] mb-1">
                       Foto KTP Penerima Kuasa
                     </label>
-                    <label aria-disabled={!canGenerate} className="bmn-upload-field relative flex items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--ds-border-subtle)] p-3 text-xs text-[var(--ds-fg-secondary)]">
+                    <label aria-disabled={!canGenerate} className="bmn-upload-field relative flex items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800 p-3 text-xs text-[var(--ds-fg-secondary)]">
                       <Upload className="h-4 w-4" />
                       <span>{poaKtpFile ? poaKtpFile.name : poaKtpPath ? "Ganti Foto KTP" : "Unggah Foto KTP"}</span>
                       <input aria-label="Foto KTP penerima kuasa" disabled={!canGenerate} type="file" accept="image/*" onChange={handlePoaKtpUpload} className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" />
@@ -768,14 +715,14 @@ export function PowerOfAttorneyTab({
               </div>
             </div>
 
-            <div className="min-w-0 rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-5">
+            <div className="min-w-0 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-[var(--ds-fg)]">6. Preview Dokumen</h3>
-                  <p className="text-xs text-[var(--ds-fg-muted)]">{fullPoaNumber}</p>
+                  <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{fullPoaNumber}</p>
                 </div>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] p-4">
+              <div className="overflow-x-auto rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] p-4">
                 <PowerOfAttorneyDocument
                   number={fullPoaNumber}
                   documentDate={poaDate}

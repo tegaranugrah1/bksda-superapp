@@ -418,6 +418,13 @@ class BmnLayoutAndSecurityRegressionTest extends TestCase
         ]);
 
         Sanctum::actingAs($this->adminUser);
+        $this->postJson('/api/bmn/tags', [
+            'name' => 'cucu',
+            'parent_id' => $subTag->id,
+            'color' => 'amber',
+        ])->assertStatus(403);
+
+        Sanctum::actingAs($this->superAdminUser);
 
         $response = $this->postJson('/api/bmn/tags', [
             'name' => 'cucu',
@@ -445,6 +452,9 @@ class BmnLayoutAndSecurityRegressionTest extends TestCase
         ]);
 
         Sanctum::actingAs($this->adminUser);
+        $this->deleteJson("/api/bmn/tags/{$parentTag->id}")->assertStatus(403);
+
+        Sanctum::actingAs($this->superAdminUser);
 
         $response = $this->deleteJson("/api/bmn/tags/{$parentTag->id}");
 

@@ -210,8 +210,14 @@ class DriveRootConcurrencyAndMultipartTest extends TestCase
         $uploadId = $resInit->json('upload_id');
         $s3Key = $resInit->json('s3_key');
 
-        // Simulasikan file sudah terunggah ke S3
-        Storage::disk('drive')->put($s3Key, 'PDF DUMMY BYTES');
+        // Simulasikan file 60 MB terunggah ke S3 tanpa alokasi string besar di memori PHP
+        $tmpStream = tmpfile();
+        ftruncate($tmpStream, $size);
+        rewind($tmpStream);
+        Storage::disk('drive')->put($s3Key, $tmpStream);
+        if (is_resource($tmpStream)) {
+            fclose($tmpStream);
+        }
 
         // Sebelum selesai: used = 0, reserved = 60 MB
         $this->assertEquals(0, $this->unitBerau->usedStorageBytes());

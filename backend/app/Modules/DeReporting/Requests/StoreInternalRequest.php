@@ -15,6 +15,16 @@ class StoreInternalRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->recipients)) {
+            $decoded = json_decode($this->recipients, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $this->merge(['recipients' => $decoded]);
+            }
+        }
+    }
+
     /**
      * Tembok Baja Aturan Input
      */
@@ -29,14 +39,20 @@ class StoreInternalRequest extends FormRequest
             'kategori_id' => ['required', 'uuid', 'exists:dr_kategori,id'],
             'jenis_data_id' => ['required', 'uuid', 'exists:dr_jenis_data,id'],
 
-            // Kolom Opsional
+            // Kolom Opsional & Sasaran Laporan
+            'target_scope' => ['nullable', 'string', 'in:all,restricted'],
+            'recipients' => ['required_if:target_scope,restricted', 'nullable', 'array'],
+            'recipients.*.type' => ['required_with:recipients', 'string', 'in:user,urusan'],
+            'recipients.*.user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'recipients.*.urusan_name' => ['nullable', 'string', 'max:150'],
+
             'koordinator_id' => ['nullable', 'uuid', 'exists:dr_koordinator,id'],
             'anggaran_id' => ['nullable', 'uuid', 'exists:dr_anggaran,id'],
             'keterangan' => ['nullable', 'string'],
 
             // Proteksi Inti Berkas (Project Rule 4.1 & 4.2)
-            // Maksimal 10240 KB = 10 MB
-            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'extensions:pdf,doc,docx,xls,xlsx,zip,rar'],
+            // Maksimal 25600 KB = 25 MB
+            'file' => ['required', 'file', 'max:25600', 'mimes:pdf,doc,docx,xls,xlsx,zip,rar', 'extensions:pdf,doc,docx,xls,xlsx,zip,rar'],
         ];
     }
 
@@ -46,8 +62,9 @@ class StoreInternalRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.max' => 'Kapasitas brankas tidak memadai. Ukuran berkas dilarang melebihi 10 Megabytes.',
+            'file.max' => 'Kapasitas brankas tidak memadai. Ukuran berkas dilarang melebihi 25 Megabytes.',
             'file.mimes' => 'Format laporan terlarang! Hanya menerima wujud: PDF, DOCX, XLSX, ZIP, atau RAR.',
+            'recipients.required_if' => 'Untuk laporan dengan sasaran terbatas, minimal harus memilih 1 sasaran Urusan atau Pegawai penerima.',
             '*.exists' => 'Identitas referensi Master Data tersebut telah dipalsukan atau musnah dari sistem.',
         ];
     }

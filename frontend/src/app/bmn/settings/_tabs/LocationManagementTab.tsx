@@ -1,563 +1,784 @@
 "use client";
 
 import { useState, useMemo, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  MapPin,
+  Search,
   Plus,
   Pencil,
   Trash2,
-  Search,
+  MapPin,
+  Building2,
+  Shield,
+  Users,
   Loader2,
-  Building,
-  Package,
+  Lock,
+  Globe,
+  HardDrive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { TablePaginationFooter } from "../_components/TablePaginationFooter";
-import { type IBmnLocation, STANDARD_UNIT_KERJA } from "../_lib/types";
+import { type IBmnLocation } from "../_lib/types";
 
 interface LocationManagementTabProps {
-  locations: IBmnLocation[];
-  isLoading: boolean;
+  locations?: IBmnLocation[];
+  isLoading?: boolean;
   canManage: boolean;
   isSuperAdmin: boolean;
 }
 
+type LocType = "balai" | "seksi" | "room" | "resor";
+
 export function LocationManagementTab({
-  locations,
-  isLoading,
+  locations: locationsProp,
+  isLoading: isLoadingProp,
   canManage,
   isSuperAdmin,
 }: LocationManagementTabProps) {
-  const formTrigger = useRef<HTMLElement | null>(null);
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const returnFocusRef = useRef<HTMLButtonElement | null>(null);
 
-  const [locationSearch, setLocationSearch] = useState("");
-  const [unitFilter, setUnitFilter] = useState("Semua");
-  const [isLocationFormOpen, setIsLocationFormOpen] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<IBmnLocation | null>(null);
-  const [locationUnitKerja, setLocationUnitKerja] = useState("");
-  const [isCustomUnit, setIsCustomUnit] = useState(false);
-  const [customUnitInput, setCustomUnitInput] = useState("");
-  const [locationName, setLocationName] = useState("");
-  const [locationDescription, setLocationDescription] = useState("");
-  const [isSubmittingLocation, setIsSubmittingLocation] = useState(false);
-  const [locationPage, setLocationPage] = useState(1);
-  const [locationPageSize, setLocationPageSize] = useState(10);
+  const { data: fetchedLocations = [], isLoading: isQueryLoading } = useQuery<IBmnLocation[]>({
+    queryKey: ["master-locations", "all"],
+    queryFn: async () => {
+      const res = await api.get("/locations");
+      return Array.isArray(res.data?.data) ? res.data.data : [];
+    },
+    enabled: locationsProp === undefined,
+  });
 
-  const availableUnits = useMemo(() => {
-    const set = new Set([...STANDARD_UNIT_KERJA, ...locations.map((l) => l.unit_kerja)]);
-    return Array.from(set).filter(Boolean);
+  const locations = locationsProp ?? fetchedLocations;
+  const isLoading = isLoadingProp ?? (locationsProp === undefined ? isQueryLoading : false);
+
+  const [search, setSearch] = useState("");
+  const [unitFilter, setUnitFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingLoc, setEditingLoc] = useState<IBmnLocation | null>(null);
+  const [locType, setLocType] = useState<LocType>("room");
+  const [parentId, setParentId] = useState("");
+  const [unitKerja, setUnitKerja] = useState("");
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [description, setDescription] = useState("");
+  const [isRestricted, setIsRestricted] = useState(false);
+  const [isActive, setIsActive] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const parentUnits = useMemo(() => {
+    return locations
+      .filter((l) => l.location_type === "balai" || l.location_type === "seksi")
+      .sort((a, b) => {
+        if (a.location_type === "balai" && b.location_type !== "balai") return -1;
+        if (a.location_type !== "balai" && b.location_type === "balai") return 1;
+        return a.name.localeCompare(b.name, "id");
+      });
   }, [locations]);
 
-  const filteredLocations = useMemo(() => {
-    return locations.filter((loc) => {
-      const matchesUnit = unitFilter === "Semua" || loc.unit_kerja === unitFilter;
-      if (!matchesUnit) return false;
-      if (!locationSearch.trim()) return true;
-      const q = locationSearch.toLowerCase().trim();
+  const seksiParents = useMemo(
+    () => parentUnits.filter((l) => l.location_type === "seksi"),
+    [parentUnits]
+  );
+
+  // Build hierarchical display list: each parent followed cleanly by its filtered children + orphan rows
+  const displayRows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const matchesQuery = (loc: IBmnLocation) => {
+      if (!q) return true;
       return (
         loc.name.toLowerCase().includes(q) ||
         loc.unit_kerja.toLowerCase().includes(q) ||
-        (loc.description && loc.description.toLowerCase().includes(q))
+        (loc.code || "").toLowerCase().includes(q) ||
+        (loc.description || "").toLowerCase().includes(q)
       );
-    });
-  }, [locations, unitFilter, locationSearch]);
+    };
 
-  const totalLocationItems = filteredLocations.length;
-  const totalLocationPages = locationPageSize === 0 ? 1 : Math.max(1, Math.ceil(totalLocationItems / locationPageSize));
-  const activeLocationPage = Math.min(locationPage, totalLocationPages);
+    const rows: Array<{ item: IBmnLocation; depth: 0 | 1 }> = [];
+    const seen = new Set<string>();
 
-  const paginatedLocations = useMemo(() => {
-    if (locationPageSize === 0) return filteredLocations;
-    const start = (activeLocationPage - 1) * locationPageSize;
-    return filteredLocations.slice(start, start + locationPageSize);
-  }, [filteredLocations, activeLocationPage, locationPageSize]);
-
-  const totalAssetsInLocations = useMemo(() => {
-    return locations.reduce((acc, l) => acc + (l.assets_count || 0), 0);
-  }, [locations]);
-
-  const handleOpenCreateLocation = () => {
-    formTrigger.current = document.activeElement as HTMLElement | null;
-    setEditingLocation(null);
-    setIsCustomUnit(false);
-    setCustomUnitInput("");
-    const defaultUnit = unitFilter !== "Semua" ? unitFilter : (availableUnits[0] || STANDARD_UNIT_KERJA[0]);
-    setLocationUnitKerja(defaultUnit);
-    setLocationName("");
-    setLocationDescription("");
-    setIsLocationFormOpen(true);
-  };
-
-  const handleOpenEditLocation = (loc: IBmnLocation) => {
-    formTrigger.current = document.activeElement as HTMLElement | null;
-    setEditingLocation(loc);
-    const isKnown = availableUnits.includes(loc.unit_kerja);
-    if (isKnown || !isSuperAdmin) {
-      setIsCustomUnit(false);
-      setCustomUnitInput("");
-      setLocationUnitKerja(loc.unit_kerja);
-    } else {
-      setIsCustomUnit(true);
-      setCustomUnitInput(loc.unit_kerja);
-      setLocationUnitKerja("__custom__");
-    }
-    setLocationName(loc.name);
-    setLocationDescription(loc.description || "");
-    setIsLocationFormOpen(true);
-  };
-
-  const handleSubmitLocation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canManage) return;
-    const finalUnit = (isSuperAdmin && isCustomUnit) ? customUnitInput.trim() : locationUnitKerja.trim();
-    if (!locationName.trim() || !finalUnit) {
-      toast.error("Unit kerja dan nama ruangan wajib diisi.");
-      return;
+    for (const p of parentUnits) {
+      if (unitFilter !== "all" && p.id !== unitFilter) continue;
+      const children = locations
+        .filter((c) => c.parent_id === p.id)
+        .sort((a, b) => a.name.localeCompare(b.name, "id"));
+      const matchedChildren = children.filter(matchesQuery);
+      if (matchesQuery(p) || matchedChildren.length > 0) {
+        rows.push({ item: p, depth: 0 });
+        seen.add(p.id);
+        for (const c of matchedChildren) {
+          rows.push({ item: c, depth: 1 });
+          seen.add(c.id);
+        }
+      }
     }
 
-    setIsSubmittingLocation(true);
+    // Legacy / orphan rows without matching hierarchical parent
+    for (const loc of locations) {
+      if (seen.has(loc.id)) continue;
+      if (unitFilter !== "all" && loc.parent_id !== unitFilter && loc.unit_kerja !== unitFilter) continue;
+      if (matchesQuery(loc)) {
+        rows.push({ item: loc, depth: loc.parent_id ? 1 : 0 });
+      }
+    }
+
+    return rows;
+  }, [locations, parentUnits, search, unitFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(displayRows.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginatedRows = displayRows.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const invalidateLocationQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["bmn-locations"] }),
+      queryClient.invalidateQueries({ queryKey: ["master-locations"] }),
+      queryClient.invalidateQueries({ queryKey: ["employees"] }),
+      queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }),
+      queryClient.invalidateQueries({ queryKey: ["drive"] }),
+    ]);
+  };
+
+  const openCreateModal = (presetType: LocType = "room", presetParentId = "") => {
+    setEditingLoc(null);
+    setLocType(presetType);
+    const defaultParent =
+      presetParentId ||
+      (presetType === "resor" ? seksiParents[0]?.id || "" : parentUnits[0]?.id || "");
+    setParentId(presetType === "seksi" || presetType === "balai" ? "" : defaultParent);
+    const matchedParent = parentUnits.find((p) => p.id === defaultParent);
+    setUnitKerja(matchedParent?.unit_kerja || "");
+    setName("");
+    setCode("");
+    setDescription("");
+    setIsRestricted(presetType === "resor");
+    setIsActive(true);
+    setModalOpen(true);
+  };
+
+  const openEditModal = (loc: IBmnLocation) => {
+    setEditingLoc(loc);
+    setLocType(loc.location_type || (loc.parent_id ? "room" : "room"));
+    setParentId(loc.parent_id || "");
+    setUnitKerja(loc.unit_kerja || "");
+    setName(loc.name);
+    setCode(loc.code || "");
+    setDescription(loc.description || "");
+    setIsRestricted(Boolean(loc.is_restricted));
+    setIsActive(loc.is_active !== false);
+    setModalOpen(true);
+  };
+
+  const availableParents = locType === "resor" ? seksiParents : parentUnits;
+  const needsParent = (locType === "room" || locType === "resor") && availableParents.length > 0;
+  const canSubmit =
+    !isSaving &&
+    name.trim().length > 0 &&
+    (locType === "seksi" || locType === "balai"
+      ? true
+      : needsParent
+        ? Boolean(parentId)
+        : unitKerja.trim().length > 0);
+
+  const handleSave = async () => {
+    if (!canSubmit) return;
+    setIsSaving(true);
     try {
-      const payload = {
-        unit_kerja: finalUnit,
-        name: locationName.trim(),
-        description: locationDescription.trim() || null,
+      const selectedParent = parentUnits.find((p) => p.id === parentId);
+      const payload: Record<string, unknown> = {
+        location_type: locType,
+        name: name.trim(),
+        description: description.trim() || null,
+        is_restricted: isRestricted,
+        is_active: isActive,
       };
-
-      if (editingLocation) {
-        await api.put(`/bmn/locations/${editingLocation.id}`, payload);
-        toast.success(`Lokasi '${locationName}' berhasil diperbarui.`);
+      if (code.trim()) {
+        payload.code = code.trim();
+      }
+      if (locType === "seksi" || locType === "balai") {
+        payload.parent_id = null;
+        payload.unit_kerja = name.trim();
+      } else if (parentId) {
+        payload.parent_id = parentId;
+        payload.unit_kerja = selectedParent?.unit_kerja || selectedParent?.name || unitKerja.trim();
       } else {
-        await api.post("/bmn/locations", payload);
-        toast.success(`Lokasi '${locationName}' berhasil ditambahkan.`);
+        payload.unit_kerja = unitKerja.trim();
       }
 
-      queryClient.invalidateQueries({ queryKey: ["bmn-locations"] });
-      queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
-      setIsLocationFormOpen(false);
+      if (editingLoc) {
+        const res = await api.put(`/locations/${editingLoc.id}`, payload);
+        toast.success(res.data?.message || "Lokasi berhasil diperbarui.");
+      } else {
+        const res = await api.post("/locations", payload);
+        toast.success(res.data?.message || "Lokasi berhasil ditambahkan.");
+      }
+      await invalidateLocationQueries();
+      setModalOpen(false);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Gagal menyimpan lokasi.";
-      toast.error(msg);
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Gagal menyimpan lokasi.";
+      toast.error(message);
     } finally {
-      setIsSubmittingLocation(false);
+      setIsSaving(false);
     }
   };
 
-  const handleDeleteLocation = async (loc: IBmnLocation) => {
-    if ((loc.assets_count || 0) > 0) {
-      toast.error(
-        `Lokasi '${loc.name}' tidak dapat dihapus karena masih digunakan oleh ${loc.assets_count} aset BMN. Pindahkan lokasi aset terkait terlebih dahulu.`
-      );
-      return;
-    }
-
-    const ok = await confirm({
-      title: `Hapus Lokasi ${loc.name}?`,
-      description: `Yakin ingin menghapus ruangan/lokasi ini dari master data?`,
-      confirmText: `Ya, Hapus Lokasi`,
+  const handleDelete = async (loc: IBmnLocation) => {
+    const confirmed = await confirm({
+      title: `Hapus Lokasi "${loc.name}"?`,
+      description:
+        "Lokasi hanya dapat dihapus jika tidak memiliki ruangan/resor turunan, aset BMN, pegawai aktif, atau arsip BKSDA Drive.",
+      confirmText: "Ya, Hapus",
+      cancelText: "Batal",
       variant: "danger",
-      contentModule: "bmn",
-      contentClassName: "bmn-assets-ui bmn-standard-ui bmn-popover",
     });
-
-    if (!ok) return;
+    if (!confirmed) return;
 
     try {
-      await api.delete(`/bmn/locations/${loc.id}`);
-      toast.success(`Lokasi '${loc.name}' berhasil dihapus.`);
-      queryClient.invalidateQueries({ queryKey: ["bmn-locations"] });
-      queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
+      const res = await api.delete(`/locations/${loc.id}`);
+      toast.success(res.data?.message || "Lokasi berhasil dihapus.");
+      await invalidateLocationQueries();
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Gagal menghapus lokasi.";
-      toast.error(msg);
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Lokasi gagal dihapus.";
+      toast.error(message);
     }
+  };
+
+  const getDeleteBlockedReason = (loc: IBmnLocation): string | undefined => {
+    const reasons: string[] = [];
+    if ((loc.children_count || 0) > 0) {
+      reasons.push(`${loc.children_count} sub-lokasi`);
+    }
+    if ((loc.assets_count || 0) > 0) {
+      reasons.push(`${loc.assets_count} aset BMN`);
+    }
+    if ((loc.active_employees_count || 0) > 0) {
+      reasons.push(`${loc.active_employees_count} pegawai aktif`);
+    }
+    if (reasons.length === 0) return undefined;
+    return `Tidak dapat dihapus karena masih memiliki ${reasons.join(", ")}.`;
   };
 
   return (
-    <div className="space-y-6">
-      {/* Quick Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
-              Total Ruangan / Resor
-            </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
-              {locations.length}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
-            <MapPin className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
-              Unit Kerja / Seksi Wilayah
-            </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
-              {availableUnits.length}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
-            <Building className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-[var(--ds-surface)] p-5 rounded-2xl border border-[var(--ds-border-subtle)] flex items-center justify-between sm:col-span-2 lg:col-span-1">
-          <div>
-            <p className="text-xs font-semibold text-[var(--ds-fg-muted)] uppercase tracking-wider">
-              Aset Terdaftar di Lokasi
-            </p>
-            <p className="text-2xl font-bold text-[var(--ds-fg)] mt-1">
-              {totalAssetsInLocations}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">
-            <Package className="w-6 h-6" />
-          </div>
-        </div>
-      </div>
-
-      {/* Action & Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1 max-w-lg flex-wrap">
-          <div className="relative flex-1 min-w-50">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-fg-muted)]" />
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 text-[var(--ds-fg-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Cari nama ruangan atau unit kerja..."
-              aria-label="Cari lokasi"
-                  value={locationSearch}
+              value={search}
               onChange={(e) => {
-                setLocationSearch(e.target.value);
-                setLocationPage(1);
+                setSearch(e.target.value);
+                setPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+              placeholder="Cari seksi, ruangan, resor, atau kode..."
+              className="w-full h-9 pl-9 pr-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-solid)]/30"
             />
           </div>
-          <select
-            aria-label="Filter Unit Kerja"
-                  value={unitFilter}
-            onChange={(e) => {
-              setUnitFilter(e.target.value);
-              setLocationPage(1);
-            }}
-            className="h-9 px-3 text-xs border border-[var(--ds-border-subtle)] rounded-xl bg-[var(--ds-surface)] text-[var(--ds-fg-secondary)]"
-          >
-            <option value="Semua">Semua Unit Kerja ({locations.length})</option>
-            {availableUnits.map((u) => (
-              <option key={u} value={u}>
-                {u}
-              </option>
-            ))}
-          </select>
+
+          {parentUnits.length > 0 && (
+            <select
+              aria-label="Filter Unit Induk"
+              value={unitFilter}
+              onChange={(e) => {
+                setUnitFilter(e.target.value);
+                setPage(1);
+              }}
+              className="h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-solid)]/30"
+            >
+              <option value="all">Semua Unit Induk</option>
+              {parentUnits.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
+
         {canManage && (
-          <Button
-            onClick={handleOpenCreateLocation}
-            size="sm"
-            className="rounded-xl gap-2 text-xs bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent-soft)] shrink-0"
-          >
-            <Plus className="w-4 h-4" /> Tambah Lokasi Baru
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {isSuperAdmin && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => openCreateModal("seksi")}
+                className="rounded-lg text-xs font-semibold gap-2"
+              >
+                <Building2 className="w-4 h-4" />
+                Tambah Seksi / Unit Baru
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              ref={returnFocusRef}
+              onClick={() => openCreateModal("room")}
+              className="rounded-lg text-xs font-semibold gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Lokasi Baru
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Locations Table */}
-      <div className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className={`${totalLocationItems > 0 ? "bmn-wide-table" : ""} w-full text-left`}>
-            <thead className={totalLocationItems > 0 ? "" : "hidden sm:table-header-group"}>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
-                  Nama Ruangan / Resor
-                </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
-                  Unit Kerja / Wilayah
-                </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">
-                  Deskripsi
-                </th>
-                <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">
-                  Aset Terkait
-                </th>
-                {canManage && (
-                  <th className="px-5 py-3.5 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center w-28">
-                    Aksi
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={canManage ? 5 : 4} className="p-12 text-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-[var(--ds-accent-fg)] mx-auto mb-2" />
-                    <p className="text-sm text-[var(--ds-fg-muted)]">Memuat master lokasi...</p>
-                  </td>
+      {/* Hierarchical Table */}
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
+        {isLoading ? (
+          <div className="p-10 text-center text-xs text-[var(--ds-fg-muted)] flex items-center justify-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Memuat Master Lokasi...
+          </div>
+        ) : paginatedRows.length === 0 ? (
+          <div className="p-10 text-center text-xs text-[var(--ds-fg-muted)]">
+            Tidak ada lokasi yang sesuai dengan pencarian.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30 text-xs font-semibold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                  <th className="py-3 px-4">Lokasi / Penempatan</th>
+                  <th className="py-3 px-3">Tipe</th>
+                  <th className="py-3 px-3">Akses BKSDA Drive</th>
+                  <th className="py-3 px-3 text-center">Pegawai Aktif</th>
+                  <th className="py-3 px-3 text-center">Aset BMN</th>
+                  {canManage && <th className="py-3 px-4 text-right">Aksi</th>}
                 </tr>
-              ) : filteredLocations.length === 0 ? (
-                <tr>
-                  <td colSpan={canManage ? 5 : 4} className="p-12 text-center">
-                    <MapPin className="w-10 h-10 mx-auto mb-2 text-[var(--ds-fg-muted)]" />
-                    <p className="text-sm text-[var(--ds-fg-muted)] font-medium">
-                      {locationSearch || unitFilter !== "Semua"
-                        ? "Tidak ada lokasi yang cocok dengan filter"
-                        : "Belum ada lokasi yang ditambahkan"}
-                    </p>
-                    {canManage && !locationSearch && (
-                      <Button
-                        onClick={handleOpenCreateLocation}
-                        variant="outline"
-                        size="sm"
-                        className="mt-3 rounded-xl gap-2 text-xs"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Buat Lokasi Pertama
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ) : (
-                paginatedLocations.map((loc) => (
-                  <tr
-                    key={loc.id}
-                    className="bmn-table-row group"
-                  >
-                    <td className="px-5 py-3.5">
-                      <span className="font-semibold text-xs text-[var(--ds-fg)] flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[var(--ds-accent-fg)] shrink-0" />
-                        {loc.name}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-medium bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)]">
-                        <Building className="w-3 h-3 text-[var(--ds-fg-muted)]" />
-                        {loc.unit_kerja}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <p className="text-xs text-[var(--ds-fg-muted)] max-w-sm truncate">
-                        {loc.description || "—"}
-                      </p>
-                    </td>
-                    <td className="px-5 py-3.5 text-center">
-                      <span
-                        className={cn(
-                          "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold",
-                          (loc.assets_count || 0) > 0
-                            ? "bg-[var(--ds-accent-soft)]  text-[var(--ds-accent-fg)]  border border-[var(--ds-accent-soft-border)] "
-                            : "bg-[var(--ds-surface-muted)]  text-[var(--ds-fg-muted)]"
-                        )}
-                      >
-                        {loc.assets_count || 0}
-                      </span>
-                    </td>
-                    {canManage && (
-                      <td className="px-5 py-3.5 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleOpenEditLocation(loc)}
-                            title="Edit Lokasi"
-                            className="bmn-icon-action p-1.5 rounded-lg"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            disabled={(loc.assets_count || 0) > 0}
-                            onClick={() => handleDeleteLocation(loc)}
-                            title={
-                              (loc.assets_count || 0) > 0
-                                ? `Tidak dapat dihapus (${loc.assets_count} aset terkait)`
-                                : "Hapus Lokasi"
-                            }
+              </thead>
+              <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800 text-xs">
+                {paginatedRows.map(({ item: loc, depth }) => {
+                  const isParentUnit = loc.location_type === "balai" || loc.location_type === "seksi";
+                  const blockedReason = getDeleteBlockedReason(loc);
+                  const canEditRow = canManage && (!isParentUnit || isSuperAdmin);
+                  const canDeleteRow = canManage && (!isParentUnit || isSuperAdmin);
+
+                  return (
+                    <tr
+                      key={loc.id}
+                      className={cn(
+                        "transition-colors hover:bg-slate-50/60 dark:hover:bg-zinc-800/30",
+                        isParentUnit && "bg-slate-50/40 dark:bg-zinc-800/20"
+                      )}
+                    >
+                      <td className="py-3 px-4">
+                        <div className={cn("flex items-start gap-3", depth === 1 && "pl-6")}>
+                          <div
                             className={cn(
-                              "bmn-icon-danger p-1.5 rounded-lg",
-                              (loc.assets_count || 0) > 0
-                                ? "text-[var(--ds-fg-muted)]  cursor-not-allowed"
-                                : "bmn-icon-danger "
+                              "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-1",
+                              isParentUnit
+                                ? "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                                : loc.location_type === "resor"
+                                  ? "bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]"
+                                  : "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
                             )}
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            {isParentUnit ? (
+                              <Building2 className="w-4 h-4" />
+                            ) : (
+                              <MapPin className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span
+                                className={cn(
+                                  "text-[var(--ds-fg)]",
+                                  isParentUnit ? "font-bold" : "font-semibold"
+                                )}
+                              >
+                                {loc.name}
+                              </span>
+                              {loc.code && (
+                                <span className="px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 font-mono text-xs text-[var(--ds-fg-muted)]">
+                                  {loc.code}
+                                </span>
+                              )}
+                              {loc.is_active === false && (
+                                <span className="px-2 py-1 rounded-lg bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] text-xs font-semibold">
+                                  Nonaktif
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
+                              {loc.unit_kerja}
+                              {loc.description ? ` • ${loc.description}` : ""}
+                            </p>
+                          </div>
                         </div>
                       </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        {loc.location_type === "balai" ? (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)]">
+                            Induk Balai
+                          </span>
+                        ) : loc.location_type === "seksi" ? (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+                            Induk Seksi
+                          </span>
+                        ) : loc.location_type === "resor" ? (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
+                            Resor KSDA
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] border border-slate-200/80 dark:border-zinc-800">
+                            Ruangan / Urusan
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3 whitespace-nowrap">
+                        {isParentUnit ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-fg-muted)]">
+                            <HardDrive className="w-3 h-3" />
+                            {loc.drive_unit?.slug || "Terhubung Unit"}
+                          </span>
+                        ) : loc.is_restricted ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--ds-status-warning-bg)] text-[var(--ds-status-warning-fg)]">
+                            <Lock className="w-3 h-3" />
+                            Terisolasi (Khusus Staf)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]">
+                            <Globe className="w-3 h-3" />
+                            Terbuka se-Unit
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-3 text-center">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-xs font-medium text-[var(--ds-fg)] tabular-nums">
+                          <Users className="w-3 h-3 text-[var(--ds-fg-muted)]" />
+                          {loc.active_employees_count ?? 0}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-3 text-center">
+                        <span className="px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-xs font-medium text-[var(--ds-fg)] tabular-nums">
+                          {loc.assets_count ?? 0}
+                        </span>
+                      </td>
+
+                      {canManage && (
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <div className="inline-flex items-center justify-end gap-1">
+                            {isParentUnit && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                title="Tambah ruangan/resor di bawah unit ini"
+                                onClick={() =>
+                                  openCreateModal(loc.location_type === "seksi" ? "resor" : "room", loc.id)
+                                }
+                                className="h-7 px-2 rounded-lg text-xs text-[var(--ds-accent-fg)]"
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                Sub
+                              </Button>
+                            )}
+                            {canEditRow && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                title="Edit lokasi"
+                                onClick={() => openEditModal(loc)}
+                                className="h-7 w-7 p-0 rounded-lg"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {canDeleteRow && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                disabled={Boolean(blockedReason)}
+                                title={blockedReason || "Hapus lokasi"}
+                                onClick={() => handleDelete(loc)}
+                                className="h-7 w-7 p-0 rounded-lg text-[var(--ds-status-danger-fg)] disabled:opacity-40"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <TablePaginationFooter
-          totalItems={totalLocationItems}
-          pageSize={locationPageSize}
-          onPageSizeChange={setLocationPageSize}
-          currentPage={activeLocationPage}
-          totalPages={totalLocationPages}
-          onPageChange={setLocationPage}
+          currentPage={safePage}
+          totalPages={totalPages}
+          totalItems={displayRows.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(nextSize) => {
+            setPageSize(nextSize);
+            setPage(1);
+          }}
           itemLabel="lokasi"
         />
       </div>
 
-      {/* DIALOG: CREATE / EDIT LOKASI */}
-      <Dialog open={isLocationFormOpen} onOpenChange={setIsLocationFormOpen}>
-        <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); formTrigger.current?.focus(); }} data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-popover sm:max-w-md rounded-2xl max-h-[90dvh] overflow-y-auto">
-          <form onSubmit={handleSubmitLocation}>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[var(--ds-accent-fg)]" />
-                {editingLocation ? "Edit Lokasi & Ruangan" : "Tambah Lokasi Baru"}
-              </DialogTitle>
-              <DialogDescription>
-                Data master ruangan dan resor untuk standarisasi penempatan aset BMN.
-              </DialogDescription>
-            </DialogHeader>
+      {/* Create / Edit Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent
+          className="sm:max-w-lg rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800"
+          onCloseAutoFocus={(e) => {
+            e.preventDefault();
+            returnFocusRef.current?.focus();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[var(--ds-accent-fg)]" />
+              {editingLoc ? `Edit Lokasi: ${editingLoc.name}` : "Tambah Lokasi Terintegrasi"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Perubahan di Master Lokasi otomatis menyinkronkan Penempatan Pegawai, BMN, dan Folder BKSDA Drive.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2">
+            {/* Location Type Selector */}
+            {!editingLoc && (
               <div>
-                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-1">
-                  Unit Kerja / Wilayah <span className="text-[var(--ds-status-danger-fg)]">*</span>
+                <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-2">
+                  Jenis Lokasi
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocType("room");
+                      setIsRestricted(false);
+                      if (!parentId && parentUnits[0]) setParentId(parentUnits[0].id);
+                    }}
+                    className={cn(
+                      "px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all",
+                      locType === "room"
+                        ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                        : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
+                    )}
+                  >
+                    Ruangan / Urusan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocType("resor");
+                      setIsRestricted(true);
+                      if (seksiParents[0]) setParentId(seksiParents[0].id);
+                    }}
+                    className={cn(
+                      "px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all",
+                      locType === "resor"
+                        ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                        : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
+                    )}
+                  >
+                    Resor KSDA
+                  </button>
+                  {isSuperAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLocType("seksi");
+                        setParentId("");
+                        setIsRestricted(false);
+                      }}
+                      className={cn(
+                        "px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all",
+                        locType === "seksi"
+                          ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                          : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-muted)]"
+                      )}
+                    >
+                      Seksi Baru (Lv 1)
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Parent Selector for room/resor */}
+            {(locType === "room" || locType === "resor") && availableParents.length > 0 && (
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-1">
+                  {locType === "resor" ? "Seksi Wilayah Induk (Wajib SKW)" : "Unit Induk (Balai / Seksi)"}
                 </label>
                 <select
-                  aria-label="Unit Kerja atau Wilayah"
-                  value={isCustomUnit ? "__custom__" : locationUnitKerja}
+                  aria-label="Unit Induk"
+                  value={parentId}
                   onChange={(e) => {
-                    if (e.target.value === "__custom__") {
-                      if (!isSuperAdmin) return;
-                      setIsCustomUnit(true);
-                      setCustomUnitInput("");
-                    } else {
-                      setIsCustomUnit(false);
-                      setLocationUnitKerja(e.target.value);
-                    }
+                    const nextId = e.target.value;
+                    setParentId(nextId);
+                    const p = availableParents.find((item) => item.id === nextId);
+                    if (p) setUnitKerja(p.unit_kerja || p.name);
                   }}
-                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm text-[var(--ds-fg)]"
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
                 >
-                  {availableUnits.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
+                  <option value="">-- Pilih Unit Induk --</option>
+                  {availableParents.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
                     </option>
                   ))}
-                  {isSuperAdmin && (
-                    <option value="__custom__">+ Tambah Unit Kerja Baru (Ketik Manual)...</option>
-                  )}
                 </select>
-
-                {isSuperAdmin && isCustomUnit && (
-                  <div className="mt-2 space-y-1">
-                    <input
-                      type="text"
-                      autoFocus
-                      required
-                      placeholder="Ketik nama Unit Kerja baru..."
-                      aria-label="Unit Kerja Baru"
-                  value={customUnitInput}
-                      onChange={(e) => setCustomUnitInput(e.target.value)}
-                      className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-accent-soft-border)] rounded-xl text-sm text-[var(--ds-fg)]"
-                    />
-                    <div className="flex items-center justify-between text-xs text-[var(--ds-fg-muted)]">
-                      <span>Ketik nama unit kerja baru untuk ruangan ini.</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCustomUnit(false);
-                          setLocationUnitKerja(availableUnits[0] || STANDARD_UNIT_KERJA[0]);
-                        }}
-                        className="text-[var(--ds-accent-fg)] hover:underline font-medium"
-                      >
-                        Batal (Pilih Opsi Ada)
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {!isCustomUnit && (
-                  <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
-                    Pilih salah satu dari unit kerja Balai / Seksi Wilayah BKSDA.
-                  </p>
-                )}
               </div>
+            )}
 
+            {/* Fallback unit_kerja if editing or no structured parents */}
+            {(locType === "seksi" || locType === "balai" || availableParents.length === 0) && (
               <div>
-                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-1">
-                  Nama Ruangan / Resor <span className="text-[var(--ds-status-danger-fg)]">*</span>
+                <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-1">
+                  Nama Unit Kerja
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="misal: Urusan Umum, Resor 01. Berau, Gudang..."
-                  aria-label="Nama Ruangan atau Resor"
-                  value={locationName}
-                  onChange={(e) => setLocationName(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+                  value={unitKerja}
+                  onChange={(e) => setUnitKerja(e.target.value)}
+                  placeholder={locType === "seksi" ? "Contoh: SKW IV Tarakan" : "Unit Kerja"}
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
                 />
               </div>
+            )}
 
+            {/* Location Name */}
+            <div>
+              <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-1">
+                {locType === "seksi"
+                  ? "Nama Resmi Seksi Wilayah *"
+                  : locType === "resor"
+                    ? "Nama Resor KSDA *"
+                    : "Nama Ruangan / Lokasi *"}
+              </label>
+              <input
+                type="text"
+                aria-label="Nama Lokasi"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={
+                  locType === "seksi"
+                    ? "Seksi KSDA Wilayah IV Tarakan"
+                    : locType === "resor"
+                      ? "Resor 15. Nunukan"
+                      : "Urusan Kepegawaian & Umum"
+                }
+                className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
+              />
+            </div>
+
+            {/* Code + Description */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-[var(--ds-fg-secondary)] block mb-1">
-                  Keterangan Tambahan <span className="text-[var(--ds-fg-muted)] font-normal">(Opsional)</span>
+                <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-1">
+                  Kode (Opsional)
                 </label>
-                <textarea
-                  rows={2}
-                  placeholder="Detail letak gedung, lantai, atau fungsi ruangan..."
-                  aria-label="Keterangan Lokasi"
-                  value={locationDescription}
-                  onChange={(e) => setLocationDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl text-sm"
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Otomatis jika kosong"
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs font-mono text-[var(--ds-fg)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ds-fg)] mb-1">
+                  Keterangan
+                </label>
+                <input
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Keterangan singkat lokasi"
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg)]"
                 />
               </div>
             </div>
 
-            <DialogFooter className="gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsLocationFormOpen(false)}
-                disabled={isSubmittingLocation}
-                className="rounded-xl"
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  isSubmittingLocation ||
-                  !locationName.trim() ||
-                  (isCustomUnit ? !customUnitInput.trim() : !locationUnitKerja.trim())
-                }
-                className="rounded-xl gap-2"
-              >
-                {isSubmittingLocation ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Menyimpan...
-                  </>
-                ) : (
-                  "Simpan Lokasi"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
+            {/* Drive Restriction & Active Toggles */}
+            {(locType === "room" || locType === "resor") && (
+              <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isRestricted}
+                  onChange={(e) => setIsRestricted(e.target.checked)}
+                  className="mt-1 rounded-lg"
+                />
+                <div>
+                  <span className="block text-xs font-semibold text-[var(--ds-fg)]">
+                    Isolasi Folder di BKSDA Drive (`is_restricted`)
+                  </span>
+                  <span className="block text-xs text-[var(--ds-fg-muted)]">
+                    Jika aktif, hanya pegawai yang ditempatkan di lokasi ini (atau pemilik Share/Manager eksplisit) yang dapat membuka foldernya.
+                  </span>
+                </div>
+              </label>
+            )}
+
+            {editingLoc && (
+              <label className="flex items-center gap-2 text-xs font-medium text-[var(--ds-fg)] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="rounded-lg"
+                />
+                Lokasi aktif (tampil di pilihan penempatan pegawai &amp; modul lain)
+              </label>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setModalOpen(false)}
+              className="rounded-lg text-xs"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              disabled={!canSubmit}
+              onClick={handleSave}
+              className="rounded-lg text-xs font-semibold"
+            >
+              {isSaving && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Simpan Lokasi
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

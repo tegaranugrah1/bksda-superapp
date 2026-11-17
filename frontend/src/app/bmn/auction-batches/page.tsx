@@ -125,11 +125,11 @@ export default function BmnAuctionBatchesListPage() {
   };
 
   return (
-    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-8 space-y-6">
+    <div data-module="bmn" className="bmn-assets-ui bmn-standard-ui bmn-assets-enter p-4 md:p-6 space-y-6">
       {/* Enterprise Header Card */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] p-6 rounded-2xl shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 md:px-6 md:py-4 rounded-3xl shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] rounded-xl border border-[var(--ds-accent-soft-border)] shadow-xs">
+          <div className="p-3 bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] rounded-lg border border-[var(--ds-accent-soft-border)] shadow-xs">
             <Layers className="w-6 h-6" />
           </div>
           <div>
@@ -137,7 +137,7 @@ export default function BmnAuctionBatchesListPage() {
               <h1 className="text-xl font-bold tracking-tight text-[var(--ds-fg)]">
                 Paket Lelang BMN
               </h1>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
+              <span className="text-xs font-medium px-2 py-1 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)]">
                 Lelang & Penghapusan
               </span>
             </div>
@@ -147,7 +147,7 @@ export default function BmnAuctionBatchesListPage() {
           </div>
         </div>
         {canCreate && (
-          <Button asChild className="w-full sm:w-auto bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-white font-semibold flex items-center justify-center gap-2 rounded-xl transition-colors duration-150 ease-out min-h-[40px] shadow-sm"><Link href="/bmn/auction-candidates">
+          <Button asChild className="w-full sm:w-auto bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold flex items-center justify-center gap-2 rounded-lg transition-colors duration-150 ease-out min-h-[40px] shadow-xs"><Link href="/bmn/auction-candidates">
               <Plus className="h-4 w-4" />
               Buat Paket Baru
             </Link></Button>
@@ -155,17 +155,17 @@ export default function BmnAuctionBatchesListPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] p-4 shadow-xs">
+      <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 shadow-xs">
         <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute top-2.5 left-3 h-4 w-4 text-[var(--ds-fg-muted)]" />
+            <Search className="absolute top-1/2 -translate-y-1/2 left-3 h-4 w-4 text-[var(--ds-fg-muted)]" />
             <Input
               type="text"
               aria-label="Cari paket lelang"
               placeholder="Cari nama paket atau nomor batch..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 rounded-xl border-[var(--ds-border-subtle)] focus-visible:ring-[var(--ds-accent-soft-border)]"
+              className="pl-9 rounded-lg border-slate-200/80 dark:border-zinc-800 focus-visible:ring-[var(--ds-accent-soft-border)]"
             />
           </div>
           <div className="flex gap-2">
@@ -173,7 +173,7 @@ export default function BmnAuctionBatchesListPage() {
               aria-label="Status paket lelang"
               value={statusFilter}
               onChange={handleStatusFilterChange}
-              className="h-9 rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-3 text-sm text-[var(--ds-fg-secondary)] outline-none focus:ring-1 focus:ring-[var(--ds-accent-soft-border)] min-w-44"
+              className="h-9 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 text-sm text-[var(--ds-fg-secondary)] outline-none focus:ring-1 focus:ring-[var(--ds-accent-soft-border)] min-w-44"
             >
               <option value="">Semua Status</option>
               <option value="DRAFT">Draft</option>
@@ -186,7 +186,7 @@ export default function BmnAuctionBatchesListPage() {
             <Button
               type="submit"
               variant="outline"
-              className="rounded-xl flex items-center gap-1.5 h-9"
+              className="rounded-lg flex items-center gap-2 h-9"
               disabled={isLoading || isFetching}
             >
               {isFetching ? <Loader2 className="h-4 w-4 animate-spin text-[var(--ds-accent-fg)]" /> : "Filter"}
@@ -196,49 +196,49 @@ export default function BmnAuctionBatchesListPage() {
       </div>
 
       {/* Batches Table */}
-      <div className="overflow-hidden rounded-2xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-sm">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs">
         <div className="overflow-x-auto">
           <table className={`${batches.length ? "bmn-wide-table" : ""} w-full text-left border-collapse`}>
             <thead className={batches.length ? "" : "hidden sm:table-header-group"}>
-              <tr className="border-b border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)]">
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Nomor Batch
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Nama Paket
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Status
                 </th>
-                <th className="px-5 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Jumlah Aset
                 </th>
-                <th className="px-5 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Total Nilai Taksiran
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Tanggal Lelang
                 </th>
-                <th className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Terakhir Diperbarui
                 </th>
-                <th className="px-5 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-muted)]">
                   Aksi
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--ds-border-subtle)]">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td className="px-5 py-4"><div className="h-4 w-24 bg-[var(--ds-border-subtle)] rounded" /></td>
-                    <td className="px-5 py-4"><div className="h-4 w-40 bg-[var(--ds-border-subtle)] rounded" /></td>
-                    <td className="px-5 py-4"><div className="h-5 w-20 bg-[var(--ds-border-subtle)] rounded-md" /></td>
-                    <td className="px-5 py-4 text-center"><div className="h-4 w-8 bg-[var(--ds-border-subtle)] rounded mx-auto" /></td>
-                    <td className="px-5 py-4 text-right"><div className="h-4 w-28 bg-[var(--ds-border-subtle)] rounded ml-auto" /></td>
-                    <td className="px-5 py-4"><div className="h-4 w-24 bg-[var(--ds-border-subtle)] rounded" /></td>
-                    <td className="px-5 py-4"><div className="h-4 w-24 bg-[var(--ds-border-subtle)] rounded" /></td>
-                    <td className="px-5 py-4 text-center"><div className="h-8 w-16 bg-[var(--ds-border-subtle)] rounded-lg mx-auto" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-24 bg-[var(--ds-surface-muted)] rounded-sm" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-40 bg-[var(--ds-surface-muted)] rounded-sm" /></td>
+                    <td className="px-4 py-4"><div className="h-5 w-20 bg-[var(--ds-surface-muted)] rounded-full" /></td>
+                    <td className="px-4 py-4 text-center"><div className="h-4 w-8 bg-[var(--ds-surface-muted)] rounded-sm mx-auto" /></td>
+                    <td className="px-4 py-4 text-right"><div className="h-4 w-28 bg-[var(--ds-surface-muted)] rounded-sm ml-auto" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-24 bg-[var(--ds-surface-muted)] rounded-sm" /></td>
+                    <td className="px-4 py-4"><div className="h-4 w-24 bg-[var(--ds-surface-muted)] rounded-sm" /></td>
+                    <td className="px-4 py-4 text-center"><div className="h-8 w-16 bg-[var(--ds-surface-muted)] rounded-lg mx-auto" /></td>
                   </tr>
                 ))
               ) : isError ? (
@@ -259,9 +259,9 @@ export default function BmnAuctionBatchesListPage() {
                       <Button asChild
                           variant="outline"
                           size="sm"
-                          className="mt-2 rounded-xl text-xs flex items-center gap-1.5"
+                          className="mt-2 rounded-lg text-xs flex items-center gap-2"
                         ><Link href="/bmn/auction-candidates">
-                          <Layers className="h-3.5 w-3.5" />
+                          <Layers className="h-4 w-4" />
                           Pilih Kandidat Aset
                         </Link></Button>
                     </div>
@@ -273,33 +273,33 @@ export default function BmnAuctionBatchesListPage() {
                     key={batch.id}
                     className="bmn-table-row"
                   >
-                    <td className="px-5 py-4 font-mono text-xs font-bold text-[var(--ds-fg)]">
+                    <td className="px-4 py-4 font-mono text-xs font-bold text-[var(--ds-fg)] tabular-nums">
                       {batch.batch_number}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-4">
                       <div className="font-semibold text-sm text-[var(--ds-fg)]">
                         {batch.name}
                       </div>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-4 py-4">
                       <Badge
                         variant="outline"
                         className={`${getStatusColorClass(
                           batch.status
-                        )} text-xs font-bold px-2 py-0.5 rounded-md`}
+                        )} text-xs font-bold px-2 py-1 rounded-full`}
                       >
                         {getStatusLabel(batch.status)}
                       </Badge>
                     </td>
-                    <td className="px-5 py-4 text-center text-sm font-medium text-[var(--ds-fg)]">
+                    <td className="px-4 py-4 text-center text-sm font-medium text-[var(--ds-fg)] tabular-nums">
                       {batch.assets_count}
                     </td>
-                    <td className="px-5 py-4 text-right font-bold text-sm text-[var(--ds-fg)]">
+                    <td className="px-4 py-4 text-right font-bold text-sm text-[var(--ds-fg)] tabular-nums">
                       {formatRupiah(batch.nilai_taksiran_total)}
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5 text-xs text-[var(--ds-fg-secondary)]">
-                        <Calendar className="h-3.5 w-3.5 text-[var(--ds-fg-muted)] shrink-0" />
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2 text-xs text-[var(--ds-fg-secondary)] tabular-nums">
+                        <Calendar className="h-4 w-4 text-[var(--ds-fg-muted)] shrink-0" />
                         <span>
                           {batch.status === "LELANG_ULANG" && batch.tanggal_lelang_ulang
                             ? formatDate(batch.tanggal_lelang_ulang)
@@ -307,18 +307,18 @@ export default function BmnAuctionBatchesListPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5 text-xs text-[var(--ds-fg-muted)]">
-                        <Clock className="h-3.5 w-3.5 text-[var(--ds-fg-muted)] shrink-0" />
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-2 text-xs text-[var(--ds-fg-muted)] tabular-nums">
+                        <Clock className="h-4 w-4 text-[var(--ds-fg-muted)] shrink-0" />
                         <span>{formatDateTime(batch.updated_at)}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-center align-middle">
-                      <div className="flex items-center justify-center gap-1.5">
+                    <td className="px-4 py-4 text-center align-middle">
+                      <div className="flex items-center justify-center gap-2">
                         <Button asChild
                             variant="ghost"
                             size="sm"
-                            className="text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg text-xs font-semibold flex items-center gap-1.5 min-h-[36px] px-2.5"
+                            className="text-[var(--ds-accent-fg)] hover:text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] rounded-lg text-xs font-semibold flex items-center gap-2 min-h-[36px] px-3"
                           ><Link href={`/bmn/auction-batches/${batch.id}`}>
                             <Eye className="h-4 w-4" />
                             Lihat
@@ -329,7 +329,7 @@ export default function BmnAuctionBatchesListPage() {
                             size="sm"
                             disabled={Boolean(deletingId)}
                             onClick={() => handleDelete(batch)}
-                            className="bmn-icon-danger text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg text-xs font-semibold flex items-center gap-1.5 min-h-[36px] px-2.5"
+                            className="bmn-icon-danger text-[var(--ds-status-danger-fg)] hover:text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg text-xs font-semibold flex items-center gap-2 min-h-[36px] px-3"
                             title="Hapus paket lelang"
                           >
                             {deletingId === batch.id ? (
@@ -351,8 +351,8 @@ export default function BmnAuctionBatchesListPage() {
 
         {/* Table Pagination footer */}
         {meta && totalBatches > 0 && (
-          <div className="flex flex-col gap-3 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface-muted)] px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-xs text-[var(--ds-fg-muted)]">
+          <div className="flex flex-col gap-3 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
               Menampilkan {batches.length} dari {totalBatches.toLocaleString("id-ID")} paket
             </div>
             <div className="flex items-center gap-2">
@@ -365,7 +365,7 @@ export default function BmnAuctionBatchesListPage() {
               >
                 Sebelumnya
               </Button>
-              <span className="px-2 text-xs text-[var(--ds-fg-muted)]">
+              <span className="px-2 text-xs text-[var(--ds-fg-muted)] tabular-nums">
                 Hal {page} / {meta.last_page || 1}
               </span>
               <Button

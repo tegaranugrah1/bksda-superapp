@@ -61,6 +61,7 @@ Route::get('power-of-attorneys', [PowerOfAttorneyController::class, 'index'])->m
 Route::post('power-of-attorneys', [PowerOfAttorneyController::class, 'store'])->middleware('permission:bmn.document.generate');
 Route::match(['put', 'patch'], 'power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'update'])->middleware('permission:bmn.document.generate');
 Route::get('power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'show'])->middleware('permission:bmn.document.history.view');
+Route::get('power-of-attorneys/{agreement}/ktp', [PowerOfAttorneyController::class, 'ktp'])->middleware('permission:bmn.document.history.view');
 
 // 4e. SURAT PENGANTAR BMN
 Route::get('covering-letters', [CoveringLetterController::class, 'index'])->middleware('permission:bmn.document.history.view');
@@ -90,32 +91,38 @@ Route::delete('handover-agreements/{agreement}', [HandoverAgreementController::c
 Route::delete('power-of-attorneys/{agreement}', [PowerOfAttorneyController::class, 'destroy'])->middleware('permission:bmn.document.delete');
 Route::delete('covering-letters/{letter}', [CoveringLetterController::class, 'destroy'])->middleware('permission:bmn.document.delete');
 
-Route::post('assets/import', [AssetController::class, 'import'])->middleware('permission:bmn.import.review');
+Route::post('assets/import', [AssetController::class, 'import'])->middleware('permission:bmn.import.approve');
 Route::delete('assets/{asset}/dispose', [AssetController::class, 'dispose'])->middleware('permission:bmn.asset.dispose');
 Route::post('assets/bulk-dispose', [AssetController::class, 'bulkDispose'])->middleware('permission:bmn.asset.dispose');
 Route::post('assets/bulk-restore', [AssetController::class, 'bulkRestore'])->middleware('permission:bmn.asset.dispose');
 Route::post('assets/bulk-force-delete', [AssetController::class, 'bulkForceDelete'])->middleware('permission:bmn.asset.force_delete');
 Route::post('assets/bulk-update-kondisi', [AssetController::class, 'bulkUpdateKondisi'])->middleware('permission:bmn.asset.update');
 
-// 7. TAG MANAGEMENT
+// 7. TAG MANAGEMENT (Baca untuk semua user BMN, Assign ke Aset untuk Admin BMN, CRUD Master Tag khusus Super Admin)
 Route::get('tags', [TagController::class, 'index'])->middleware('permission:bmn.view');
-Route::post('tags', [TagController::class, 'store'])->middleware('permission:bmn.asset.update');
-Route::match(['put', 'patch'], 'tags/{tag}', [TagController::class, 'update'])->middleware('permission:bmn.asset.update');
-Route::delete('tags/{tag}', [TagController::class, 'destroy'])->middleware('permission:bmn.asset.update');
 Route::post('tags/bulk-assign', [TagController::class, 'bulkAssign'])->middleware('permission:bmn.asset.update');
 Route::post('assets/{asset}/tags', [TagController::class, 'syncAssetTags'])->middleware('permission:bmn.asset.update');
 
-// 8. MASTER LOKASI & RUANGAN BMN
+// 8. MASTER LOKASI & RUANGAN BMN (Baca untuk semua user BMN)
 Route::get('locations', [LocationController::class, 'index'])->middleware('permission:bmn.view');
-Route::post('locations', [LocationController::class, 'store'])->middleware('permission:bmn.asset.update');
-Route::match(['put', 'patch'], 'locations/{location}', [LocationController::class, 'update'])->middleware('permission:bmn.asset.update');
-Route::delete('locations/{location}', [LocationController::class, 'destroy'])->middleware('permission:bmn.asset.update');
 
-// 9. MASTER JENIS BMN
+// 9. MASTER JENIS BMN (Baca untuk semua user BMN)
 Route::get('asset-types', [AssetTypeController::class, 'index'])->middleware('permission:bmn.view');
-Route::post('asset-types', [AssetTypeController::class, 'store'])->middleware('permission:bmn.asset.update');
-Route::match(['put', 'patch'], 'asset-types/{assetType}', [AssetTypeController::class, 'update'])->middleware('permission:bmn.asset.update');
-Route::delete('asset-types/{assetType}', [AssetTypeController::class, 'destroy'])->middleware('permission:bmn.asset.update');
+
+// MUTASI PENGATURAN MASTER BMN (/bmn/settings) - Khusus Super Admin
+Route::middleware(['role:super_admin', 'permission:bmn.manage'])->group(function () {
+    Route::post('tags', [TagController::class, 'store']);
+    Route::match(['put', 'patch'], 'tags/{tag}', [TagController::class, 'update']);
+    Route::delete('tags/{tag}', [TagController::class, 'destroy']);
+
+    Route::post('locations', [LocationController::class, 'store']);
+    Route::match(['put', 'patch'], 'locations/{location}', [LocationController::class, 'update']);
+    Route::delete('locations/{location}', [LocationController::class, 'destroy']);
+
+    Route::post('asset-types', [AssetTypeController::class, 'store']);
+    Route::match(['put', 'patch'], 'asset-types/{assetType}', [AssetTypeController::class, 'update']);
+    Route::delete('asset-types/{assetType}', [AssetTypeController::class, 'destroy']);
+});
 
 Route::prefix('import-review')->group(function () {
     Route::post('/upload', [ImportReviewController::class, 'upload'])->middleware('permission:bmn.import.review');

@@ -17,7 +17,7 @@ export function TagBadge({ tag, size = "sm", className }: TagBadgeProps) {
       title={isSub ? `Sub-tag: ${tag.label || `#${tag.name}`}` : `Main tag: ${tag.label || `#${tag.name}`}`}
       className={cn(
         "inline-flex items-center gap-1 rounded-full font-bold border transition-colors shrink-0",
-        size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
+        size === "sm" ? "px-2 py-1 text-xs" : "px-3 py-1 text-xs",
         colorTheme.bg,
         colorTheme.text,
         colorTheme.border,
@@ -25,9 +25,9 @@ export function TagBadge({ tag, size = "sm", className }: TagBadgeProps) {
       )}
     >
       {isSub ? (
-        <span className="font-mono text-[10px] leading-none opacity-80 -mr-0.5 select-none font-bold">↳</span>
+        <span className="font-mono text-xs leading-none opacity-80 select-none font-bold">↳</span>
       ) : (
-        <TagIcon className={size === "sm" ? "w-2.5 h-2.5" : "w-3 h-3"} />
+        <TagIcon className="w-3 h-3" />
       )}
       {tag.label || `#${tag.name}`}
     </span>

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useId } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { usePathname, useRouter } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Users,
   UserPlus,
@@ -41,7 +41,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { href: "/kepegawaian/surat-tugas/inbox", label: "Inbox Surat Tugas", icon: Inbox, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/cuti", label: "Inbox Surat Cuti", icon: Calendar, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/uang-makan", label: "Hitung Uang Makan", icon: UtensilsCrossed, minRole: "admin", group: "Layanan & Persuratan" },
-  { href: "/kepegawaian/surat-masuk", label: "Arsip Surat Masuk", icon: Archive, minRole: "user", group: "Layanan & Persuratan" },
+  { href: "/kepegawaian/surat-masuk", label: "Arsip Surat Masuk", icon: Archive, minRole: "admin", group: "Layanan & Persuratan" },
   { href: "/kepegawaian/settings", label: "Setting", icon: Settings, minRole: "super_admin", group: "Konfigurasi" },
 ];
 
@@ -58,6 +58,7 @@ export default function KepegawaianLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const reducedMotion = useReducedMotion();
@@ -75,12 +76,27 @@ export default function KepegawaianLayout({
     return () => window.removeEventListener("keydown", close);
   }, [isOpen]);
   const { user } = useAuth();
-  const { canWrite } = useRole();
+  const { role, canWrite, isSuperAdmin } = useRole("kepegawaian");
+
+  const isRouteForbidden =
+    (pathname.startsWith("/kepegawaian/settings") && !isSuperAdmin) ||
+    (!canWrite &&
+      (pathname.startsWith("/kepegawaian/employees/create") ||
+        pathname.startsWith("/kepegawaian/surat-tugas") ||
+        pathname.startsWith("/kepegawaian/cuti") ||
+        pathname.startsWith("/kepegawaian/uang-makan") ||
+        pathname.startsWith("/kepegawaian/surat-masuk")));
+
+  useEffect(() => {
+    if (user && isRouteForbidden) {
+      router.replace("/kepegawaian");
+    }
+  }, [user, isRouteForbidden, router]);
 
   const visibleItems = SIDEBAR_ITEMS.filter((item) => {
     if (item.minRole === "user") return true;
     if (item.minRole === "admin") return canWrite;
-    if (item.minRole === "super_admin") return user?.role === "super_admin";
+    if (item.minRole === "super_admin") return isSuperAdmin;
     return false;
   });
 
@@ -105,49 +121,35 @@ export default function KepegawaianLayout({
 
   return (
     <RouteGuard requiredModule="kepegawaian">
-      <div data-module="kepegawaian" className="kpg-shell">
-      {/* Tombol Floating Mobile Hamburger */}
-      <button
-        ref={menuButton}
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle Menu Kepegawaian"
-        aria-expanded={isOpen}
-        aria-controls="kepegawaian-sidebar"
-        className="md:hidden fixed z-50 bottom-6 right-6 p-3.5 rounded-2xl bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] shadow-xl hover:bg-[var(--ds-accent-hover)] transition-colors cursor-pointer"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
-
-      <div className="flex h-screen bg-[var(--ds-surface)] text-[var(--ds-fg)] relative overflow-hidden">
+      <div data-module="kepegawaian" className="kpg-shell flex h-screen bg-[var(--ds-canvas)] text-[var(--ds-fg)] relative overflow-hidden">
         {/* Layar Gelap (Backdrop) saat laci ditarik di layar HP */}
         {isOpen && (
           <div
             onClick={() => setIsOpen(false)}
-            className="md:hidden fixed inset-0 z-30 bg-[var(--ds-surface-muted)] backdrop-blur-xs   "
+            className="md:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
           />
         )}
 
         <aside
           id="kepegawaian-sidebar"
           data-open={isOpen}
-          className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[var(--ds-surface)]  border-r border-[var(--ds-border-subtle)]  transform md:relative md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[var(--ds-surface)] border-r border-slate-200/70 dark:border-zinc-800 transform md:relative md:translate-x-0 ${
             isOpen ? "translate-x-0 w-72" : "-translate-x-full"
           } ${collapsed ? "md:w-20" : "md:w-64 xl:w-72"}`}
         >
           {/* Header */}
-          <div className={`border-b border-[var(--ds-border-subtle)]  ${collapsed ? "p-3" : "p-4"}`}>
+          <div className={`border-b border-slate-200/70 dark:border-zinc-800 ${collapsed ? "p-3" : "p-4"}`}>
             <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} gap-2`}>
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)] shadow-sm">
+                <div className="w-10 h-10 shrink-0 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)] shadow-xs">
                   <Users className="w-5 h-5" />
                 </div>
                 {!collapsed && (
                   <div className="min-w-0">
-                    <h2 className="font-bold text-base text-[var(--ds-fg)] leading-tight truncate">
+                    <h2 className="font-bold text-sm text-[var(--ds-fg)] leading-tight truncate">
                       Kepegawaian
                     </h2>
-                    <p className="text-xs font-medium text-[var(--ds-accent-fg)] leading-snug mt-0.5">
+                    <p className="text-xs font-bold text-[var(--ds-accent-fg)] uppercase tracking-widest mt-1 truncate">
                       SDM &amp; Administrasi
                     </p>
                   </div>
@@ -161,7 +163,7 @@ export default function KepegawaianLayout({
                     type="button"
                     onClick={() => setCollapsed(true)}
                     title="Ciutkan Sidebar"
-                    className="hidden md:flex p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
+                    className="hidden md:flex p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                   >
                     <PanelLeftClose className="w-4 h-4" />
                   </button>
@@ -170,19 +172,19 @@ export default function KepegawaianLayout({
             </div>
 
             {collapsed ? (
-              <div className="mt-2 hidden md:flex flex-col items-center gap-1.5">
+              <div className="mt-2 hidden md:flex flex-col items-center gap-2">
                 <ThemeToggle />
                 <button
                   type="button"
                   onClick={() => setCollapsed(false)}
                   title="Perluas Sidebar"
-                  className="p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
+                  className="p-2 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                 >
                   <PanelLeftOpen className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <div className="mt-3.5">
+              <div className="mt-4">
                 <ModuleSwitcher />
               </div>
             )}
@@ -197,7 +199,7 @@ export default function KepegawaianLayout({
               return (
                 <div key={groupName} className="space-y-1">
                   {!collapsed && (
-                    <p className="px-3 pb-1 text-xs font-bold uppercase tracking-widest text-[var(--ds-fg-muted)]">
+                    <p className="px-3 pb-1 text-xs font-bold uppercase tracking-widest text-[var(--ds-fg-secondary)]">
                       {groupName}
                     </p>
                   )}
@@ -206,52 +208,42 @@ export default function KepegawaianLayout({
                     const isActive = isItemActive(item.href);
 
                     return (
-                      <motion.div
+                      <Link
                         key={item.href}
-                        whileHover={reducedMotion ? undefined : { x: collapsed ? 0 : 2 }}
-                        whileTap={reducedMotion ? undefined : { scale: 0.98 }}
-                        transition={{ duration: reducedMotion ? 0 : 0.12 }}
+                        href={item.href}
+                        onClick={() => setIsOpen(false)}
+                        title={collapsed ? item.label : undefined}
+                        aria-label={item.label}
+                        aria-current={isActive ? "page" : undefined}
+                        className={`group relative flex items-center ${
+                          collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2"
+                        } rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer select-none ${
+                          isActive
+                            ? "text-[var(--ds-accent-fg)] font-bold"
+                            : "text-[var(--ds-fg-secondary)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-fg)]"
+                        }`}
                       >
-                        <Link
-                          href={item.href}
-                          onClick={() => setIsOpen(false)}
-                          title={collapsed ? item.label : undefined}
-                          aria-label={item.label}
-                          aria-current={isActive ? "page" : undefined}
-                          className={`group relative flex items-center ${
-                            collapsed ? "justify-center px-2.5 py-2.5" : "gap-3 px-3.5 py-2.5"
-                          } rounded-xl text-xs font-semibold transition-colors duration-150 cursor-pointer select-none ${
-                            isActive
-                              ? "text-[var(--ds-accent-fg)]  font-bold"
-                              : "text-[var(--ds-fg-muted)]  hover:bg-[var(--ds-surface-muted)]  hover:text-[var(--ds-fg)] "
-                          }`}
-                        >
-                          {isActive && (
-                            <motion.span
-                              layoutId={`${indicatorId}-sidebar`}
-                              className="absolute inset-0 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl shadow-2xs"
-                              transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
-                            />
-                          )}
-                          {isActive && (
-                            <motion.span
-                              layoutId={`${indicatorId}-accent`}
-                              className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-[var(--ds-accent-solid)] z-20"
-                              transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }}
-                            />
-                          )}
-                          <Icon
-                            className={`w-4 h-4 shrink-0 transition-colors relative z-10 ${
-                              isActive
-                                ? "text-[var(--ds-accent-fg)] "
-                                : "text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-fg)] "
-                            }`}
+                        {isActive && (
+                          <motion.span
+                            layoutId={`${indicatorId}-sidebar`}
+                            className="absolute inset-0 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-lg shadow-xs"
+                            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 450, damping: 35 }}
                           />
-                          {!collapsed && (
-                            <span className="truncate relative z-10">{item.label}</span>
-                          )}
-                        </Link>
-                      </motion.div>
+                        )}
+                        <Icon
+                          className={`w-4 h-4 shrink-0 transition-colors relative z-10 ${
+                            isActive
+                              ? "text-[var(--ds-accent-fg)]"
+                              : "text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-fg-secondary)]"
+                          }`}
+                        />
+                        {!collapsed && (
+                          <span className="truncate relative z-10 flex-1">{item.label}</span>
+                        )}
+                        {!collapsed && isActive && (
+                          <span className="w-2 h-2 rounded-full bg-[var(--ds-accent-solid)] shrink-0 relative z-10" />
+                        )}
+                      </Link>
                     );
                   })}
                 </div>
@@ -260,10 +252,10 @@ export default function KepegawaianLayout({
           </nav>
 
           {/* Footer */}
-          <div className="p-3.5 border-t border-[var(--ds-border-subtle)] bg-[var(--ds-surface)]">
+          <div className="p-4 border-t border-slate-200/70 dark:border-zinc-800 bg-[var(--ds-surface-muted)]">
             <div className={`flex items-center ${collapsed ? "justify-center mb-2" : "gap-3 mb-3"}`}>
               <div
-                className="w-9 h-9 shrink-0 rounded-xl bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)] font-bold text-xs shadow-xs"
+                className="w-9 h-9 shrink-0 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)] font-bold text-xs shadow-xs"
                 title={user?.name || user?.nama_lengkap || "User"}
               >
                 {(user?.name || user?.nama_lengkap || "U").charAt(0)}
@@ -274,8 +266,8 @@ export default function KepegawaianLayout({
                     {user?.name || user?.nama_lengkap || "User"}
                   </p>
                   <div className="mt-1">
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0 font-bold uppercase">
-                      {user?.role || "Pegawai"}
+                    <Badge variant="secondary" className="text-xs px-2 py-0 font-bold uppercase">
+                      {role || "Pegawai"}
                     </Badge>
                   </div>
                 </div>
@@ -285,21 +277,47 @@ export default function KepegawaianLayout({
           </div>
         </aside>
 
-        <main className="flex-1 h-full overflow-y-auto bg-[var(--ds-surface)] [scrollbar-gutter:stable]">
-          <AnimatePresence mode="wait" initial={false}>
+        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+          <header className="md:hidden flex items-center justify-between px-4 py-3 bg-[var(--ds-surface)] border-b border-slate-200/70 dark:border-zinc-800 z-20 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-solid)] flex items-center justify-center text-[var(--ds-accent-on-solid)] shadow-xs">
+                <Users className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-sm text-[var(--ds-fg)] leading-none">Kepegawaian</span>
+                <span className="text-xs block font-bold text-[var(--ds-accent-fg)] uppercase tracking-wider">
+                  SDM &amp; Administrasi
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                ref={menuButton}
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                aria-label="Toggle Menu Kepegawaian"
+                aria-expanded={isOpen}
+                aria-controls="kepegawaian-sidebar"
+                className="p-2 rounded-lg bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-fg-secondary)] transition-colors cursor-pointer"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto bg-[var(--ds-canvas)] [scrollbar-gutter:stable]">
             <motion.div
               key={pathname}
               initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : -4 }}
               transition={{ duration: reducedMotion ? 0 : 0.16, ease: "easeOut" }}
               className="w-full min-h-full"
             >
-              {children}
+              {isRouteForbidden ? null : children}
             </motion.div>
-          </AnimatePresence>
-        </main>
-      </div>
+          </main>
+        </div>
       </div>
     </RouteGuard>
   );

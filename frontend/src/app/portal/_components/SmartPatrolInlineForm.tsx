@@ -9,16 +9,21 @@ import {
   ArrowLeft,
   Loader2,
   FileSpreadsheet,
-  Search,
-  ChevronsUpDown,
-  Check,
   Plus,
   Trash2,
   Printer,
   Layers,
   Sparkles,
+  Search,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  ALLOWED_REPORT_IMAGE_MIMES,
+  MAX_REPORT_IMAGE_BYTES,
+  filterValidReportImageFiles,
+} from "./ReportFormShared";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { SmartPatrolPrint, SmartPatrolReportData, TemuanSatwaLiarItem } from "./SmartPatrolPrint";
@@ -293,25 +298,24 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   }, [selectedSTId, stOptions]);
 
   const handleCustomCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
-        e.target.value = "";
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("Ukuran file cover maksimal 10 MB.");
-        e.target.value = "";
-        return;
-      }
-      if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
-        URL.revokeObjectURL(customCoverPreview);
-      }
-      setCustomCoverPreview(URL.createObjectURL(file));
-      setCoverMode("custom");
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_REPORT_IMAGE_MIMES.includes(file.type)) {
+      toast.error("File cover harus berupa gambar (JPG, PNG, atau WEBP).");
       e.target.value = "";
+      return;
     }
+    if (file.size > MAX_REPORT_IMAGE_BYTES) {
+      toast.error("Ukuran file cover maksimal 10 MB.");
+      e.target.value = "";
+      return;
+    }
+    if (customCoverPreview && customCoverPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(customCoverPreview);
+    }
+    setCustomCoverPreview(URL.createObjectURL(file));
+    setCoverMode("custom");
+    e.target.value = "";
   };
 
   const [isPrintMode, setIsPrintMode] = useState(false);
@@ -320,20 +324,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
 
   const handleDokumentasiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    const incoming = Array.from(e.target.files);
-    const validFiles: File[] = [];
-
-    for (const file of incoming) {
-      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        toast.error(`File ${file.name} bukan format gambar.`);
-        continue;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`File ${file.name} melebihi batas maksimal 10 MB.`);
-        continue;
-      }
-      validFiles.push(file);
-    }
+    const validFiles = filterValidReportImageFiles(e.target.files);
 
     if (validFiles.length > 0) {
       setDokumentasiFiles((prev) => {
@@ -414,27 +405,27 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-140px)]">
+    <div className="bg-[var(--ds-surface)] rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-xs overflow-hidden flex flex-col h-[calc(100vh-140px)]">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-blue-50/50 dark:bg-blue-900/10">
+      <div className="px-6 py-4 border-b border-slate-200/70 dark:border-zinc-800 flex items-center justify-between shrink-0 bg-[var(--ds-accent-soft)]">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={onBack}
-            className="w-10 h-10 rounded-full hover:bg-white dark:hover:bg-slate-800"
+            className="w-10 h-10 rounded-full hover:bg-[var(--ds-surface)]"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            <ArrowLeft className="w-5 h-5 text-[var(--ds-fg-muted)]" />
           </Button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] text-[var(--ds-accent-fg)] flex items-center justify-center">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
+              <h2 className="text-xl font-bold text-[var(--ds-fg)] leading-tight">
                 Form Laporan SMART PATROL
               </h2>
-              <p className="text-xs text-slate-500 font-medium">Isi data form patroli kawasan.</p>
+              <p className="text-xs text-[var(--ds-fg-muted)] font-medium">Isi data form patroli kawasan.</p>
             </div>
           </div>
         </div>
@@ -443,7 +434,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
           <Button
             type="button"
             onClick={handleToggleMode}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 rounded-xl gap-1.5 shadow-sm"
+            className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs h-9 rounded-lg gap-2 shadow-xs"
           >
             {isPrintMode ? (
               <>
@@ -465,23 +456,23 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
         {isPrintMode ? (
           /* PRINT PREVIEW MODE */
           <div className="p-6 space-y-6 print:p-0 print:m-0 print:space-y-0">
-            <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 p-4 rounded-2xl print:hidden">
+            <div className="flex items-center justify-between bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] p-4 rounded-lg print:hidden">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-emerald-600" />
-                <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                <Sparkles className="w-5 h-5 text-[var(--ds-accent-fg)]" />
+                <span className="text-xs font-bold text-[var(--ds-accent-fg)]">
                   Pratinjau Format Resmi Laporan SMART PATROL BKSDA Kaltim
                 </span>
               </div>
               <Button
                 onClick={handlePrint}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 rounded-xl shadow-md gap-1.5"
+                className="bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-bold text-xs h-9 rounded-lg shadow-xs gap-2"
               >
                 <Printer className="w-4 h-4" />
                 Cetak Dokumen Sekarang
               </Button>
             </div>
 
-            <div className="border rounded-2xl p-6 bg-gray-50 overflow-x-auto shadow-inner print:p-0 print:border-none print:bg-transparent print:shadow-none print:m-0 print:overflow-visible">
+            <div className="border border-slate-200/80 rounded-lg p-6 bg-slate-50 text-slate-900 overflow-x-auto print:p-0 print:border-none print:bg-transparent print:shadow-none print:m-0 print:overflow-visible">
               <SmartPatrolPrint data={reportData} tallySheetFile={tallySheetFile} />
             </div>
           </div>
@@ -491,99 +482,110 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
             <div className="max-w-4xl mx-auto space-y-8 pb-20">
               
               {/* SECTION: SURAT TUGAS */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <Label className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 mb-4">
+              <div className="bg-[var(--ds-surface-muted)] p-6 rounded-lg border border-slate-200/80 dark:border-zinc-800">
+                <Label className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2 mb-4">
                   Pilih Surat Tugas (Hanya Patroli)
                 </Label>
             
             {loadingST ? (
-              <div className="flex items-center gap-2 text-sm text-slate-500">
+              <div className="flex items-center gap-2 text-sm text-[var(--ds-fg-muted)]">
                 <Loader2 className="w-4 h-4 animate-spin" /> Memuat Surat Tugas...
               </div>
             ) : (
-              <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className="w-full justify-between bg-white dark:bg-slate-900 h-auto py-3 px-4 border-slate-200 dark:border-slate-700"
-                  >
-                    <div className="flex flex-col items-start gap-1 text-left truncate pr-4">
-                      {selectedSTId ? (
-                        <>
-                          <span className="font-bold text-slate-900 dark:text-slate-100 text-sm truncate w-full">
-                            {stOptions.find((st) => String(st.id) === String(selectedSTId))?.nomor_surat || "[ Tanpa Nomor ST ]"}
-                          </span>
-                          <span className="text-xs text-slate-500 font-normal truncate w-full">
-                            {stOptions.find((st) => String(st.id) === String(selectedSTId))?.maksud_tujuan}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-slate-400 font-normal text-sm">Pilih Surat Tugas...</span>
-                      )}
-                    </div>
-                    <ChevronsUpDown className="w-4 h-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-200 p-0" align="start">
-                  <div className="p-3 border-b border-slate-100 dark:border-slate-800 relative">
-                    <Search className="w-4 h-4 absolute left-6 top-6 text-slate-400" />
-                    <Input 
-                      placeholder="Cari ST..." 
-                      value={stSearch}
-                      onChange={(e) => setStSearch(e.target.value)}
-                      className="pl-9 bg-slate-50 dark:bg-slate-800/50"
-                    />
-                  </div>
-                  <div className="max-h-75 overflow-y-auto p-2">
-                    {stOptions
-                      .filter(st => 
-                        (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || 
-                        (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())
-                      )
-                      .map((st) => (
-                      <div
-                        key={st.id}
-                        className={cn(
-                          "flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors mb-1",
-                          String(selectedSTId) === String(st.id) ? "bg-blue-50 dark:bg-blue-900/30" : "hover:bg-slate-50 dark:hover:bg-slate-800"
-                        )}
-                        onClick={() => {
-                          setSelectedSTId(String(st.id));
-                          setStPopoverOpen(false);
-                          setStSearch("");
-                        }}
+              (() => {
+                const selectedST = selectedSTId ? stOptions.find((o) => String(o.id) === String(selectedSTId)) : null;
+                const needle = stSearch.toLowerCase();
+                const filteredST = stOptions.filter((st) =>
+                  (st.nomor_surat || "").toLowerCase().includes(needle) ||
+                  (st.maksud_tujuan || "").toLowerCase().includes(needle)
+                );
+                return (
+                  <Popover open={stPopoverOpen} onOpenChange={setStPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={stPopoverOpen}
+                        className="w-full justify-between bg-[var(--ds-surface)] h-auto py-3 px-4 rounded-lg border-slate-200/80 dark:border-zinc-800"
                       >
-                        <Check className={cn("w-4 h-4 mt-0.5 shrink-0 text-blue-600", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{st.nomor_surat}</p>
-                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">{st.maksud_tujuan}</p>
+                        <div className="flex flex-col items-start gap-1 text-left truncate pr-4">
+                          {selectedST ? (
+                            <>
+                              <span className="font-bold text-[var(--ds-fg)] text-sm truncate w-full">
+                                {selectedST.nomor_surat || "[ Tanpa Nomor ST ]"}
+                              </span>
+                              <span className="text-xs text-[var(--ds-fg-muted)] font-normal truncate w-full">
+                                {selectedST.maksud_tujuan}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-[var(--ds-fg-muted)] font-normal text-sm">Pilih Surat Tugas...</span>
+                          )}
+                        </div>
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent data-module="portal" className="w-200 p-0 rounded-lg shadow-lg border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg)]" align="start">
+                      <div className="flex flex-col max-h-88">
+                        <div className="flex items-center border-b border-slate-200/70 dark:border-zinc-800 px-3">
+                          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                          <Input
+                            className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground border-0 focus-visible:ring-0 px-0 shadow-none"
+                            placeholder="Cari nomor atau tujuan ST..."
+                            value={stSearch}
+                            onChange={(e) => setStSearch(e.target.value)}
+                          />
+                        </div>
+                        <div className="overflow-y-auto flex-1 p-2">
+                          {filteredST.map((st) => (
+                            <div
+                              key={st.id}
+                              className={cn(
+                                "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-accent-fg)]",
+                                String(selectedSTId) === String(st.id) && "bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-bold"
+                              )}
+                              onClick={() => {
+                                setSelectedSTId(String(st.id));
+                                setStPopoverOpen(false);
+                                setStSearch("");
+                              }}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4 shrink-0", String(selectedSTId) === String(st.id) ? "opacity-100" : "opacity-0")} />
+                              <div className="flex flex-col flex-1 min-w-0">
+                                <span className="truncate text-xs">
+                                  {st.nomor_surat ? `${st.nomor_surat} - ` : ""}{st.maksud_tujuan}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                          {filteredST.length === 0 && (
+                            <div className="py-6 text-center text-sm text-[var(--ds-fg-muted)]">
+                              Tidak ada Surat Tugas yang cocok.
+                            </div>
+                          )}
                         </div>
                       </div>
-                    ))}
-                    {stOptions.filter(st => (st.nomor_surat || "").toLowerCase().includes(stSearch.toLowerCase()) || (st.maksud_tujuan || "").toLowerCase().includes(stSearch.toLowerCase())).length === 0 && (
-                      <p className="p-4 text-center text-sm text-slate-500">Tidak ada ST yang cocok.</p>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
+                    </PopoverContent>
+                  </Popover>
+                );
+              })()
             )}
           </div>
 
           {/* SECTION I: UPLOAD COVER */}
           <div className="space-y-4">
-            <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">i. Cover Laporan</h3>
+            <h3 className="text-xl font-bold text-[var(--ds-fg)]">i. Cover Laporan</h3>
             <div className="flex gap-4">
               <Button
                 variant={coverMode === "standard" ? "default" : "outline"}
-                className={cn("flex-1", coverMode === "standard" && "bg-blue-600 hover:bg-blue-700")}
+                className={cn("flex-1 rounded-lg", coverMode === "standard" && "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]")}
                 onClick={() => setCoverMode("standard")}
               >
                 Cover Standar BKSDA
               </Button>
               <Button
                 variant={coverMode === "custom" ? "default" : "outline"}
-                className={cn("flex-1", coverMode === "custom" && "bg-blue-600 hover:bg-blue-700")}
+                className={cn("flex-1 rounded-lg", coverMode === "custom" && "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)]")}
                 onClick={() => {
                   const input = document.createElement("input");
                   input.type = "file";
@@ -596,7 +598,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
               </Button>
             </div>
             {coverMode === "custom" && customCoverPreview && (
-              <div className="mt-4 relative rounded-xl overflow-hidden border border-slate-200 inline-block">
+              <div className="mt-4 relative rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 inline-block">
                 <img
                   src={customCoverPreview}
                   alt="Cover Preview"
@@ -617,18 +619,18 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
 
           {/* SECTION II: INFORMASI DASAR */}
           <div className="space-y-6">
-            <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">ii. Informasi Dasar</h3>
+            <h3 className="text-xl font-bold text-[var(--ds-fg)]">ii. Informasi Dasar</h3>
             
             <div className="space-y-4">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Nama Kegiatan</Label>
-                <Input value={namaKegiatan} onChange={(e) => setNamaKegiatan(e.target.value)} placeholder="Contoh: SMART PATROL..." />
+                <Input value={namaKegiatan} onChange={(e) => setNamaKegiatan(e.target.value)} placeholder="Contoh: SMART PATROL..." className="rounded-lg" />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Sumber Dana</Label>
                 <select 
-                  className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
+                  className="flex h-10 w-full items-center justify-between rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-fg)] disabled:cursor-not-allowed disabled:opacity-50"
                   value={sumberDana}
                   onChange={(e) => setSumberDana(e.target.value)}
                 >
@@ -642,78 +644,78 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Tanggal Laporan</Label>
-                  <Input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} />
+                  <Input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} className="rounded-lg" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Dinilai Oleh</Label>
-                  <Input value={dinilaiOleh} onChange={(e) => setDinilaiOleh(e.target.value)} placeholder="Nama Penilai..." />
+                  <Input value={dinilaiOleh} onChange={(e) => setDinilaiOleh(e.target.value)} placeholder="Nama Penilai..." className="rounded-lg" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label>Disusun Oleh</Label>
-                  <Input value={disusunOleh} onChange={(e) => setDisusunOleh(e.target.value)} placeholder="Nama Penyusun..." />
+                  <Input value={disusunOleh} onChange={(e) => setDisusunOleh(e.target.value)} placeholder="Nama Penyusun..." className="rounded-lg" />
                 </div>
               </div>
             </div>
           </div>
 
-          <hr className="border-slate-200 dark:border-slate-800" />
+          <hr className="border-slate-200/70 dark:border-zinc-800" />
 
           {/* SECTION III - V */}
           <div className="space-y-6">
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">iii. Kata Pengantar</h3>
-              <Textarea value={kataPengantar} onChange={(e) => setKataPengantar(e.target.value)} placeholder="Teks Kata Pengantar..." className="min-h-75" />
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-[var(--ds-fg)]">iii. Kata Pengantar</h3>
+              <Textarea value={kataPengantar} onChange={(e) => setKataPengantar(e.target.value)} placeholder="Teks Kata Pengantar..." className="min-h-72 rounded-lg" />
             </div>
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">iv. Daftar Isi</h3>
-              <Textarea value={daftarIsi} onChange={(e) => setDaftarIsi(e.target.value)} placeholder="Daftar Isi (opsional untuk versi draft)..." className="min-h-37.5" />
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-[var(--ds-fg)]">iv. Daftar Isi</h3>
+              <Textarea value={daftarIsi} onChange={(e) => setDaftarIsi(e.target.value)} placeholder="Daftar Isi (opsional untuk versi draft)..." className="min-h-36 rounded-lg" />
             </div>
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">v. Daftar Lampiran</h3>
-              <Textarea value={daftarLampiran} onChange={(e) => setDaftarLampiran(e.target.value)} placeholder="Daftar Lampiran..." className="min-h-37.5" />
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-[var(--ds-fg)]">v. Daftar Lampiran</h3>
+              <Textarea value={daftarLampiran} onChange={(e) => setDaftarLampiran(e.target.value)} placeholder="Daftar Lampiran..." className="min-h-36 rounded-lg" />
             </div>
           </div>
 
-          <hr className="border-slate-200 dark:border-slate-800" />
+          <hr className="border-slate-200/70 dark:border-zinc-800" />
 
           {/* BAB I */}
           <div className="space-y-6">
-            <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB I PENDAHULUAN</h3>
+            <h3 className="text-xl font-bold text-[var(--ds-fg)] uppercase bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 inline-block px-4 py-2 rounded-lg">BAB I PENDAHULUAN</h3>
             <div className="space-y-6">
-              <div className="space-y-1.5"><Label>A. Latar Belakang</Label><Textarea value={latarBelakang} onChange={(e) => setLatarBelakang(e.target.value)} className="min-h-62.5" /></div>
-              <div className="space-y-1.5"><Label>B. Dasar Hukum</Label><Textarea value={dasarHukum} onChange={(e) => setDasarHukum(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>C. Maksud</Label><Textarea value={maksud} onChange={(e) => setMaksud(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>Tujuan</Label><Textarea value={tujuan} onChange={(e) => setTujuan(e.target.value)} className="min-h-62.5" /></div>
-              <div className="space-y-1.5"><Label>D. Penerima Manfaat/Sasaran</Label><Textarea value={penerimaManfaat} onChange={(e) => setPenerimaManfaat(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>E. Output</Label><Textarea value={output} onChange={(e) => setOutput(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>F. Indikator Kinerja Kegiatan</Label><Textarea value={indikatorKinerja} onChange={(e) => setIndikatorKinerja(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>G. Satuan Ukur</Label><Textarea value={satuanUkur} onChange={(e) => setSatuanUkur(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>H. Volume</Label><Textarea value={volume} onChange={(e) => setVolume(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>I. Ruang Lingkup</Label><Textarea value={ruangLingkup} onChange={(e) => setRuangLingkup(e.target.value)} className="min-h-37.5" /></div>
+              <div className="space-y-2"><Label>A. Latar Belakang</Label><Textarea value={latarBelakang} onChange={(e) => setLatarBelakang(e.target.value)} className="min-h-64 rounded-lg" /></div>
+              <div className="space-y-2"><Label>B. Dasar Hukum</Label><Textarea value={dasarHukum} onChange={(e) => setDasarHukum(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>C. Maksud</Label><Textarea value={maksud} onChange={(e) => setMaksud(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>Tujuan</Label><Textarea value={tujuan} onChange={(e) => setTujuan(e.target.value)} className="min-h-64 rounded-lg" /></div>
+              <div className="space-y-2"><Label>D. Penerima Manfaat/Sasaran</Label><Textarea value={penerimaManfaat} onChange={(e) => setPenerimaManfaat(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>E. Output</Label><Textarea value={output} onChange={(e) => setOutput(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>F. Indikator Kinerja Kegiatan</Label><Textarea value={indikatorKinerja} onChange={(e) => setIndikatorKinerja(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>G. Satuan Ukur</Label><Textarea value={satuanUkur} onChange={(e) => setSatuanUkur(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>H. Volume</Label><Textarea value={volume} onChange={(e) => setVolume(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>I. Ruang Lingkup</Label><Textarea value={ruangLingkup} onChange={(e) => setRuangLingkup(e.target.value)} className="min-h-36 rounded-lg" /></div>
             </div>
           </div>
 
-          <hr className="border-slate-200 dark:border-slate-800" />
+          <hr className="border-slate-200/70 dark:border-zinc-800" />
 
           {/* BAB II */}
           <div className="space-y-6">
-            <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB II METODOLOGI</h3>
+            <h3 className="text-xl font-bold text-[var(--ds-fg)] uppercase bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 inline-block px-4 py-2 rounded-lg">BAB II METODOLOGI</h3>
             <div className="space-y-6">
-              <div className="space-y-1.5"><Label>A. Waktu dan Tempat</Label><Textarea value={waktuTempat} onChange={(e) => setWaktuTempat(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5">
+              <div className="space-y-2"><Label>A. Waktu dan Tempat</Label><Textarea value={waktuTempat} onChange={(e) => setWaktuTempat(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2">
                 <Label>B. Pelaksana Kegiatan</Label>
-                <Textarea value={pelaksanaKegiatan} onChange={(e) => setPelaksanaKegiatan(e.target.value)} className="min-h-37.5" />
+                <Textarea value={pelaksanaKegiatan} onChange={(e) => setPelaksanaKegiatan(e.target.value)} className="min-h-36 rounded-lg" />
                 
                 {reportData.pelaksanaEmployees && reportData.pelaksanaEmployees.length > 0 && (
-                  <div className="mt-4 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 px-4 py-2 text-sm font-semibold border-b border-slate-200 dark:border-slate-800">
+                  <div className="mt-4 border border-slate-200/80 dark:border-zinc-800 rounded-lg overflow-hidden">
+                    <div className="bg-[var(--ds-surface-muted)] px-4 py-2 text-sm font-semibold border-b border-slate-200/70 dark:border-zinc-800">
                       Preview Tabel Tim Patroli (Otomatis dari ST)
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        <thead className="bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)]">
                           <tr>
                             <th className="px-4 py-2 font-medium w-12 text-center">No</th>
                             <th className="px-4 py-2 font-medium">Nama</th>
@@ -721,13 +723,13 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                             <th className="px-4 py-2 font-medium">Jabatan</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
                           {reportData.pelaksanaEmployees.map((emp, idx) => (
-                            <tr key={emp.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                              <td className="px-4 py-2 text-center">{idx + 1}.</td>
+                            <tr key={emp.id || idx} className="hover:bg-[var(--ds-surface-muted)]">
+                              <td className="px-4 py-2 text-center tabular-nums">{idx + 1}.</td>
                               <td className="px-4 py-2 font-medium">{emp.nama_lengkap}</td>
-                              <td className="px-4 py-2 text-slate-500">{emp.nip}</td>
-                              <td className="px-4 py-2 text-slate-500">{emp.jabatan}</td>
+                              <td className="px-4 py-2 text-[var(--ds-fg-muted)] tabular-nums">{emp.nip}</td>
+                              <td className="px-4 py-2 text-[var(--ds-fg-muted)]">{emp.jabatan}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -736,54 +738,54 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                   </div>
                 )}
               </div>
-              <div className="space-y-1.5"><Label>C. Alat dan Bahan</Label><Textarea value={alatBahan} onChange={(e) => setAlatBahan(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>D. Metode Pelaksanaan</Label><Textarea value={metodePelaksanaan} onChange={(e) => setMetodePelaksanaan(e.target.value)} className="min-h-37.5" /></div>
-              <div className="space-y-1.5"><Label>E. Tahapan Pelaksanaan Kegiatan</Label><Textarea value={tahapanPelaksanaan} onChange={(e) => setTahapanPelaksanaan(e.target.value)} className="min-h-62.5" /></div>
+              <div className="space-y-2"><Label>C. Alat dan Bahan</Label><Textarea value={alatBahan} onChange={(e) => setAlatBahan(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>D. Metode Pelaksanaan</Label><Textarea value={metodePelaksanaan} onChange={(e) => setMetodePelaksanaan(e.target.value)} className="min-h-36 rounded-lg" /></div>
+              <div className="space-y-2"><Label>E. Tahapan Pelaksanaan Kegiatan</Label><Textarea value={tahapanPelaksanaan} onChange={(e) => setTahapanPelaksanaan(e.target.value)} className="min-h-64 rounded-lg" /></div>
             </div>
           </div>
 
-          <hr className="border-slate-200 dark:border-slate-800" />
+          <hr className="border-slate-200/70 dark:border-zinc-800" />
 
           {/* BAB III, IV, V */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB III HASIL KEGIATAN</h3>
-              <div className="space-y-4 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
-                <h4 className="font-bold text-lg">A. Hasil Pelaksanaan</h4>
-                <div className="space-y-1.5">
+              <h3 className="text-xl font-bold text-[var(--ds-fg)] uppercase bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 inline-block px-4 py-2 rounded-lg">BAB III HASIL KEGIATAN</h3>
+              <div className="space-y-4 border border-slate-200/80 dark:border-zinc-800 rounded-lg p-4">
+                <h4 className="font-bold text-sm text-[var(--ds-fg)]">A. Hasil Pelaksanaan</h4>
+                <div className="space-y-2">
                   <Label>Pengantar Hasil Pelaksanaan</Label>
-                  <Textarea value={hasilPelaksanaanIntro} onChange={(e) => setHasilPelaksanaanIntro(e.target.value)} className="min-h-37.5" />
+                  <Textarea value={hasilPelaksanaanIntro} onChange={(e) => setHasilPelaksanaanIntro(e.target.value)} className="min-h-36 rounded-lg" />
                 </div>
                 
-                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <h5 className="font-bold">1. Temuan Satwa Liar</h5>
-                  <div className="space-y-1.5">
+                <div className="space-y-4 pt-4 border-t border-slate-200/70 dark:border-zinc-800">
+                  <h5 className="font-bold text-sm text-[var(--ds-fg)]">1. Temuan Satwa Liar</h5>
+                  <div className="space-y-2">
                     <Label>Pengantar Temuan Satwa Liar</Label>
-                    <Textarea value={temuanSatwaLiarIntro} onChange={(e) => setTemuanSatwaLiarIntro(e.target.value)} className="min-h-25" />
+                    <Textarea value={temuanSatwaLiarIntro} onChange={(e) => setTemuanSatwaLiarIntro(e.target.value)} className="min-h-24 rounded-lg" />
                   </div>
                   
-                  <div className="space-y-2 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                  <div className="space-y-2 border border-slate-200/80 dark:border-zinc-800 p-4 rounded-lg">
                     <div className="flex justify-between items-center">
                       <Label>Tabel 1. Data Satwa Liar</Label>
-                      <Button type="button" size="sm" variant="outline" onClick={() => setTemuanSatwaLiarTable([...temuanSatwaLiarTable, { id: Date.now().toString(), namaLokal: '', namaIlmiah: '', tipeTemuan: 'Langsung' }])}>
+                      <Button type="button" size="sm" variant="outline" className="rounded-lg" onClick={() => setTemuanSatwaLiarTable([...temuanSatwaLiarTable, { id: Date.now().toString(), namaLokal: '', namaIlmiah: '', tipeTemuan: 'Langsung' }])}>
                         <Plus className="w-4 h-4 mr-1" /> Tambah Baris
                       </Button>
                     </div>
                     <div className="space-y-2">
                       {temuanSatwaLiarTable.map((item, idx) => (
-                        <div key={item.id} className="flex gap-2 items-center bg-slate-50 dark:bg-slate-900 p-2 rounded-lg">
-                          <span className="text-sm font-bold w-6 text-center">{idx + 1}.</span>
+                        <div key={item.id} className="flex gap-2 items-center bg-[var(--ds-surface-muted)] p-2 rounded-lg">
+                          <span className="text-sm font-bold w-6 text-center tabular-nums">{idx + 1}.</span>
                           <Input placeholder="Nama Lokal" value={item.namaLokal} onChange={(e) => {
                             const newTable = [...temuanSatwaLiarTable];
                             newTable[idx].namaLokal = e.target.value;
                             setTemuanSatwaLiarTable(newTable);
-                          }} className="flex-1" />
+                          }} className="flex-1 rounded-lg" />
                           <Input placeholder="Nama Ilmiah" value={item.namaIlmiah} onChange={(e) => {
                             const newTable = [...temuanSatwaLiarTable];
                             newTable[idx].namaIlmiah = e.target.value;
                             setTemuanSatwaLiarTable(newTable);
-                          }} className="flex-1" />
-                          <select className="flex h-10 w-36 items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950" value={item.tipeTemuan} onChange={(e) => {
+                          }} className="flex-1 rounded-lg" />
+                          <select className="flex h-10 w-36 items-center justify-between rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-3 py-2 text-sm text-[var(--ds-fg)]" value={item.tipeTemuan} onChange={(e) => {
                             const newTable = [...temuanSatwaLiarTable];
                             newTable[idx].tipeTemuan = e.target.value as any;
                             setTemuanSatwaLiarTable(newTable);
@@ -791,7 +793,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                             <option value="Langsung">Langsung</option>
                             <option value="Tidak Langsung">Tidak Langsung</option>
                           </select>
-                          <Button type="button" variant="ghost" size="icon" className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950" onClick={() => {
+                          <Button type="button" variant="ghost" size="icon" className="text-[var(--ds-status-danger-fg)] hover:bg-[var(--ds-status-danger-bg)] rounded-lg" onClick={() => {
                             setTemuanSatwaLiarTable(temuanSatwaLiarTable.filter((_, i) => i !== idx));
                           }}>
                             <Trash2 className="w-4 h-4" />
@@ -801,49 +803,49 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                     </div>
                   </div>
                   
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <Label>Penutup Temuan Satwa Liar</Label>
-                    <Textarea value={temuanSatwaLiarOutro} onChange={(e) => setTemuanSatwaLiarOutro(e.target.value)} className="min-h-25" />
+                    <Textarea value={temuanSatwaLiarOutro} onChange={(e) => setTemuanSatwaLiarOutro(e.target.value)} className="min-h-24 rounded-lg" />
                   </div>
                 </div>
                 
-                <div className="space-y-1.5 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <h5 className="font-bold pb-1">2. Status Konservasi Kawasan</h5>
-                  <Textarea value={statusKonservasiKawasan} onChange={(e) => setStatusKonservasiKawasan(e.target.value)} className="min-h-25" />
+                <div className="space-y-2 pt-4 border-t border-slate-200/70 dark:border-zinc-800">
+                  <h5 className="font-bold text-sm text-[var(--ds-fg)] pb-1">2. Status Konservasi Kawasan</h5>
+                  <Textarea value={statusKonservasiKawasan} onChange={(e) => setStatusKonservasiKawasan(e.target.value)} className="min-h-24 rounded-lg" />
                 </div>
                 
-                <div className="space-y-1.5 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <h5 className="font-bold pb-1">3. Temuan Ancaman</h5>
-                  <Textarea value={temuanAncaman} onChange={(e) => setTemuanAncaman(e.target.value)} className="min-h-37.5" />
+                <div className="space-y-2 pt-4 border-t border-slate-200/70 dark:border-zinc-800">
+                  <h5 className="font-bold text-sm text-[var(--ds-fg)] pb-1">3. Temuan Ancaman</h5>
+                  <Textarea value={temuanAncaman} onChange={(e) => setTemuanAncaman(e.target.value)} className="min-h-36 rounded-lg" />
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB IV SIMPULAN DAN SARAN</h3>
-              <div className="space-y-4 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-lg">A. Kesimpulan</h4>
-                  <Textarea value={kesimpulan} onChange={(e) => setKesimpulan(e.target.value)} className="min-h-62.5" />
+              <h3 className="text-xl font-bold text-[var(--ds-fg)] uppercase bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 inline-block px-4 py-2 rounded-lg">BAB IV SIMPULAN DAN SARAN</h3>
+              <div className="space-y-4 border border-slate-200/80 dark:border-zinc-800 rounded-lg p-4">
+                <div className="space-y-2">
+                  <h4 className="font-bold text-sm text-[var(--ds-fg)]">A. Kesimpulan</h4>
+                  <Textarea value={kesimpulan} onChange={(e) => setKesimpulan(e.target.value)} className="min-h-64 rounded-lg" />
                 </div>
-                <div className="space-y-1.5 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <h4 className="font-bold text-lg">B. Saran/Rekomendasi</h4>
-                  <Textarea value={saran} onChange={(e) => setSaran(e.target.value)} className="min-h-62.5" />
+                <div className="space-y-2 pt-4 border-t border-slate-200/70 dark:border-zinc-800">
+                  <h4 className="font-bold text-sm text-[var(--ds-fg)]">B. Saran/Rekomendasi</h4>
+                  <Textarea value={saran} onChange={(e) => setSaran(e.target.value)} className="min-h-64 rounded-lg" />
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">BAB V PENUTUP</h3>
-              <Textarea value={penutup} onChange={(e) => setPenutup(e.target.value)} className="min-h-50" />
+              <h3 className="text-xl font-bold text-[var(--ds-fg)] uppercase bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 inline-block px-4 py-2 rounded-lg">BAB V PENUTUP</h3>
+              <Textarea value={penutup} onChange={(e) => setPenutup(e.target.value)} className="min-h-48 rounded-lg" />
             </div>
           </div>
 
-          <hr className="border-slate-200 dark:border-slate-800" />
+          <hr className="border-slate-200/70 dark:border-zinc-800" />
 
           {/* LAMPIRAN */}
           <div className="space-y-6">
-            <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 uppercase bg-slate-100 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-lg">LAMPIRAN</h3>
+            <h3 className="text-xl font-bold text-[var(--ds-fg)] uppercase bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 inline-block px-4 py-2 rounded-lg">LAMPIRAN</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label>1. TALLY SHEET</Label>
@@ -851,6 +853,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                   <Input 
                     type="file" 
                     accept=".pdf,image/*" 
+                    className="rounded-lg"
                     onChange={(e) => { 
                       const f = e.target.files?.[0];
                       if (!f) return;
@@ -867,7 +870,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                       setTallySheetFile(f);
                     }} 
                   />
-                  {tallySheetFile && <Button variant="destructive" size="icon" onClick={() => setTallySheetFile(null)}><Trash2 className="w-4 h-4" /></Button>}
+                  {tallySheetFile && <Button variant="destructive" size="icon" className="rounded-lg" onClick={() => setTallySheetFile(null)}><Trash2 className="w-4 h-4" /></Button>}
                 </div>
               </div>
               <div className="space-y-2">
@@ -876,6 +879,7 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                   <Input 
                     type="file" 
                     accept=".pdf,image/*" 
+                    className="rounded-lg"
                     onChange={(e) => { 
                       const f = e.target.files?.[0];
                       if (!f) return;
@@ -892,18 +896,18 @@ Kolaborasi multipihak ini merupakan modal dasar yang sangat penting dalam upaya 
                       setSptFile(f);
                     }} 
                   />
-                  {sptFile && <Button variant="destructive" size="icon" onClick={() => setSptFile(null)}><Trash2 className="w-4 h-4" /></Button>}
+                  {sptFile && <Button variant="destructive" size="icon" className="rounded-lg" onClick={() => setSptFile(null)}><Trash2 className="w-4 h-4" /></Button>}
                 </div>
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label>3. Dokumentasi Kegiatan Patroli</Label>
                 <div className="flex gap-2">
-                  <Input type="file" multiple accept="image/*" onChange={handleDokumentasiChange} />
+                  <Input type="file" multiple accept="image/*" className="rounded-lg" onChange={handleDokumentasiChange} />
                 </div>
                 {dokumentasiFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {dokumentasiPreviews.map((url, idx) => (
-                      <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200">
+                      <div key={idx} className="relative rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800">
                         <img src={url} alt="Dok" className="w-20 h-20 object-cover" />
                         <Button 
                           variant="destructive" size="icon" 

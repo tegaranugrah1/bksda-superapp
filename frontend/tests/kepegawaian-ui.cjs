@@ -185,6 +185,48 @@ for (const [status, label] of [['PENDING', 'Menunggu Persetujuan'], ['approved',
 }
 console.log('PASS: dashboard status labels reuse Inbox semantics and dates use the light/dark text token.');
 
+assert.equal(statusHelpers.formatShortSumberDana('RKT Kerjasama PT Kideco Jaya Agung'), 'KJA');
+assert.equal(statusHelpers.formatShortSumberDana('Biaya Kerjasama CAN (Conservation Action Network)'), 'CAN');
+assert.equal(statusHelpers.formatShortSumberDana('kerjasama BARU'), 'MITRA');
+assert.equal(statusHelpers.formatShortSumberDana('dl1'), 'DL 1');
+assert.equal(statusHelpers.formatShortSumberDana('Perencanaan Daerah'), 'PERENC');
+const { GmailRowItem } = load('app/kepegawaian/surat-tugas/inbox/_components/GmailRowItem.tsx', {
+  react: { default: {} },
+  'react/jsx-runtime': { jsx: element, jsxs: element },
+  'lucide-react': icons,
+  '../_lib/status-helpers': statusHelpers,
+});
+const inboxRow = GmailRowItem({
+  letter: {
+    id: 'st-row-1',
+    status: 'pending',
+    sumber_dana: 'Biaya Kerjasama CAN (Conservation Action Network)',
+    maksud_tujuan: 'Dalam rangka patroli',
+    created_at: '2026-11-16',
+  },
+  isSelected: false, onToggleSelect() {}, onClick() {}, isTrashView: false, isActive: false,
+});
+const fundingBadge = findElement(inboxRow, node => node.type === 'span' && node.props?.children === 'CAN');
+assert(fundingBadge && fundingBadge.props.title.includes('CAN') && fundingBadge.props.className.includes('truncate'));
+const statusBadge = findElement(inboxRow, node => node.type === 'span' && node.props?.children === 'Menunggu');
+assert(statusBadge && statusBadge.props.title === 'Menunggu Persetujuan' && statusBadge.props.className.includes('truncate'));
+const fundingCol = findElement(inboxRow, node => typeof node.props?.className === 'string' && node.props.className.includes('w-20') && node.props.className.includes('overflow-hidden'));
+const statusCol = findElement(inboxRow, node => typeof node.props?.className === 'string' && node.props.className.includes('st-row-status') && node.props.className.includes('overflow-hidden'));
+assert(fundingCol && statusCol, 'Inbox row columns keep overflow-hidden guards.');
+
+for (const role of ['user', 'admin']) {
+  const { ModuleSwitcher } = load('components/module-switcher.tsx', {
+    react: { useState: () => [true, () => {}], useEffect() {} },
+    'react/jsx-runtime': { jsx: element, jsxs: element },
+    'lucide-react': icons,
+    'next/link': { default: 'a' },
+    'next/navigation': { usePathname: () => '/kepegawaian' },
+    '@/hooks/useAuth': { useAuth: () => ({ user: { role, access_modules: ['kepegawaian', 'surat'] } }) },
+  });
+  const switcherLinks = links(ModuleSwitcher());
+  assert(switcherLinks.includes('/surat'), `ModuleSwitcher renders Persuratan (/surat) for role=${role}.`);
+}
+
 const { EmployeeLifecycleModal } = load('app/kepegawaian/employees/_components/EmployeeLifecycleModal.tsx', {
   react: { useState: value => [value, () => {}], useEffect() {} },
   'react/jsx-runtime': { jsx: element, jsxs: element },
@@ -289,5 +331,150 @@ async function checkPhotoUpload() {
   assert.deepEqual(busy, [true, false, true, false], 'The file control becomes available after failure.');
   assert.equal(invalidations, 1);
   console.log('PASS: photo empty/oversize validation, pending reset on success/failure and cache refresh; stub requests only.');
+
+  const authSyncSource = fs.readFileSync(path.join(__dirname, '../src/components/AuthSync.tsx'), 'utf8');
+  const authSyncOutput = ts.transpileModule(authSyncSource, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText;
+  for (const [payload, expectedCount] of [
+    [{ data: [] }, 0],
+    [{ data: { id: 125, username: '199907072025061006', role: 'user', access_modules: ['kepegawaian', 'surat'] } }, 1],
+  ]) {
+    const syncEffects = [];
+    const updatedUsers = [];
+    const authSyncExports = {};
+    vm.runInNewContext(authSyncOutput, {
+      exports: authSyncExports,
+      window: { addEventListener() {}, removeEventListener() {} },
+      document: { visibilityState: 'visible', addEventListener() {}, removeEventListener() {} },
+      localStorage: { getItem: () => 'tok' },
+      fetch: async () => ({ ok: true, json: async () => payload }),
+      require: name => ({
+        react: { useEffect: fn => syncEffects.push(fn), useRef: value => ({ current: value }) },
+        'react/jsx-runtime': { jsx: element, jsxs: element },
+        'next/navigation': { useRouter: () => ({ push() {} }), usePathname: () => '/kepegawaian' },
+        '@/hooks/useAuth': { useAuth: () => ({ isAuthenticated: true, user: { username: '199907072025061006', role: 'user', access_modules: ['kepegawaian'] } }) },
+        '@/lib/auth-store': { authStore: { updateUser: u => updatedUsers.push(u), logout() {} } },
+        '@/lib/api': { default: { defaults: { baseURL: 'http://localhost:8000/api' } } },
+        sonner: { toast: { info() {} } },
+      }[name]),
+    });
+    authSyncExports.AuthSync();
+    syncEffects[0]();
+    await new Promise(resolve => setTimeout(resolve, 10));
+    assert.equal(updatedUsers.length, expectedCount);
+    if (expectedCount === 1) assert(updatedUsers[0].access_modules.includes('surat'));
+  }
+  console.log('PASS: ModuleSwitcher renders Persuratan for user/admin and AuthSync syncs fresh /user access_modules.');
+
+  // Guard against opaque outer DialogContent background box & double scrollbars behind .rounded-3xl modal cards.
+  const suratTugasCss = fs.readFileSync(path.join(__dirname, '../src/app/surat-tugas/surat-tugas.css'), 'utf8');
+  const kpgDialogSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/_components/KepegawaianDialog.tsx'), 'utf8');
+  const digitalCutiSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/cuti/_components/DigitalSuratIzinModal.tsx'), 'utf8');
+  const cutiModalsSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/cuti/_components/CutiModals.tsx'), 'utf8');
+  assert(
+    /:is\(\.st-ui,\s*\.kpg-ui,\s*\.psr-ui\)\[data-slot="dialog-content"\]:not\(:has\(>\s*\.rounded-3xl\)\)/.test(suratTugasCss),
+    'surat-tugas.css must not paint an opaque background behind self-card .rounded-3xl dialogs'
+  );
+  assert(
+    kpgDialogSrc.includes('[&:has(>.rounded-3xl)]:bg-transparent') &&
+      kpgDialogSrc.includes("[&:has(>.rounded-3xl[class*='overflow-'])]:overflow-hidden"),
+    'KepegawaianDialog must clear outer background and scrollbars when child manages a .rounded-3xl scrollable card'
+  );
+  assert(
+    digitalCutiSrc.includes('className="sm:max-w-4xl"') && !digitalCutiSrc.includes('max-h-[94vh]'),
+    'DigitalSuratIzinModal must match sm:max-w-4xl and avoid max-h-[94vh] overflow against KepegawaianDialog'
+  );
+  assert(
+    !cutiModalsSrc.includes('className="sm:max-w-3xl"') && !cutiModalsSrc.includes('className="sm:max-w-6xl"'),
+    'CutiModals outer KepegawaianDialog widths must match their inner card widths'
+  );
+  assert(
+    digitalCutiSrc.includes('`untuk ${years[0]}`'),
+    'DigitalSuratIzinModal must include single current year text ("untuk tahun YYYY") when N-1/N-2 are zero'
+  );
+  const suratDocSrc = fs.readFileSync(path.join(__dirname, '../src/app/surat/_components/SuratDinasDocument.tsx'), 'utf8');
+  const dinasPageSrc = fs.readFileSync(path.join(__dirname, '../src/app/surat/keluar/dinas/page.tsx'), 'utf8');
+  assert(
+    suratDocSrc.includes('isSingleDayLeave') && suratDocSrc.includes('hitungHari === "hari_kerja"'),
+    'SuratDinasDocument must omit s.d on 1-day leave and honor LeaveType hitungHari'
+  );
+  assert(
+    digitalCutiSrc.includes('hitungHari: payload?.hitungHari || item.hitung_hari') && dinasPageSrc.includes('Satuan Hitung Hari Cuti'),
+    'DigitalSuratIzinModal and dinas/page.tsx must propagate and allow overriding hitungHari'
+  );
+  const cutiPageSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/cuti/page.tsx'), 'utf8');
+  const portalPageSrc = fs.readFileSync(path.join(__dirname, '../src/app/portal/page.tsx'), 'utf8');
+  assert(
+    cutiPageSrc.includes('refetchInterval: 10000') &&
+      cutiPageSrc.includes('refetchOnWindowFocus: true') &&
+      /useAdminInboxLive\("kepegawaian",\s*\(\)\s*=>\s*\{\s*clearGetCache\(\)/.test(cutiPageSrc),
+    'cuti/page.tsx must flush GET cache on AdminInboxChanged and configure fallback inbox polling'
+  );
+  assert(
+    /else if \(item\.type === "cuti"\) \{\s*clearGetCache\(\);/.test(portalPageSrc),
+    'portal/page.tsx must flush GET cache before fetching updated leave status/balance on cuti notification'
+  );
+  const echoSrc = fs.readFileSync(path.join(__dirname, '../src/lib/echo.ts'), 'utf8');
+  const echoOut = ts.transpileModule(echoSrc, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  let echoOptions = null;
+  const echoExports = {};
+  const prevEnv = { ...process.env };
+  process.env.NEXT_PUBLIC_REVERB_APP_KEY = 'unit-reverb-key';
+  process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000/api';
+  delete process.env.NEXT_PUBLIC_REVERB_HOST;
+  delete process.env.NEXT_PUBLIC_REVERB_PORT;
+  delete process.env.NEXT_PUBLIC_REVERB_SCHEME;
+  try {
+    vm.runInNewContext(echoOut, {
+      exports: echoExports,
+      process,
+      URL,
+      localStorage: { getItem: () => '123|secret' },
+      window: { location: { hostname: '127.0.0.1', protocol: 'http:' } },
+      require: name => {
+        if (name === 'laravel-echo') {
+          return {
+            default: function FakeEcho(opts) {
+              echoOptions = opts;
+              this.disconnect = () => {};
+            },
+          };
+        }
+        if (name === 'pusher-js') return { default: function FakePusher() {} };
+        if (name === '@/lib/auth-store') return { authStore: { getToken: () => '123|secret' } };
+        if (name === '@/lib/api') return { resolveApiUrl: u => u };
+        throw new Error(`Unexpected echo import: ${name}`);
+      },
+    });
+    echoExports.getEcho();
+    assert.equal(echoOptions.wsHost, '127.0.0.1');
+    assert.equal(echoOptions.wsPort, 8080);
+    assert.equal(echoOptions.authEndpoint, 'http://127.0.0.1:8000/api/broadcasting/auth');
+  } finally {
+    process.env = prevEnv;
+  }
+  console.log('PASS: KepegawaianDialog, Cuti modals, and realtime Reverb/GET-cache regression checks passed.');
+  const globalsCss = fs.readFileSync(path.join(__dirname, '../src/app/globals.css'), 'utf8');
+  const kpgCss = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/kepegawaian.css'), 'utf8');
+  const dialogSrc = fs.readFileSync(path.join(__dirname, '../src/components/ui/dialog.tsx'), 'utf8');
+  const confirmSrc = fs.readFileSync(path.join(__dirname, '../src/components/ui/confirm-dialog.tsx'), 'utf8');
+  const focusReturnSrc = fs.readFileSync(path.join(__dirname, '../src/components/ui/use-dialog-focus-return.ts'), 'utf8');
+  assert(
+    globalsCss.includes('--color-ring: var(--ds-accent-fg);') &&
+      globalsCss.includes(':not([data-variant="outline"]):focus-visible') &&
+      globalsCss.includes('[data-variant="outline"]:focus-visible') &&
+      kpgCss.includes('box-shadow: none;'),
+    'globals.css and kepegawaian.css must prevent green border-ring/ring-3 double focus rings under module outlines'
+  );
+  assert(
+    dialogSrc.includes('hadKeyboardFocusIntent') &&
+      dialogSrc.includes('clearStuckPointerFocusVisible') &&
+      confirmSrc.includes('resolveDialogOpener') &&
+      confirmSrc.includes('focusElementRespectingModality') &&
+      focusReturnSrc.includes('focusVisible: false'),
+    'dialog/confirm-dialog/useDialogFocusReturn must suppress pointer-triggered stuck focus-visible rings'
+  );
+  console.log('PASS: Dialog pointer focus-visible suppression and single-ring CSS regression checks passed.');
 }
 checkPhotoUpload().catch(error => { console.error(error); process.exitCode = 1; });

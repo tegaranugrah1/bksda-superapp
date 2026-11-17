@@ -91,13 +91,3 @@ export function detectDefaultKotaAsal(employees: EmployeeWithDepartment[], defau
   return formatKotaAsal(cities, defaultCity);
 }
 
-/**
- * Cek apakah terdapat lebih dari satu kota keberangkatan unik
- */
-export function hasMultipleDepartures(
-  departures: Record<string, string> | string[]
-): boolean {
-  const list = Array.isArray(departures) ? departures : Object.values(departures);
-  const unique = new Set(list.map((c) => c?.trim()).filter(Boolean));
-  return unique.size > 1;
-}

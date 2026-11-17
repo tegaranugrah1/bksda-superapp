@@ -8,6 +8,7 @@ export interface StoredUser {
   email: string;
   role: string;
   access_modules: string[];
+  module_roles?: Record<string, "user" | "admin"> | null;
   permissions?: string[] | null;
 }
 
@@ -140,6 +141,23 @@ export const authStore = {
   // Fungsi Login Sentral
   login(token: string, userData: unknown) {
     if (typeof window === "undefined") return;
+
+    try {
+      const prevRaw = localStorage.getItem("bksda_user");
+      const prev = prevRaw ? JSON.parse(prevRaw) : null;
+      const next = userData as { id?: unknown; username?: unknown } | null;
+      const prevIdent = prev?.id ?? prev?.username;
+      const nextIdent = next?.id ?? next?.username;
+      if (prevIdent && nextIdent && String(prevIdent) !== String(nextIdent)) {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith("bksda_") || k.startsWith("bmn.")) && !["bksda_logged_in", "bksda_user", "bksda_token"].includes(k)) {
+            localStorage.removeItem(k);
+          }
+        }
+        import("./echo").then(({ disconnectEcho }) => disconnectEcho()).catch(() => {});
+      }
+    } catch {}
     
     const userJson = JSON.stringify(userData);
     localStorage.setItem("bksda_logged_in", "true");
@@ -152,11 +170,7 @@ export const authStore = {
     
     setAuthCookie("bksda_logged_in", "true");
     setAuthCookie("bksda_user", userJson);
-    if (token) {
-      setAuthCookie("bksda_token", token);
-    } else {
-      deleteAuthCookie("bksda_token");
-    }
+    deleteAuthCookie("bksda_token");
 
     clearGetCache(true);
 
@@ -181,6 +195,7 @@ export const authStore = {
 
     localStorage.setItem("bksda_user", userJson);
     setAuthCookie("bksda_user", userJson);
+    clearGetCache();
 
     window.dispatchEvent(new Event("auth-change"));
 
@@ -221,6 +236,7 @@ export const authStore = {
     deleteAuthCookie("bksda_token");
     deleteAuthCookie("laravel_session");
     deleteAuthCookie("XSRF-TOKEN");
+    import("./echo").then(({ disconnectEcho }) => disconnectEcho()).catch(() => {});
 
     try {
       clearGetCache(true);

@@ -53,7 +53,8 @@ interface IResponse { data: IAsset[]; meta: { last_page: number; total: number }
 
 const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
 
-import { SIMAN_LOKASI_RUANG_OPTIONS } from "@/app/bmn/_lib/location-options";
+import { SIMAN_LOKASI_RUANG_OPTIONS, mergeLokasiOptions } from "@/app/bmn/_lib/location-options";
+import { useMasterLocations } from "@/lib/locations";
 
 export default function BmnAssetsPage() {
   const conditionId = useId();
@@ -105,13 +106,14 @@ export default function BmnAssetsPage() {
     },
   });
 
-  const { data: locations = [] } = useQuery<{ id: string; name: string; unit_kerja: string }[]>({
-    queryKey: ["bmn-locations"],
-    queryFn: async () => {
-      const res = await api.get("/bmn/locations");
-      return res.data.data || [];
-    },
-  });
+  const { data: locations = [] } = useMasterLocations(true);
+  const simanExtraOptions = useMemo(
+    () =>
+      mergeLokasiOptions([], SIMAN_LOKASI_RUANG_OPTIONS).filter(
+        (loc) => !locations.some((m) => m.name.toLowerCase() === loc.toLowerCase())
+      ),
+    [locations]
+  );
 
   const updateUrl = (overrides: Record<string, string | number>) => {
     const params = new URLSearchParams();
@@ -255,18 +257,18 @@ export default function BmnAssetsPage() {
   const allSelected = response?.data ? response.data.length > 0 && response.data.every(a => selectedIds.has(a.id)) : false;
 
   return (
-    <div data-module="bmn" className="bmn-assets-ui bmn-assets-enter p-4 sm:p-6 space-y-5">
+    <div data-module="bmn" className="bmn-assets-ui bmn-assets-enter p-4 sm:p-6 space-y-6">
       {/* 1. Unified Clean Enterprise Header Bar */}
-      <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl p-4 md:px-6 md:py-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 md:px-6 md:py-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] border border-[var(--ds-accent-soft-border)] flex items-center justify-center shrink-0">
             <Package className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-[var(--ds-fg)] tracking-tight">
               Data Aset
             </h1>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Katalog seluruh Barang Milik Negara BKSDA Kalimantan Timur.
             </p>
           </div>
@@ -275,13 +277,13 @@ export default function BmnAssetsPage() {
         <div className="flex items-center gap-2 flex-wrap shrink-0">
           <Popover open={showExportMenu} onOpenChange={setShowExportMenu}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="bmn-button bmn-secondary bmn-lift rounded-xl gap-2 text-xs">
-                <Download className="w-3.5 h-3.5" /> Export
+              <Button variant="outline" size="sm" className="bmn-button bmn-secondary bmn-lift rounded-lg gap-2 text-xs">
+                <Download className="w-4 h-4" /> Export
               </Button>
             </PopoverTrigger>
-            <PopoverContent data-module="bmn" aria-label="Pilihan export aset" align="end" className="bmn-assets-ui bmn-popover w-60 p-1">
+            <PopoverContent data-module="bmn" aria-label="Pilihan export aset" align="end" className="bmn-assets-ui bmn-popover w-60 p-1 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg">
               {(kondisiFilter !== "Semua" || jenisFilter !== "Semua" || lokasiFilter !== "Semua" || selectedTagIds.length > 0 || debouncedSearch || debouncedNup) && (
-                <p className="px-3 py-1.5 text-xs text-[var(--ds-accent-fg)]">Export sesuai filter aktif</p>
+                <p className="px-3 py-2 text-xs text-[var(--ds-accent-fg)]">Export sesuai filter aktif</p>
               )}
               <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="bmn-button bmn-secondary w-full text-left px-3 py-2 text-xs rounded-lg">
                 Dengan NUP Lama (80 kolom)
@@ -305,7 +307,7 @@ export default function BmnAssetsPage() {
             placeholder="Cari nama, kode, merk..."
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setPageState(1); updateUrl({ search: e.target.value, page: 1 }); }}
-            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            className="w-full h-10 pl-9 pr-4 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)] focus:border-[var(--ds-accent-fg)]"
           />
         </div>
         <div className="relative w-full sm:w-48">
@@ -316,10 +318,10 @@ export default function BmnAssetsPage() {
             placeholder="Cari NUP (baru/lama)..."
             value={nupTerm}
             onChange={(e) => { setNupTerm(e.target.value); setPageState(1); updateUrl({ nup: e.target.value, page: 1 }); }}
-            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            className="w-full h-10 pl-9 pr-4 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-lg text-sm text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)] focus:border-[var(--ds-accent-fg)]"
           />
         </div>
-        <div className="flex flex-wrap gap-1 bg-[var(--ds-surface-muted)] p-1 rounded-xl">
+        <div className="flex flex-wrap gap-1 bg-[var(--ds-surface-muted)] p-1 rounded-lg">
           {KONDISI_OPTIONS.map((opt) => {
             const isActive = kondisiFilter === opt;
             return (
@@ -329,7 +331,7 @@ export default function BmnAssetsPage() {
                 aria-pressed={isActive}
                 onClick={() => { setKondisiFilter(opt); setPageState(1); updateUrl({ kondisi: opt, page: 1 }); }}
                 className={cn(
-                  "bmn-filter relative px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer select-none",
+                  "bmn-filter relative px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer select-none",
                   isActive ? "font-bold" : "text-[var(--ds-fg-muted)]"
                 )}
               >
@@ -355,7 +357,7 @@ export default function BmnAssetsPage() {
           aria-label="Filter jenis BMN"
           value={jenisFilter}
           onChange={(e) => { setJenisFilter(e.target.value); setPageState(1); updateUrl({ jenis_bmn: e.target.value, page: 1 }); }}
-          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-[var(--ds-fg)] dark:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 max-w-[200px]"
+          className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)] max-w-[200px]"
         >
           <option value="Semua">Semua Jenis BMN</option>
           {assetTypes && assetTypes.length > 0 ? (
@@ -380,29 +382,31 @@ export default function BmnAssetsPage() {
           aria-label="Filter lokasi aset"
           value={lokasiFilter}
           onChange={(e) => { setLokasiFilter(e.target.value); setPageState(1); updateUrl({ lokasi_ruang: e.target.value, page: 1 }); }}
-          className="h-9 px-3 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-[var(--ds-fg)] dark:text-[var(--ds-fg-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/20 max-w-[220px]"
+          className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)] max-w-[220px]"
         >
           <option value="Semua">Semua Lokasi</option>
-          <optgroup label="Data SIMAN Lama (Ruang)">
-            {SIMAN_LOKASI_RUANG_OPTIONS.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="Unit Kerja & Resor (BKSDA)">
-            {locations && locations.length > 0 ? (
+          <optgroup label="Unit Kerja, Resor & Ruangan (Master Lokasi)">
+            {locations.length > 0 ? (
               locations.map((l) => (
-                <option key={l.id} value={l.name}>{l.name} ({l.unit_kerja})</option>
+                <option key={l.id} value={l.name}>
+                  {l.parent ? `${l.name} (${l.parent.name})` : l.name}
+                </option>
               ))
             ) : (
               <>
                 <option value="Kantor Balai KSDA Kalimantan Timur">Kantor Balai</option>
-                <option value="Seksi KSDA Wilayah I (Berau)">Wilayah I (Berau)</option>
-                <option value="Seksi KSDA Wilayah II (Tenggarong)">Wilayah II (Tenggarong)</option>
-                <option value="Seksi KSDA Wilayah III (Balikpapan)">Wilayah III (Balikpapan)</option>
+                <option value="Seksi KSDA Wilayah I Berau">Wilayah I (Berau)</option>
+                <option value="Seksi KSDA Wilayah II Tenggarong">Wilayah II (Tenggarong)</option>
+                <option value="Seksi KSDA Wilayah III Balikpapan">Wilayah III (Balikpapan)</option>
               </>
             )}
+          </optgroup>
+          <optgroup label="Data SIMAN Lama (Ruang)">
+            {simanExtraOptions.map((loc) => (
+              <option key={loc} value={loc}>
+                {loc}
+              </option>
+            ))}
           </optgroup>
         </select>
         <TagFilterCombobox
@@ -431,13 +435,13 @@ export default function BmnAssetsPage() {
               <span
                 key={t.id}
                 className={cn(
-                  "h-9 px-2.5 text-xs font-semibold rounded-lg border flex items-center gap-1.5 shadow-xs shrink-0",
+                  "h-9 px-3 text-xs font-semibold rounded-lg border flex items-center gap-2 shadow-xs shrink-0",
                   colorTheme.bg,
                   colorTheme.text,
                   colorTheme.border
                 )}
               >
-                <TagIcon className="w-3.5 h-3.5" />
+                <TagIcon className="w-4 h-4" />
                 <span className="truncate max-w-[130px]">{t.label}</span>
                 <button
                   type="button"
@@ -449,7 +453,7 @@ export default function BmnAssetsPage() {
                     setPageState(1);
                     updateUrl({ tag_ids: next.join(",") || "Semua", page: 1 });
                   }}
-                  className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors ml-0.5 cursor-pointer"
+                  className="p-1 rounded-full hover:bg-[var(--ds-surface-muted)] transition-colors ml-1 cursor-pointer"
                 >
                   <X className="w-3 h-3 opacity-75 hover:opacity-100" />
                 </button>
@@ -477,17 +481,17 @@ export default function BmnAssetsPage() {
 
       {/* Bulk Action Bar */}
       {canWrite && selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-xl flex-wrap">
-          <span className="text-sm font-semibold text-[var(--ds-accent-fg)]">{selectedIds.size} aset dipilih</span>
+        <div className="flex items-center gap-3 p-3 bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] rounded-lg flex-wrap">
+          <span className="text-sm font-semibold text-[var(--ds-accent-fg)] tabular-nums">{selectedIds.size} aset dipilih</span>
           {canUpdate && (
             <>
               <Button
                 size="sm"
                 variant="outline"
-                className="bmn-button bmn-secondary rounded-lg gap-1.5 text-xs"
+                className="bmn-button bmn-secondary rounded-lg gap-2 text-xs"
                 onClick={() => setShowBulkTagDialog(true)}
               >
-                <TagIcon className="w-3.5 h-3.5" /> Kelola Tag
+                <TagIcon className="w-4 h-4" /> Kelola Tag
               </Button>
               <select
                 onChange={async (e) => {
@@ -508,7 +512,7 @@ export default function BmnAssetsPage() {
                   } catch { toast.error("Gagal mengubah kondisi."); }
                   e.target.value = "";
                 }}
-                className="h-8 px-2 text-xs border border-amber-300 rounded-lg bg-white dark:bg-slate-900 text-[var(--ds-fg)] dark:text-[var(--ds-fg-muted)]"
+                className="h-8 px-2 text-xs border border-[var(--ds-status-warning-border)] rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)]"
                 aria-label="Ubah kondisi aset terpilih"
                 defaultValue=""
               >
@@ -521,7 +525,7 @@ export default function BmnAssetsPage() {
           )}
           {canDispose && (
             <Button size="sm" variant="destructive" className="bmn-button bmn-danger rounded-lg gap-1 text-xs" onClick={handleBulkDispose}>
-              <Trash2 className="w-3.5 h-3.5" /> Hapus Terpilih
+              <Trash2 className="w-4 h-4" /> Hapus Terpilih
             </Button>
           )}
           <Button size="sm" variant="outline" className="bmn-button bmn-secondary rounded-lg text-xs" onClick={() => setSelectedIds(new Set())}>Batal</Button>
@@ -529,34 +533,34 @@ export default function BmnAssetsPage() {
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-[var(--ds-fg-muted)]">{response?.meta ? `${response.meta.total.toLocaleString("id-ID")} aset terdaftar` : isLoading ? "Memuat daftar aset..." : "Daftar aset"}</p>
-        <div role="group" aria-label="Tampilan daftar aset" className="flex gap-1 rounded-xl bg-[var(--ds-surface-muted)] p-1">
-          <button type="button" disabled={view === null} aria-pressed={view === "table"} onClick={() => setView("table")} className={cn("bmn-button flex items-center gap-1.5 rounded-lg px-3 text-xs", view === "table" ? "bmn-primary" : "bmn-secondary")}><Table2 className="w-4 h-4" /> Tabel</button>
-          <button type="button" disabled={view === null} aria-pressed={view === "grid"} onClick={() => setView("grid")} className={cn("bmn-button flex items-center gap-1.5 rounded-lg px-3 text-xs", view === "grid" ? "bmn-primary" : "bmn-secondary")}><LayoutGrid className="w-4 h-4" /> Grid</button>
+        <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">{response?.meta ? `${response.meta.total.toLocaleString("id-ID")} aset terdaftar` : isLoading ? "Memuat daftar aset..." : "Daftar aset"}</p>
+        <div role="group" aria-label="Tampilan daftar aset" className="flex gap-1 rounded-lg bg-[var(--ds-surface-muted)] p-1">
+          <button type="button" disabled={view === null} aria-pressed={view === "table"} onClick={() => setView("table")} className={cn("bmn-button flex items-center gap-2 rounded-lg px-3 text-xs", view === "table" ? "bmn-primary" : "bmn-secondary")}><Table2 className="w-4 h-4" /> Tabel</button>
+          <button type="button" disabled={view === null} aria-pressed={view === "grid"} onClick={() => setView("grid")} className={cn("bmn-button flex items-center gap-2 rounded-lg px-3 text-xs", view === "grid" ? "bmn-primary" : "bmn-secondary")}><LayoutGrid className="w-4 h-4" /> Grid</button>
         </div>
       </div>
 
       {/* Both views share query, selection, filters and pagination. */}
-      <div aria-busy={isFetching || view === null} className={cn("relative", view === "table" ? "bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xs" : "bmn-grid-panel")}>
+      <div aria-busy={isFetching || view === null} className={cn("relative", view === "table" ? "bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs" : "bmn-grid-panel")}>
         {isFetching && !isLoading && (
-          <div className="absolute top-0 left-0 w-full h-0.5 bg-slate-100 dark:bg-zinc-800 overflow-hidden z-10">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[var(--ds-surface-muted)] overflow-hidden z-10">
             <div className="h-full bg-[var(--ds-accent-solid)] animate-pulse motion-reduce:animate-none w-1/3 rounded-r-full" />
           </div>
         )}
         {view === null ? (
           <div role="status" aria-label="Menyiapkan tampilan aset" className="bmn-asset-grid">
-            {[0, 1, 2, 3].map(i => <div key={i} className="h-72 rounded-xl bg-[var(--ds-surface-muted)] animate-pulse motion-reduce:animate-none" />)}
+            {[0, 1, 2, 3].map(i => <div key={i} className="h-72 rounded-3xl bg-[var(--ds-surface-muted)] animate-pulse motion-reduce:animate-none" />)}
           </div>
         ) : view === "grid" ? (
           <>
             {canWrite && (
               <label className="inline-flex items-center gap-2 mb-3 text-xs text-[var(--ds-fg-muted)]">
-                <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} aria-label="Pilih semua aset pada halaman ini" className="w-4 h-4" /> Pilih semua pada halaman ini
+                <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} aria-label="Pilih semua aset pada halaman ini" className="w-4 h-4 accent-[var(--ds-accent-solid)]" /> Pilih semua pada halaman ini
               </label>
             )}
             {isLoading ? (
               <div role="status" aria-label="Memuat grid aset" className="bmn-asset-grid">
-                {[0, 1, 2, 3].map(i => <div key={i} className="h-72 rounded-xl bg-[var(--ds-surface-muted)] animate-pulse motion-reduce:animate-none" />)}
+                {[0, 1, 2, 3].map(i => <div key={i} className="h-72 rounded-3xl bg-[var(--ds-surface-muted)] animate-pulse motion-reduce:animate-none" />)}
               </div>
             ) : response?.data?.length === 0 ? (
               <p role="status" className="p-10 text-center text-sm text-[var(--ds-fg-muted)]">Tidak ada data ditemukan</p>
@@ -568,19 +572,19 @@ export default function BmnAssetsPage() {
                   <article key={asset.id} role="listitem" className="bmn-asset-card" data-selected={selectedIds.has(asset.id)}>
                     <div className="relative">
                       <AssetPhotoPreview photo={getPrimaryPhoto(asset)} name={asset.nama_barang} nup={asset.nup} />
-                      {canWrite && <label className="bmn-card-checkbox"><input type="checkbox" checked={selectedIds.has(asset.id)} onChange={() => toggleSelect(asset.id)} aria-label={`Pilih aset ${asset.nama_barang} NUP ${asset.nup}`} className="w-4 h-4" /></label>}
+                      {canWrite && <label className="bmn-card-checkbox"><input type="checkbox" checked={selectedIds.has(asset.id)} onChange={() => toggleSelect(asset.id)} aria-label={`Pilih aset ${asset.nama_barang} NUP ${asset.nup}`} className="w-4 h-4 accent-[var(--ds-accent-solid)]" /></label>}
                     </div>
                     <div className="bmn-card-body">
                       <Link href={`/bmn/assets/${asset.id}`} className="bmn-card-name" title={asset.nama_barang}>{asset.nama_barang}</Link>
                       {asset.merk_tipe && <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-2">{deduplicateMerkTipe(asset.merk_tipe)}</p>}
-                      <p className="bmn-card-code">{asset.kode_barang}<br />NUP: {asset.nup}</p>
-                      {asset.nup_lama?.trim() && <p className="text-xs text-[var(--ds-fg-muted)]">NUP Lama: {asset.nup_lama}</p>}
+                      <p className="bmn-card-code tabular-nums">{asset.kode_barang}<br />NUP: {asset.nup}</p>
+                      {asset.nup_lama?.trim() && <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">NUP Lama: {asset.nup_lama}</p>}
                       <div><AssetCondition value={asset.kondisi} /></div>
-                      <p className="text-sm font-semibold break-words">{formatRupiah(asset.nilai_perolehan)}</p>
+                      <p className="text-sm font-semibold break-words tabular-nums">{formatRupiah(asset.nilai_perolehan)}</p>
                       <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-2" title={asset.lokasi_ruang || asset.lokasi_spesifik || "-"}>{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
                       {pengguna && <p className="text-xs text-[var(--ds-fg-muted)]" title={pengguna}><UserRound className="inline w-3 h-3 mr-1" aria-hidden="true" />Pengguna: {pengguna}</p>}
                       {asset.tags?.length ? <AssetTagsList tags={asset.tags} maxVisible={1} onManageTags={canUpdate ? () => setEditingAssetForTags(asset) : undefined} /> : canUpdate && <button type="button" onClick={() => setEditingAssetForTags(asset)} className="self-start text-xs text-[var(--ds-accent-fg)] inline-flex items-center gap-1"><TagIcon className="w-3 h-3" /> Kelola tag</button>}
-                      {asset.active_loan && <span data-status="info" className="text-xs px-1.5 py-0.5 rounded">Dipinjam: {asset.active_loan.borrower_name}</span>}
+                      {asset.active_loan && <span data-status="info" className="text-xs px-2 py-1 rounded-full">Dipinjam: {asset.active_loan.borrower_name}</span>}
                       {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.tanggal_pajak_stnk && <StnkBadge tanggal={asset.tanggal_pajak_stnk} />}
                       <div className="mt-auto pt-2 flex items-center justify-between gap-1">
                         <Link href={`/bmn/assets/${asset.id}`} aria-label={`Lihat detail ${asset.nama_barang}`} className="bmn-icon-action inline-flex items-center gap-1 rounded-lg px-2 min-h-9 text-xs"><Eye className="w-4 h-4" /> Detail</Link>
@@ -597,10 +601,10 @@ export default function BmnAssetsPage() {
         <div className="overflow-x-auto">
           <table aria-label="Daftar aset BMN" aria-busy={isFetching} className="w-full text-left">
             <thead>
-              <tr className="border-b border-slate-200/80 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-800/50">
+              <tr className="border-b border-slate-200/70 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/30">
                 {canWrite && (
                   <th className="px-3 py-3 w-10">
-                    <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} aria-label="Pilih semua aset pada halaman ini" className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                    <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} aria-label="Pilih semua aset pada halaman ini" className="w-4 h-4 accent-[var(--ds-accent-solid)]" />
                   </th>
                 )}
                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider">Kode / NUP</th>
@@ -612,36 +616,36 @@ export default function BmnAssetsPage() {
                 <th className="px-4 py-3 text-xs font-bold text-[var(--ds-fg-muted)] uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
+            <tbody className="divide-y divide-slate-200/70 dark:divide-zinc-800">
               {isLoading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse motion-reduce:animate-none">
                     <td colSpan={canWrite ? 8 : 7} className="px-6 py-4">
-                      <div className="h-10 bg-slate-100 dark:bg-zinc-800/60 rounded-xl" />
+                      <div className="h-10 bg-[var(--ds-surface-muted)] rounded-lg" />
                     </td>
                   </tr>
                 ))
               ) : response?.data?.length === 0 ? (
-                <tr><td colSpan={canWrite ? 8 : 7} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-slate-200" /><p className="text-sm text-[var(--ds-fg-muted)]">Tidak ada data ditemukan</p></td></tr>
+                <tr><td colSpan={canWrite ? 8 : 7} className="p-12 text-center"><Package className="w-10 h-10 mx-auto mb-2 text-[var(--ds-fg-muted)]" /><p className="text-sm text-[var(--ds-fg-muted)]">Tidak ada data ditemukan</p></td></tr>
               ) : (
                 response?.data?.map((asset) => (
                   <tr key={asset.id} aria-selected={selectedIds.has(asset.id)} className="bmn-table-row">
                     {canWrite && (
                       <td className="px-3 py-3">
-                        <input type="checkbox" checked={selectedIds.has(asset.id)} onChange={() => toggleSelect(asset.id)} aria-label={`Pilih aset ${asset.nama_barang} NUP ${asset.nup}`} className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                        <input type="checkbox" checked={selectedIds.has(asset.id)} onChange={() => toggleSelect(asset.id)} aria-label={`Pilih aset ${asset.nama_barang} NUP ${asset.nup}`} className="w-4 h-4 accent-[var(--ds-accent-solid)]" />
                       </td>
                     )}
                     <td className="px-4 py-3">
-                      <p className="text-xs font-mono font-bold text-[var(--ds-accent-fg)]">{asset.kode_barang}</p>
-                      <p className="text-xs text-[var(--ds-fg-muted)] font-mono">NUP: {asset.nup}</p>
-                      {asset.nup_lama && <p className="text-xs text-[var(--ds-fg-muted)] font-mono">NUP Lama: {asset.nup_lama}</p>}
+                      <p className="text-xs font-mono font-bold text-[var(--ds-accent-fg)] tabular-nums">{asset.kode_barang}</p>
+                      <p className="text-xs text-[var(--ds-fg-muted)] font-mono tabular-nums">NUP: {asset.nup}</p>
+                      {asset.nup_lama && <p className="text-xs text-[var(--ds-fg-muted)] font-mono tabular-nums">NUP Lama: {asset.nup_lama}</p>}
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-xs font-semibold text-[var(--ds-fg-muted)]">{asset.jenis_bmn || "-"}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-semibold text-[var(--ds-fg)] max-w-[200px] truncate">{asset.nama_barang}</p>
-                      <p className="text-xs text-[var(--ds-fg-muted)]">
+                      <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                         {deduplicateMerkTipe(asset.merk_tipe)}
                         {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && asset.no_polisi !== "-" ? ` • ${asset.no_polisi}` : ""}
                         {" • "}{asset.tahun_perolehan || "-"}
@@ -662,7 +666,7 @@ export default function BmnAssetsPage() {
                           className="inline-flex items-center gap-1 mt-1 text-xs text-[var(--ds-fg-muted)] hover:text-[var(--ds-accent-fg)] transition-colors cursor-pointer"
                           title="Kelola tag untuk aset ini"
                         >
-                          <TagIcon className="w-2.5 h-2.5 opacity-60" />
+                          <TagIcon className="w-3 h-3 opacity-60" />
                           <span>+ Tag</span>
                         </button>
                       ) : null}
@@ -671,7 +675,7 @@ export default function BmnAssetsPage() {
                       <AssetCondition value={asset.kondisi} />
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <p className="text-sm font-bold text-[var(--ds-fg)]">{formatRupiah(asset.nilai_perolehan)}</p>
+                      <p className="text-sm font-bold text-[var(--ds-fg)] tabular-nums">{formatRupiah(asset.nilai_perolehan)}</p>
                     </td>
                     <td className="px-4 py-3">
                       <p className="text-xs text-[var(--ds-fg-muted)]">{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
@@ -679,7 +683,7 @@ export default function BmnAssetsPage() {
                         <p className="text-xs text-[var(--ds-fg-muted)]"><UserRound className="inline w-3 h-3 mr-1" aria-hidden="true" />{asset.pengguna}</p>
                       )}
                       {asset.active_loan && (
-                        <span data-status="info" className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold mt-1">
+                        <span data-status="info" className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold mt-1">
                           <Handshake className="w-3 h-3" aria-hidden="true" /> Dipinjam: {asset.active_loan.borrower_name}
                         </span>
                       )}
@@ -688,7 +692,7 @@ export default function BmnAssetsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center gap-2">
                         <Link
                           href={`/bmn/assets/${asset.id}`}
                           aria-label={`Lihat detail ${asset.nama_barang}`}
@@ -716,14 +720,14 @@ export default function BmnAssetsPage() {
         </div>
         )}
         {/* Pagination */}
-        <div className="bmn-pagination px-4 py-3 border-t border-slate-100 dark:border-slate-800/50 flex flex-wrap gap-3 items-center justify-between text-sm">
+        <div className="bmn-pagination px-4 py-3 border-t border-slate-200/70 dark:border-zinc-800 flex flex-wrap gap-3 items-center justify-between text-sm">
           <div className="flex items-center gap-3">
-            <span className="text-[var(--ds-fg-muted)] text-xs">{response?.data?.length || 0} item ditampilkan</span>
+            <span className="text-[var(--ds-fg-muted)] text-xs tabular-nums">{response?.data?.length || 0} item ditampilkan</span>
             <select
               aria-label="Jumlah aset per halaman"
               value={perPage}
               onChange={(e) => { setPerPage(Number(e.target.value)); }}
-              className="h-7 px-2 text-xs border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="h-8 px-2 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)]"
             >
               <option value={10}>10 / halaman</option>
               <option value={50}>50 / halaman</option>
@@ -733,7 +737,7 @@ export default function BmnAssetsPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page <= 1 || isFetching} onClick={() => setPage(p => p - 1)} className="bmn-button bmn-secondary text-xs rounded-lg">Sebelumnya</Button>
-            <span className="flex items-center text-xs text-[var(--ds-fg-muted)] px-2">Hal {page}{response?.meta?.last_page ? ` / ${response.meta.last_page}` : ""}</span>
+            <span className="flex items-center text-xs text-[var(--ds-fg-muted)] px-2 tabular-nums">Hal {page}{response?.meta?.last_page ? ` / ${response.meta.last_page}` : ""}</span>
             <Button variant="outline" size="sm" disabled={isFetching || page >= (response?.meta?.last_page ?? page)} onClick={() => setPage(p => p + 1)} className="bmn-button bmn-secondary text-xs rounded-lg">Berikutnya</Button>
           </div>
         </div>
@@ -794,7 +798,7 @@ export default function BmnAssetsPage() {
 
 function AssetCondition({ value }: { value: string }) {
   const status = value === "Baik" ? "success" : value === "Rusak Ringan" ? "warning" : value === "Rusak Berat" ? "danger" : "neutral";
-  return <span data-status={status} className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold">{value}</span>;
+  return <span data-status={status} className="inline-flex px-2 py-1 rounded-full text-xs font-semibold">{value}</span>;
 }
 
 function StnkBadge({ tanggal }: { tanggal: string }) {
@@ -805,14 +809,14 @@ function StnkBadge({ tanggal }: { tanggal: string }) {
 
   if (diffDays < 0) {
     return (
-      <span data-status="danger" className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold mt-1">
+      <span data-status="danger" className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold mt-1 tabular-nums">
         <AlertTriangle className="w-3 h-3" aria-hidden="true" /> Pajak expired {Math.abs(diffDays)} hari
       </span>
     );
   }
   if (diffDays <= 30) {
     return (
-      <span data-status="warning" className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold mt-1">
+      <span data-status="warning" className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold mt-1 tabular-nums">
         <AlertTriangle className="w-3 h-3" aria-hidden="true" /> Pajak {diffDays} hari lagi
       </span>
     );

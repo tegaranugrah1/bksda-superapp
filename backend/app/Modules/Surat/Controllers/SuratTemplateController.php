@@ -17,21 +17,25 @@ class SuratTemplateController extends Controller
     {
         $query = SuratTemplate::query();
 
-        if ($request->has('search') && !empty($request->search)) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('key', 'like', "%{$search}%")
-                  ->orWhere('kategori', 'like', "%{$search}%")
-                  ->orWhere('kode_klasifikasi', 'like', "%{$search}%");
+        $search = $request->input('search');
+        if (is_string($search) && trim($search) !== '') {
+            $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($search)) . '%';
+            $query->where(function ($q) use ($pattern) {
+                $q->whereRaw("nama LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("key LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("kategori LIKE ? ESCAPE '!'", [$pattern])
+                  ->orWhereRaw("kode_klasifikasi LIKE ? ESCAPE '!'", [$pattern]);
             });
         }
 
-        if ($request->has('kategori') && !empty($request->kategori)) {
-            $query->where('kategori', $request->kategori);
+        $kategori = $request->input('kategori');
+        if (is_string($kategori) && trim($kategori) !== '') {
+            $query->where('kategori', trim($kategori));
         }
 
-        if ($request->has('is_active')) {
+        if ($request->user()?->role !== 'super_admin') {
+            $query->where('is_active', true);
+        } elseif ($request->has('is_active')) {
             $query->where('is_active', filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN));
         }
 
@@ -63,22 +67,24 @@ class SuratTemplateController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        if ($request->has('key') && is_string($request->input('key'))) {
+            $request->merge(['key' => Str::slug($request->input('key'), '_')]);
+        }
+
         $validated = $request->validate([
-            'key' => 'required|string|max:100|unique:surat_templates,key',
+            'key' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9_]+$/', 'unique:surat_templates,key'],
             'nama' => 'required|string|max:255',
             'kategori' => 'nullable|string|max:100',
             'deskripsi' => 'nullable|string|max:1000',
             'nomor_prefix' => 'nullable|string|max:50',
             'kode_klasifikasi' => 'nullable|string|max:50',
             'judul_dokumen' => 'nullable|string|max:255',
-            'default_payload' => 'nullable|array',
+            'default_payload' => 'nullable|array|max:60',
             'is_active' => 'nullable|boolean',
         ]);
 
-        $key = Str::slug($validated['key'], '_');
-
         $template = SuratTemplate::create([
-            'key' => $key,
+            'key' => $validated['key'],
             'nama' => strip_tags(trim($validated['nama'])),
             'kategori' => strip_tags(trim($validated['kategori'] ?? 'Tata Naskah Dinas')),
             'deskripsi' => isset($validated['deskripsi']) ? strip_tags(trim($validated['deskripsi'])) : null,
@@ -111,7 +117,7 @@ class SuratTemplateController extends Controller
             'nomor_prefix' => 'nullable|string|max:50',
             'kode_klasifikasi' => 'nullable|string|max:50',
             'judul_dokumen' => 'nullable|string|max:255',
-            'default_payload' => 'nullable|array',
+            'default_payload' => 'nullable|array|max:60',
             'is_active' => 'nullable|boolean',
         ]);
 

@@ -3,6 +3,8 @@
  * Membuka window baru, inject HTML + CSS print, lalu trigger print dialog.
  */
 
+import { cloneHtmlWithResolvedImages, openPrintWindow } from "@/lib/print-window";
+
 const PRINT_STYLE = `
   @page { size: A4 portrait; margin: 0; }
   @page :first { margin: 0; }
@@ -103,15 +105,6 @@ const PRINT_STYLE = `
   thead.page-spacer td { height: 0; padding: 0; line-height: 0; font-size: 0; }
 `;
 
-function resolveImageUrl(url: string): string {
-  if (!url) return url;
-  if (/^https?:\/\//i.test(url) || url.startsWith("data:")) return url;
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}${url.startsWith("/") ? "" : "/"}${url}`;
-  }
-  return url;
-}
-
 /**
  * Cetak Surat Tugas dari elemen preview `#surat-preview-doc`.
  * @param stNumber nomor ST (untuk judul tab/file)
@@ -120,56 +113,13 @@ function resolveImageUrl(url: string): string {
 export function printSuratTugas(stNumber: string, namaKegiatan: string) {
   const printContent = document.getElementById("surat-preview-doc");
   if (!printContent) return;
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
 
   const safeKegiatan = (namaKegiatan || "ST").replace(/[/\\?%*:|"<>]/g, "-");
-
-  // Clone content and resolve relative image URLs to absolute URLs
-  const container = document.createElement("div");
-  container.innerHTML = printContent.innerHTML;
-  const imgs = container.getElementsByTagName("img");
-  for (let i = 0; i < imgs.length; i++) {
-    const src = imgs[i].getAttribute("src");
-    if (src) {
-      imgs[i].setAttribute("src", resolveImageUrl(src));
-    }
-  }
-
-  printWindow.document.write(`
-    <html>
-    <head>
-      <title>ST.${stNumber.replace(/[<>&"']/g, "")}-${safeKegiatan}</title>
-      <style>${PRINT_STYLE}</style>
-    </head>
-    <body>${container.innerHTML}</body>
-    </html>
-  `);
-  printWindow.document.close();
-
-  const printImages = printWindow.document.getElementsByTagName("img");
-  let loaded = 0;
-  const total = printImages.length;
-  const triggerPrint = () => {
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  if (total === 0) {
-    setTimeout(triggerPrint, 300);
-  } else {
-    for (let i = 0; i < total; i++) {
-      if (printImages[i].complete) {
-        loaded++;
-      } else {
-        printImages[i].onload = printImages[i].onerror = () => {
-          loaded++;
-          if (loaded >= total) triggerPrint();
-        };
-      }
-    }
-    if (loaded >= total) {
-      setTimeout(triggerPrint, 300);
-    }
-  }
+  openPrintWindow({
+    title: `ST.${stNumber.replace(/[<>&"']/g, "")}-${safeKegiatan}`,
+    bodyHtml: cloneHtmlWithResolvedImages(printContent),
+    styles: PRINT_STYLE,
+    delayMs: 300,
+    waitForImages: true,
+  });
 }

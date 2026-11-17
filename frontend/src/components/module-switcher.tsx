@@ -64,8 +64,8 @@ const moduleDefinitions = [
     slug: "surat",
     icon: Mail,
     href: "/surat",
-    color: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300",
-    solidColor: "bg-[#4f46e5] text-white dark:bg-[#818cf8] dark:text-[#0f172a]",
+    color: "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300",
+    solidColor: "bg-[#0f766e] text-white dark:bg-[#2dd4bf] dark:text-[#0f172a]",
   },
   {
     name: "D-Reporting",
@@ -157,7 +157,7 @@ export function ModuleSwitcher() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200 space-y-1">
+          <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] max-h-[calc(100dvh-160px)] overflow-y-auto bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200 space-y-1">
             {visibleModules.map((mod) => {
               const isCurrent = activeModule.slug === mod.slug;
               return (

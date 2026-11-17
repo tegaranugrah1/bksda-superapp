@@ -13,6 +13,7 @@ class DriveFolder extends Model
 
     protected $fillable = [
         'unit_id',
+        'location_id',
         'user_id',
         'parent_id',
         'name',
@@ -35,6 +36,11 @@ class DriveFolder extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(DriveUnit::class, 'unit_id');
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Bmn\Models\Location::class, 'location_id');
     }
 
     public function user(): BelongsTo
@@ -60,5 +66,32 @@ class DriveFolder extends Model
     public function shares(): HasMany
     {
         return $this->hasMany(DriveShare::class, 'folder_id');
+    }
+
+    /**
+     * Kumpulkan semua ID subfolder turunan (BFS) agar DriveController, LocationController, & DriveAccess berbagi satu helper.
+     */
+    public static function collectDescendantIds(int|array $rootIds, bool $withTrashed = false): array
+    {
+        $queue = array_values(array_unique(array_filter(array_map('intval', (array) $rootIds))));
+        $descendants = [];
+
+        while (! empty($queue)) {
+            $query = $withTrashed ? static::withTrashed() : static::query();
+            $childIds = $query->whereIn('parent_id', $queue)->pluck('id')->all();
+            $nextQueue = [];
+
+            foreach ($childIds as $cid) {
+                $cidInt = (int) $cid;
+                if (! in_array($cidInt, $descendants, true)) {
+                    $descendants[] = $cidInt;
+                    $nextQueue[] = $cidInt;
+                }
+            }
+
+            $queue = $nextQueue;
+        }
+
+        return $descendants;
     }
 }

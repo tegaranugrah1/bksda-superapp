@@ -228,6 +228,37 @@ export function resolvePhotoUrl(url?: string | null, resolveApiUrlFn?: (url: str
   return trimmed;
 }
 
+export interface PrintablePhotoEntity {
+  photos?: (string | null)[] | null;
+  foto_depan_url?: string | null;
+  foto_belakang_url?: string | null;
+  foto_kiri_url?: string | null;
+  foto_kanan_url?: string | null;
+  foto_geotag_url?: string | null;
+  foto_url?: string | null;
+}
+
+export function collectPrintPhotoUrls(
+  entity: PrintablePhotoEntity,
+  resolveApiUrlFn: (url: string) => string | null,
+): string[] {
+  const rawUrls: string[] = [];
+  if (Array.isArray(entity.photos)) rawUrls.push(...(entity.photos.filter(Boolean) as string[]));
+  for (const field of [
+    entity.foto_depan_url,
+    entity.foto_belakang_url,
+    entity.foto_kiri_url,
+    entity.foto_kanan_url,
+    entity.foto_geotag_url,
+    entity.foto_url,
+  ]) {
+    if (field) rawUrls.push(field);
+  }
+  return Array.from(
+    new Set(rawUrls.map((u) => resolvePhotoUrl(u, resolveApiUrlFn)).filter(Boolean) as string[])
+  ).slice(0, 2);
+}
+
 export function chunkPhotoAssets<T>(array: T[], size = 3): T[][] {
   if (array.length === 0) return [];
   const chunks: T[][] = [];

@@ -48,7 +48,11 @@ export function getEcho(): Echo<"reverb"> | null {
   }
 
   try {
-    let wsHost = window.location.hostname;
+    const browserHostname = window.location.hostname;
+    const isLocalHost = (host: string) => host === "localhost" || host === "127.0.0.1";
+    const resolveLocalHost = (host: string) => (isLocalHost(host) && isLocalHost(browserHostname) ? browserHostname : host);
+
+    let wsHost = browserHostname;
     let wsPort = 443;
     let forceTLS = window.location.protocol === "https:";
 
@@ -58,10 +62,13 @@ export function getEcho(): Echo<"reverb"> | null {
     if (envApi && envApi.startsWith("http")) {
       try {
         const u = new URL(envApi);
-        wsHost = u.hostname;
-        authEndpoint = `${envApi.replace(/\/$/, "")}/broadcasting/auth`;
+        const normalizedHost = resolveLocalHost(u.hostname);
+        u.hostname = normalizedHost;
+        wsHost = normalizedHost;
+        authEndpoint = `${u.toString().replace(/\/$/, "")}/broadcasting/auth`;
         if (u.protocol === "http:") {
-          wsPort = parseInt(u.port || "80", 10);
+          // Local `php artisan serve` listens on :8000 while Reverb listens on :8080.
+          wsPort = isLocalHost(u.hostname) && u.port === "8000" ? 8080 : parseInt(u.port || "80", 10);
           forceTLS = false;
         } else {
           wsPort = parseInt(u.port || "443", 10);
@@ -72,12 +79,22 @@ export function getEcho(): Echo<"reverb"> | null {
       }
     }
 
+    const envReverbHost = process.env.NEXT_PUBLIC_REVERB_HOST;
+    const envReverbPort = process.env.NEXT_PUBLIC_REVERB_PORT;
+    const envReverbScheme = process.env.NEXT_PUBLIC_REVERB_SCHEME;
+    if (envReverbHost) wsHost = resolveLocalHost(envReverbHost);
+    if (envReverbScheme === "https" || envReverbScheme === "http") forceTLS = envReverbScheme === "https";
+    if (envReverbPort) {
+      const p = parseInt(envReverbPort, 10);
+      if (Number.isFinite(p) && p > 0) wsPort = p;
+    }
+
     echoInstance = new Echo({
       broadcaster: "reverb",
       key: appKey,
       wsHost,
       wsPort: forceTLS ? 443 : wsPort,
-      wssPort: forceTLS ? 443 : wsPort,
+      wssPort: forceTLS ? wsPort : 443,
       forceTLS,
       enabledTransports: ["ws", "wss"],
       authEndpoint,

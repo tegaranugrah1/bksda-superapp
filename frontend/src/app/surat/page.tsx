@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Inbox,
   Send,
   Plus,
   Layers,
   ArrowUpRight,
+  FileText,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { useRole } from "@/hooks/useRole";
 import {
   HeaderBanner,
   BentoStatCards,
@@ -24,46 +27,63 @@ const QUICK_LINKS = [
     description: "Penatausahaan & Disposisi",
     href: "/surat/masuk",
     icon: Inbox,
-    iconStyle:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+    iconStyle: "text-[var(--ds-accent-fg)]",
+    minRole: "admin" as const,
   },
   {
     title: "Input Surat Masuk",
     description: "Register Agenda & Disposisi",
     href: "/surat/masuk/create",
     icon: Plus,
-    iconStyle:
-      "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300",
+    iconStyle: "text-[var(--ds-accent-fg)]",
+    minRole: "admin" as const,
   },
   {
     title: "Daftar Surat Keluar",
     description: "Pengagendaan Naskah Keluar",
     href: "/surat/keluar",
     icon: Send,
-    iconStyle:
-      "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+    iconStyle: "text-blue-700 dark:text-blue-300",
+    minRole: "user" as const,
   },
   {
     title: "Input Surat Keluar",
-    description: "Form Penomoran Surat Keluar",
+    description: "Penomoran & Registrasi Manual",
     href: "/surat/keluar/create",
     icon: Plus,
-    iconStyle:
-      "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+    iconStyle: "text-blue-700 dark:text-blue-300",
+    minRole: "user" as const,
+  },
+  {
+    title: "Tata Naskah Dinas",
+    description: "Generator 20 Format Permen 1/2025",
+    href: "/surat/keluar/dinas",
+    icon: FileText,
+    iconStyle: "text-amber-700 dark:text-amber-300",
+    minRole: "user" as const,
   },
 ];
 
 export default function SuratHubPage() {
-  const { data: hubData, isLoading } = useQuery({
-    queryKey: ["surat-hub-summary"],
+  const reducedMotion = useReducedMotion();
+  const { canWrite, hasPermission } = useRole();
+  const canCreate = canWrite || hasPermission("surat.create");
+
+  const {
+    data: hubData,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["surat-hub-summary", canWrite ? "admin" : "user"],
     queryFn: async () => {
-      const [resMasuk, resKeluar] = await Promise.allSettled([
-        api.get("/surat-masuk?per_page=5"),
-        api.get("/surat-keluar?per_page=5"),
+      const [resMasuk, resKeluar] = await Promise.all([
+        canWrite ? api.get("/surat-masuk?per_page=5") : Promise.resolve({ data: { data: [], meta: { total: 0 } } }),
+        api.get("/surat/surat-keluar?per_page=5"),
       ]);
 
-      const masukRaw = resMasuk.status === "fulfilled" ? resMasuk.value.data : null;
-      const keluarRaw = resKeluar.status === "fulfilled" ? resKeluar.value.data : null;
+      const masukRaw = resMasuk.data;
+      const keluarRaw = resKeluar.data;
 
       const masukItems: SuratMasukItem[] = (masukRaw?.data || masukRaw || []).map((d: any) => ({
         ...d,
@@ -92,49 +112,61 @@ export default function SuratHubPage() {
   const suratMasukList = hubData?.suratMasukList ?? [];
   const suratKeluarList = hubData?.suratKeluarList ?? [];
 
-  return (
-    <div className="w-full p-5 md:p-7 space-y-5 text-slate-900 dark:text-zinc-100 font-sans">
-      {/* 1. Header Banner Bersih & Formal */}
-      <HeaderBanner />
+  const visibleQuickLinks = QUICK_LINKS.filter((item) => item.minRole === "user" || canWrite);
 
-      {/* 2. Kartu Statistik Operasional (4 Cards) */}
+  return (
+    <div className="psr-ui psr-dashboard w-full p-4 md:p-6 space-y-6 text-[var(--ds-fg)] font-sans">
+      {/* 1. Header Banner Bersih & Formal */}
+      <HeaderBanner canCreate={canCreate} canManageMasuk={canWrite} />
+
+      {/* 2. Kartu Statistik Operasional */}
       <BentoStatCards
         totalSuratMasuk={totalSuratMasuk}
         totalSuratKeluar={totalSuratKeluar}
+        canManageMasuk={canWrite}
       />
 
-      {/* 3. Akses Pintas Modul Persuratan (4 Cards) */}
-      <div className="space-y-3">
+      {/* 3. Akses Pintas Modul Persuratan */}
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+            <Layers className="w-4 h-4 text-[var(--ds-accent-fg)]" />
             Akses Pintas Modul Persuratan
           </h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-          {QUICK_LINKS.map((item) => {
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {visibleQuickLinks.map((item) => {
             const Icon = item.icon;
             return (
-              <Link key={item.href + item.title} href={item.href}>
-                <div className="relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800/80 p-4 rounded-2xl hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all duration-200 group hover:shadow-xs flex flex-col justify-between h-full min-h-24">
-                  <div className="flex items-center justify-between mb-3">
+              <motion.div
+                key={item.href + item.title}
+                whileHover={reducedMotion ? undefined : { y: -2.5 }}
+                whileTap={reducedMotion ? undefined : { scale: 0.98 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="h-full"
+              >
+                <Link
+                  href={item.href}
+                  className="group relative overflow-hidden bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 p-4 rounded-3xl shadow-xs hover:border-[var(--ds-accent-soft-border)] hover:bg-[var(--ds-accent-soft)]/70 transition-colors duration-150 flex flex-col justify-between h-full"
+                >
+                  <div className="flex items-center justify-between mb-2">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center ${item.iconStyle} group-hover:scale-105 transition-transform`}
+                      className={`kpg-support-icon w-10 h-10 rounded-lg border flex items-center justify-center group-hover:scale-105 transition-transform duration-150 ${item.iconStyle}`}
                     >
-                      <Icon className="w-4.5 h-4.5" />
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <ArrowUpRight className="w-4 h-4 text-zinc-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                    <ArrowUpRight className="w-4 h-4 text-[var(--ds-fg-muted)] group-hover:text-[var(--ds-accent-fg)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-xs md:text-sm text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">
+                    <h3 className="font-bold text-sm text-[var(--ds-fg)] group-hover:text-[var(--ds-accent-fg)] transition-colors leading-tight">
                       {item.title}
                     </h3>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-1 truncate">
                       {item.description}
                     </p>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </motion.div>
             );
           })}
         </div>
@@ -144,6 +176,10 @@ export default function SuratHubPage() {
       <RecentSuratWidget
         suratMasukList={suratMasukList}
         suratKeluarList={suratKeluarList}
+        canManageMasuk={canWrite}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={() => refetch()}
       />
     </div>
   );

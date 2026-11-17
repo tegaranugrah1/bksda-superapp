@@ -413,23 +413,23 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
   };
 
   return (
-    <section className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-2xl p-3 sm:p-6 shadow-xs ">
+    <section className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 shadow-xs">
       {/* Header Deck Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[var(--ds-border-subtle)] gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200/70 dark:border-zinc-800 gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0">
             <Camera className="w-5 h-5" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base sm:text-lg font-bold text-[var(--ds-fg)] tracking-tight">
+              <h3 className="text-sm font-bold text-[var(--ds-fg)] tracking-tight">
                 Dokumentasi &amp; Bukti Fisik Aset
               </h3>
-              <span className="px-2.5 py-0.5 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-xs font-semibold">
+              <span className="px-3 py-1 rounded-full bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] text-xs font-semibold tabular-nums">
                 {filledCount} / 5 Terisi
               </span>
             </div>
-            <p className="text-xs text-[var(--ds-fg-muted)] mt-0.5">
+            <p className="text-xs text-[var(--ds-fg-muted)] mt-1">
               Kelengkapan sudut pandang standar audit BMN (Geotag, Tampak Depan, Belakang, Kiri, Kanan)
             </p>
           </div>
@@ -443,7 +443,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
               size="sm"
               onClick={handleVerify}
               className={cn(
-                "h-8 text-xs gap-1.5 rounded-lg border-[var(--ds-border-subtle)]",
+                "h-8 text-xs gap-2 rounded-lg",
                 verifiedAt ? "text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)]" : ""
               )}
             >
@@ -457,7 +457,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
               variant="outline"
               size="sm"
               onClick={handleDownloadAll}
-              className="h-8 text-xs gap-1.5 rounded-lg border-[var(--ds-border-subtle)] text-[var(--ds-fg-muted)]"
+              className="h-8 text-xs gap-2 rounded-lg text-[var(--ds-fg-muted)]"
             >
               <ZipIcon className="w-4 h-4 text-[var(--ds-fg-muted)]" />
               <span>Download Semua</span>
@@ -468,7 +468,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
 
       {/* Verified status banner */}
       {verifiedAt && (
-        <div data-status="success" className="mt-4 px-4 py-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center gap-2.5">
+        <div data-status="success" className="mt-4 px-4 py-3 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-accent-soft-border)] flex items-center gap-3">
           <CheckCircle2 className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
           <span className="text-xs text-[var(--ds-accent-fg)] font-medium">
             Telah diverifikasi BMN pada{" "}
@@ -510,9 +510,9 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
 
       {/* Vehicle Documents (BPKB & STNK) */}
       {isVehicle && (
-        <div className="mt-6 pt-5 border-t border-[var(--ds-border-subtle)]">
+        <div className="mt-6 pt-5 border-t border-slate-200/70 dark:border-zinc-800">
           <div className="flex items-center gap-2 mb-4">
-            <span className="p-1.5 rounded-lg bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)]">
+            <span className="p-2 rounded-lg bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)]">
               <FileText className="w-4 h-4" />
             </span>
             <div>
@@ -543,14 +543,14 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
 
       {/* Geotag URL Input Modal/Bar */}
       {showGeotagInput && (
-        <div className="mt-4 p-4 rounded-xl border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="mt-4 p-4 rounded-lg border border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)] flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <input
             aria-label="Tautan foto geotag"
             type="url"
             value={geotagInput}
             onChange={(e) => setGeotagInput(e.target.value)}
             placeholder="Tempel tautan Google Drive / Foto Geotag..."
-            className="flex-1 px-3 py-2 text-xs border border-[var(--ds-border-subtle)] rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] outline-none"
+            className="flex-1 px-3 py-2 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] outline-none"
           />
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={handleSaveGeotag} className="bmn-button bmn-primary text-xs rounded-lg">
@@ -573,7 +573,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
       />
 
       {uploading && (
-        <div className="mt-3 px-3 py-1.5 rounded-lg bg-[var(--ds-accent-soft)] text-xs text-[var(--ds-accent-fg)] font-medium flex items-center gap-2 motion-reduce:animate-none animate-pulse">
+        <div className="mt-3 px-3 py-2 rounded-lg bg-[var(--ds-accent-soft)] text-xs text-[var(--ds-accent-fg)] font-medium flex items-center gap-2 motion-reduce:animate-none animate-pulse">
           <span className="w-2 h-2 rounded-full bg-current motion-reduce:animate-none animate-ping"></span>
           Mengunggah {uploadKind === "document" ? "dokumen" : "foto"} {uploading}...
         </div>
@@ -655,10 +655,10 @@ function PhotoCardSlot({
       {/* Box Image / Upload Trigger */}
       {url ? (
         <div>
-          <button type="button" aria-label={`Lihat ${slot.label}`} onClick={() => openLightbox(slot.key)} className="relative block w-full rounded-xl overflow-hidden border border-[var(--ds-border-subtle)] aspect-4/3 bg-[var(--ds-surface-muted)] cursor-zoom-in">
+          <button type="button" aria-label={`Lihat ${slot.label}`} onClick={() => openLightbox(slot.key)} className="relative block w-full rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 aspect-4/3 bg-[var(--ds-surface-muted)] cursor-zoom-in">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={displayThumb || url} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs">{slot.shortLabel}</span>
+            <span className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs">{slot.shortLabel}</span>
           </button>
           <div className="flex flex-wrap justify-center gap-1 mt-2">
             <button type="button" onClick={() => openLightbox(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Perbesar ${slot.label}`}><Eye className="w-4 h-4" /></button>
@@ -668,8 +668,8 @@ function PhotoCardSlot({
           </div>
         </div>
       ) : (
-        <div className="bmn-photo-upload rounded-xl border border-dashed border-[var(--ds-border-subtle)] aspect-4/3 flex flex-col items-center justify-center text-center bg-[var(--ds-surface-muted)]">
-          <button type="button" disabled={!canWrite} aria-label={canWrite ? `Unggah ${slot.label}` : `Belum ada ${slot.label}`} onClick={() => openUploadPicker(slot.key)} className="bmn-photo-upload-trigger flex flex-col items-center justify-center gap-1.5 w-full flex-1 p-3 rounded-xl text-xs text-[var(--ds-fg-muted)]">
+        <div className="bmn-photo-upload rounded-lg border border-dashed border-slate-200/80 dark:border-zinc-800 aspect-4/3 flex flex-col items-center justify-center text-center bg-[var(--ds-surface-muted)]">
+          <button type="button" disabled={!canWrite} aria-label={canWrite ? `Unggah ${slot.label}` : `Belum ada ${slot.label}`} onClick={() => openUploadPicker(slot.key)} className="bmn-photo-upload-trigger flex flex-col items-center justify-center gap-2 w-full flex-1 p-3 rounded-lg text-xs text-[var(--ds-fg-muted)]">
             <Camera className="w-5 h-5 text-[var(--ds-accent-fg)]" />
             <span className="font-semibold">{canWrite ? "+ Unggah Foto" : "Belum ada"}</span>
             <span>Maks. 5MB (PNG/JPG)</span>
@@ -682,12 +682,12 @@ function PhotoCardSlot({
       <div className="text-center">
         <div className="text-xs font-semibold text-[var(--ds-fg)]">{slot.label}</div>
         {url ? (
-          <div className="text-xs text-[var(--ds-accent-fg)] flex items-center justify-center gap-1 mt-0.5 font-medium">
+          <div className="text-xs text-[var(--ds-accent-fg)] flex items-center justify-center gap-1 mt-1 font-medium">
             <CheckCircle2 className="w-3 h-3" />
             Tersedia
           </div>
         ) : (
-          <div className="text-xs text-[var(--ds-fg-muted)] mt-0.5">Menunggu Unggahan</div>
+          <div className="text-xs text-[var(--ds-fg-muted)] mt-1">Menunggu Unggahan</div>
         )}
 
         {/* Front Location Specific Note */}
@@ -704,11 +704,11 @@ function PhotoCardSlot({
             }}
             disabled={savingFrontLocation}
             placeholder="Ketik lokasi spesifik..."
-            className="mt-1.5 min-h-9 w-full rounded-md border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] px-2 text-center text-xs font-medium text-[var(--ds-fg-muted)] outline-none "
+            className="mt-2 min-h-9 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] px-2 text-center text-xs font-medium text-[var(--ds-fg-muted)] outline-none"
           />
         )}
         {isFrontView && !canWrite && frontLocationDraft && (
-          <p className="mt-1 inline-block px-2 py-0.5 rounded bg-[var(--ds-surface-muted)] text-xs font-medium text-[var(--ds-fg-muted)] truncate max-w-full">
+          <p className="mt-1 inline-block px-2 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-xs font-medium text-[var(--ds-fg-muted)] truncate max-w-full">
             {frontLocationDraft}
           </p>
         )}
@@ -741,7 +741,7 @@ function VehicleDocumentCard({
   const previewUrl = resolveApiUrl(document?.preview_url);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--ds-border-subtle)] bg-[var(--ds-surface)] shadow-xs">
+    <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] shadow-xs">
       <button
         type="button"
         disabled={!document}
@@ -758,7 +758,7 @@ function VehicleDocumentCard({
         ) : document ? (
           <div className="flex flex-col items-center gap-2 text-center">
             <FileText className="h-10 w-10 text-[var(--ds-status-info-fg)]" />
-            <span className="rounded-full bg-[var(--ds-status-info-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ds-status-info-fg)]">
+            <span className="rounded-full bg-[var(--ds-status-info-bg)] px-2 py-1 text-xs font-bold text-[var(--ds-status-info-fg)]">
               {isPdf ? "DOKUMEN PDF" : "GAMBAR SCAN"}
             </span>
           </div>
@@ -775,7 +775,7 @@ function VehicleDocumentCard({
           <div className="flex items-center justify-between gap-3">
             <h4 className="text-sm font-bold text-[var(--ds-fg)]">{slot.label}</h4>
             {document && (
-              <span className="rounded-md bg-[var(--ds-surface-muted)] px-2 py-0.5 text-xs font-bold text-[var(--ds-fg-muted)]">
+              <span className="rounded-lg bg-[var(--ds-surface-muted)] px-2 py-1 text-xs font-bold text-[var(--ds-fg-muted)]">
                 {isPdf ? "PDF" : "GAMBAR"}
               </span>
             )}
@@ -788,16 +788,16 @@ function VehicleDocumentCard({
         <div className="flex flex-wrap gap-2">
           {document ? (
             <>
-              <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onPreview}>
-                <Eye className="h-3.5 w-3.5" /> Lihat
+              <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-2 text-xs" onClick={onPreview}>
+                <Eye className="h-4 w-4" /> Lihat
               </Button>
-              <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onDownload}>
-                <Download className="h-3.5 w-3.5" /> Unduh
+              <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-2 text-xs" onClick={onDownload}>
+                <Download className="h-4 w-4" /> Unduh
               </Button>
               {canWrite && (
                 <>
-                  <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
-                    <Upload className="h-3.5 w-3.5" /> Ganti
+                  <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-2 text-xs" onClick={onUpload}>
+                    <Upload className="h-4 w-4" /> Ganti
                   </Button>
                   <Button
                     type="button"
@@ -806,14 +806,14 @@ function VehicleDocumentCard({
                     className="bmn-button bmn-danger rounded-lg text-xs"
                     onClick={onDelete}
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Hapus
+                    <Trash2 className="h-4 w-4" /> Hapus
                   </Button>
                 </>
               )}
             </>
           ) : canWrite ? (
-            <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-1.5 text-xs" onClick={onUpload}>
-              <Upload className="h-3.5 w-3.5" /> Upload Dokumen
+            <Button type="button" variant="outline" size="sm" className="h-8 rounded-lg gap-2 text-xs" onClick={onUpload}>
+              <Upload className="h-4 w-4" /> Upload Dokumen
             </Button>
           ) : (
             <span className="text-xs text-[var(--ds-fg-muted)]">Belum tersedia</span>
@@ -840,7 +840,7 @@ function Lightbox({ url, label, index, total, onClose, onPrev, onNext, onReturnF
       <DialogContent
         data-module="bmn"
         showCloseButton={false}
-        className="bmn-assets-ui bmn-detail-ui bmn-popover bmn-photo-dialog"
+        className="bmn-assets-ui bmn-detail-ui bmn-popover bmn-photo-dialog rounded-3xl p-4 shadow-lg border border-slate-200/80 dark:border-zinc-800"
         onCloseAutoFocus={(event) => { event.preventDefault(); onReturnFocus(); }}
         onKeyDown={(event) => {
           if (total <= 1) return;

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Modules\Surat\Exports\SuratMasukExport;
 use App\Modules\Surat\Models\SuratMasuk;
 use App\Modules\Surat\Models\SuratKeluar;
 use App\Modules\Surat\Models\SuratDisposisi;
@@ -43,7 +44,11 @@ class SuratModuleTest extends TestCase
             'created_by' => $this->adminUser->id,
         ]);
 
-        $response = $this->actingAs($this->regularUser)
+        $this->actingAs($this->regularUser)
+            ->getJson('/api/surat/surat-masuk')
+            ->assertStatus(403);
+
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat/surat-masuk');
 
         $response->assertStatus(200)
@@ -65,7 +70,7 @@ class SuratModuleTest extends TestCase
             'created_by' => $this->adminUser->id,
         ]);
 
-        $response = $this->actingAs($this->regularUser)
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat/surat-masuk?per_page=10');
 
         $response->assertStatus(200)
@@ -163,7 +168,11 @@ class SuratModuleTest extends TestCase
             'created_by' => $this->adminUser->id,
         ]);
 
-        $response = $this->actingAs($this->regularUser)
+        $this->actingAs($this->regularUser)
+            ->getJson('/api/surat/surat-masuk/next-agenda?year=2026')
+            ->assertStatus(403);
+
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat/surat-masuk/next-agenda?year=2026');
 
         $response->assertStatus(200)
@@ -217,10 +226,191 @@ class SuratModuleTest extends TestCase
 
     public function test_can_fetch_surat_masuk_locations_with_surat_view(): void
     {
-        $response = $this->actingAs($this->regularUser)
+        $this->actingAs($this->regularUser)
+            ->getJson('/api/surat-masuk/locations')
+            ->assertStatus(403);
+
+        $response = $this->actingAs($this->adminUser)
             ->getJson('/api/surat-masuk/locations');
 
         $response->assertStatus(200)
             ->assertJsonStructure(['data']);
+    }
+
+    public function test_surat_keluar_accepts_terdaftar_status_json_payload_and_rejects_oversized_payload(): void
+    {
+        $createRes = $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-keluar', [
+                'no_surat' => 'S.501/K.18/TU/2026',
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji Status Terdaftar',
+                'status' => 'terdaftar',
+                'document_payload' => json_encode(['templateType' => 'surat_dinas', 'perihal' => 'Uji']),
+            ]);
+
+        $createRes->assertCreated()
+            ->assertJsonPath('data.status', 'terdaftar')
+            ->assertJsonPath('data.document_payload.templateType', 'surat_dinas');
+
+        $id = $createRes->json('data.id');
+
+        $this->actingAs($this->adminUser)
+            ->putJson("/api/surat/surat-keluar/{$id}", [
+                'no_surat' => 'S.501/K.18/TU/2026',
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji Status Terdaftar Revisi',
+                'status' => 'terdaftar',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'terdaftar');
+
+        $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-keluar', [
+                'no_surat' => 'S.502/K.18/TU/2026',
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji Payload Terlalu Besar',
+                'document_payload' => ['blob' => str_repeat('A', 600000)],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['document_payload']);
+    }
+
+    public function test_surat_masuk_export_validates_filters_and_search_escapes_wildcards(): void
+    {
+        SuratMasuk::create([
+            'no_agenda' => '2001',
+            'tanggal_agenda' => '2026-11-17',
+            'no_surat' => '100%Literal_Test!',
+            'isi_ringkas' => 'Exact wildcard check',
+            'created_by' => $this->adminUser->id,
+        ]);
+        SuratMasuk::create([
+            'no_agenda' => '2002',
+            'tanggal_agenda' => '2026-11-17',
+            'no_surat' => 'NormalLetter',
+            'isi_ringkas' => 'Other letter',
+            'created_by' => $this->adminUser->id,
+        ]);
+
+        // Unescaped '%' and '!'/'_' must NOT match unrelated NormalLetter
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk?search=%25')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.no_surat', '100%Literal_Test!');
+
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk?search=Literal_Test!')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.no_surat', '100%Literal_Test!');
+
+        // Non-string sifat query must not crash Postgres JSON containment
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk?sifat[]=Penting')
+            ->assertOk();
+
+        // Valid Excel export with escaped search filter succeeds
+        $this->actingAs($this->adminUser)
+            ->get('/api/surat/surat-masuk/export/excel?search=%25')
+            ->assertOk();
+
+        // Malformed date in export Excel filter returns 422 cleanly instead of SQL 500
+        $this->actingAs($this->adminUser)
+            ->getJson('/api/surat/surat-masuk/export/excel?start_date=not-a-date')
+            ->assertStatus(422);
+    }
+
+    public function test_surat_template_slug_collision_returns_422_and_non_numeric_route_is_rejected(): void
+    {
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_tpl_sec',
+            'role' => 'super_admin',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->postJson('/api/surat/templates', [
+                'key' => 'custom_surat',
+                'nama' => 'Custom Surat',
+            ])
+            ->assertCreated();
+
+        // Slugified duplicate ('Custom-Surat' -> 'custom_surat') must return 422 rather than SQL 500
+        $this->actingAs($superAdmin)
+            ->postJson('/api/surat/templates', [
+                'key' => 'Custom-Surat',
+                'nama' => 'Duplicate Slug',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['key']);
+
+        // Punctuation-only key ('---' -> '') must return 422
+        $this->actingAs($superAdmin)
+            ->postJson('/api/surat/templates', [
+                'key' => '---',
+                'nama' => 'Empty Slug',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['key']);
+
+        // Non-numeric mutation parameter is rejected at router (405 via GET key route) instead of TypeError 500
+        $this->actingAs($superAdmin)
+            ->deleteJson('/api/surat/templates/not-an-id')
+            ->assertStatus(405);
+
+        $this->actingAs($superAdmin)
+            ->putJson('/api/surat/templates/not-an-id', ['nama' => 'Bypass'])
+            ->assertStatus(405);
+    }
+
+    public function test_malformed_array_inputs_non_integer_fk_and_excel_formula_cells_are_handled_safely(): void
+    {
+        // Array search parameters must not trigger Array-to-string HTTP 500
+        $this->actingAs($this->adminUser)->getJson('/api/surat/surat-masuk?search[]=abc')->assertOk();
+        $this->actingAs($this->adminUser)->getJson('/api/surat/surat-keluar?search[]=abc')->assertOk();
+        $this->actingAs($this->adminUser)->getJson('/api/surat/templates?search[]=abc')->assertOk();
+
+        // Array scalar fields & non-integer FK strings must return 422 cleanly (never 500)
+        $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-masuk', [
+                'no_agenda' => '2099',
+                'tanggal_agenda' => '2026-11-17',
+                'no_surat' => ['nested-array'],
+                'isi_ringkas' => str_repeat('x', 10001),
+                'disposisi' => ['kepala_balai_id' => 'not-an-integer'],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['no_surat', 'isi_ringkas', 'disposisi.kepala_balai_id']);
+
+        $this->actingAs($this->adminUser)
+            ->postJson('/api/surat/surat-keluar', [
+                'no_surat' => ['nested-array'],
+                'tanggal_surat' => '2026-11-17',
+                'tujuan_surat' => 'Kepala BKSDA',
+                'perihal' => 'Uji array scalar & FK integer',
+                'penandatangan_id' => 'not-an-integer',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['no_surat', 'penandatangan_id']);
+
+        // Formula injection cells with leading control whitespace or formula triggers are prefixed with apostrophe
+        $export = new SuratMasukExport();
+        $row = new SuratMasuk([
+            'no_agenda' => '=CMD()',
+            'no_surat' => "\tfoo",
+            'asal_surat' => "\n=1+1",
+            'lampiran' => '-',
+            'isi_ringkas' => 'Aman',
+        ]);
+        $mapped = $export->map($row);
+        $this->assertSame("'=CMD()", $mapped[0]);
+        $this->assertSame("'\tfoo", $mapped[2]);
+        $this->assertSame("'\n=1+1", $mapped[4]);
+        $this->assertSame('-', $mapped[5]);
+        $this->assertSame('Aman', $mapped[6]);
     }
 }
