@@ -3,7 +3,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 
 # Build args for env vars needed at build time
