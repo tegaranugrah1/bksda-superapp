@@ -215,8 +215,8 @@ class AttendanceReconcilerService
         return [
             'employee_id' => $employee?->id,
             'nip' => $cleanNip,
-            'nama_lengkap' => $employee?->nama_lengkap ?: $parsedEmployeeData['nama_lengkap'],
-            'jabatan' => $employee?->jabatan ?: $parsedEmployeeData['jabatan'],
+            'nama_lengkap' => $employee?->nama_lengkap ?: ($parsedEmployeeData['nama_lengkap'] ?? 'Pegawai'),
+            'jabatan' => $employee?->jabatan ?: ($parsedEmployeeData['jabatan'] ?? ''),
             'jenis_pegawai' => $jenisPegawai,
             'tahun_angkatan' => $tahunAngkatan,
             'satuan_kerja' => $employee?->satuan_kerja ?: ($parsedEmployeeData['unit_kerja'] ?? 'Kantor Balai KSDA Kalimantan Timur'),
@@ -283,8 +283,12 @@ class AttendanceReconcilerService
         if ($employeeId) {
             $query->where('st_emp.employee_id', $employeeId);
         } else {
-            $query->join('kpg_employees as emp', 'st_emp.employee_id', '=', 'emp.id')
-                ->whereRaw("REGEXP_REPLACE(emp.nip, '[^0-9]', '', 'g') = ?", [$cleanNip]);
+            $query->join('kpg_employees as emp', 'st_emp.employee_id', '=', 'emp.id');
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                $query->whereRaw("REGEXP_REPLACE(emp.nip, '[^0-9]', '', 'g') = ?", [$cleanNip]);
+            } else {
+                $query->whereRaw("REPLACE(REPLACE(emp.nip, ' ', ''), '-', '') = ?", [$cleanNip]);
+            }
         }
 
         return $query->get()->toArray();

@@ -51,6 +51,7 @@ class MealAllowanceController extends Controller
             'file' => 'nullable|file|mimes:xls,xlsx,zip,html,htm|extensions:xls,xlsx,zip,html,htm|max:51200',
             'periode' => ['nullable', 'string', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
             'overrides' => 'nullable|array',
+            'overrides.*' => 'nullable|array',
         ]);
 
         $uploadedFiles = [];
@@ -132,7 +133,7 @@ class MealAllowanceController extends Controller
 
         foreach ($parsedList as $parsedEmployee) {
             $cleanNip = $parsedEmployee['clean_nip'];
-            $empOverrides = $manualOverrides[$cleanNip] ?? [];
+            $empOverrides = is_array($manualOverrides[$cleanNip] ?? null) ? $manualOverrides[$cleanNip] : [];
 
             $reconciled = $this->reconcilerService->reconcile($parsedEmployee, $targetPeriode, $empOverrides);
             $reconciledItems[] = $reconciled;
@@ -216,7 +217,16 @@ class MealAllowanceController extends Controller
             'items.*.override_logs' => 'nullable|array',
         ]);
 
-        $batch = DB::transaction(function () use ($validated, $request) {
+        $cleanNamaBatch = strip_tags(trim($validated['nama_batch']));
+        if ($cleanNamaBatch === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nama batch tidak valid.',
+                'errors' => ['nama_batch' => ['Nama batch wajib diisi.']],
+            ], 422);
+        }
+
+        $batch = DB::transaction(function () use ($validated, $cleanNamaBatch, $request) {
             $recomputedItems = collect($validated['items'])->map(function (array $item) {
                 $hadir = (int) $item['jml_hadir'];
                 $tarif = (float) $item['tarif_harian'];
@@ -239,7 +249,7 @@ class MealAllowanceController extends Controller
 
             $batch = MealAllowanceBatch::create([
                 'periode_bulan' => $validated['periode_bulan'],
-                'nama_batch' => strip_tags($validated['nama_batch']),
+                'nama_batch' => $cleanNamaBatch,
                 'total_pegawai' => $recomputedItems->count(),
                 'total_hari_kerja' => $totalHariKerja,
                 'total_bruto' => $totalBruto,
@@ -259,12 +269,12 @@ class MealAllowanceController extends Controller
                     'nip' => preg_replace('/[^0-9]/', '', $item['nip']),
                     'nama_lengkap' => strip_tags($item['nama_lengkap']),
                     'jabatan' => strip_tags($item['jabatan'] ?? ''),
-                    'jenis_pegawai' => $item['jenis_pegawai'] ?? 'PNS',
+                    'jenis_pegawai' => strip_tags((string) ($item['jenis_pegawai'] ?? 'PNS')),
                     'tahun_angkatan' => $item['tahun_angkatan'] ?? null,
                     'satuan_kerja' => strip_tags($item['satuan_kerja'] ?? ''),
                     'golongan' => strip_tags($item['golongan'] ?? ''),
-                    'nama_bank' => $item['nama_bank'] ?? 'BRI',
-                    'nomor_rekening' => $item['nomor_rekening'] ?? null,
+                    'nama_bank' => strip_tags(trim((string) ($item['nama_bank'] ?? 'BRI'))) ?: 'BRI',
+                    'nomor_rekening' => isset($item['nomor_rekening']) ? strip_tags(trim((string) $item['nomor_rekening'])) : null,
                     'tarif_harian' => $item['tarif_harian'],
                     'persen_pph21' => $item['persen_pph21'],
                     'jml_hari_kerja' => $item['jml_hari_kerja'],
@@ -360,6 +370,7 @@ class MealAllowanceController extends Controller
             'penandatangan_nip' => 'nullable|string|max:50',
             'penandatangan_jabatan' => 'nullable|string|max:255',
             'items' => 'nullable|array|max:2000',
+            'items.*' => 'array',
         ]);
 
         $items = [];

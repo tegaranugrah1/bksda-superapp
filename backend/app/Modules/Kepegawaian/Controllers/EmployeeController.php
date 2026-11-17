@@ -463,14 +463,16 @@ class EmployeeController extends Controller
             ], 403);
         }
 
-        // Operasi ini otomatis menjadi Soft Delete karena Trait SoftDeletes di Model (Issue #23)
-        $employee->delete();
+        DB::transaction(function () use ($employee, $nip) {
+            // Operasi ini otomatis menjadi Soft Delete karena Trait SoftDeletes di Model (Issue #23)
+            $employee->delete();
 
-        // Deactivate associated user account and revoke existing tokens to prevent orphaned login
-        if ($nip !== '' && ($user = User::where('username', $nip)->first())) {
-            $user->update(['is_active' => false]);
-            $user->tokens()->delete();
-        }
+            // Deactivate associated user account and revoke existing tokens to prevent orphaned login
+            if ($nip !== '' && ($user = User::where('username', $nip)->first())) {
+                $user->update(['is_active' => false]);
+                $user->tokens()->delete();
+            }
+        });
 
         app(\App\Modules\Bmn\Services\AssetService::class)->notifyEmployeeBmnClearance($employee, 'penghapusan data pegawai');
 
@@ -546,10 +548,9 @@ class EmployeeController extends Controller
         });
 
         Employee::deleteUnreferencedProfilePhoto($employee->foto_profil);
-        foreach (array_unique($filesToDelete) as $path) {
-            if (Storage::exists($path)) {
-                Storage::delete($path);
-            }
+        $localFiles = array_values(array_unique(array_filter($filesToDelete)));
+        if ($localFiles !== []) {
+            Storage::disk('local')->delete($localFiles);
         }
 
         return response()->json([

@@ -297,6 +297,11 @@ class KepegawaianSecurityAuditTest extends TestCase
                     'jml_cuti' => 0,
                     'jml_sakit' => 0,
                     'jml_izin' => 0,
+                    'jml_alpa' => 0,
+                    'uang_makan_bruto' => 740000,
+                    'potongan_pph21' => 37000,
+                    'uang_makan_netto' => 703000,
+                    'daily_matrix' => ['2026-05-04' => 'H'],
                 ]],
             ])
             ->assertStatus(422)
@@ -449,5 +454,80 @@ class KepegawaianSecurityAuditTest extends TestCase
                 'access_modules' => ['kepegawaian'],
             ])
             ->assertStatus(404);
+    }
+
+    /**
+     * 11. LeaveType tag-only/duplicate names, MealAllowance scalar items/blank batch, and portable ST reconcile.
+     */
+    public function test_leave_type_tag_sanitization_meal_allowance_guards_and_reconciler_portability(): void
+    {
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_kepegawaian_pass3',
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        // Blank after strip_tags & duplicate after strip_tags return 422 instead of DB 500
+        $this->actingAs($superAdmin, 'sanctum')
+            ->postJson('/api/kepegawaian/leave-types', [
+                'nama' => '<b></b>',
+                'hitung_hari' => 'hari_kerja',
+                'potong_kuota_tahunan' => false,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nama']);
+
+        $this->actingAs($superAdmin, 'sanctum')
+            ->postJson('/api/kepegawaian/leave-types', [
+                'nama' => '<b>Cuti Tahunan</b>',
+                'hitung_hari' => 'hari_kerja',
+                'potong_kuota_tahunan' => true,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nama']);
+
+        $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/kepegawaian/uang-makan/export-excel', [
+                'periode_bulan' => '2026-05',
+                'items' => ['not-an-array'],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['items.0']);
+
+        $this->actingAs($this->adminUser, 'sanctum')
+            ->postJson('/api/kepegawaian/uang-makan/batches', [
+                'periode_bulan' => '2026-05',
+                'nama_batch' => '<b></b>',
+                'items' => [[
+                    'nip' => $this->employee->nip,
+                    'nama_lengkap' => $this->employee->nama_lengkap,
+                    'tarif_harian' => 37000,
+                    'persen_pph21' => 5,
+                    'jml_hari_kerja' => 20,
+                    'jml_hadir' => 20,
+                    'jml_pd' => 0,
+                    'jml_cuti' => 0,
+                    'jml_sakit' => 0,
+                    'jml_izin' => 0,
+                    'jml_alpa' => 0,
+                    'uang_makan_bruto' => 740000,
+                    'potongan_pph21' => 37000,
+                    'uang_makan_netto' => 703000,
+                    'daily_matrix' => ['2026-05-04' => 'H'],
+                ]],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nama_batch']);
+
+        // Portable reconcile lookup for unknown employee NIP on SQLite/PgSQL without REGEXP_REPLACE error
+        $reconciler = $this->app->make(\App\Modules\Kepegawaian\Services\AttendanceReconcilerService::class);
+        $result = $reconciler->reconcile([
+            'clean_nip' => '199912312025011001',
+            'nama_lengkap' => 'Pegawai Luar',
+            'golongan_sikadir' => 'III/a',
+            'periode_bulan' => '2026-05',
+            'daily_statuses' => [],
+        ], '2026-05');
+        $this->assertSame('199912312025011001', $result['nip']);
     }
 }
