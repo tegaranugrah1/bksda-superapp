@@ -10,6 +10,7 @@ use App\Modules\Kepegawaian\Models\LeaveType;
 use App\Modules\Surat\Models\SuratKeluar;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -176,7 +177,10 @@ class EmployeeLeaveRequestController extends Controller
                 return response()->json(['message' => 'Pegawai berstatus nonaktif tidak dapat mengajukan cuti.'], 422);
             }
 
-            if ($employee->inactive_effective_date && Carbon::parse($validated['tanggal_selesai'])->toDateString() >= $employee->inactive_effective_date->toDateString()) {
+            $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
+            $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
+
+            if ($employee->inactive_effective_date && $end->toDateString() >= $employee->inactive_effective_date->toDateString()) {
                 $tmt = $employee->inactive_effective_date->toDateString();
                 DB::rollBack();
                 return response()->json([
@@ -187,55 +191,18 @@ class EmployeeLeaveRequestController extends Controller
             $leaveType = LeaveType::forEmployee($validated['jenis_cuti'], $employee);
             $validated['jenis_cuti'] = $leaveType->nama;
 
-            $start = Carbon::parse($validated['tanggal_mulai'])->startOfDay();
-            $end = Carbon::parse($validated['tanggal_selesai'])->startOfDay();
-
-            if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
-                $eligibleDate = $employee->annual_leave_eligible_date;
-                $msg = $eligibleDate
-                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
-                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+            $periodCheck = $this->validateLeavePeriodAndLimits(
+                $employee,
+                $leaveType,
+                $start,
+                $end,
+                'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan ajukan terpisah per tahun anggaran sesuai PerBKN 24/2017.'
+            );
+            if ($periodCheck instanceof JsonResponse) {
                 DB::rollBack();
-                return response()->json(['message' => $msg], 422);
+                return $periodCheck;
             }
-
-            if ($start->year !== $end->year) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan ajukan terpisah per tahun anggaran sesuai PerBKN 24/2017.',
-                ], 422);
-            }
-
-            if ($start->year < 2000 || $start->year > 2100) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Tahun pengajuan cuti tidak valid.',
-                ], 422);
-            }
-
-            // Calculate working days or calendar days based on LeaveType configuration
-            $jumlahHari = $leaveType->countDays($start, $end);
-
-            if ($jumlahHari < 1) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan (0 hari kerja). Silakan pilih tanggal hari kerja aktif.',
-                ], 422);
-            }
-
-            if ($leaveType && $leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
-                ], 422);
-            }
-
-            if ($jumlahHari > 365) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
-                ], 422);
-            }
+            $jumlahHari = $periodCheck;
 
             $year = $start->year;
 
@@ -585,6 +552,9 @@ class EmployeeLeaveRequestController extends Controller
             'catatan_atasan' => 'nullable|string|max:1000',
         ]);
 
+        $newlyStored = [];
+        $oldPathsToDelete = [];
+
         DB::beginTransaction();
         try {
             Employee::lockForLeaveUpdate($leaveReq->employee_id);
@@ -625,13 +595,20 @@ class EmployeeLeaveRequestController extends Controller
                 $updateData['catatan_atasan'] = strip_tags(trim($validated['catatan_atasan']));
             }
 
-            $updateData = array_merge($updateData, $this->storeLeaveScanFiles($request, $leaveReq));
+            ['attributes' => $scanAttributes, 'new_paths' => $newlyStored, 'old_paths' => $oldPathsToDelete] =
+                $this->storeLeaveScanFiles($request, $leaveReq);
+            $updateData = array_merge($updateData, $scanAttributes);
 
             $leaveReq->fill($updateData);
             $notificationChanged = $leaveReq->isDirty(array_keys($updateData));
             $leaveReq->save();
 
             DB::commit();
+
+            $stalePaths = array_values(array_unique(array_filter(array_diff($oldPathsToDelete, $newlyStored))));
+            if ($stalePaths !== []) {
+                Storage::disk('local')->delete($stalePaths);
+            }
 
             $this->archiveLeaveScan($leaveReq, $updateData);
 
@@ -666,9 +643,15 @@ class EmployeeLeaveRequestController extends Controller
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
+            if ($newlyStored !== []) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
+            if ($newlyStored !== []) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             return response()->json([
                 'error' => 'Gagal menyetujui pengajuan cuti',
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat menyetujui permohonan cuti.',
@@ -693,23 +676,38 @@ class EmployeeLeaveRequestController extends Controller
             return response()->json(['message' => 'Pilih setidaknya satu berkas scan untuk diunggah.'], 422);
         }
 
+        $newlyStored = [];
+        $oldPathsToDelete = [];
+
         DB::beginTransaction();
         try {
             Employee::lockForLeaveUpdate($leaveReq->employee_id);
             $leaveReq = EmployeeLeaveRequest::lockForUpdate()->findOrFail($id);
-            $updateData = $this->storeLeaveScanFiles($request, $leaveReq);
+            ['attributes' => $updateData, 'new_paths' => $newlyStored, 'old_paths' => $oldPathsToDelete] =
+                $this->storeLeaveScanFiles($request, $leaveReq);
             $leaveReq->update($updateData);
 
             DB::commit();
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
+            if ($newlyStored !== []) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             throw $e;
         } catch (\Throwable $e) {
             DB::rollBack();
+            if ($newlyStored !== []) {
+                Storage::disk('local')->delete($newlyStored);
+            }
             return response()->json([
                 'error' => 'Gagal mengunggah berkas scan',
                 'message' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan sistem saat mengunggah berkas.',
             ], 500);
+        }
+
+        $stalePaths = array_values(array_unique(array_filter(array_diff($oldPathsToDelete, $newlyStored))));
+        if ($stalePaths !== []) {
+            Storage::disk('local')->delete($stalePaths);
         }
 
         $this->archiveLeaveScan($leaveReq, $updateData);
@@ -788,35 +786,99 @@ class EmployeeLeaveRequestController extends Controller
     }
 
     /**
-     * Store uploaded formulir / surat izin scan files and clean up replaced files.
+     * Store uploaded formulir / surat izin scan files and defer old file cleanup until DB commit.
+     *
+     * @return array{attributes: array<string, mixed>, new_paths: array<int, string>, old_paths: array<int, string>}
      */
     private function storeLeaveScanFiles(Request $request, EmployeeLeaveRequest $leaveReq): array
     {
-        $updateData = [];
+        $attributes = [];
+        $newPaths = [];
+        $oldPaths = [];
+
         if ($request->hasFile('file_scan_formulir')) {
             $fileFormulir = $request->file('file_scan_formulir');
-            $leaveReq->clearScanSlot('formulir');
-            $updateData['scan_formulir_path'] = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
-            $updateData['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
+            if ($leaveReq->scan_formulir_path) {
+                $oldPaths[] = $leaveReq->scan_formulir_path;
+            }
+            $path = Storage::disk('local')->putFile('cuti_scans/formulir', $fileFormulir);
+            $newPaths[] = $path;
+            $attributes['scan_formulir_path'] = $path;
+            $attributes['scan_formulir_nama'] = basename(str_replace('\\', '/', $fileFormulir->getClientOriginalName()));
         }
 
         $suratIzinFile = $request->file('file_scan_surat_izin') ?: $request->file('file_scan');
         if ($suratIzinFile) {
-            $leaveReq->clearScanSlot('surat_izin');
+            if ($leaveReq->scan_surat_izin_path) {
+                $oldPaths[] = $leaveReq->scan_surat_izin_path;
+            }
+            if ($leaveReq->scan_surat_path) {
+                $oldPaths[] = $leaveReq->scan_surat_path;
+            }
             $path = Storage::disk('local')->putFile('cuti_scans/surat_izin', $suratIzinFile);
+            $newPaths[] = $path;
             $safeOrigName = basename(str_replace('\\', '/', $suratIzinFile->getClientOriginalName()));
-            $updateData['scan_surat_izin_path'] = $path;
-            $updateData['scan_surat_izin_nama'] = $safeOrigName;
-            $updateData['scan_surat_path'] = $path;
-            $updateData['scan_surat_nama'] = $safeOrigName;
+            $attributes['scan_surat_izin_path'] = $path;
+            $attributes['scan_surat_izin_nama'] = $safeOrigName;
+            $attributes['scan_surat_path'] = $path;
+            $attributes['scan_surat_nama'] = $safeOrigName;
         }
 
-        if (! empty($updateData)) {
-            $updateData['scan_surat_uploaded_at'] = Carbon::now();
-            $updateData['scan_surat_uploaded_by'] = Auth::id();
+        if ($attributes !== []) {
+            $attributes['scan_surat_uploaded_at'] = Carbon::now();
+            $attributes['scan_surat_uploaded_by'] = Auth::id();
         }
 
-        return $updateData;
+        return [
+            'attributes' => $attributes,
+            'new_paths' => $newPaths,
+            'old_paths' => $oldPaths,
+        ];
+    }
+
+    private function validateLeavePeriodAndLimits(
+        Employee $employee,
+        LeaveType $leaveType,
+        Carbon $start,
+        Carbon $end,
+        string $crossYearMessage
+    ): int|JsonResponse {
+        if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
+            $eligibleDate = $employee->annual_leave_eligible_date;
+            $msg = $eligibleDate
+                ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
+                : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+            return response()->json(['message' => $msg], 422);
+        }
+
+        if ($start->year !== $end->year) {
+            return response()->json(['message' => $crossYearMessage], 422);
+        }
+
+        if ($start->year < 2000 || $start->year > 2100) {
+            return response()->json(['message' => 'Tahun pengajuan cuti tidak valid.'], 422);
+        }
+
+        $jumlahHari = $leaveType->countDays($start, $end);
+        if ($jumlahHari < 1) {
+            return response()->json([
+                'message' => 'Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan (0 hari kerja). Silakan pilih tanggal hari kerja aktif.',
+            ], 422);
+        }
+
+        if ($leaveType->maks_hari && $jumlahHari > $leaveType->maks_hari) {
+            return response()->json([
+                'message' => "Jumlah hari cuti ({$jumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
+            ], 422);
+        }
+
+        if ($jumlahHari > 365) {
+            return response()->json([
+                'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
+            ], 422);
+        }
+
+        return $jumlahHari;
     }
 
     /**
@@ -985,20 +1047,6 @@ class EmployeeLeaveRequestController extends Controller
             );
             $validated['jenis_cuti'] = $leaveType->nama;
 
-            if ($start->year !== $end->year) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan sesuaikan per tahun anggaran sesuai PerBKN 24/2017.',
-                ], 422);
-            }
-
-            if ($start->year < 2000 || $start->year > 2100) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Tahun pengajuan cuti tidak valid.',
-                ], 422);
-            }
-
             if ($employee->inactive_effective_date && $end->toDateString() >= $employee->inactive_effective_date->toDateString()) {
                 $tmt = $employee->inactive_effective_date->toDateString();
                 DB::rollBack();
@@ -1007,37 +1055,18 @@ class EmployeeLeaveRequestController extends Controller
                 ], 422);
             }
 
-            if ($leaveType->potong_kuota_tahunan && ! $employee->isEligibleForAnnualLeave($start)) {
-                $eligibleDate = $employee->annual_leave_eligible_date;
-                $msg = $eligibleDate
-                    ? "Pegawai baru berhak mengajukan Cuti Tahunan setelah genap 1 tahun masa kerja terhitung sejak pengangkatan (mulai " . $eligibleDate->translatedFormat('d F Y') . ")."
-                    : "Pegawai belum memenuhi syarat 1 tahun masa kerja untuk mengajukan Cuti Tahunan.";
+            $periodCheck = $this->validateLeavePeriodAndLimits(
+                $employee,
+                $leaveType,
+                $start,
+                $end,
+                'Pengajuan cuti tidak boleh lintas tahun kalender. Silakan sesuaikan per tahun anggaran sesuai PerBKN 24/2017.'
+            );
+            if ($periodCheck instanceof JsonResponse) {
                 DB::rollBack();
-                return response()->json(['message' => $msg], 422);
+                return $periodCheck;
             }
-
-            $newJumlahHari = $leaveType->countDays($start, $end);
-
-            if ($newJumlahHari < 1) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan (0 hari kerja). Silakan pilih tanggal hari kerja aktif.',
-                ], 422);
-            }
-
-            if ($leaveType && $leaveType->maks_hari && $newJumlahHari > $leaveType->maks_hari) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => "Jumlah hari cuti ({$newJumlahHari} hari) melebihi batas maksimal untuk jenis cuti {$leaveType->nama} ({$leaveType->maks_hari} hari).",
-                ], 422);
-            }
-
-            if ($newJumlahHari > 365) {
-                DB::rollBack();
-                return response()->json([
-                    'message' => 'Durasi pengajuan cuti tunggal tidak boleh melebihi 365 hari.',
-                ], 422);
-            }
+            $newJumlahHari = $periodCheck;
 
             $oldJumlahHari = $leaveReq->jumlah_hari;
             $oldIsTahunan = $leaveReq->isAnnual();
@@ -1384,6 +1413,9 @@ class EmployeeLeaveRequestController extends Controller
     public function generateSuratIzin(Request $request, int $id): JsonResponse
     {
         $leaveReq = EmployeeLeaveRequest::with('employee')->findOrFail($id);
+        if ($denied = $this->ensureNotSelfApproval($request, $leaveReq)) {
+            return $denied;
+        }
 
         $validated = $request->validate([
             'nomor_surat' => 'required|string|max:255',
@@ -1393,6 +1425,12 @@ class EmployeeLeaveRequestController extends Controller
         ]);
 
         $nomorSurat = strip_tags(trim($validated['nomor_surat']));
+        if ($nomorSurat === '') {
+            return response()->json([
+                'message' => 'Nomor surat izin tidak valid.',
+                'errors' => ['nomor_surat' => ['Nomor surat izin wajib diisi.']],
+            ], 422);
+        }
 
         DB::beginTransaction();
         try {
@@ -1489,7 +1527,7 @@ class EmployeeLeaveRequestController extends Controller
                 'status' => 'signed',
                 'document_payload' => $payload,
                 'penandatangan_id' => $kbEmployee ? $kbEmployee->id : null,
-                'created_by' => Auth::id() ?: 1,
+                'created_by' => $request->user()?->id,
             ]);
             $suratKeluar->save();
 

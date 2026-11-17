@@ -8,6 +8,7 @@ use App\Modules\Kepegawaian\Models\Employee;
 use App\Modules\Kepegawaian\Models\EmployeeHistory;
 use App\Modules\Kepegawaian\Requests\EmployeeAccessRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeAccessController extends Controller
 {
@@ -57,9 +58,9 @@ class EmployeeAccessController extends Controller
      */
     public function update(EmployeeAccessRequest $request, $id): JsonResponse
     {
-        try {
-            $employee = Employee::findOrFail($id);
+        $employee = Employee::findOrFail($id);
 
+        try {
             $nip = trim((string) $employee->nip);
             if ($nip === '') {
                 return response()->json([
@@ -120,96 +121,94 @@ class EmployeeAccessController extends Controller
                 ], 403);
             }
 
-        // SKENARIO A: Pegawai belum punya Akun, kita buatkan!
-        if (! $user) {
-            if (empty($validated['password'])) {
+            if (! $user && empty($validated['password'])) {
                 return response()->json([
                     'error' => 'Unprocessable Entity',
                     'message' => 'Password wajib diisi saat membuat akun baru (minimal 8 karakter).',
                 ], 422);
             }
 
-            // Rule 6.1: Hubungkan NIP Pegawai menjadi Username Aplikasi
-            $user = User::create([
-                'username' => $nip,
-                'name' => $employee->nama_lengkap,
-                'password' => $validated['password'],
-                'role' => $effectiveRole,
-                'is_active' => $validated['is_active'] ?? true,
-                'access_modules' => $selectedModules,
-                'module_roles' => $sanitizedModuleRoles,
-                'permissions' => $validated['permissions'] ?? [],
-            ]);
+            [$user, $message] = DB::transaction(function () use ($employee, $user, $nip, $validated, $effectiveRole, $selectedModules, $sanitizedModuleRoles, $request): array {
+                if (! $user) {
+                    // Rule 6.1: Hubungkan NIP Pegawai menjadi Username Aplikasi
+                    $user = User::create([
+                        'username' => $nip,
+                        'name' => $employee->nama_lengkap,
+                        'password' => $validated['password'],
+                        'role' => $effectiveRole,
+                        'is_active' => $validated['is_active'] ?? true,
+                        'access_modules' => $selectedModules,
+                        'module_roles' => $sanitizedModuleRoles,
+                        'permissions' => $validated['permissions'] ?? [],
+                    ]);
 
-            // Ponytail: Catat riwayat audit
-            EmployeeHistory::create([
-                'employee_id' => $employee->id,
-                'user_id' => $request->user()?->id,
-                'action' => 'CREATE_IAM_ACCOUNT',
-                'changes' => [
-                    'role' => ['old' => null, 'new' => $effectiveRole],
-                    'is_active' => ['old' => null, 'new' => $user->is_active],
-                    'access_modules' => ['old' => [], 'new' => $selectedModules],
-                    'module_roles' => ['old' => (object) [], 'new' => $sanitizedModuleRoles ?? (object) []],
-                ],
-                'notes' => 'Penerbitan akun akses aplikasi (IAM) oleh Super Admin',
-                'created_at' => now(),
-            ]);
+                    // Ponytail: Catat riwayat audit
+                    EmployeeHistory::create([
+                        'employee_id' => $employee->id,
+                        'user_id' => $request->user()?->id,
+                        'action' => 'CREATE_IAM_ACCOUNT',
+                        'changes' => [
+                            'role' => ['old' => null, 'new' => $effectiveRole],
+                            'is_active' => ['old' => null, 'new' => $user->is_active],
+                            'access_modules' => ['old' => [], 'new' => $selectedModules],
+                            'module_roles' => ['old' => (object) [], 'new' => $sanitizedModuleRoles ?? (object) []],
+                        ],
+                        'notes' => 'Penerbitan akun akses aplikasi (IAM) oleh Super Admin',
+                        'created_at' => now(),
+                    ]);
 
-            $message = 'Akun akses berhasil diterbitkan.';
-        }
+                    return [$user, 'Akun akses berhasil diterbitkan.'];
+                }
 
-        // SKENARIO B: Pegawai sudah punya Akun, kita perbarui datanya
-        else {
-            $oldRole = $user->role;
-            $oldModules = $user->access_modules ?? [];
-            $oldModuleRoles = $user->module_roles ?? [];
-            $oldPerms = $user->permissions ?? [];
-            $oldActive = $user->is_active;
+                $oldRole = $user->role;
+                $oldModules = $user->access_modules ?? [];
+                $oldModuleRoles = $user->module_roles ?? [];
+                $oldPerms = $user->permissions ?? [];
+                $oldActive = $user->is_active;
 
-            $updateData = [
-                'role' => $effectiveRole,
-                'is_active' => $validated['is_active'] ?? $oldActive,
-                'access_modules' => $selectedModules,
-                'module_roles' => $sanitizedModuleRoles,
-                'permissions' => $validated['permissions'] ?? [],
-            ];
+                $updateData = [
+                    'role' => $effectiveRole,
+                    'is_active' => $validated['is_active'] ?? $oldActive,
+                    'access_modules' => $selectedModules,
+                    'module_roles' => $sanitizedModuleRoles,
+                    'permissions' => $validated['permissions'] ?? [],
+                ];
 
-            // Jika dikirimi password (berarti admin ingin mereset password stafnya)
-            if (! empty($validated['password'])) {
-                $updateData['password'] = $validated['password'];
-                $user->tokens()->delete();
-            }
+                // Jika dikirimi password (berarti admin ingin mereset password stafnya)
+                if (! empty($validated['password'])) {
+                    $updateData['password'] = $validated['password'];
+                    $user->tokens()->delete();
+                }
 
-            // Jika role, access_modules, module_roles, atau permissions berubah, revoke token agar user login ulang dengan wewenang baru
-            if ($user->role !== $validated['role']
-                || $oldActive !== $updateData['is_active']
-                || $user->access_modules !== $selectedModules
-                || $oldModuleRoles !== ($sanitizedModuleRoles ?? [])
-                || $user->permissions !== ($validated['permissions'] ?? [])) {
-                $user->tokens()->delete();
-            }
+                // Jika role, access_modules, module_roles, atau permissions berubah, revoke token agar user login ulang dengan wewenang baru
+                if ($user->role !== $validated['role']
+                    || $oldActive !== $updateData['is_active']
+                    || $user->access_modules !== $selectedModules
+                    || $oldModuleRoles !== ($sanitizedModuleRoles ?? [])
+                    || $user->permissions !== ($validated['permissions'] ?? [])) {
+                    $user->tokens()->delete();
+                }
 
-            $user->update($updateData);
+                $user->update($updateData);
 
-            // Ponytail: Catat riwayat audit
-            EmployeeHistory::create([
-                'employee_id' => $employee->id,
-                'user_id' => $request->user()?->id,
-                'action' => 'UPDATE_IAM_ACCESS',
-                'changes' => [
-                    'role' => ['old' => $oldRole, 'new' => $effectiveRole],
-                    'is_active' => ['old' => $oldActive, 'new' => $user->is_active],
-                    'access_modules' => ['old' => $oldModules, 'new' => $selectedModules],
-                    'module_roles' => ['old' => $oldModuleRoles ?: (object) [], 'new' => $sanitizedModuleRoles ?? (object) []],
-                    'permissions' => ['old' => $oldPerms, 'new' => $validated['permissions'] ?? []],
-                ],
-                'notes' => 'Pembaruan hak akses wewenang modul (IAM) oleh Super Admin',
-                'created_at' => now(),
-            ]);
+                // Ponytail: Catat riwayat audit
+                EmployeeHistory::create([
+                    'employee_id' => $employee->id,
+                    'user_id' => $request->user()?->id,
+                    'action' => 'UPDATE_IAM_ACCESS',
+                    'changes' => [
+                        'role' => ['old' => $oldRole, 'new' => $effectiveRole],
+                        'is_active' => ['old' => $oldActive, 'new' => $user->is_active],
+                        'access_modules' => ['old' => $oldModules, 'new' => $selectedModules],
+                        'module_roles' => ['old' => $oldModuleRoles ?: (object) [], 'new' => $sanitizedModuleRoles ?? (object) []],
+                        'permissions' => ['old' => $oldPerms, 'new' => $validated['permissions'] ?? []],
+                    ],
+                    'notes' => 'Pembaruan hak akses wewenang modul (IAM) oleh Super Admin',
+                    'created_at' => now(),
+                ]);
 
-            $message = 'Data hak akses berhasil diperbarui.';
-        }
+                return [$user, 'Data hak akses berhasil diperbarui.'];
+            });
 
         return response()->json([
             'message' => $message,

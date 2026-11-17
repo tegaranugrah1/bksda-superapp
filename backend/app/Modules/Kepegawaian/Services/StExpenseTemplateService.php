@@ -45,9 +45,14 @@ class StExpenseTemplateService
     public function create(array $data, int $userId): StExpenseTemplate
     {
         return DB::transaction(function () use ($data, $userId): StExpenseTemplate {
+            $cleanName = strip_tags(trim((string) $data['name']));
+            if ($cleanName === '') {
+                throw new \DomainException('Nama template biaya wajib diisi.');
+            }
+
             $template = new StExpenseTemplate();
-            $template->name = strip_tags(trim((string) $data['name']));
-            $template->code = !empty($data['code']) ? $data['code'] : $this->generateUniqueCode($data['name']);
+            $template->name = $cleanName;
+            $template->code = !empty($data['code']) ? $data['code'] : $this->generateUniqueCode($cleanName);
             $template->category = strtolower($data['category'] ?? 'other');
             $template->biaya_text = isset($data['biaya_text']) ? strip_tags(trim((string) $data['biaya_text'])) : null;
             $template->dasar_text = isset($data['dasar_text']) ? strip_tags(trim((string) $data['dasar_text'])) : null;
@@ -69,7 +74,13 @@ class StExpenseTemplateService
     public function update(StExpenseTemplate $template, array $data, int $userId): StExpenseTemplate
     {
         return DB::transaction(function () use ($template, $data, $userId): StExpenseTemplate {
-            if (isset($data['name'])) $template->name = strip_tags(trim((string) $data['name']));
+            if (isset($data['name'])) {
+                $cleanName = strip_tags(trim((string) $data['name']));
+                if ($cleanName === '') {
+                    throw new \DomainException('Nama template biaya wajib diisi.');
+                }
+                $template->name = $cleanName;
+            }
             if (!empty($data['code'])) $template->code = $data['code'];
             if (isset($data['category'])) $template->category = strtolower($data['category']);
             if (array_key_exists('biaya_text', $data)) $template->biaya_text = $data['biaya_text'] ? strip_tags(trim((string) $data['biaya_text'])) : null;

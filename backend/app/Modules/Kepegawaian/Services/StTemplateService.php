@@ -169,8 +169,16 @@ class StTemplateService
 
     private function templateAttributes(array $data): array
     {
+        $name = null;
+        if (isset($data['name'])) {
+            $name = strip_tags(trim((string) $data['name']));
+            if ($name === '') {
+                throw new \DomainException('Nama template wajib diisi.');
+            }
+        }
+
         return array_filter([
-            'name' => isset($data['name']) ? strip_tags(trim((string) $data['name'])) : null,
+            'name' => $name,
             'code' => $data['code'] ?? null,
             'description' => isset($data['description']) ? strip_tags(trim((string) $data['description'])) : null,
             'type' => $data['type'] ?? null,
@@ -203,7 +211,7 @@ class StTemplateService
 
     private function uniqueCode(?string $name): string
     {
-        $base = Str::slug($name ?: 'template');
+        $base = Str::slug($name ?: 'template') ?: 'template';
         $code = $base;
         $suffix = 2;
 

@@ -119,10 +119,12 @@ class Employee extends Model
             $matches = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$lower])->limit(2)->pluck('id');
             $clean = trim((string) preg_replace('/,.*$/', '', $target));
             if (mb_strlen($clean) >= 3 && ($matches->isEmpty() || $clean === $target)) {
-                $escaped = addcslashes(mb_strtolower($clean), '%_');
-                $matches = static::whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($clean)])
-                    ->orWhereRaw('LOWER(nama_lengkap) LIKE ?', [$escaped . ',%'])
-                    ->limit(2)->pluck('id');
+                $cleanLower = mb_strtolower($clean);
+                $likePattern = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $cleanLower) . ',%';
+                $matches = static::where(function ($q) use ($cleanLower, $likePattern) {
+                    $q->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [$cleanLower])
+                        ->orWhereRaw("LOWER(nama_lengkap) LIKE ? ESCAPE '!'", [$likePattern]);
+                })->limit(2)->pluck('id');
             }
             foreach ($matches as $id) {
                 $resolvedIds[(int) $id] = true;

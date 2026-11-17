@@ -46,11 +46,3 @@ export interface Employee {
     effective_date?: string | null;
   };
 }
-
-export interface EmployeeSelectOption {
-  id: string | number;
-  nip: string;
-  nama_lengkap?: string;
-  name?: string;
-  jabatan?: string | null;
-}

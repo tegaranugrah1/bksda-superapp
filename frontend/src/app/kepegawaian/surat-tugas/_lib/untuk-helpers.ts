@@ -32,19 +32,6 @@ export const DEFAULT_PLH_PRINSIP_TEXT =
   "Hal-hal yang bersifat prinsip agar dikonsultasikan dengan Kepala Balai.";
 
 /**
- * Default item penutup Untuk (laporan/dikonsultasikan) berdasarkan template.
- */
-export function getDefaultUntukItem(templateType?: string | null) {
-  if (templateType === "plh") {
-    return DEFAULT_PLH_PRINSIP_TEXT;
-  }
-  if (templateType === "bmn-pemeriksaan" || templateType === "bmn") {
-    return DEFAULT_LAPORAN_BMN_TEXT;
-  }
-  return DEFAULT_LAPORAN_TEXT;
-}
-
-/**
  * Cek apakah baris ini adalah baris laporan tertulis otomatis.
  */
 export function isGeneratedLaporanItem(value: string) {

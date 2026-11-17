@@ -324,4 +324,130 @@ class KepegawaianSecurityAuditTest extends TestCase
         $this->assertSame('Balai KSDA Kaltim', $incomingMethod->invoke($incomingExport, 'Balai KSDA Kaltim'));
         $this->assertSame('Balai KSDA Kaltim', $mealMethod->invoke($mealExport, 'Balai KSDA Kaltim'));
     }
+
+    /**
+     * 8. generateSuratIzin enforces self-approval separation and rejects blank sanitized nomor_surat.
+     */
+    public function test_generate_surat_izin_blocks_self_approval_and_blank_number(): void
+    {
+        $selfEmployee = Employee::create([
+            'nip' => '199501012020121099',
+            'nama_lengkap' => 'Admin Pemohon Sendiri',
+            'jabatan' => 'Analis SDM',
+            'satuan_kerja' => 'Balai KSDA Kalimantan Timur',
+            'is_active' => true,
+        ]);
+
+        $selfAdmin = User::factory()->create([
+            'username' => $selfEmployee->nip,
+            'role' => 'admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_surat_izin_sec',
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $leaveReq = EmployeeLeaveRequest::create([
+            'employee_id' => $selfEmployee->id,
+            'tanggal_pengajuan' => '2026-06-01',
+            'jenis_cuti' => 'Cuti Sakit',
+            'alasan_cuti' => 'Demam',
+            'jumlah_hari' => 1,
+            'tanggal_mulai' => '2026-06-02',
+            'tanggal_selesai' => '2026-06-02',
+            'alamat_menjalankan_cuti' => 'Samarinda',
+            'status' => 'PENGAJUAN',
+        ]);
+
+        $this->actingAs($selfAdmin, 'sanctum')
+            ->postJson("/api/kepegawaian/leave-requests/{$leaveReq->id}/generate-surat-izin", [
+                'nomor_surat' => 'SI.01/K.18/TU/PEG.11.01/B/06/2026',
+            ])
+            ->assertStatus(403);
+
+        $this->assertSame('PENGAJUAN', $leaveReq->fresh()->status);
+
+        $this->actingAs($superAdmin, 'sanctum')
+            ->postJson("/api/kepegawaian/leave-requests/{$leaveReq->id}/generate-surat-izin", [
+                'nomor_surat' => '<b></b>',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nomor_surat']);
+    }
+
+    /**
+     * 9. Employee::resolveIdByName respects SoftDeletes precedence and escapes LIKE wildcards.
+     */
+    public function test_employee_resolve_id_by_name_ignores_trashed_and_escapes_wildcards(): void
+    {
+        $trashed = Employee::create([
+            'nip' => '199203032020121001',
+            'nama_lengkap' => 'Budi Santoso Terhapus',
+            'is_active' => true,
+        ]);
+        $trashed->delete();
+
+        $this->assertNull(Employee::resolveIdByName('Budi Santoso Terhapus'));
+
+        $literal = Employee::create([
+            'nip' => '199203032020121002',
+            'nama_lengkap' => 'Ani 100% Real, S.Hut.',
+            'is_active' => true,
+        ]);
+        Employee::create([
+            'nip' => '199203032020121003',
+            'nama_lengkap' => 'Ani 1000 Other, S.Hut.',
+            'is_active' => true,
+        ]);
+
+        $this->assertSame($literal->id, Employee::resolveIdByName('Ani 100% Real'));
+    }
+
+    /**
+     * 10. Closure array safety, blank tag rejection in task types, and 404 on missing IAM employee.
+     */
+    public function test_bank_closure_task_type_sanitization_and_access_404(): void
+    {
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_kepegawaian_deep',
+            'role' => 'super_admin',
+            'access_modules' => ['kepegawaian'],
+        ]);
+
+        $this->actingAs($superAdmin, 'sanctum')
+            ->putJson('/api/kepegawaian/settings/employee-banks/batch', [
+                'employee_ids' => [$this->employee->id],
+                'nama_bank' => ['BRI'],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nama_bank']);
+
+        $this->actingAs($superAdmin, 'sanctum')
+            ->postJson('/api/kepegawaian/st-task-types', [
+                'nama' => '<b></b>',
+                'mode_lokasi' => 'luar_wilayah',
+                'aturan_durasi' => 'fleksibel',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['nama']);
+
+        $createdTaskType = $this->actingAs($superAdmin, 'sanctum')
+            ->postJson('/api/kepegawaian/st-task-types', [
+                'nama' => '!!!',
+                'mode_lokasi' => 'luar_wilayah',
+                'aturan_durasi' => 'fleksibel',
+            ])
+            ->assertStatus(201);
+        $this->assertSame('tugas', $createdTaskType->json('data.kode'));
+
+        $this->actingAs($superAdmin, 'sanctum')
+            ->putJson('/api/kepegawaian/employees/999999/access', [
+                'role' => 'user',
+                'access_modules' => ['kepegawaian'],
+            ])
+            ->assertStatus(404);
+    }
 }

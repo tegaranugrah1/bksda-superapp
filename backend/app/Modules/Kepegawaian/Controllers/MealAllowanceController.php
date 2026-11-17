@@ -597,14 +597,17 @@ class MealAllowanceController extends Controller
     public function batchUpdateEmployeeBanks(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'employee_ids' => ['required', 'array', 'min:1'],
+            'employee_ids' => ['required', 'array', 'min:1', 'max:1000'],
             'employee_ids.*' => ['required', 'integer', 'exists:kpg_employees,id'],
             'nama_bank' => [
                 'nullable',
                 'string',
                 'max:50',
                 function (string $attribute, mixed $value, \Closure $fail) {
-                    $b = trim((string) $value);
+                    if (! is_string($value)) {
+                        return;
+                    }
+                    $b = trim($value);
                     if ($b !== '') {
                         $exists = DB::table('kpg_registered_banks')
                             ->whereRaw('LOWER(TRIM(nama_bank)) = ?', [strtolower($b)])

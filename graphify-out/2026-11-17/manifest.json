@@ -1005,18 +1005,18 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeController.php": {
-    "mtime": 1794869064.4977307,
-    "ast_hash": "a820d2f0a19632eac25bc4bd87494f2e",
+    "mtime": 1794919019.551542,
+    "ast_hash": "1614d1048932ebd390f07c6b185aa632",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveController.php": {
-    "mtime": 1794849844.4228094,
-    "ast_hash": "f1a44ab250eea157d6ab94fb13291648",
+    "mtime": 1794919175.382948,
+    "ast_hash": "2a74bd0db0fb909232d7a55a4b2764bb",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1794906369.6256053,
-    "ast_hash": "f6fecaf634cbc2c89fe1e903e03ccf8f",
+    "mtime": 1794919108.6984794,
+    "ast_hash": "f74cecddec606d8ea48ad4ac30afa4a2",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -1040,18 +1040,18 @@
     "semantic_hash": "74be7719337daac0a8e3d31015496831"
   },
   "backend/app/Modules/Kepegawaian/Requests/EmployeeAccessRequest.php": {
-    "mtime": 1794797957.0793915,
-    "ast_hash": "1626fb8bee5a404cb22d167d908821b5",
+    "mtime": 1794918887.7625895,
+    "ast_hash": "39fa60ed38eddae087efd79d2997e983",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Requests/EmployeeRequest.php": {
-    "mtime": 1794868992.9235342,
-    "ast_hash": "3c26f5572100b682812c2228342e6ee5",
+    "mtime": 1794918938.1110435,
+    "ast_hash": "bb3774f26763438fd08b5572c1c69146",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Routes/api.php": {
-    "mtime": 1794806859.8198802,
-    "ast_hash": "9e7a12446ea1a1af9794926f13723520",
+    "mtime": 1794918975.333753,
+    "ast_hash": "d56aaacca874c77afef6361785a0a9a9",
     "semantic_hash": ""
   },
   "backend/app/Modules/SuratTugas/Controllers/AssignmentLetterController.php": {
@@ -2130,8 +2130,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/layout.tsx": {
-    "mtime": 1794832502.4564822,
-    "ast_hash": "14adc66961e324f7fbf23a38d830a72f",
+    "mtime": 1794919178.0362794,
+    "ast_hash": "24f32465d39fa7496071d2f6229339bc",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/page.tsx": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794912071.6071808,
-    "ast_hash": "18d58a93d7fac97de1018e136d8ed8e5",
+    "mtime": 1794914707.1573367,
+    "ast_hash": "8f3851c084cbcdd83faa872ab95177f3",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794912048.507292,
-    "ast_hash": "5a79f019c469a4814ff2e2c1157c1794",
+    "mtime": 1794914701.5644667,
+    "ast_hash": "88e9f30920cee07a60608741bfd586ca",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5570,8 +5570,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/StExpenseTemplateService.php": {
-    "mtime": 1793584951.7896214,
-    "ast_hash": "4dffc23c32faf9ae212a8d16135183ac",
+    "mtime": 1794919072.6434436,
+    "ast_hash": "6e11ba64811068e6c45fe64bfa1fe6bc",
     "semantic_hash": ""
   },
   "backend/app/Modules/Keuangan/Controllers/SpjController.php": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794912045.8747566,
-    "ast_hash": "5e0b1cf4e7f93ccc307bd9a836824b23",
+    "mtime": 1794914699.5984094,
+    "ast_hash": "c5922ecadbc76403394c06b9c1e08bb2",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6455,18 +6455,18 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeIncomingLetterController.php": {
-    "mtime": 1793584951.7594657,
-    "ast_hash": "e63a1652c423873c92043225a5573972",
+    "mtime": 1794919024.8200822,
+    "ast_hash": "942721367e686c72d4dc29a7fe1700f5",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Exports/EmployeeIncomingLettersExport.php": {
-    "mtime": 1793584951.768467,
-    "ast_hash": "6827832e7964f83355f9749b9ad6b66c",
+    "mtime": 1794919075.053708,
+    "ast_hash": "f6b126e0dbfec6865c5c8617b44ad19c",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeIncomingLetter.php": {
-    "mtime": 1793584951.770466,
-    "ast_hash": "c8b1416f891fdf6e17a18c2f56988dd9",
+    "mtime": 1794919026.803011,
+    "ast_hash": "80eb2b777d1f983c2d91d285f08d6453",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/EmployeeIncomingLetterAttachment.php": {
@@ -6475,8 +6475,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Requests/EmployeeIncomingLetterRequest.php": {
-    "mtime": 1794798006.206325,
-    "ast_hash": "c40744a6a377f97bcf00ba401bd4c223",
+    "mtime": 1794918885.6304016,
+    "ast_hash": "8ca240698345cfd5c02184f4f12cbd81",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_10_20_000001_create_kpg_incoming_letters_tables.php": {
@@ -6495,8 +6495,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/LeaveTypeController.php": {
-    "mtime": 1794849462.2132196,
-    "ast_hash": "8440a7f3785f42fedeb1896f0b4f9b76",
+    "mtime": 1794919111.5712328,
+    "ast_hash": "34c05ff7ed84997dee1dc067a687f756",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/LeaveType.php": {
@@ -6550,8 +6550,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/_components/ScanViewerModal.tsx": {
-    "mtime": 1794901528.0579362,
-    "ast_hash": "204dff0f230bcb344d4d226fbba2cbc6",
+    "mtime": 1794919180.1436315,
+    "ast_hash": "c2cbef53fc98a9a0149ec2ca9ea292ae",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_10_21_000005_add_two_scans_to_kpg_employee_leave_requests.php": {
@@ -6650,8 +6650,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/StTaskTypeController.php": {
-    "mtime": 1794849830.5856347,
-    "ast_hash": "a8c3eb8b860a2410de327be58d99985c",
+    "mtime": 1794919080.358028,
+    "ast_hash": "2b46c2bddf09dbab4457b839abd7e087",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/StTaskType.php": {
@@ -7400,8 +7400,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/MealAllowanceController.php": {
-    "mtime": 1794868987.6148136,
-    "ast_hash": "3f2ec1221d1bcb027ab630be4e562dc5",
+    "mtime": 1794919124.888571,
+    "ast_hash": "a2afb217282c7ce29e053b668ff1d340",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/MealAllowanceBatch.php": {
@@ -7430,13 +7430,13 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/MealAllowanceExcelExport.php": {
-    "mtime": 1794868989.3807838,
-    "ast_hash": "f71f8530c66290ad2d5ad9abcaa791d1",
+    "mtime": 1794919127.3150606,
+    "ast_hash": "e34e0888aeeab00c79bf52a323b61135",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Services/SikadirParserService.php": {
-    "mtime": 1794176140.6194828,
-    "ast_hash": "7d5ff94d7494676a5b1f141705561015",
+    "mtime": 1794919132.0089538,
+    "ast_hash": "017920b838e369db9e1ce35162f2826b",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_11_02_171500_normalize_kpg_pppk_pangkat_golongan.php": {
@@ -7460,8 +7460,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/KepegawaianSecurityAuditTest.php": {
-    "mtime": 1794150288.2249656,
-    "ast_hash": "bd0146eed33244a0596cf5dcad7cd610",
+    "mtime": 1794919246.4462087,
+    "ast_hash": "aa638dc29109e1273dea4a8b2cdd9e99",
     "semantic_hash": ""
   },
   "backend/tests/Feature/MealAllowanceSecurityAndReconciliationTest.php": {
@@ -7560,8 +7560,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/surat-tugas/_lib/export-st.ts": {
-    "mtime": 1794154000.7352266,
-    "ast_hash": "721457ebd02b399a868a234047847653",
+    "mtime": 1794919204.6363626,
+    "ast_hash": "3acd5247d00e8f1f69010802dbe269b7",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Holiday.php": {
