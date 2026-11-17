@@ -52,15 +52,15 @@ class MobileDashboardController extends Controller
         if ($employee) {
             $employeeId = $employee->id;
             $fullName = trim($employee->nama_lengkap ?? '');
-            $escapedName = addcslashes(mb_strtolower($fullName), '%_');
+            $escapedName = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($fullName));
             $assetOwnerScope = function ($query) use ($employeeId, $fullName, $escapedName) {
                 $query->where('employee_id', $employeeId);
                 if (mb_strlen($fullName) >= 3) {
                     $query->orWhere(function ($fallback) use ($escapedName) {
                         $fallback->whereNull('employee_id')
                             ->where(function ($q) use ($escapedName) {
-                                $q->whereRaw('LOWER(pengguna) LIKE ?', ['%' . $escapedName . '%'])
-                                  ->orWhereRaw('LOWER(nama_pengguna) LIKE ?', ['%' . $escapedName . '%']);
+                                $q->whereRaw("LOWER(pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedName . '%'])
+                                  ->orWhereRaw("LOWER(nama_pengguna) LIKE ? ESCAPE '!'", ['%' . $escapedName . '%']);
                             });
                     });
                 }

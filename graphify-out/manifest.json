@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/MobileDashboardController.php": {
-    "mtime": 1794797918.6860135,
-    "ast_hash": "bb8cecf4d7f5f01093fcfafa5441f8ae",
+    "mtime": 1794954098.4907033,
+    "ast_hash": "289c54500f543a3a19e10bc5b604d496",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Controller.php": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794925936.4652126,
-    "ast_hash": "abbd88202f65f956a6a7e20b19b244a8",
+    "mtime": 1794928911.2643466,
+    "ast_hash": "08581b350f2c1946517fc6cfa0b1493f",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794925930.7845838,
-    "ast_hash": "9c43aecc9f6b07bc411a36c235fd1c5e",
+    "mtime": 1794928906.492982,
+    "ast_hash": "290df93cdc6726f9cd706ccdf8494308",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794925928.738105,
-    "ast_hash": "64a1c8551aaaddce878740a8424eced3",
+    "mtime": 1794928904.3592544,
+    "ast_hash": "9408d91b605ff00ec4c163870e472b98",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6730,8 +6730,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/NotificationBell.tsx": {
-    "mtime": 1794906599.3236613,
-    "ast_hash": "27af015e22d68f0c8d8d015196f5a990",
+    "mtime": 1794954101.1316185,
+    "ast_hash": "b2fc117e1a58054fa51bcc3195a32ff4",
     "semantic_hash": ""
   },
   "backend/tests/self_check_public_surat_tugas.php": {
@@ -7095,8 +7095,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalPersonalSecurityTest.php": {
-    "mtime": 1794928678.018427,
-    "ast_hash": "02e890022d37b1266c33ba34b16824b0",
+    "mtime": 1794954103.7294104,
+    "ast_hash": "1c41439ee195d719669d9be80fb8705f",
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalUploadSecurityTest.php": {

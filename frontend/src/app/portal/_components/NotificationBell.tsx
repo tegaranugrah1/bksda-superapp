@@ -479,7 +479,7 @@ export function NotificationBell({ onSelectTab, onNotification, onRefresh }: Not
         // Safe fallback
       }
     };
-  }, [authEpoch, onSelectTab, fetchLatest, fetchHistory]);
+  }, [authEpoch, fetchLatest, fetchHistory]);
 
   // Handle open history modal
   useEffect(() => {

@@ -933,4 +933,22 @@ class PortalPersonalSecurityTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['current_password']);
     }
+
+    public function test_mobile_dashboard_escapes_like_wildcards_for_unassigned_assets(): void
+    {
+        [$user] = $this->actor('Dummy%User_Wildcard');
+        Asset::create([
+            'kode_barang' => 'WILD-01',
+            'nup' => '55',
+            'nama_barang' => 'Kamera Dinas Lain',
+            'jenis_bmn' => 'Peralatan',
+            'pengguna' => 'DummyXUserYWildcard',
+            'nama_pengguna' => 'DummyXUserYWildcard',
+        ]);
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/mobile/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.summary.assigned_assets_count', 0);
+    }
 }
