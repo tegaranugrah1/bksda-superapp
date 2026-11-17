@@ -3004,3 +3004,23 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Frontend: tidak ada berkas frontend yang diubah pada tahap ketiga ini (verifikasi tahap kedua: `tsc --noEmit` `0`, `eslint src/app/kepegawaian` `0`, `kepegawaian-ui.cjs`, `test-export-transform.cjs`, `diktum-capitalization-check.cjs`, `st-legacy-items.cjs`, dan `npm run build` `86/86`).
   - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15489` nodes, `28924` edges, `1047` communities).
 - **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`d33f9718`) pada `codex/portal-security-pentest`.
+
+---
+
+## 137. Audit Penutup Menyeluruh `/ponytail-review` & `/security-audit` Modul Kepegawaian: Pembersihan Lampiran Surat Masuk Pasca-Commit & Batas `10 MB` HTML SIKADIR (17 November 2026)
+
+- **Latar Belakang**:
+  Penyisiran menyeluruh atas seluruh berkas tersisa modul **Kepegawaian** yang sebelumnya belum terbuka lengkap (`EmployeeIncomingLetterController::destroy` / `destroyAttachment`, `EmployeeLeave`, `LeaveType`, `AdaptiveTariffResolver`, `SikadirParserService::parse()`, serta seluruh helper & route frontend `kepegawaian/*`) memverifikasi integritas atomik penghapusan berkas dan batas parser HTML tunggal.
+- **Temuan & Perbaikan Diterapkan (Commit `ad4af0ac`)**:
+  - **Penghapusan Berkas Pasca-DB & Penggabungan Helper ([`EmployeeIncomingLetterController.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Controllers/EmployeeIncomingLetterController.php))**:
+    - `destroy()` dan `destroyAttachment()` sebelumnya menghapus objek berkas di storage **sebelum** menghapus baris database dan di luar transaksi; jika penghapusan DB gagal, pointer DB tertinggal mengarah ke berkas yang sudah hilang. Kini penghapusan di `destroy()` dibungkus `DB::transaction()` dan pembersihan storage pada `destroy()`, `destroyAttachment()`, serta `save()` disatukan lewat helper `deleteStoragePaths()` yang dijalankan hanya **setelah** mutasi/commit DB berhasil.
+  - **Batas Ukuran HTML/XLS Tunggal SIKADIR ([`SikadirParserService.php`](file:///e:/bksda-superapp/backend/app/Modules/Kepegawaian/Services/SikadirParserService.php))**:
+    - `parse()` sebelumnya memanggil `file_get_contents($filePath)` tanpa batas untuk unggahan `.html`/`.htm`/`.xls` tunggal (padahal batas upload rute mencapai `50 MB` untuk arsip ZIP). Kini unggahan non-XLSX/ZIP tunggal dibatasi maksimal `10 MB` dan menolak file di atas batas lewat `ValidationException` (`422`) sebelum masuk `DOMDocument::loadHTML()`.
+  - **Audit Lanjutan Frontend (`frontend/src/app/kepegawaian/*`)**:
+    - Pemeriksaan berkas helper (`utils.ts`, `status-helpers.ts`, `buruh-helpers.ts`, `departure-helpers.ts`, `plh-helpers.ts`, `sumber-dana.ts`, `useScheduleConflicts.ts`, `employee-helpers.ts`, `activity-helpers.ts`), halaman redirect `/kepegawaian/surat-tugas/history`, serta `eslint src/app/kepegawaian` bersih tanpa temuan dead code maupun masalah keamanan baru (`Lean already. Ship.`).
+  - **Penambahan Test Regresi**: [`KepegawaianSecurityAuditTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/KepegawaianSecurityAuditTest.php) (Test `#12`: soft-delete arsip surat masuk membersihkan lampiran DB & objek storage setelah transaksi, serta `SikadirParserService::parse()` melempar `ValidationException` untuk HTML > `10 MB`).
+- **Verifikasi Pasca-Edit Akhir**:
+  - Backend: `php -l` bersih; `14` suite PHPUnit (`13` Kepegawaian + `SixModulesSecurityHardeningTest`) -> **109 tests passed (1009 assertions)**; `php backend/tests/EmployeeLeaveSnapshotCheck.php` -> **PASS**.
+  - Frontend: `npx tsc --noEmit` (`0`), `npx eslint src/app/kepegawaian` (`0`), dan `node tests/kepegawaian-ui.cjs` -> **PASS**.
+  - Knowledge Graph & Diff: `git diff --check` bersih dan `graphify update .` (`15492` nodes, `28929` edges, `1012` communities).
+- **Status**: ✅ Selesai Dikerjakan, Diverifikasi, & Di-commit Lokal (`ad4af0ac`) pada `codex/portal-security-pentest`.
