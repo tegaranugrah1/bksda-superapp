@@ -15,9 +15,16 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  InlineTextFormat,
+  handleInlineFormatShortcut,
+  toggleInlineFormat,
+} from "@/lib/letter-utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  InlineFormatButtons,
+  InlineFormatTarget,
   ParagrafTableBlock,
   getNormalizedTableColWidths,
   getTableRowCellsAndSpans,
@@ -47,6 +54,7 @@ export interface TabelBlockEditorProps {
   onResetColWidths: () => void;
   onApplyPaste: (raw: string, firstRowHeader: boolean) => boolean;
   onOpenExpand?: () => void;
+  onRegisterFormatTarget?: (target: InlineFormatTarget) => void;
 }
 
 export function TabelBlockEditor({
@@ -69,9 +77,11 @@ export function TabelBlockEditor({
   onResetColWidths,
   onApplyPaste,
   onOpenExpand,
+  onRegisterFormatTarget,
 }: TabelBlockEditorProps) {
   const tableRef = useRef<HTMLTableElement | null>(null);
   const actionThRef = useRef<HTMLTableCellElement | null>(null);
+  const activeTargetRef = useRef<InlineFormatTarget | null>(null);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteText, setPasteText] = useState("");
   const [pasteHeaderFirst, setPasteHeaderFirst] = useState(true);
@@ -81,6 +91,40 @@ export function TabelBlockEditor({
   const actionColPct = expanded ? 8 : 15;
   const hasCustomWidths = Array.isArray(block.colWidths) && block.colWidths.length === block.headers.length;
   const focusCol = block.headers.length > 1 && isNoColumnHeader(block.headers[0] || "") ? 1 : 0;
+
+  const bindFormatField = (onApply: (nextVal: string) => void) => ({
+    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const target: InlineFormatTarget = { el: e.currentTarget, apply: onApply };
+      activeTargetRef.current = target;
+      onRegisterFormatTarget?.(target);
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      handleInlineFormatShortcut(e, e.currentTarget.value, onApply);
+    },
+  });
+
+  const triggerTableFormat = (format: InlineTextFormat) => {
+    const target = activeTargetRef.current;
+    if (target && target.el.isConnected) {
+      toggleInlineFormat(target.el, target.el.value, format, target.apply);
+      return;
+    }
+    const firstTextarea = tableRef.current?.querySelector<HTMLTextAreaElement>(
+      `tbody textarea`
+    );
+    if (firstTextarea) {
+      firstTextarea.focus();
+      const firstCellTarget = activeTargetRef.current;
+      if (firstCellTarget) {
+        toggleInlineFormat(
+          firstCellTarget.el,
+          firstCellTarget.el.value,
+          format,
+          firstCellTarget.apply
+        );
+      }
+    }
+  };
 
   const handleNormalizedPaste = <T extends HTMLInputElement | HTMLTextAreaElement>(
     e: React.ClipboardEvent<T>,
@@ -161,6 +205,7 @@ export function TabelBlockEditor({
                             onUpdateHeader(cIdx, nextVal)
                           )
                         }
+                        {...bindFormatField((v) => onUpdateHeader(cIdx, v))}
                         placeholder={`Kolom ${cIdx + 1}`}
                         aria-label={`Judul kolom ${cIdx + 1} tabel butir ${blockIdx + 1}`}
                         className={cn(
@@ -261,6 +306,7 @@ export function TabelBlockEditor({
                               onUpdateSectionRow(rIdx, nextVal)
                             )
                           }
+                          {...bindFormatField((v) => onUpdateSectionRow(rIdx, v))}
                           placeholder="Contoh: Senin, 23 November 2026"
                           aria-label={`Judul pembatas baris ${rIdx + 1} tabel butir ${blockIdx + 1}`}
                           className="h-8 w-full min-w-0 bg-transparent text-xs font-medium text-center text-[var(--ds-fg)] placeholder:text-[var(--ds-fg-muted)] focus:outline-none focus:bg-white dark:focus:bg-zinc-900 rounded px-2"
@@ -294,6 +340,7 @@ export function TabelBlockEditor({
                                 onUpdateCell(rIdx, cIdx, nextVal)
                               )
                             }
+                            {...bindFormatField((v) => onUpdateCell(rIdx, cIdx, v))}
                             rows={Math.min(5, Math.max(1, cellVal.split("\n").length))}
                             placeholder={hdr || "Isi"}
                             aria-label={`${hdr || `Kolom ${cIdx + 1}`} baris ${rIdx + 1}`}
@@ -429,6 +476,11 @@ export function TabelBlockEditor({
         </div>
 
         <div className="flex items-center flex-wrap gap-1">
+          <InlineFormatButtons
+            compact
+            labelContext={expanded ? `Tabel Dialog Butir ${blockIdx + 1}` : `Tabel Butir ${blockIdx + 1}`}
+            onTrigger={triggerTableFormat}
+          />
           {hasCustomWidths && (
             <Button
               type="button"

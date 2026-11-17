@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense, useDeferredValue, useMemo } from "react";
+import React, { useState, useEffect, Suspense, useDeferredValue, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,7 +35,12 @@ import {
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { formatNipLabel } from "@/lib/letter-utils";
+import {
+  InlineTextFormat,
+  formatNipLabel,
+  handleInlineFormatShortcut,
+  toggleInlineFormat,
+} from "@/lib/letter-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -90,6 +95,8 @@ import {
   getPrevTextPointLevel,
   isNoColumnHeader,
   migrateLegacyUndanganPayload,
+  InlineFormatButtons,
+  InlineFormatTarget,
 } from "../../_components/SuratDinasDocument";
 import { TabelBlockEditor } from "../../_components/TabelBlockEditor";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
@@ -383,6 +390,49 @@ function GenerateSuratDinasContent() {
   const [smartPasteText, setSmartPasteText] = useState("");
   const [expandedTableIdx, setExpandedTableIdx] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState<"word" | "pdf" | null>(null);
+
+  type FormatSection = "perihal" | "yth" | "body" | "tembusan";
+  const formatTargetsRef = useRef<Partial<Record<FormatSection, InlineFormatTarget>>>({});
+  const sectionContainerRefs = useRef<Partial<Record<FormatSection, HTMLElement | null>>>({});
+
+  const registerSectionTarget = React.useCallback(
+    (
+      section: FormatSection,
+      el: HTMLInputElement | HTMLTextAreaElement,
+      apply: (nextVal: string) => void
+    ) => {
+      formatTargetsRef.current[section] = { el, apply };
+    },
+    []
+  );
+
+  const bindSectionFormat = (section: FormatSection, onApply: (nextVal: string) => void) => ({
+    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      registerSectionTarget(section, e.currentTarget, onApply);
+    },
+    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      handleInlineFormatShortcut(e, e.currentTarget.value, onApply);
+    },
+  });
+
+  const triggerSectionFormat = (section: FormatSection, format: InlineTextFormat) => {
+    let target = formatTargetsRef.current[section];
+    if (!target || !target.el.isConnected) {
+      const container = sectionContainerRefs.current[section];
+      const firstInput = container?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+        "textarea, input[type='text'], input:not([type])"
+      );
+      if (firstInput) {
+        firstInput.focus();
+        target = formatTargetsRef.current[section];
+      }
+    }
+    if (!target || !target.el.isConnected) {
+      toast.info("Klik kolom teks pada bagian tersebut terlebih dahulu.");
+      return;
+    }
+    toggleInlineFormat(target.el, target.el.value, format, target.apply);
+  };
 
   const handleExportWord = async () => {
     try {
@@ -844,6 +894,9 @@ function GenerateSuratDinasContent() {
     onChangeColWidths: (widths: number[]) => handleChangeTableColWidths(blockIdx, widths),
     onResetColWidths: () => handleResetTableColWidths(blockIdx),
     onApplyPaste: (raw: string, firstRowHeader: boolean) => handleApplyTablePaste(blockIdx, raw, firstRowHeader),
+    onRegisterFormatTarget: (target: InlineFormatTarget) => {
+      formatTargetsRef.current.body = target;
+    },
   });
 
   // Terapkan Salin-Tempel Teks Utuh
@@ -1463,11 +1516,19 @@ function GenerateSuratDinasContent() {
               </div>
 
               {/* Perihal / Hal */}
-              <div>
-                <label className="font-semibold text-[var(--ds-fg-secondary)]">Perihal / Judul Ringkas</label>
+              <div ref={(el) => { sectionContainerRefs.current.perihal = el; }}>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Perihal / Judul Ringkas</label>
+                  <InlineFormatButtons
+                    compact
+                    labelContext="Perihal"
+                    onTrigger={(f) => triggerSectionFormat("perihal", f)}
+                  />
+                </div>
                 <Textarea
                   value={data.perihal}
                   onChange={(e) => updateField("perihal", e.target.value)}
+                  {...bindSectionFormat("perihal", (v) => updateField("perihal", v))}
                   rows={2}
                   placeholder="Isi perihal naskah dinas..."
                   className="mt-1 text-xs rounded-lg"
@@ -1477,11 +1538,21 @@ function GenerateSuratDinasContent() {
           </div>
 
           {/* Card 2: Field Spesifik Template */}
-          <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
-              <Building className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
-              2. Data Spesifik ({activeTabMeta.name})
-            </h2>
+          <div
+            ref={(el) => { sectionContainerRefs.current.yth = el; }}
+            className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+                <Building className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                2. Data Spesifik ({activeTabMeta.name})
+              </h2>
+              <InlineFormatButtons
+                compact
+                labelContext="Yth / Tujuan"
+                onTrigger={(f) => triggerSectionFormat("yth", f)}
+              />
+            </div>
 
             <div className="space-y-3 text-xs">
               {/* NOTA DINAS & MEMORANDUM */}
@@ -1547,6 +1618,7 @@ function GenerateSuratDinasContent() {
                           <Input
                             value={item}
                             onChange={(e) => handleYthChange(idx, e.target.value)}
+                            {...bindSectionFormat("yth", (v) => handleYthChange(idx, v))}
                             placeholder={
                               idx === 0
                                 ? "Contoh: Kepala Seksi KSDA Wilayah I Berau"
@@ -1589,6 +1661,7 @@ function GenerateSuratDinasContent() {
                     <Input
                       value={data.tujuanKepada || ""}
                       onChange={(e) => updateField("tujuanKepada", e.target.value)}
+                      {...bindSectionFormat("yth", (v) => updateField("tujuanKepada", v))}
                       placeholder="Contoh: Kepala Kantor Pelayanan Perbendaharaan Negara Samarinda"
                       className="mt-1 text-xs rounded-lg"
                     />
@@ -1653,6 +1726,7 @@ function GenerateSuratDinasContent() {
                   <Input
                     value={data.tujuanKepada || ""}
                     onChange={(e) => updateField("tujuanKepada", e.target.value)}
+                    {...bindSectionFormat("yth", (v) => updateField("tujuanKepada", v))}
                     placeholder="Contoh: Para Pejabat Struktural dan Kepala Seksi Wilayah"
                     className="mt-1 text-xs rounded-lg"
                   />
@@ -1669,6 +1743,7 @@ function GenerateSuratDinasContent() {
                   <Textarea
                     value={data.materiKuasa || ""}
                     onChange={(e) => updateField("materiKuasa", e.target.value)}
+                    {...bindSectionFormat("yth", (v) => updateField("materiKuasa", v))}
                     rows={3}
                     placeholder="Untuk mewakili..."
                     className="mt-1 text-xs rounded-lg"
@@ -1768,6 +1843,7 @@ function GenerateSuratDinasContent() {
                     <Input
                       value={data.tujuanKepada || ""}
                       onChange={(e) => updateField("tujuanKepada", e.target.value)}
+                      {...bindSectionFormat("yth", (v) => updateField("tujuanKepada", v))}
                       placeholder="Contoh: Direktur PT. Hutan Lindung Kelian Lestari"
                       className="mt-1 text-xs rounded-lg"
                     />
@@ -1777,6 +1853,7 @@ function GenerateSuratDinasContent() {
                     <Input
                       value={data.tujuanDi || ""}
                       onChange={(e) => updateField("tujuanDi", e.target.value)}
+                      {...bindSectionFormat("yth", (v) => updateField("tujuanDi", v))}
                       placeholder="Contoh: Kutai Barat atau Samarinda"
                       className="mt-1 text-xs rounded-lg"
                     />
@@ -1876,10 +1953,17 @@ function GenerateSuratDinasContent() {
             <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
               {/* Sticky Top Toolbar: Tetap mengambang saat scroll panjang 31 butir */}
               <div className="sticky top-2 z-20 bg-[var(--ds-surface)]/95 backdrop-blur-md -mx-4 -mt-4 p-4 rounded-t-3xl border-b border-slate-200/70 dark:border-zinc-800 flex flex-col gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
-                  <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
-                  3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
-                </h2>
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
+                    <ListOrdered className="w-3.5 h-3.5 text-[var(--ds-accent-fg)]" />
+                    3. Batang Tubuh / Isi ({(data.paragraf || []).length} Butir)
+                  </h2>
+                  <InlineFormatButtons
+                    compact
+                    labelContext="Batang Tubuh"
+                    onTrigger={(f) => triggerSectionFormat("body", f)}
+                  />
+                </div>
                 <div className="flex items-center flex-wrap gap-2">
                   <Button
                     type="button"
@@ -2034,7 +2118,10 @@ function GenerateSuratDinasContent() {
                 </div>
               )}
 
-              <div className="space-y-2 text-xs">
+              <div
+                ref={(el) => { sectionContainerRefs.current.body = el; }}
+                className="space-y-2 text-xs"
+              >
                 {(data.paragraf || []).map((pItem, idx) => {
                   const pList = data.paragraf || [];
                   const isRincian = isRincianBlock(pItem);
@@ -2291,6 +2378,9 @@ function GenerateSuratDinasContent() {
                                 <Input
                                   value={row.label}
                                   onChange={(e) => handleUpdateRincianRow(idx, rIdx, "label", e.target.value)}
+                                  {...bindSectionFormat("body", (v) =>
+                                    handleUpdateRincianRow(idx, rIdx, "label", v)
+                                  )}
                                   placeholder="Label (mis: Hari/Tanggal)"
                                   aria-label={`Label rincian baris ${rIdx + 1}`}
                                   className="w-24 sm:w-28 shrink-0 h-8 text-xs font-semibold bg-white dark:bg-zinc-900 rounded-lg"
@@ -2300,6 +2390,9 @@ function GenerateSuratDinasContent() {
                                   data-paragraf-focus={rIdx === 0 ? idx : undefined}
                                   value={row.value}
                                   onChange={(e) => handleUpdateRincianRow(idx, rIdx, "value", e.target.value)}
+                                  {...bindSectionFormat("body", (v) =>
+                                    handleUpdateRincianRow(idx, rIdx, "value", v)
+                                  )}
                                   rows={Math.min(5, Math.max(1, row.value.split("\n").length))}
                                   placeholder="Isi rincian (tekan Enter untuk alamat/uraian multi-baris)..."
                                   aria-label={`Isi ${row.label || `rincian baris ${rIdx + 1}`}`}
@@ -2357,6 +2450,7 @@ function GenerateSuratDinasContent() {
                           data-paragraf-focus={idx}
                           value={pItem}
                           onChange={(e) => handleParagraphChange(idx, e.target.value)}
+                          {...bindSectionFormat("body", (v) => handleParagraphChange(idx, v))}
                           rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
                           placeholder={
                             isPenutup
@@ -2634,21 +2728,31 @@ function GenerateSuratDinasContent() {
             activeTemplate === "surat_panggilan" ||
             activeTemplate === "surat_pernyataan"
           ) && (
-            <div className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs">
-              <div className="flex items-center justify-between">
+            <div
+              ref={(el) => { sectionContainerRefs.current.tembusan = el; }}
+              className="rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] p-4 space-y-3 shadow-xs"
+            >
+              <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--ds-fg-secondary)] flex items-center gap-2">
                   <UserCheck className="w-3.5 h-3.5 text-[var(--ds-fg-muted)]" />
                   5. Tembusan ({(data.tembusan || []).length})
                 </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAddTembusan}
-                  className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 gap-1 rounded-lg"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah Tembusan
-                </Button>
+                <div className="flex items-center gap-2">
+                  <InlineFormatButtons
+                    compact
+                    labelContext="Tembusan"
+                    onTrigger={(f) => triggerSectionFormat("tembusan", f)}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAddTembusan}
+                    className="h-7 text-xs text-[var(--ds-accent-fg)] hover:bg-[var(--ds-accent-soft)] p-1 gap-1 rounded-lg"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Tambah Tembusan
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -2658,6 +2762,7 @@ function GenerateSuratDinasContent() {
                     <Input
                       value={t.text}
                       onChange={(e) => handleTembusanChange(t.id, e.target.value)}
+                      {...bindSectionFormat("tembusan", (v) => handleTembusanChange(t.id, v))}
                       placeholder="Nama instansi/pejabat tembusan..."
                       className="h-8 text-xs flex-1 rounded-lg"
                     />

@@ -10,6 +10,36 @@ const frontendRoot = path.resolve(__dirname, '..');
 const frontendRequire = Module.createRequire(path.join(frontendRoot, 'package.json'));
 const ts = frontendRequire('typescript');
 
+function createFakeReact() {
+  return {
+    default: {
+      memo: (c) => c,
+      createElement: (tag, props, ...children) => ({ tag, props: props || {}, children }),
+    },
+    memo: (c) => c,
+    createElement: (tag, props, ...children) => ({ tag, props: props || {}, children }),
+  };
+}
+
+function loadLetterUtilsModule() {
+  const source = fs.readFileSync(
+    path.join(frontendRoot, 'src/lib/letter-utils.ts'),
+    'utf-8'
+  );
+  const transpiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2020,
+      jsx: ts.JsxEmit.React,
+    },
+  });
+  const mod = { exports: {} };
+  const fakeReact = createFakeReact();
+  const fn = new Function('exports', 'module', 'require', transpiled.outputText);
+  fn(mod.exports, mod, (id) => (id === 'react' ? fakeReact : {}));
+  return mod.exports;
+}
+
 function loadSuratDinasModule() {
   const source = fs.readFileSync(
     path.join(frontendRoot, 'src/app/surat/_components/SuratDinasDocument.tsx'),
@@ -23,20 +53,16 @@ function loadSuratDinasModule() {
     },
   });
   const mod = { exports: {} };
+  const fakeReact = createFakeReact();
   const fn = new Function('exports', 'module', 'require', transpiled.outputText);
   fn(mod.exports, mod, (id) => {
-    if (id === 'react') {
-      return {
-        default: { memo: (c) => c, createElement: () => null },
-        memo: (c) => c,
-        createElement: () => null,
-      };
-    }
+    if (id === 'react') return fakeReact;
     return {};
   });
   return { exports: mod.exports, source };
 }
 
+const letterUtilsMod = loadLetterUtilsModule();
 const { exports: docMod, source: docSource } = loadSuratDinasModule();
 const {
   isRincianBlock,
@@ -353,6 +379,76 @@ assert.equal(
   normalizePdfCellText(pdfWithList),
   'Persiapan:\n1. Laptop dan charger resmi\n2. Kamera\n\nCatatan tambahan lainnya.',
   'PDF normalization must keep list items and paragraph breaks intact'
+);
+
+// 11. Inline Bold & Italic Markdown Formatting + Tembusan 11pt Size Parity
+const { renderFormattedText, toggleInlineFormat } = letterUtilsMod;
+const nodes = renderFormattedText('**Penting**, *Break*, ***Resmi***, dan 2 * 3');
+assert(Array.isArray(nodes), 'renderFormattedText must tokenize markdown spans');
+assert(
+  nodes.some((n) => n && typeof n === 'object' && n.tag === 'strong' && n.props?.style?.fontWeight === 'bold'),
+  'Must convert **Penting** to <strong>'
+);
+assert(
+  nodes.some((n) => n && typeof n === 'object' && n.tag === 'em' && n.props?.style?.fontStyle === 'italic'),
+  'Must convert *Break* to <em>'
+);
+assert(
+  nodes.some(
+    (n) =>
+      n &&
+      typeof n === 'object' &&
+      n.tag === 'strong' &&
+      n.props?.style?.fontWeight === 'bold' &&
+      n.props?.style?.fontStyle === 'italic'
+  ),
+  'Must convert ***Resmi*** to bold+italic <strong>'
+);
+assert(nodes.includes(', dan 2 * 3'), 'Must leave spaces around * (e.g. 2 * 3) as plain text');
+
+let toggledVal = 'Perihal resmi daerah';
+const makeMockField = (selStart, selEnd) => ({
+  selectionStart: selStart,
+  selectionEnd: selEnd,
+  focus: () => {},
+  setSelectionRange: () => {},
+});
+// Selecting with trailing space ("resmi ") keeps space outside **...**
+toggleInlineFormat(makeMockField(8, 14), toggledVal, 'bold', (v) => {
+  toggledVal = v;
+});
+assert.equal(toggledVal, 'Perihal **resmi** daerah', 'Bold wrap must keep trailing whitespace outside **');
+// Applying italic on inner word ("resmi") inside **resmi** produces ***resmi***
+toggleInlineFormat(makeMockField(10, 15), toggledVal, 'italic', (v) => {
+  toggledVal = v;
+});
+assert.equal(toggledVal, 'Perihal ***resmi*** daerah', 'Italic wrap inside bold yields ***resmi***');
+// Toggling bold off outer markers on "resmi" keeps *resmi*
+toggleInlineFormat(makeMockField(11, 16), toggledVal, 'bold', (v) => {
+  toggledVal = v;
+});
+assert.equal(toggledVal, 'Perihal *resmi* daerah', 'Unbolding ***resmi*** preserves *resmi*');
+
+assert(
+  SURAT_DINAS_BASE_CSS.includes('.pkpknl-tembusan { width: 100%; margin: 0.8rem 0 0; font-size: 11pt;'),
+  'Preview/print CSS must set .pkpknl-tembusan font-size to 11pt matching letter body text'
+);
+assert(
+  !exportSrc.includes('tembusan') || exportSrc.includes('font-size: 11pt; line-height: 1.4; text-align: left;">${tembusanHtml}'),
+  'Word export Tembusan container must use 11pt font size matching body text'
+);
+assert(
+  !exportSrc.includes('10pt; line-height: 1.4; color: #000;">${text}') &&
+    !exportSrc.includes('10pt; line-height: 1.4; color: #000;">${num}'),
+  'Word export Tembusan item paragraphs must not retain 10pt font size'
+);
+assert(
+  pageSrc.includes('InlineFormatButtons') && pageSrc.includes('bindSectionFormat'),
+  'dinas/page.tsx must provide InlineFormatButtons and keyboard formatting across Perihal -> Tembusan'
+);
+assert(
+  editorCompSrc.includes('InlineFormatButtons') && editorCompSrc.includes('bindFormatField'),
+  'TabelBlockEditor.tsx must expose bold/italic formatting controls inside spreadsheet toolbar'
 );
 
 console.log('✅ rincian-blok-check.cjs: ALL ASSERTIONS PASSED');

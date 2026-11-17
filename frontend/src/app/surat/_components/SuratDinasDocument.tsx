@@ -1,9 +1,63 @@
 "use client";
 
 import React from "react";
+import { Bold, Italic } from "lucide-react";
 import { toast } from "sonner";
-import { formatNipLabel, isPppk } from "@/lib/letter-utils";
+import {
+  InlineTextFormat,
+  formatNipLabel,
+  isPppk,
+  renderFormattedText,
+  serializeEditableToMarkdown,
+} from "@/lib/letter-utils";
 import { cloneHtmlWithResolvedImages, openPrintWindow, resolveAbsoluteImageUrl } from "@/lib/print-window";
+
+export interface InlineFormatTarget {
+  el: HTMLInputElement | HTMLTextAreaElement;
+  apply: (nextVal: string) => void;
+}
+
+export function InlineFormatButtons({
+  onTrigger,
+  labelContext = "Teks",
+  className = "",
+  compact = false,
+}: {
+  onTrigger: (format: InlineTextFormat) => void;
+  labelContext?: string;
+  className?: string;
+  compact?: boolean;
+}) {
+  const btnCls = compact
+    ? "w-6 h-6 flex items-center justify-center rounded border border-slate-200 dark:border-zinc-700 bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] hover:text-[var(--ds-accent-fg)] text-[var(--ds-fg-secondary)] transition-colors"
+    : "h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200/80 dark:border-zinc-700 bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-accent-soft-border)] hover:text-[var(--ds-accent-fg)] text-[var(--ds-fg-secondary)] transition-colors";
+  return (
+    <div className={`inline-flex items-center gap-1 ${className}`}>
+      <button
+        type="button"
+        data-plain-icon=""
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => onTrigger("bold")}
+        className={btnCls}
+        title={`Tebal ${labelContext} (**teks** / Ctrl+B)`}
+        aria-label={`Format Tebal ${labelContext} (Ctrl+B)`}
+      >
+        <Bold className="w-3.5 h-3.5" />
+      </button>
+      <button
+        type="button"
+        data-plain-icon=""
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => onTrigger("italic")}
+        className={btnCls}
+        title={`Miring ${labelContext} (*teks* / Ctrl+I)`}
+        aria-label={`Format Miring ${labelContext} (Ctrl+I)`}
+      >
+        <Italic className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
 
 export type TemplateType =
   | "surat_dinas"
@@ -1922,7 +1976,7 @@ export const SURAT_DINAS_BASE_CSS = `
   .pkpknl-ttd p { margin: 0; padding: 0; line-height: 1.25; }
   .pkpknl-ttd .pkpknl-ttd-placeholder { box-sizing: border-box; height: 105px; display: flex; align-items: flex-start; text-align: left; padding-top: 34px; padding-left: 1.35cm; margin-top: 14px; margin-bottom: 0; color: #94a3b8; font-size: 9pt; }
   .pkpknl-ttd .pkpknl-ttd-name { font-weight: bold; }
-  .pkpknl-tembusan { width: 100%; margin: 0.8rem 0 0; font-size: 10pt; line-height: 1.35; }
+  .pkpknl-tembusan { width: 100%; margin: 0.8rem 0 0; font-size: 11pt; line-height: 1.35; }
   .pkpknl-tembusan-title { font-weight: normal; margin-bottom: 0.2rem; }
   .pkpknl-tembusan-item { display: grid; grid-template-columns: 7mm minmax(0, 1fr); line-height: 1.4; }
   .pkpknl-tembusan-item.single-item { display: block; }
@@ -2125,18 +2179,22 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                     contentEditable
                     suppressContentEditableWarning
                     className="pkpknl-edit pkpknl-rincian-label"
-                    onBlur={(e) => updateRow(rIdx, "label", e.currentTarget.innerText)}
+                    onBlur={(e) =>
+                      updateRow(rIdx, "label", serializeEditableToMarkdown(e.currentTarget))
+                    }
                   >
-                    {row.label}
+                    {renderFormattedText(row.label)}
                   </td>
                   <td className="pkpknl-rincian-colon">:</td>
                   <td
                     contentEditable
                     suppressContentEditableWarning
                     className="pkpknl-edit pkpknl-rincian-value"
-                    onBlur={(e) => updateRow(rIdx, "value", e.currentTarget.innerText)}
+                    onBlur={(e) =>
+                      updateRow(rIdx, "value", serializeEditableToMarkdown(e.currentTarget))
+                    }
                   >
-                    {row.value}
+                    {renderFormattedText(row.value)}
                   </td>
                 </tr>
               ))}
@@ -2182,14 +2240,14 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                         suppressContentEditableWarning
                         className="pkpknl-edit block w-full"
                         onBlur={(e) => {
-                          const val = e.currentTarget.innerText;
+                          const val = serializeEditableToMarkdown(e.currentTarget);
                           updateTable((cur) => ({
                             ...cur,
                             headers: cur.headers.map((h, i) => (i === hIdx ? val : h)),
                           }));
                         }}
                       >
-                        {header}
+                        {renderFormattedText(header)}
                       </span>
                       {onUpdateField && hIdx < item.headers.length - 1 && (
                         <div
@@ -2246,7 +2304,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                           suppressContentEditableWarning
                           className="pkpknl-edit block w-full"
                           onBlur={(e) => {
-                            const val = e.currentTarget.innerText;
+                            const val = serializeEditableToMarkdown(e.currentTarget);
                             updateTable((cur) => ({
                               ...cur,
                               rows: cur.rows.map((r, ri) =>
@@ -2255,7 +2313,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                             }));
                           }}
                         >
-                          {row.text}
+                          {renderFormattedText(row.text)}
                         </span>
                       </td>
                     </tr>
@@ -2278,7 +2336,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                             isNoCol(cIdx) && span === 1 ? " pkpknl-table-col-no" : ""
                           }`}
                           onBlur={(e) => {
-                            const val = e.currentTarget.innerText;
+                            const val = serializeEditableToMarkdown(e.currentTarget);
                             updateTable((cur) => ({
                               ...cur,
                               rows: cur.rows.map((r, ri) =>
@@ -2289,7 +2347,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                             }));
                           }}
                         >
-                          {cells[cIdx] ?? ""}
+                          {renderFormattedText(cells[cIdx] ?? "")}
                         </td>
                       );
                     })}
@@ -2315,12 +2373,12 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           className={`pkpknl-edit ${lvlClass}`}
           onBlur={(e) => {
             const newParas = [...paragraf];
-            newParas[idx] = e.currentTarget.innerText;
+            newParas[idx] = serializeEditableToMarkdown(e.currentTarget);
             onUpdateField?.("paragraf", newParas);
           }}
         >
           <span className="poin-marker">{marker}</span>
-          <span className="poin-content">{content}</span>
+          <span className="poin-content">{renderFormattedText(content)}</span>
         </p>
       );
     }
@@ -2332,11 +2390,11 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         className="pkpknl-edit"
         onBlur={(e) => {
           const newParas = [...paragraf];
-          newParas[idx] = e.currentTarget.innerText;
+          newParas[idx] = serializeEditableToMarkdown(e.currentTarget);
           onUpdateField?.("paragraf", newParas);
         }}
       >
-        {pText}
+        {renderFormattedText(pText)}
       </p>
     );
   };
@@ -2493,9 +2551,13 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   contentEditable
                   suppressContentEditableWarning
                   className="pkpknl-edit flex-1 whitespace-pre-line leading-normal"
-                  onBlur={(e) => onUpdateField?.("yth", e.currentTarget.innerText)}
+                  onBlur={(e) =>
+                    onUpdateField?.("yth", serializeEditableToMarkdown(e.currentTarget))
+                  }
                 >
-                  {yth || (ythList && ythList.length > 0 ? formatYthList(ythList) : "")}
+                  {renderFormattedText(
+                    yth || (ythList && ythList.length > 0 ? formatYthList(ythList) : "")
+                  )}
                 </span>
               </div>
               <div className="flex items-baseline">
@@ -2517,9 +2579,11 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   contentEditable
                   suppressContentEditableWarning
                   className="pkpknl-edit flex-1 font-normal"
-                  onBlur={(e) => onUpdateField?.("perihal", e.currentTarget.innerText)}
+                  onBlur={(e) =>
+                    onUpdateField?.("perihal", serializeEditableToMarkdown(e.currentTarget))
+                  }
                 >
-                  {perihal}
+                  {renderFormattedText(perihal)}
                 </span>
               </div>
               <div className="flex items-baseline">
@@ -2569,8 +2633,8 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             </div>
 
             <div className="mb-4">
-              <p>Yth. {tujuanKepada}</p>
-              <p className="pl-6">di {cleanTujuanDi}</p>
+              <p>Yth. {renderFormattedText(tujuanKepada)}</p>
+              <p className="pl-6">di {renderFormattedText(cleanTujuanDi)}</p>
             </div>
 
             <div className="text-center my-3">
@@ -2675,7 +2739,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
 
             <p className="mb-2 font-semibold">Untuk :</p>
             <div className="pl-6 mb-4 text-justify leading-relaxed">
-              {materiKuasa}
+              {renderFormattedText(materiKuasa)}
             </div>
           </div>
         )}
@@ -2707,7 +2771,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                   <div className="flex"><span className="w-36">Hari, Tanggal</span><span className="w-4">:</span><span className="font-normal">{acaraHariTanggal}</span></div>
                   <div className="flex"><span className="w-36">Waktu</span><span className="w-4">:</span><span>{acaraWaktu}</span></div>
                   <div className="flex"><span className="w-36">Tempat</span><span className="w-4">:</span><span>{acaraTempat}</span></div>
-                  <div className="flex"><span className="w-36">Keperluan</span><span className="w-4">:</span><span className="font-normal">{keperluanPanggilan || perihal}</span></div>
+                  <div className="flex"><span className="w-36">Keperluan</span><span className="w-4">:</span><span className="font-normal">{renderFormattedText(keperluanPanggilan || perihal)}</span></div>
                 </div>
               </div>
             ) : (
@@ -2826,7 +2890,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               <>
                 <div className="text-left mb-4 text-[10.5pt] leading-normal">
                   <p>Yth.</p>
-                  <pre className="font-sans text-[10.5pt] pl-4 whitespace-pre-wrap m-0 leading-normal">{tujuanKepada}</pre>
+                  <pre className="font-sans text-[10.5pt] pl-4 whitespace-pre-wrap m-0 leading-normal">{renderFormattedText(tujuanKepada)}</pre>
                 </div>
                 <h2 className="font-bold text-[12pt] uppercase tracking-wider leading-snug m-0">SURAT EDARAN</h2>
                 <p className="text-[11pt] font-normal leading-snug m-0 mt-0.5 mb-2">NOMOR : {nomorText}</p>
@@ -3075,17 +3139,17 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
             <div className="pkpknl-perihal-full">
               <span className="pkpknl-meta-label">Perihal</span>
               <span className="pkpknl-meta-colon">:</span>
-              <span className="pkpknl-perihal-content font-normal">{perihal}</span>
+              <span className="pkpknl-perihal-content font-normal">{renderFormattedText(perihal)}</span>
             </div>
 
             <div className="pkpknl-yth">
-              <p>Yth. {tujuanKepada}</p>
+              <p>Yth. {renderFormattedText(tujuanKepada)}</p>
               {currentTemplate === "undangan" ? (
                 <p className="pkpknl-yth-tempat">di Tempat</p>
               ) : (
                 <>
                   <p>Di -</p>
-                  <p className="pkpknl-yth-tempat">{cleanTujuanDi}</p>
+                  <p className="pkpknl-yth-tempat">{renderFormattedText(cleanTujuanDi)}</p>
                 </>
               )}
             </div>
@@ -3095,7 +3159,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                 <div className="flex"><span className="w-32 shrink-0">hari, tanggal</span><span className="w-4">:</span><span className="font-normal">{acaraHariTanggal}</span></div>
                 <div className="flex"><span className="w-32 shrink-0">waktu</span><span className="w-4">:</span><span>{acaraWaktu}</span></div>
                 <div className="flex"><span className="w-32 shrink-0">tempat</span><span className="w-4">:</span><span>{acaraTempat}</span></div>
-                <div className="flex"><span className="w-32 shrink-0">acara</span><span className="w-4">:</span><span className="font-normal">{acaraNama || perihal}</span></div>
+                <div className="flex"><span className="w-32 shrink-0">acara</span><span className="w-4">:</span><span className="font-normal">{renderFormattedText(acaraNama || perihal)}</span></div>
               </div>
             )}
           </>
@@ -3216,7 +3280,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
                     key={t.id || i}
                   >
                     {tembusan.length > 1 && <span>{i + 1}.</span>}
-                    <span className="pkpknl-edit">{t.text}</span>
+                    <span className="pkpknl-edit">{renderFormattedText(t.text)}</span>
                   </div>
                 ))}
               </div>

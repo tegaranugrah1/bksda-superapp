@@ -204,18 +204,18 @@ function transformCloneForWord(clone: HTMLElement): void {
         const valSpan = spans[spans.length - 1];
 
         // Format multi-baris untuk Yth (tiap penerima menjadi baris paragraf kiri mandiri agar Word tidak force-justify spasi kata)
-        const rawText = valSpan ? (valSpan.innerText || valSpan.textContent || "") : "";
-        const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        const fragmentHtml = sanitizeWordFragment(valSpan);
+        const lines = fragmentHtml.split(/<br\s*\/?>|\r?\n/i).map((l) => l.trim()).filter(Boolean);
         let valHtml = "";
         if (lines.length > 1) {
           valHtml = lines
             .map(
               (line, lIdx) =>
-                `<p style="margin: 0 0 ${lIdx === lines.length - 1 ? "0" : "3pt"} 0; padding: 0; text-align: left; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000; font-weight: normal;">${escapeWordHtml(line)}</p>`
+                `<p style="margin: 0 0 ${lIdx === lines.length - 1 ? "0" : "3pt"} 0; padding: 0; text-align: left; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; color: #000; font-weight: normal;">${line}</p>`
             )
             .join("");
         } else {
-          valHtml = sanitizeWordFragment(valSpan);
+          valHtml = fragmentHtml;
         }
 
         // Catatan: Hal/Perihal TIDAK di-bold sesuai instruksi resmi
@@ -387,7 +387,7 @@ function transformCloneForWord(clone: HTMLElement): void {
     rows.forEach((tr) => {
       const labelEl = tr.querySelector(".pkpknl-rincian-label");
       const valEl = tr.querySelector(".pkpknl-rincian-value");
-      const label = escapeWordHtml(labelEl?.textContent?.trim() || "");
+      const label = sanitizeWordFragment(labelEl).trim();
       const val = sanitizeWordFragment(valEl);
       rowsHtml += `
         <tr style="border: none;">
@@ -469,7 +469,9 @@ function transformCloneForWord(clone: HTMLElement): void {
               : isNo
               ? "text-align: center;"
               : "text-align: left;";
-            const text = sanitizeWordFragment(td.querySelector("span") || td);
+            const text = sanitizeWordFragment(
+              isSection ? td.querySelector("span.pkpknl-edit") || td : td
+            );
             return `<td${spanAttr} style="${widthStyle}${extraStyle}${tdBase}">${text || "&nbsp;"}</td>`;
           })
           .join("");
@@ -525,18 +527,22 @@ function transformCloneForWord(clone: HTMLElement): void {
       const items = Array.from(tembusanEl.querySelectorAll(".pkpknl-tembusan-item"));
       let itemsHtml = "";
       if (items.length <= 1) {
-        const text = escapeWordHtml(items[0]?.textContent?.trim() || tembusanEl.textContent?.replace(/^tembusan:\s*/i, "").trim() || "");
-        itemsHtml = `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000;">${text}</p>`;
+        const editTarget = items[0]?.querySelector(".pkpknl-edit") || items[0] || null;
+        const text = editTarget
+          ? sanitizeWordFragment(editTarget).trim()
+          : escapeWordHtml(tembusanEl.textContent?.replace(/^tembusan:\s*/i, "").trim() || "");
+        itemsHtml = `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000;">${text}</p>`;
       } else {
         items.forEach((item, idx) => {
-          const spans = Array.from(item.querySelectorAll("span"));
+          const spans = Array.from(item.querySelectorAll(":scope > span"));
           const num = escapeWordHtml((spans.length > 1 ? spans[0]?.textContent?.trim() : `${idx + 1}.`) || "");
-          const text = escapeWordHtml(spans[spans.length - 1]?.textContent?.trim() || item.textContent?.trim() || "");
-          itemsHtml += `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000;">${num} ${text}</p>`;
+          const editTarget = item.querySelector(".pkpknl-edit") || spans[spans.length - 1] || item;
+          const text = sanitizeWordFragment(editTarget).trim();
+          itemsHtml += `<p style="margin: 0 0 3pt 0; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000;">${num} ${text}</p>`;
         });
       }
       tembusanHtml = `
-        <p style="margin: 0 0 4pt 0; font-weight: normal; font-family: Arial, sans-serif; font-size: 10pt; color: #000;">${title}</p>
+        <p style="margin: 0 0 4pt 0; font-weight: normal; font-family: Arial, sans-serif; font-size: 11pt; color: #000;">${title}</p>
         ${itemsHtml}
       `;
       tembusanEl.remove();
@@ -562,7 +568,7 @@ function transformCloneForWord(clone: HTMLElement): void {
 
     // Tembusan ditempatkan di BAWAH tanda tangan rata kiri sesuai tata naskah dinas resmi
     const tembusanBlockHtml = tembusanHtml && tembusanHtml !== "&nbsp;"
-      ? `<div style="margin-top: 24pt; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.4; text-align: left;">${tembusanHtml}</div>`
+      ? `<div style="margin-top: 24pt; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; text-align: left;">${tembusanHtml}</div>`
       : "";
 
     const penutupTtdGroup = clone.querySelector(".penutup-ttd-group");
