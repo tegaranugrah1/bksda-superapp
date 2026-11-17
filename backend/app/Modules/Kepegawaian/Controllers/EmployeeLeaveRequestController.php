@@ -1211,12 +1211,11 @@ class EmployeeLeaveRequestController extends Controller
         if ($sisaN1 > 0) {
             $years[] = "tahun " . ($currentN - 1);
         }
-
-        if (empty($years)) {
-            return null;
-        }
-
         $years[] = "tahun " . $currentN;
+
+        if (count($years) === 1) {
+            return "untuk " . $years[0];
+        }
         if (count($years) === 2) {
             return "untuk " . $years[0] . " dan " . $years[1];
         }

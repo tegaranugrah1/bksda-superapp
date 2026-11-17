@@ -1817,6 +1817,7 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         terbilangHari: "tiga",
         tanggalMulai: baseDate,
         tanggalSelesai: baseDate,
+        tahunCutiText: `untuk tahun ${new Date().getFullYear()}`,
         pegawai: {
           nama: "AGUS PURNOMO, S.Hut.",
           nip: "19850712 201012 1 002",
@@ -3261,11 +3262,18 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               const jenisCutiClean = (jenisCuti || "Tahunan").replace(/^Cuti\s+/i, "");
               const isTahunan = jenisCutiClean.toLowerCase().includes("tahunan");
               const tipeHari = isTahunan ? "hari kerja" : "hari kalender";
+              const fallbackTahunMatch = String(tanggalMulai || kotaTanggal || "").match(/(?:19|20)\d{2}/);
+              const displayTahunCutiText =
+                tahunCutiText !== undefined && tahunCutiText !== null
+                  ? tahunCutiText.trim()
+                  : isTahunan
+                    ? `untuk tahun ${fallbackTahunMatch ? fallbackTahunMatch[0] : new Date().getFullYear()}`
+                    : "";
 
               return (
                 <div className="surat-izin-cuti-body text-justify">
                   <p className="surat-izin-cuti-p">
-                    1. Diberikan Cuti {jenisCutiClean}{isTahunan && tahunCutiText ? ` ${tahunCutiText}` : ""} kepada {isPppk(pegawai || pegawaiDiterangkan) ? "Pegawai Pemerintah dengan Perjanjian Kerja" : "Pegawai Negeri Sipil"} :
+                    1. Diberikan Cuti {jenisCutiClean}{isTahunan && displayTahunCutiText ? ` ${displayTahunCutiText}` : ""} kepada {isPppk(pegawai || pegawaiDiterangkan) ? "Pegawai Pemerintah dengan Perjanjian Kerja" : "Pegawai Negeri Sipil"} :
                   </p>
 
                   <table className="surat-izin-cuti-table">

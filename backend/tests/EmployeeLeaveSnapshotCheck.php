@@ -143,7 +143,14 @@ try {
     $reqN0Only->update(['sisa_n1' => 0, 'sisa_n2' => 0]);
     $prevResp0 = $reqCtrl->previewSuratIzin($data2['id']);
     $prevData0 = json_decode($prevResp0->getContent(), true);
-    assert($prevData0['tahun_cuti_text'] === null, 'previewSuratIzin N only should be null');
+    $expectedYearText = 'untuk tahun ' . Carbon::parse($reqN0Only->tanggal_mulai)->year;
+    assert($prevData0['tahun_cuti_text'] === $expectedYearText, "previewSuratIzin N only should be \"{$expectedYearText}\"");
+
+    // 7b. Non-Tahunan should remain null
+    $reqN0Only->update(['jenis_cuti' => 'Cuti Sakit']);
+    $prevRespSakit = $reqCtrl->previewSuratIzin($data2['id']);
+    $prevDataSakit = json_decode($prevRespSakit->getContent(), true);
+    assert($prevDataSakit['tahun_cuti_text'] === null, 'previewSuratIzin non-annual should be null');
 
     // 8. Test CPNS 1-year tenure rule
     $cpns = Employee::firstOrCreate(

@@ -366,5 +366,33 @@ async function checkPhotoUpload() {
     if (expectedCount === 1) assert(updatedUsers[0].access_modules.includes('surat'));
   }
   console.log('PASS: ModuleSwitcher renders Persuratan for user/admin and AuthSync syncs fresh /user access_modules.');
+
+  // Guard against opaque outer DialogContent background box & double scrollbars behind .rounded-3xl modal cards.
+  const suratTugasCss = fs.readFileSync(path.join(__dirname, '../src/app/surat-tugas/surat-tugas.css'), 'utf8');
+  const kpgDialogSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/_components/KepegawaianDialog.tsx'), 'utf8');
+  const digitalCutiSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/cuti/_components/DigitalSuratIzinModal.tsx'), 'utf8');
+  const cutiModalsSrc = fs.readFileSync(path.join(__dirname, '../src/app/kepegawaian/cuti/_components/CutiModals.tsx'), 'utf8');
+  assert(
+    /:is\(\.st-ui,\s*\.kpg-ui,\s*\.psr-ui\)\[data-slot="dialog-content"\]:not\(:has\(>\s*\.rounded-3xl\)\)/.test(suratTugasCss),
+    'surat-tugas.css must not paint an opaque background behind self-card .rounded-3xl dialogs'
+  );
+  assert(
+    kpgDialogSrc.includes('[&:has(>.rounded-3xl)]:bg-transparent') &&
+      kpgDialogSrc.includes("[&:has(>.rounded-3xl[class*='overflow-'])]:overflow-hidden"),
+    'KepegawaianDialog must clear outer background and scrollbars when child manages a .rounded-3xl scrollable card'
+  );
+  assert(
+    digitalCutiSrc.includes('className="sm:max-w-4xl"') && !digitalCutiSrc.includes('max-h-[94vh]'),
+    'DigitalSuratIzinModal must match sm:max-w-4xl and avoid max-h-[94vh] overflow against KepegawaianDialog'
+  );
+  assert(
+    !cutiModalsSrc.includes('className="sm:max-w-3xl"') && !cutiModalsSrc.includes('className="sm:max-w-6xl"'),
+    'CutiModals outer KepegawaianDialog widths must match their inner card widths'
+  );
+  assert(
+    digitalCutiSrc.includes('`untuk ${years[0]}`'),
+    'DigitalSuratIzinModal must include single current year text ("untuk tahun YYYY") when N-1/N-2 are zero'
+  );
+  console.log('PASS: KepegawaianDialog and Cuti modals free of opaque outer box and double scrollbars.');
 }
 checkPhotoUpload().catch(error => { console.error(error); process.exitCode = 1; });

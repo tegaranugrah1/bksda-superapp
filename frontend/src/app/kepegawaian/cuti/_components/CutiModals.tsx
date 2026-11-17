@@ -356,9 +356,9 @@ export function PrintLeaveModal({ item, onClose }: PrintLeaveModalProps) {
   if (!item) return null;
 
   return (
-    <KepegawaianDialog title="Pratinjau formulir cuti" onClose={onClose} busy={false} className="sm:max-w-6xl">
-      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl max-w-4xl w-full mx-auto shadow-lg overflow-hidden flex flex-col">
-        <div className="p-4 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 dark:border-zinc-800">
+    <KepegawaianDialog title="Pratinjau formulir cuti" onClose={onClose} busy={false} className="sm:max-w-4xl">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl max-w-4xl w-full mx-auto shadow-lg overflow-hidden flex flex-col max-h-[92dvh]">
+        <div className="p-4 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 dark:border-zinc-800 shrink-0">
           <div className="flex items-center gap-2">
             <Printer className="w-5 h-5 text-[var(--ds-accent-fg)]" />
             <h3 className="text-sm font-bold">Verifikasi & Preview Formulir Cuti Resmi</h3>
@@ -384,7 +384,7 @@ export function PrintLeaveModal({ item, onClose }: PrintLeaveModalProps) {
           </div>
         </div>
 
-        <div role="region" aria-label="Dokumen formulir cuti, gulir horizontal untuk melihat seluruh halaman" tabIndex={0} className="p-6 bg-[var(--ds-surface-muted)] overflow-auto max-h-[85vh] focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]">
+        <div role="region" aria-label="Dokumen formulir cuti, gulir horizontal untuk melihat seluruh halaman" tabIndex={0} className="p-6 bg-[var(--ds-surface-muted)] overflow-auto min-h-0 flex-1 focus-visible:outline-2 focus-visible:outline-[var(--ds-accent-fg)]">
           <div className="flex w-max min-w-full justify-center">
           <div className="w-[210mm] shrink-0 bg-white text-black">
           <FormulirCutiPrint data={item} />
@@ -639,8 +639,8 @@ export function ApproveLeaveModal({
   const isRegenerate = mode === "regenerate" || !!item.surat_keluar_id;
 
   return (
-    <KepegawaianDialog title="Persetujuan cuti" onClose={onClose} busy={isPending} className="sm:max-w-3xl">
-      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
+    <KepegawaianDialog title="Persetujuan cuti" onClose={onClose} busy={isPending} className="sm:max-w-lg">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative space-y-4 max-h-[92dvh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
           <div className="flex items-center gap-3">
@@ -1069,7 +1069,7 @@ export function UploadScanModal({
 
   return (
     <KepegawaianDialog title="Unggah berkas cuti" onClose={onClose} busy={isBusy} className="sm:max-w-lg">
-      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative space-y-4 max-h-[92vh] overflow-y-auto">
+      <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-lg shadow-lg p-6 relative space-y-4 max-h-[92dvh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center">

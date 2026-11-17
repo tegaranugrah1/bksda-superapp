@@ -1555,7 +1555,7 @@ export default function UangMakanPage() {
       )}
       {/* Modal Peringatan Beda Periode Bulan saat Upload Bareng */}
       {mismatchedModal.open && (
-        <KepegawaianDialog title="Perbedaan periode berkas" onClose={() => setMismatchedModal({ open: false, message: '', groups: [] })} busy={false} className="sm:max-w-3xl">
+        <KepegawaianDialog title="Perbedaan periode berkas" onClose={() => setMismatchedModal({ open: false, message: '', groups: [] })} busy={false} className="sm:max-w-2xl">
           <div className="bg-[var(--ds-surface)] rounded-3xl max-w-2xl w-full p-6 shadow-lg border border-[var(--ds-status-danger-border)] space-y-4">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-lg bg-[var(--ds-status-danger-bg)] text-[var(--ds-status-danger-fg)] flex items-center justify-center shrink-0 border border-[var(--ds-status-danger-border)]">

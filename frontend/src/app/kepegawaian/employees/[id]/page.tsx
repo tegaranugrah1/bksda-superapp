@@ -1760,7 +1760,7 @@ export default function EmployeeDetailPage() {
 
       {/* Reset Password Dialog */}
       {resetDialogOpen && (
-        <KepegawaianDialog title="Reset password pegawai" onClose={() => setResetDialogOpen(false)} busy={resetting} className="sm:max-w-md">
+        <KepegawaianDialog title="Reset password pegawai" onClose={() => setResetDialogOpen(false)} busy={resetting} className="sm:max-w-sm">
           <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-6 w-full max-w-sm shadow-lg space-y-4">
             <h3 className="text-xl font-bold text-[var(--ds-fg)]">Reset Password</h3>
             <p className="text-xs text-[var(--ds-fg-muted)]">

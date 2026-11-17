@@ -117,7 +117,7 @@
   border-color: var(--ds-accent-fg);
 }
 :is(.st-ui, .kpg-ui, .psr-ui) input[type="file"]:disabled + .st-upload { cursor: default; background: var(--ds-disabled-bg); }
-:is(.st-ui, .kpg-ui, .psr-ui)[data-slot="dialog-content"] { background: var(--ds-surface); color: var(--ds-fg); border-color: var(--ds-border-subtle); backdrop-filter: none; }
+:is(.st-ui, .kpg-ui, .psr-ui)[data-slot="dialog-content"]:not(:has(> .rounded-3xl)) { background: var(--ds-surface); color: var(--ds-fg); border-color: var(--ds-border-subtle); backdrop-filter: none; }
 :is(.st-ui, .kpg-ui, .psr-ui):is([data-slot="dialog-content"], [data-slot="dropdown-menu-content"])[data-state="open"] { animation: st-fade-in 150ms ease-out both; }
 :is(.st-ui, .kpg-ui, .psr-ui):is([data-slot="dialog-content"], [data-slot="dropdown-menu-content"])[data-state="closed"] { animation: st-fade-out 150ms ease-in both; }
 :is(.st-ui, .kpg-ui, .psr-ui) [data-slot="dialog-title"] { color: var(--ds-fg); }

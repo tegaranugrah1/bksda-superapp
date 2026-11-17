@@ -33,21 +33,23 @@ export function DigitalSuratIzinModal({
   const payload = item.surat_keluar?.document_payload;
   const nomorSurat = item.nomor_pengajuan || item.surat_keluar?.no_surat || "SI..../K.18/TU/PEG.11.01/B/...";
 
-  // Resolve tahun cuti text if Cuti Tahunan has N-1 / N-2
+  // Resolve tahun cuti text for Cuti Tahunan (tahun berjalan + akumulasi N-1 / N-2)
   let resolvedTahunCutiText = payload?.tahunCutiText || null;
-  if (!resolvedTahunCutiText && item.jenis_cuti?.toLowerCase().includes("tahunan") && item.tanggal_mulai) {
-    const curYear = new Date(item.tanggal_mulai).getFullYear();
+  if (!resolvedTahunCutiText && item.jenis_cuti?.toLowerCase().includes("tahunan")) {
+    const yearMatch = String(item.tanggal_mulai || payload?.tanggalMulai || item.tanggal_pengajuan || "").match(/(?:19|20)\d{2}/);
+    const curYear = yearMatch ? Number(yearMatch[0]) : new Date().getFullYear();
     const s1 = (item.sisa_n1 || 0) > 0;
     const s2 = (item.sisa_n2 || 0) > 0;
     const years: string[] = [];
     if (s2) years.push(`tahun ${curYear - 2}`);
     if (s1) years.push(`tahun ${curYear - 1}`);
-    if (years.length > 0) {
-      years.push(`tahun ${curYear}`);
-      resolvedTahunCutiText = years.length === 2
+    years.push(`tahun ${curYear}`);
+    resolvedTahunCutiText =
+      years.length === 1
+        ? `untuk ${years[0]}`
+        : years.length === 2
         ? `untuk ${years[0]} dan ${years[1]}`
         : `untuk ${years.slice(0, -1).join(", ")} dan ${years[years.length - 1]}`;
-    }
   }
 
   const docData: SuratDinasData = {
@@ -75,8 +77,8 @@ export function DigitalSuratIzinModal({
   };
 
   return (
-    <KepegawaianDialog title="Pratinjau surat izin cuti" onClose={onClose} busy={false} className="sm:max-w-5xl">
-      <div className="bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-4xl shadow-lg overflow-hidden flex flex-col max-h-[94vh]">
+    <KepegawaianDialog title="Pratinjau surat izin cuti" onClose={onClose} busy={false} className="sm:max-w-4xl">
+      <div className="bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl w-full max-w-4xl shadow-lg overflow-hidden flex flex-col max-h-[92dvh]">
         {/* Header Toolbar */}
         <div className="p-4 bg-[var(--ds-surface)] text-[var(--ds-fg)] flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/70 dark:border-zinc-800 shrink-0">
           <div className="flex min-w-0 items-center gap-3">

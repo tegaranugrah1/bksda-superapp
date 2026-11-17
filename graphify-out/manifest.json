@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Controllers/EmployeeLeaveRequestController.php": {
-    "mtime": 1794868991.293315,
-    "ast_hash": "ce47064f4dc909339d7ec8762c9678b8",
+    "mtime": 1794902159.1330276,
+    "ast_hash": "7a1760ab5d82111de1a827672b898728",
     "semantic_hash": ""
   },
   "backend/app/Modules/Kepegawaian/Models/Employee.php": {
@@ -2120,8 +2120,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/[id]/page.tsx": {
-    "mtime": 1794869206.4347272,
-    "ast_hash": "18bcfedd73e8e6e28b2ff09496799c5b",
+    "mtime": 1794901529.5219789,
+    "ast_hash": "c7762fbd5c57ed98688bd2c9635e9ac9",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/employees/create/page.tsx": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1794893773.674743,
-    "ast_hash": "3d610faa59ee2a0afac3a01288213258",
+    "mtime": 1794901209.1982062,
+    "ast_hash": "906eb0dd42d1ee162536d0694112318e",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4090,8 +4090,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1794893768.892068,
-    "ast_hash": "90412f93354b02bc4c2f035ec9a7d6b0",
+    "mtime": 1794901203.2135332,
+    "ast_hash": "be25650cd40789b94aa2026c388ffa52",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5205,8 +5205,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/_components/CutiModals.tsx": {
-    "mtime": 1794868200.8401165,
-    "ast_hash": "838b25d831331035382b49a5882421cb",
+    "mtime": 1794901526.7243347,
+    "ast_hash": "be3f55e863a0283708474426e993d36d",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyAssetsTab.tsx": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1794893766.898531,
-    "ast_hash": "84b398de53e2dfac8aad23d74795a7e7",
+    "mtime": 1794901200.5723648,
+    "ast_hash": "bb534a79e94a3136d75bc4466b236d0f",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -6085,8 +6085,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/SuratDinasDocument.tsx": {
-    "mtime": 1794899243.7981431,
-    "ast_hash": "a0371ced1ba97c2eac0c414be479c76e",
+    "mtime": 1794902165.1069472,
+    "ast_hash": "f38ae1a5a97a55bbe82f24d8abdd0add",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
@@ -6555,8 +6555,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/_components/ScanViewerModal.tsx": {
-    "mtime": 1794831121.9996293,
-    "ast_hash": "67d56b79b4d772599ab7f8dfcbe3a1f4",
+    "mtime": 1794901528.0579362,
+    "ast_hash": "204dff0f230bcb344d4d226fbba2cbc6",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_10_21_000005_add_two_scans_to_kpg_employee_leave_requests.php": {
@@ -6595,8 +6595,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/cuti/_components/DigitalSuratIzinModal.tsx": {
-    "mtime": 1794831119.9061544,
-    "ast_hash": "a6bd30feadeb0f97ecea80519acecf3f",
+    "mtime": 1794902161.0109098,
+    "ast_hash": "f03889a5ad741c51fa828824faddffcf",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/settings/page.tsx": {
@@ -7475,8 +7475,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/uang-makan/page.tsx": {
-    "mtime": 1794833318.3612425,
-    "ast_hash": "67241da773861ef9b7c2b34c6c9174c3",
+    "mtime": 1794901531.561977,
+    "ast_hash": "dd54c22f4f9e99d55720b2cef9715bd6",
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-uang-makan.playwright.cjs": {
@@ -8685,8 +8685,8 @@
     "semantic_hash": ""
   },
   "backend/tests/EmployeeLeaveSnapshotCheck.php": {
-    "mtime": 1794869515.6408262,
-    "ast_hash": "a435c5544b40a0c313e2e05ac385982a",
+    "mtime": 1794902168.089386,
+    "ast_hash": "b89f7b9307d27156b9d0c9c3a8457650",
     "semantic_hash": ""
   },
   "backend/database/migrations/2026_11_09_140000_make_nama_bank_nullable_in_kpg_employees.php": {
@@ -8750,8 +8750,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_components/KepegawaianDialog.tsx": {
-    "mtime": 1794404141.4379375,
-    "ast_hash": "92287b503683d96d00f79482a34cabd1",
+    "mtime": 1794901518.5961103,
+    "ast_hash": "eb3f6ca62884fbe29e333bcd704ac7cc",
     "semantic_hash": ""
   },
   "frontend/src/app/kepegawaian/_components/KepegawaianTabContent.tsx": {
@@ -8800,8 +8800,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/kepegawaian-ui.cjs": {
-    "mtime": 1794795805.936082,
-    "ast_hash": "6ce6a2b647a346922a19852f9c2afdad",
+    "mtime": 1794902170.4518738,
+    "ast_hash": "6a994783628d9b3459c7ca1bd35855fd",
     "semantic_hash": ""
   },
   "docs/DESIGN_SYSTEM_COLORS.md": {

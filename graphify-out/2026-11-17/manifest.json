@@ -6090,8 +6090,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/surat/keluar/dinas/page.tsx": {
-    "mtime": 1794898939.1535532,
-    "ast_hash": "8b197d071195996c26cd4f049208af1a",
+    "mtime": 1794900066.7052593,
+    "ast_hash": "f37a861cc9e7f46cb9a8bb06a7f8cc82",
     "semantic_hash": ""
   },
   "tatanaskahdinas.md": {
@@ -9025,8 +9025,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/rincian-blok-check.cjs": {
-    "mtime": 1794899130.5913892,
-    "ast_hash": "31bdb5c52b8ebf04698b16492e2bd2d5",
+    "mtime": 1794900129.3071702,
+    "ast_hash": "553edd5411e3e07533dde8834ccd5d95",
     "semantic_hash": ""
   },
   "frontend/src/app/surat/_components/TabelBlockEditor.tsx": {

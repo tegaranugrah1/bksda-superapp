@@ -230,7 +230,7 @@ export function ScanViewerModal({
             event.preventDefault();
             returnFocusRef.current.focus();
           }}
-          className={`${contentModule === "kepegawaian" ? "kpg-ui" : "st-ui"} w-[calc(100%-2rem)] max-w-4xl gap-0 border-0 p-0 sm:max-w-4xl`}
+          className={`${contentModule === "kepegawaian" ? "kpg-ui" : "st-ui"} w-[calc(100%-2rem)] max-w-4xl gap-0 border-0 p-0 sm:max-w-4xl bg-transparent shadow-none ring-0 rounded-3xl overflow-hidden`}
         >
           {viewer}
         </DialogContent>
