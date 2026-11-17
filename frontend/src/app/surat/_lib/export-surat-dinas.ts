@@ -357,6 +357,49 @@ function transformCloneForWord(clone: HTMLElement): void {
     p.replaceWith(table);
   });
 
+  // 4b. Transformasi Blok Rincian / Jadwal (.pkpknl-rincian-wrap) menjadi tabel Word 4-kolom rapi (spacer | label | : | value)
+  const rincianIndents: Record<string, string> = {
+    "0": "24pt",
+    "1": "18pt",
+    "2": "32pt",
+    "3": "46pt",
+    "4": "60pt",
+  };
+  const rincianBlocks = Array.from(clone.querySelectorAll(".pkpknl-rincian-wrap"));
+  rincianBlocks.forEach((wrap) => {
+    const indentLvl = wrap.getAttribute("data-indent-level") || "0";
+    const leftIndent = rincianIndents[indentLvl] || "24pt";
+    const rows = Array.from(wrap.querySelectorAll("tr"));
+    if (rows.length === 0) return;
+
+    const table = document.createElement("table");
+    table.setAttribute(
+      "style",
+      "width: 100%; border: none; border-collapse: collapse; margin: 2pt 0 6pt 0; table-layout: fixed;"
+    );
+
+    const cellBase =
+      "vertical-align: top; font-family: Arial, sans-serif; font-size: 11pt; line-height: 135%; color: #000; border: none;";
+    let rowsHtml = "";
+    rows.forEach((tr) => {
+      const labelEl = tr.querySelector(".pkpknl-rincian-label");
+      const valEl = tr.querySelector(".pkpknl-rincian-value");
+      const label = escapeWordHtml(labelEl?.textContent?.trim() || "");
+      const val = sanitizeWordFragment(valEl);
+      rowsHtml += `
+        <tr style="border: none;">
+          <td style="width: ${leftIndent}; padding: 0; border: none;">&nbsp;</td>
+          <td style="width: 2.8cm; padding: 1.5pt 4pt 1.5pt 0; text-align: left; ${cellBase}">${label}</td>
+          <td style="width: 0.4cm; padding: 1.5pt 0; text-align: center; ${cellBase}">:</td>
+          <td style="padding: 1.5pt 0 1.5pt 3pt; text-align: left; ${cellBase}">${val}</td>
+        </tr>
+      `;
+    });
+
+    table.innerHTML = rowsHtml;
+    wrap.replaceWith(table);
+  });
+
   // 5. Transformasi Paragraf Biasa (.pkpknl-body p yang bukan .poin-item)
   const normalParas = Array.from(clone.querySelectorAll(".pkpknl-body p"));
   normalParas.forEach((p, idx) => {

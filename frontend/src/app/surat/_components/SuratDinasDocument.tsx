@@ -53,6 +53,41 @@ export interface PersonItem {
   partyType?: "internal" | "external";
 }
 
+export interface ParagrafRincianRow {
+  label: string;
+  value: string;
+}
+
+export interface ParagrafRincianBlock {
+  type: "rincian";
+  items: ParagrafRincianRow[];
+}
+
+export type ParagrafItem = string | ParagrafRincianBlock;
+
+export function isRincianBlock(item: ParagrafItem | unknown): item is ParagrafRincianBlock {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    (item as ParagrafRincianBlock).type === "rincian" &&
+    Array.isArray((item as ParagrafRincianBlock).items)
+  );
+}
+
+export function createDefaultRincianBlock(items?: ParagrafRincianRow[]): ParagrafRincianBlock {
+  return {
+    type: "rincian",
+    items:
+      items && items.length > 0
+        ? items.map((row) => ({ label: row.label, value: row.value }))
+        : [
+            { label: "Hari/Tanggal", value: "" },
+            { label: "Tempat", value: "" },
+            { label: "Agenda", value: "" },
+          ],
+  };
+}
+
 export interface SuratDinasData {
   templateType?: TemplateType;
   nomor: string;
@@ -149,7 +184,7 @@ export interface SuratDinasData {
   atasPeran?: string;
 
   // Common Paragraf & TTD
-  paragraf: string[];
+  paragraf: ParagrafItem[];
   jabatanPenandatangan: string;
   namaPenandatangan: string;
   nipPenandatangan: string;
@@ -204,7 +239,8 @@ export type PointLevel = 0 | 1 | 2 | 3 | 4;
  * Level 3: Sub-sub-poin Romawi kecil (i., ii., iii., iv., dst.) ATAU angka kurung (1), 2), 3), dst.)
  * Level 4: Sub-butir huruf kurung (a), b), c), dst.)
  */
-export function detectPointLevel(text: string): PointLevel {
+export function detectPointLevel(text: ParagrafItem): PointLevel {
+  if (typeof text !== "string") return 0;
   const trimmed = text.trim();
   if (!trimmed) return 0;
 
@@ -239,22 +275,58 @@ export function getPointLevelClassName(level: PointLevel): string {
   }
 }
 
+const KNOWN_RINCIAN_LABEL_RE =
+  /^(?:hari\s*\/\s*tanggal|hari\s*,\s*tanggal|hari|tanggal|waktu|pukul|tempat|lokasi|agenda|acara|kegiatan|pakaian|dress\s*code|narahubung|contact\s*person|link|tautan|meeting\s*id|passcode|catatan|keterangan)$/i;
+
 /**
  * Smart Parser untuk memecah teks mentah salin-tempel naskah dinas menjadi array paragraf bertingkat
+ * dan blok Rincian/Jadwal (Hari/Tanggal, Tempat, Agenda, dll.).
  */
-export function parseRawDocumentText(rawText: string): string[] {
+export function parseRawDocumentText(rawText: string): ParagrafItem[] {
   if (!rawText || !rawText.trim()) return [];
   const rawLines = rawText.split(/\r?\n/).map((l) => l.trim());
-  const paragraphs: string[] = [];
+  const paragraphs: ParagrafItem[] = [];
   let currentBuffer = "";
+  let rincianBuffer: ParagrafRincianRow[] = [];
 
-  for (const line of rawLines) {
-    if (!line) {
-      if (currentBuffer) {
-        paragraphs.push(currentBuffer.trim());
-        currentBuffer = "";
+  const flushText = () => {
+    if (currentBuffer) {
+      paragraphs.push(currentBuffer.trim());
+      currentBuffer = "";
+    }
+  };
+
+  const flushRincian = () => {
+    if (rincianBuffer.length > 0) {
+      const prev = paragraphs[paragraphs.length - 1];
+      if (isRincianBlock(prev)) {
+        prev.items.push(...rincianBuffer);
+      } else {
+        paragraphs.push({ type: "rincian", items: rincianBuffer });
       }
+      rincianBuffer = [];
+    }
+  };
+
+  for (let i = 0; i < rawLines.length; i++) {
+    let line = rawLines[i];
+    if (!line) {
+      flushText();
+      flushRincian();
       continue;
+    }
+
+    // Gabungkan pola salin-tempel Word/PDF ketika label dan ": nilai" terpisah baris ("Tempat\n: Ruang...")
+    const nextLine = rawLines[i + 1];
+    if (
+      nextLine &&
+      nextLine.startsWith(":") &&
+      line.length <= 28 &&
+      !/[.!?;:]/.test(line) &&
+      line.split(/\s+/).length <= 4
+    ) {
+      line = `${line} ${nextLine}`;
+      i++;
     }
 
     const isNewPoint =
@@ -263,23 +335,43 @@ export function parseRawDocumentText(rawText: string): string[] {
       /^[a-z]\.\s/i.test(line) ||
       /^[0-9]+\)\s/.test(line) ||
       /^[a-z]\)\s/i.test(line) ||
-      /^(?:Demikian)\b/i.test(line);
+      /^(?:Demikian|Atas perhatian|Wassalamu|Hormat kami)\b/i.test(line);
 
-    if (isNewPoint && currentBuffer) {
-      paragraphs.push(currentBuffer.trim());
+    if (isNewPoint) {
+      flushRincian();
+      flushText();
       currentBuffer = line;
-    } else {
-      if (currentBuffer) {
-        currentBuffer += " " + line;
-      } else {
-        currentBuffer = line;
+      continue;
+    }
+
+    const kvMatch = line.match(/^([^:\r\n]{2,28}?)\s*:\s*(.*)$/);
+    if (kvMatch) {
+      const label = kvMatch[1].trim();
+      const value = kvMatch[2].trim();
+      const isShortLabel =
+        label.split(/\s+/).length <= 4 &&
+        !/[.!?;]/.test(label) &&
+        !/^(?:nomor|hal|perihal|sifat|lampiran)$/i.test(label);
+
+      if (KNOWN_RINCIAN_LABEL_RE.test(label) || (rincianBuffer.length > 0 && isShortLabel)) {
+        flushText();
+        rincianBuffer.push({ label, value });
+        continue;
       }
+    }
+
+    if (rincianBuffer.length > 0) {
+      const lastRow = rincianBuffer[rincianBuffer.length - 1];
+      lastRow.value = lastRow.value ? `${lastRow.value}\n${line}` : line;
+    } else if (currentBuffer) {
+      currentBuffer += " " + line;
+    } else {
+      currentBuffer = line;
     }
   }
 
-  if (currentBuffer) {
-    paragraphs.push(currentBuffer.trim());
-  }
+  flushText();
+  flushRincian();
 
   return paragraphs;
 }
@@ -298,6 +390,21 @@ export function splitPointMarkerAndText(text: string): { marker: string; content
   return { marker: "", content: text };
 }
 
+function findLastSubParentIndex(preceding: ParagrafItem[]): number {
+  for (let i = preceding.length - 1; i >= 0; i--) {
+    const item = preceding[i];
+    if (typeof item !== "string") continue;
+    const trimmed = item.trim();
+    if (
+      (/^[a-z]\.(?:\s|$)/i.test(trimmed) && !/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(trimmed)) ||
+      /^[0-9]+\.(?:\s|$)/.test(trimmed)
+    ) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 /**
  * Menghitung penanda butir berikutnya yang tepat sesuai hierarki tata naskah dinas:
  * - Level 1 ('num'): Berurutan global (1., 2., 3., dst.)
@@ -306,7 +413,7 @@ export function splitPointMarkerAndText(text: string): { marker: string; content
  * - Level 3 ('bracket'): Berurutan dalam scope Level 2 saat ini (1), 2), 3), dst.), SELALU diulang dari '1)' setiap di bawah sub-poin baru
  */
 export function getNextMarkerForSection(
-  paragraphs: string[],
+  paragraphs: ParagrafItem[],
   insertIndex: number,
   type: "num" | "letter" | "roman" | "bracket"
 ): string {
@@ -318,6 +425,7 @@ export function getNextMarkerForSection(
   if (type === "num") {
     let maxNum = 0;
     for (const p of preceding) {
+      if (typeof p !== "string") continue;
       const m = p.trim().match(/^([0-9]+)\.(?:\s|$)/);
       if (m) {
         const n = parseInt(m[1], 10);
@@ -328,21 +436,20 @@ export function getNextMarkerForSection(
   }
 
   if (type === "letter") {
-    // Cari titik Level 1 terakhir sebelum posisi ini
     let lastLevel1Idx = -1;
     for (let i = preceding.length - 1; i >= 0; i--) {
-      if (/^[0-9]+\.(?:\s|$)/.test(preceding[i].trim())) {
+      const item = preceding[i];
+      if (typeof item === "string" && /^[0-9]+\.(?:\s|$)/.test(item.trim())) {
         lastLevel1Idx = i;
         break;
       }
     }
 
-    // Hitung huruf HANYA dalam scope Level 1 saat ini
     const scope = lastLevel1Idx >= 0 ? preceding.slice(lastLevel1Idx + 1) : preceding;
     let letterCount = 0;
     for (const p of scope) {
+      if (typeof p !== "string") continue;
       const trimmed = p.trim();
-      // Pastikan Level 2 huruf murni dan bukan romawi 'i.'
       if (/^[a-z]\.(?:\s|$)/i.test(trimmed) && !/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(trimmed)) {
         letterCount++;
       }
@@ -352,25 +459,13 @@ export function getNextMarkerForSection(
     return `${nextChar}. `;
   }
 
-  if (type === "roman") {
-    // Cari sub-poin huruf (Level 2) atau poin utama (Level 1) terakhir sebelum posisi ini
-    let lastParentIdx = -1;
-    for (let i = preceding.length - 1; i >= 0; i--) {
-      const trimmed = preceding[i].trim();
-      if (
-        (/^[a-z]\.(?:\s|$)/i.test(trimmed) && !/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(trimmed)) ||
-        /^[0-9]+\.(?:\s|$)/.test(trimmed)
-      ) {
-        lastParentIdx = i;
-        break;
-      }
-    }
+  const lastParentIdx = findLastSubParentIndex(preceding);
+  const scope = lastParentIdx >= 0 ? preceding.slice(lastParentIdx + 1) : preceding;
 
-    // Hitung romawi HANYA dalam scope parent sub-poin saat ini
-    const scope = lastParentIdx >= 0 ? preceding.slice(lastParentIdx + 1) : preceding;
+  if (type === "roman") {
     let romanCount = 0;
     for (const p of scope) {
-      if (/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(p.trim())) {
+      if (typeof p === "string" && /^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(p.trim())) {
         romanCount++;
       }
     }
@@ -380,24 +475,9 @@ export function getNextMarkerForSection(
   }
 
   if (type === "bracket") {
-    // Cari sub-poin huruf (Level 2) atau poin utama (Level 1) terakhir sebelum posisi ini
-    let lastParentIdx = -1;
-    for (let i = preceding.length - 1; i >= 0; i--) {
-      const trimmed = preceding[i].trim();
-      if (
-        (/^[a-z]\.(?:\s|$)/i.test(trimmed) && !/^(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.(?:\s|$)/i.test(trimmed)) ||
-        /^[0-9]+\.(?:\s|$)/.test(trimmed)
-      ) {
-        lastParentIdx = i;
-        break;
-      }
-    }
-
-    // Hitung kurung HANYA dalam scope parent sub-poin saat ini
-    const scope = lastParentIdx >= 0 ? preceding.slice(lastParentIdx + 1) : preceding;
     let bracketCount = 0;
     for (const p of scope) {
-      if (/^[0-9]+\)(?:\s|$)/.test(p.trim())) {
+      if (typeof p === "string" && /^[0-9]+\)(?:\s|$)/.test(p.trim())) {
         bracketCount++;
       }
     }
@@ -417,7 +497,7 @@ export function getNextMarkerForSection(
  * Level 3 Kurung: 1), 2), 3), dst. (berurutan di dalam scope Level 2 saat ini, reset dari '1)')
  * Level 4: a), b), c), dst. (berurutan di dalam scope Level 3 saat ini)
  */
-export function reindexParagraphMarkers(paragraphs: string[]): string[] {
+export function reindexParagraphMarkers(paragraphs: ParagrafItem[]): ParagrafItem[] {
   let currentNum = 0;
   let currentLetterIdx = 0;
   let currentRomanIdx = 0;
@@ -427,6 +507,7 @@ export function reindexParagraphMarkers(paragraphs: string[]): string[] {
   const romans = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii", "xiii", "xiv", "xv"];
 
   return paragraphs.map((p) => {
+    if (typeof p !== "string") return p;
     const lvl = detectPointLevel(p);
     if (lvl === 0) return p;
 
@@ -549,6 +630,31 @@ export const DEFAULT_SURAT_DINAS_DATA: SuratDinasData = {
   ],
 };
 
+export function migrateLegacyUndanganPayload(data: SuratDinasData): SuratDinasData {
+  if (data.templateType !== "undangan") return data;
+  const list = Array.isArray(data.paragraf) ? data.paragraf : [];
+  if (list.some(isRincianBlock)) return data;
+
+  const legacyRows: ParagrafRincianRow[] = [];
+  if (data.acaraHariTanggal?.trim()) legacyRows.push({ label: "Hari/Tanggal", value: data.acaraHariTanggal.trim() });
+  if (data.acaraWaktu?.trim()) legacyRows.push({ label: "Waktu", value: data.acaraWaktu.trim() });
+  if (data.acaraTempat?.trim()) legacyRows.push({ label: "Tempat", value: data.acaraTempat.trim() });
+  if (data.acaraNama?.trim()) legacyRows.push({ label: "Agenda", value: data.acaraNama.trim() });
+  if (legacyRows.length === 0) return data;
+
+  const insertAt = list.length > 0 ? 1 : 0;
+  const nextList = [...list];
+  nextList.splice(insertAt, 0, createDefaultRincianBlock(legacyRows));
+  return {
+    ...data,
+    paragraf: nextList,
+    acaraHariTanggal: undefined,
+    acaraWaktu: undefined,
+    acaraTempat: undefined,
+    acaraNama: undefined,
+  };
+}
+
 export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
   const baseDate = getTodayIndoDate();
   const nomor = getDefaultNomorForTemplate(type);
@@ -595,12 +701,14 @@ export function getDefaultDataForTemplate(type: TemplateType): SuratDinasData {
         tujuanDi: "Samarinda",
         paragraf: [
           "Dalam rangka evaluasi penanganan mitigasi interaksi negatif manusia dan satwa liar serta penyusunan rencana aksi pengamanan kawasan konservasi terpadu menjelang akhir tahun anggaran 2026, dengan hormat mengharap kehadiran Saudara pada rapat koordinasi yang akan dilaksanakan pada:",
+          createDefaultRincianBlock([
+            { label: "Hari/Tanggal", value: "Senin, 05 Oktober 2026" },
+            { label: "Waktu", value: "09.00 WITA s.d. Selesai" },
+            { label: "Tempat", value: "Ruang Rapat Cendrawasih Balai KSDA Kaltim, Jl. Teuku Umar No. 53 Samarinda" },
+            { label: "Agenda", value: "Rapat Koordinasi Penanganan Konflik Satwa Liar dan Pengamanan Kawasan Konservasi" },
+          ]),
           "Mengingat pentingnya agenda rapat ini, dimohon kehadiran tepat waktu dan tidak diwakilkan. Atas perhatian dan kerjasamanya kami ucapkan terima kasih.",
         ],
-        acaraHariTanggal: "Senin, 05 Oktober 2026",
-        acaraWaktu: "09.00 WITA s.d. Selesai",
-        acaraTempat: "Ruang Rapat Cendrawasih Balai KSDA Kaltim, Jl. Teuku Umar No. 53 Samarinda",
-        acaraNama: "Rapat Koordinasi Penanganan Konflik Satwa Liar dan Pengamanan Kawasan Konservasi",
         jabatanPenandatangan: "Kepala Balai,",
         namaPenandatangan: "M. ARI WIBAWANTO, S.Hut., M.Sc.",
         nipPenandatangan: "19740514 199903 1 001",
@@ -1235,6 +1343,41 @@ export const SURAT_DINAS_BASE_CSS = `
   .pkpknl-body p.poin-level-4 .poin-marker {
     width: 1.1rem !important;
   }
+
+  /* Blok Rincian / Jadwal (Hari/Tanggal, Tempat, Agenda, dll.) di dalam Batang Tubuh */
+  .pkpknl-rincian-wrap {
+    margin: 0.25rem 0 0.55rem 2.5em;
+  }
+  .pkpknl-rincian-wrap.rincian-indent-1 { margin-left: 1.35rem; }
+  .pkpknl-rincian-wrap.rincian-indent-2 { margin-left: 2.45rem; }
+  .pkpknl-rincian-wrap.rincian-indent-3 { margin-left: 3.55rem; }
+  .pkpknl-rincian-wrap.rincian-indent-4 { margin-left: 4.65rem; }
+  .pkpknl-rincian-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .pkpknl-rincian-table td {
+    vertical-align: top;
+    padding: 1.5px 0;
+    font-size: 11pt;
+    line-height: 1.35;
+    text-align: left;
+  }
+  .pkpknl-rincian-label {
+    width: 28mm;
+    padding-right: 4px !important;
+    white-space: nowrap;
+  }
+  .pkpknl-rincian-colon {
+    width: 4mm;
+    text-align: center !important;
+  }
+  .pkpknl-rincian-value {
+    padding-left: 4px !important;
+    white-space: pre-line;
+    word-break: break-word;
+  }
   .pkpknl-footer-bsre {
     margin-top: 2rem;
     padding-top: 0.5rem;
@@ -1426,6 +1569,97 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
       : "";
 
   const cleanTujuanDi = (tujuanDi || "Kutai Barat").replace(/^di\s*[-–—]?\s*/i, "") || "Kutai Barat";
+  const hasLegacyUndanganAcara =
+    currentTemplate === "undangan" &&
+    !(paragraf || []).some(isRincianBlock) &&
+    Boolean(acaraHariTanggal || acaraWaktu || acaraTempat || acaraNama);
+
+  const renderParagrafItem = (item: ParagrafItem, idx: number) => {
+    if (isRincianBlock(item)) {
+      const prevLvl = idx > 0 ? detectPointLevel(paragraf[idx - 1]) : 0;
+      const updateRow = (rIdx: number, field: "label" | "value", val: string) => {
+        const next = [...(paragraf || [])];
+        const cur = next[idx];
+        if (!isRincianBlock(cur)) return;
+        next[idx] = {
+          ...cur,
+          items: cur.items.map((row, i) => (i === rIdx ? { ...row, [field]: val } : row)),
+        };
+        onUpdateField?.("paragraf", next);
+      };
+      return (
+        <div
+          key={idx}
+          className={`pkpknl-rincian-wrap${prevLvl > 0 ? ` rincian-indent-${prevLvl}` : ""}`}
+          data-indent-level={prevLvl}
+        >
+          <table className="pkpknl-rincian-table">
+            <tbody>
+              {item.items.map((row, rIdx) => (
+                <tr key={rIdx}>
+                  <td
+                    contentEditable
+                    suppressContentEditableWarning
+                    className="pkpknl-edit pkpknl-rincian-label"
+                    onBlur={(e) => updateRow(rIdx, "label", e.currentTarget.innerText)}
+                  >
+                    {row.label}
+                  </td>
+                  <td className="pkpknl-rincian-colon">:</td>
+                  <td
+                    contentEditable
+                    suppressContentEditableWarning
+                    className="pkpknl-edit pkpknl-rincian-value"
+                    onBlur={(e) => updateRow(rIdx, "value", e.currentTarget.innerText)}
+                  >
+                    {row.value}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    const pText = typeof item === "string" ? item : "";
+    const lvl = detectPointLevel(pText);
+    if (lvl > 0) {
+      const { marker, content } = splitPointMarkerAndText(pText);
+      const lvlClass = getPointLevelClassName(lvl);
+      return (
+        <p
+          key={idx}
+          contentEditable
+          suppressContentEditableWarning
+          className={`pkpknl-edit ${lvlClass}`}
+          onBlur={(e) => {
+            const newParas = [...paragraf];
+            newParas[idx] = e.currentTarget.innerText;
+            onUpdateField?.("paragraf", newParas);
+          }}
+        >
+          <span className="poin-marker">{marker}</span>
+          <span className="poin-content">{content}</span>
+        </p>
+      );
+    }
+    return (
+      <p
+        key={idx}
+        contentEditable
+        suppressContentEditableWarning
+        className="pkpknl-edit"
+        onBlur={(e) => {
+          const newParas = [...paragraf];
+          newParas[idx] = e.currentTarget.innerText;
+          onUpdateField?.("paragraf", newParas);
+        }}
+      >
+        {pText}
+      </p>
+    );
+  };
 
   return (
     <div
@@ -2175,7 +2409,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
               )}
             </div>
 
-            {currentTemplate === "undangan" && (
+            {hasLegacyUndanganAcara && (
               <div className="w-full my-3 pl-8 space-y-1 text-[11pt]">
                 <div className="flex"><span className="w-32 shrink-0">hari, tanggal</span><span className="w-4">:</span><span className="font-normal">{acaraHariTanggal}</span></div>
                 <div className="flex"><span className="w-32 shrink-0">waktu</span><span className="w-4">:</span><span>{acaraWaktu}</span></div>
@@ -2190,44 +2424,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
         {currentTemplate !== "surat_pengantar" && currentTemplate !== "surat_izin_cuti" && (
           <div className="pkpknl-body">
             {paragraf && paragraf.length > 1 ? (
-              paragraf.slice(0, -1).map((pText, idx) => {
-                const lvl = detectPointLevel(pText);
-                if (lvl > 0) {
-                  const { marker, content } = splitPointMarkerAndText(pText);
-                  const lvlClass = getPointLevelClassName(lvl);
-                  return (
-                    <p
-                      key={idx}
-                      contentEditable
-                      suppressContentEditableWarning
-                      className={`pkpknl-edit ${lvlClass}`}
-                      onBlur={(e) => {
-                        const newParas = [...paragraf];
-                        newParas[idx] = e.currentTarget.innerText;
-                        onUpdateField?.("paragraf", newParas);
-                      }}
-                    >
-                      <span className="poin-marker">{marker}</span>
-                      <span className="poin-content">{content}</span>
-                    </p>
-                  );
-                }
-                return (
-                  <p
-                    key={idx}
-                    contentEditable
-                    suppressContentEditableWarning
-                    className="pkpknl-edit"
-                    onBlur={(e) => {
-                      const newParas = [...paragraf];
-                      newParas[idx] = e.currentTarget.innerText;
-                      onUpdateField?.("paragraf", newParas);
-                    }}
-                  >
-                    {pText}
-                  </p>
-                );
-              })
+              paragraf.slice(0, -1).map((item, idx) => renderParagrafItem(item, idx))
             ) : (!paragraf || paragraf.length === 0) ? (
               <p className="text-slate-400 italic">Ketik isi naskah dinas di sini...</p>
             ) : null}
@@ -2239,43 +2436,7 @@ function SuratDinasDocumentComponent({ data, onUpdateField }: SuratDinasDocument
           <div data-break-candidate="penutup-ttd" className="penutup-ttd-group" style={{ display: "block", breakInside: "avoid", pageBreakInside: "avoid" }}>
             {paragraf && paragraf.length > 0 && currentTemplate !== "surat_izin_cuti" && (
               <div className="pkpknl-body">
-                {(() => {
-                  const lastP = paragraf[paragraf.length - 1];
-                  const lvl = detectPointLevel(lastP);
-                  if (lvl > 0) {
-                    const { marker, content } = splitPointMarkerAndText(lastP);
-                    const lvlClass = getPointLevelClassName(lvl);
-                    return (
-                      <p
-                        contentEditable
-                        suppressContentEditableWarning
-                        className={`pkpknl-edit ${lvlClass}`}
-                        onBlur={(e) => {
-                          const newParas = [...paragraf];
-                          newParas[newParas.length - 1] = e.currentTarget.innerText;
-                          onUpdateField?.("paragraf", newParas);
-                        }}
-                      >
-                        <span className="poin-marker">{marker}</span>
-                        <span className="poin-content">{content}</span>
-                      </p>
-                    );
-                  }
-                  return (
-                    <p
-                      contentEditable
-                      suppressContentEditableWarning
-                      className="pkpknl-edit"
-                      onBlur={(e) => {
-                        const newParas = [...paragraf];
-                        newParas[newParas.length - 1] = e.currentTarget.innerText;
-                        onUpdateField?.("paragraf", newParas);
-                      }}
-                    >
-                      {lastP}
-                    </p>
-                  );
-                })()}
+                {renderParagrafItem(paragraf[paragraf.length - 1], paragraf.length - 1)}
               </div>
             )}
 

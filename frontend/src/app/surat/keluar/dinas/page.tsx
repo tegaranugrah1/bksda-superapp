@@ -19,6 +19,8 @@ import {
   UserCheck,
   ListOrdered,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
   Sparkles,
   ChevronDown,
   UserRound,
@@ -48,6 +50,8 @@ import {
   SuratDinasData,
   PersonItem,
   TemplateType,
+  ParagrafItem,
+  ParagrafRincianRow,
   getDefaultDataForTemplate,
   getDefaultNomorForTemplate,
   getDefaultNomorPrefix,
@@ -60,9 +64,21 @@ import {
   parseRawDocumentText,
   getNextMarkerForSection,
   reindexParagraphMarkers,
+  isRincianBlock,
+  createDefaultRincianBlock,
+  migrateLegacyUndanganPayload,
 } from "../../_components/SuratDinasDocument";
 import { TemplatePickerModal, ALL_TEMPLATES } from "../../_components/TemplatePickerModal";
 import { exportSuratDinasWord, exportSuratDinasPdf } from "../../_lib/export-surat-dinas";
+
+const RINCIAN_QUICK_PRESETS = [
+  "Hari/Tanggal",
+  "Waktu",
+  "Tempat",
+  "Agenda",
+  "Pakaian",
+  "Narahubung",
+] as const;
 
 const LEVEL_SWITCH_CONTROLS: {
   level: "num" | "letter" | "roman" | "bracket" | "plain";
@@ -441,15 +457,18 @@ function GenerateSuratDinasContent() {
           if (item.document_payload) {
             const loadedTemplate = (item.document_payload.templateType || item.template_type || templateParam) as TemplateType;
             const defData = getDefaultDataForTemplate(loadedTemplate);
-            setData({
-              ...defData,
-              ...item.document_payload,
-              paragraf: Array.isArray(item.document_payload.paragraf) ? item.document_payload.paragraf : (defData.paragraf || []),
-              tembusan: Array.isArray(item.document_payload.tembusan) ? item.document_payload.tembusan : (defData.tembusan || []),
-              ythList: Array.isArray(item.document_payload.ythList)
-                ? item.document_payload.ythList
-                : parseYthList(item.document_payload.yth || defData.yth),
-            });
+            setData(
+              migrateLegacyUndanganPayload({
+                ...defData,
+                ...item.document_payload,
+                templateType: loadedTemplate,
+                paragraf: Array.isArray(item.document_payload.paragraf) ? item.document_payload.paragraf : (defData.paragraf || []),
+                tembusan: Array.isArray(item.document_payload.tembusan) ? item.document_payload.tembusan : (defData.tembusan || []),
+                ythList: Array.isArray(item.document_payload.ythList)
+                  ? item.document_payload.ythList
+                  : parseYthList(item.document_payload.yth || defData.yth),
+              })
+            );
           } else {
             const loadedTemplate = (item.template_type as TemplateType) || templateParam || "surat_dinas";
             const defData = getDefaultDataForTemplate(loadedTemplate);
@@ -515,33 +534,44 @@ function GenerateSuratDinasContent() {
     toast.success(`Pejabat penandatangan dipilih: ${empName}`);
   };
 
+  const resolveInsertIndex = (list: ParagrafItem[], atIndex?: number) => {
+    if (atIndex !== undefined) return atIndex;
+    const lastItem = list[list.length - 1];
+    const endsWithClosingText =
+      typeof lastItem === "string" && detectPointLevel(lastItem) === 0 && list.length > 1;
+    return endsWithClosingText ? list.length - 1 : list.length;
+  };
+
   // Ponytail unified helper: Tambah / sisipkan butir dengan auto-scroll dan auto-focus
   const handleInsertPoint = (
-    type: "plain" | "num" | "letter" | "roman" | "bracket",
+    type: "plain" | "num" | "letter" | "roman" | "bracket" | "rincian",
     atIndex?: number
   ) => {
+    let resolvedIdx = atIndex ?? 0;
     setData((prev) => {
       const list = [...(prev.paragraf || [])];
-      let insertAt = atIndex;
-      if (insertAt === undefined) {
-        // Ponytail: Sisipkan di sebelum penutup jika paragraf terakhir adalah teks penutup biasa (Level 0)
-        const lastItem = list[list.length - 1] || "";
-        const lastLvl = detectPointLevel(lastItem);
-        insertAt = lastLvl === 0 && list.length > 1 ? list.length - 1 : list.length;
-      }
-      const marker = type === "plain" ? "" : getNextMarkerForSection(list, insertAt, type);
-      list.splice(insertAt, 0, marker);
+      const insertAt = resolveInsertIndex(list, atIndex);
+      resolvedIdx = insertAt;
+      const newItem =
+        type === "rincian"
+          ? createDefaultRincianBlock()
+          : type === "plain"
+          ? ""
+          : getNextMarkerForSection(list, insertAt, type);
+      list.splice(insertAt, 0, newItem);
       return { ...prev, paragraf: reindexParagraphMarkers(list) };
     });
     setTimeout(() => {
-      const textareas = document.querySelectorAll<HTMLTextAreaElement>(".paragraf-textarea");
-      const targetIdx = atIndex !== undefined ? atIndex : Math.max(0, textareas.length - 2);
-      const target = textareas[targetIdx];
+      const target = document.querySelector<HTMLTextAreaElement | HTMLInputElement>(
+        `[data-paragraf-focus="${resolvedIdx}"]`
+      );
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.focus();
-        const len = target.value.length;
-        target.setSelectionRange(len, len);
+        if ("setSelectionRange" in target) {
+          const len = target.value.length;
+          target.setSelectionRange(len, len);
+        }
       }
     }, 60);
   };
@@ -550,21 +580,60 @@ function GenerateSuratDinasContent() {
   const handleChangeParagraphLevel = (index: number, targetType: "plain" | "num" | "letter" | "roman" | "bracket") => {
     setData((prev) => {
       const list = [...(prev.paragraf || [])];
-      const current = list[index] || "";
+      const current = list[index];
+      if (typeof current !== "string") return prev;
       const cleaned = current
         .replace(/^(?:[0-9]+[.)]|[a-z][.)]|(?:i{1,3}|iv|v|vi{0,3}|ix|x)\.)\s*/i, "")
         .trim();
 
-      let prefix = "";
-      if (targetType === "plain") {
-        prefix = "";
-      } else {
-        prefix = getNextMarkerForSection(list, index, targetType);
-      }
+      const prefix = targetType === "plain" ? "" : getNextMarkerForSection(list, index, targetType);
 
       list[index] = prefix + cleaned;
       return { ...prev, paragraf: reindexParagraphMarkers(list) };
     });
+  };
+
+  const handleMoveParagraph = (index: number, direction: -1 | 1) => {
+    setData((prev) => {
+      const list = [...(prev.paragraf || [])];
+      const target = index + direction;
+      if (target < 0 || target >= list.length) return prev;
+      [list[index], list[target]] = [list[target], list[index]];
+      return { ...prev, paragraf: reindexParagraphMarkers(list) };
+    });
+  };
+
+  const updateRincianItems = (
+    blockIndex: number,
+    updater: (items: ParagrafRincianRow[]) => ParagrafRincianRow[]
+  ) => {
+    setData((prev) => ({
+      ...prev,
+      paragraf: (prev.paragraf || []).map((p, i) =>
+        i === blockIndex && isRincianBlock(p) ? { ...p, items: updater(p.items) } : p
+      ),
+    }));
+  };
+
+  const handleUpdateRincianRow = (
+    blockIndex: number,
+    rowIndex: number,
+    field: keyof ParagrafRincianRow,
+    val: string
+  ) => {
+    updateRincianItems(blockIndex, (items) =>
+      items.map((row, rIdx) => (rIdx === rowIndex ? { ...row, [field]: val } : row))
+    );
+  };
+
+  const handleAddRincianRow = (blockIndex: number, presetLabel = "") => {
+    updateRincianItems(blockIndex, (items) => [...items, { label: presetLabel, value: "" }]);
+  };
+
+  const handleRemoveRincianRow = (blockIndex: number, rowIndex: number) => {
+    updateRincianItems(blockIndex, (items) =>
+      items.length > 1 ? items.filter((_, rIdx) => rIdx !== rowIndex) : items
+    );
   };
 
   // Terapkan Salin-Tempel Teks Utuh
@@ -1367,46 +1436,18 @@ function GenerateSuratDinasContent() {
 
               {/* UNDANGAN INTERNAL */}
               {activeTemplate === "undangan" && (
-                <>
-                  <div>
-                    <label className="font-semibold text-[var(--ds-fg-secondary)]">Yth. / Kepada</label>
-                    <Input
-                      value={data.tujuanKepada || ""}
-                      onChange={(e) => updateField("tujuanKepada", e.target.value)}
-                      placeholder="Contoh: Para Pejabat Struktural dan Kepala Seksi Wilayah"
-                      className="mt-1 text-xs rounded-lg"
-                    />
-                  </div>
-                  <div className="rounded-lg border border-slate-200/80 dark:border-zinc-800 p-3 bg-zinc-50/50 dark:bg-zinc-950/40 space-y-2">
-                    <span className="font-bold text-[var(--ds-fg-secondary)] block text-xs">Rincian Acara</span>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        value={data.acaraHariTanggal || ""}
-                        onChange={(e) => updateField("acaraHariTanggal", e.target.value)}
-                        placeholder="Hari, Tanggal"
-                        className="h-8 text-xs rounded-lg"
-                      />
-                      <Input
-                        value={data.acaraWaktu || ""}
-                        onChange={(e) => updateField("acaraWaktu", e.target.value)}
-                        placeholder="Waktu"
-                        className="h-8 text-xs rounded-lg"
-                      />
-                    </div>
-                    <Input
-                      value={data.acaraTempat || ""}
-                      onChange={(e) => updateField("acaraTempat", e.target.value)}
-                      placeholder="Tempat Acara"
-                      className="h-8 text-xs rounded-lg"
-                    />
-                    <Input
-                      value={data.acaraNama || ""}
-                      onChange={(e) => updateField("acaraNama", e.target.value)}
-                      placeholder="Nama Acara"
-                      className="h-8 text-xs rounded-lg"
-                    />
-                  </div>
-                </>
+                <div>
+                  <label className="font-semibold text-[var(--ds-fg-secondary)]">Yth. / Kepada</label>
+                  <Input
+                    value={data.tujuanKepada || ""}
+                    onChange={(e) => updateField("tujuanKepada", e.target.value)}
+                    placeholder="Contoh: Para Pejabat Struktural dan Kepala Seksi Wilayah"
+                    className="mt-1 text-xs rounded-lg"
+                  />
+                  <p className="mt-1 text-xs text-[var(--ds-fg-muted)]">
+                    Rincian acara (Hari/Tanggal, Waktu, Tempat, Agenda) dikelola di bagian 3. Batang Tubuh / Isi.
+                  </p>
+                </div>
               )}
 
               {/* SURAT KUASA */}
@@ -1684,6 +1725,17 @@ function GenerateSuratDinasContent() {
                     type="button"
                     variant="outline"
                     size="sm"
+                    onClick={() => handleInsertPoint("rincian")}
+                    className="h-7 text-xs border-teal-200 text-teal-800 bg-teal-50/80 hover:bg-teal-100 dark:border-teal-700/80 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 shadow-xs p-1 px-2 gap-1 font-semibold rounded-lg"
+                    title="Tambah blok rincian (Hari/Tanggal, Tempat, Agenda, dll.)"
+                  >
+                    <Calendar className="w-3 h-3" />
+                    + Rincian
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowSmartPaste(!showSmartPaste)}
                     className="kpg-secondary h-7 text-xs p-1 px-3 gap-1 font-semibold rounded-lg"
                     title="Tempel teks utuh naskah dinas bertingkat"
@@ -1711,7 +1763,7 @@ function GenerateSuratDinasContent() {
                     </button>
                   </div>
                   <p className="text-xs text-[var(--ds-fg-muted)] leading-normal">
-                    Salin teks nota dinas/memorandum utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), dan penutup). Sistem otomatis memecah dan menata hierarki indentasi secara presisi.
+                    Salin teks nota dinas/undangan/edaran utuh (termasuk kalimat pembuka, poin 1., sub a., butir i. / 1), rincian Hari/Tanggal : ... / Tempat : ... / Agenda : ..., dan penutup). Sistem otomatis memecah dan menata hierarki serta blok rincian secara presisi.
                   </p>
                   <Textarea
                     value={smartPasteText}
@@ -1760,26 +1812,37 @@ function GenerateSuratDinasContent() {
               )}
 
               <div className="space-y-2 text-xs">
-                {(data.paragraf || []).map((pText, idx) => {
+                {(data.paragraf || []).map((pItem, idx) => {
                   const pList = data.paragraf || [];
-                  const isPenutup = idx === pList.length - 1;
-                  const isPembuka = idx === 0;
-                  const lvl = detectPointLevel(pText);
+                  const isRincian = isRincianBlock(pItem);
+                  const prevTextItem = [...pList.slice(0, idx)]
+                    .reverse()
+                    .find((item): item is string => typeof item === "string");
+                  const prevLvl = prevTextItem ? detectPointLevel(prevTextItem) : 0;
+                  const lvl = isRincian ? 0 : detectPointLevel(pItem);
+                  const refLvl = isRincian ? prevLvl : lvl;
+                  const isPenutup = !isRincian && idx === pList.length - 1 && pList.length > 1;
+                  const isPembuka = !isRincian && idx === 0;
 
-                  const indentClass =
-                    lvl === 2
-                      ? "ml-3 sm:ml-5 border-l-2 border-[var(--ds-accent-soft-border)]"
-                      : lvl === 3
-                      ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
-                      : lvl === 4
-                      ? "ml-9 sm:ml-14 border-l-2 border-blue-400"
-                      : "";
+                  const indentClass = isRincian
+                    ? prevLvl >= 2
+                      ? "ml-6 sm:ml-10 border-l-2 border-teal-400"
+                      : "ml-3 sm:ml-5 border-l-2 border-teal-400"
+                    : lvl === 2
+                    ? "ml-3 sm:ml-5 border-l-2 border-[var(--ds-accent-soft-border)]"
+                    : lvl === 3
+                    ? "ml-6 sm:ml-10 border-l-2 border-amber-400"
+                    : lvl === 4
+                    ? "ml-9 sm:ml-14 border-l-2 border-blue-400"
+                    : "";
 
                   return (
                     <div
                       key={idx}
                       className={`relative rounded-lg border p-3 space-y-2 transition-colors ${indentClass} ${
-                        isPenutup
+                        isRincian
+                          ? "border-teal-200 dark:border-teal-800/70 bg-teal-50/30 dark:bg-teal-950/20"
+                          : isPenutup
                           ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/40 dark:bg-amber-950/20"
                           : lvl === 1
                           ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-accent-soft)]/50"
@@ -1797,7 +1860,12 @@ function GenerateSuratDinasContent() {
                           <span className="text-xs font-bold text-[var(--ds-fg-secondary)]">
                             {idx + 1}.
                           </span>
-                          {isPenutup ? (
+                          {isRincian ? (
+                            <Badge variant="outline" className="text-xs px-2 py-0 font-bold border-teal-300 bg-teal-50 text-teal-800 dark:border-teal-700/80 dark:bg-teal-950/60 dark:text-teal-300 flex items-center gap-1 rounded-lg">
+                              <Calendar className="w-3 h-3" />
+                              Blok Rincian / Jadwal
+                            </Badge>
+                          ) : isPenutup ? (
                             <Badge variant="outline" className="text-xs px-2 py-0 font-semibold border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800/80 dark:bg-amber-950/50 dark:text-amber-300 rounded-lg">
                               Penutup (Bawah)
                             </Badge>
@@ -1829,8 +1897,29 @@ function GenerateSuratDinasContent() {
                           )}
                         </div>
 
-                        {/* Quick Level Switchers, Insert Below & Delete */}
-                        <div className="flex items-center gap-1">
+                        {/* Reorder, Insert Below, Quick Level Switchers & Delete */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => handleMoveParagraph(idx, -1)}
+                            disabled={idx === 0}
+                            className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                            title="Geser ke atas"
+                            aria-label={`Geser butir ${idx + 1} ke atas`}
+                          >
+                            <ArrowUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveParagraph(idx, 1)}
+                            disabled={idx === pList.length - 1}
+                            className="p-1 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-[var(--ds-fg-muted)] hover:text-[var(--ds-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors mr-1"
+                            title="Geser ke bawah"
+                            aria-label={`Geser butir ${idx + 1} ke bawah`}
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </button>
+
                           {/* Mini Dropdown: + Sisipkan Tepat di Bawah Butir Ini */}
                           {!isPenutup && (
                             <DropdownMenu>
@@ -1848,16 +1937,26 @@ function GenerateSuratDinasContent() {
                               <DropdownMenuContent
                                 data-module="persuratan"
                                 align="end"
-                                className="psr-ui w-48 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-1 z-50 text-xs"
+                                className="psr-ui w-56 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 shadow-lg rounded-2xl p-1 z-50 text-xs"
                               >
                                 <DropdownMenuItem
-                                  onClick={() => handleInsertPoint(lvl === 1 ? "letter" : lvl === 2 ? "roman" : "bracket", idx + 1)}
+                                  onClick={() =>
+                                    handleInsertPoint(
+                                      refLvl === 1 ? "letter" : refLvl === 2 ? "roman" : refLvl === 3 ? "bracket" : "num",
+                                      idx + 1
+                                    )
+                                  }
                                   className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] font-semibold"
                                 >
                                   <span>↳ + Sub-Butir Anak</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  onClick={() => handleInsertPoint(lvl === 1 ? "num" : lvl === 2 ? "letter" : lvl === 3 ? "roman" : "bracket", idx + 1)}
+                                  onClick={() =>
+                                    handleInsertPoint(
+                                      refLvl === 1 ? "num" : refLvl === 2 ? "letter" : refLvl === 3 ? "roman" : refLvl === 4 ? "bracket" : "plain",
+                                      idx + 1
+                                    )
+                                  }
                                   className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg hover:bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] font-medium"
                                 >
                                   <span>= + Poin Setara</span>
@@ -1893,30 +1992,41 @@ function GenerateSuratDinasContent() {
                                 >
                                   <span className="font-mono w-4">¶</span> Paragraf Biasa
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleInsertPoint("rincian", idx + 1)}
+                                  className="flex items-center gap-2 px-3 py-1 cursor-pointer rounded-lg hover:bg-teal-50 dark:hover:bg-teal-950/50 text-teal-800 dark:text-teal-300 font-semibold text-xs"
+                                >
+                                  <Calendar className="w-3 h-3 shrink-0" />
+                                  Rincian (Hari/Tempat/Agenda)
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           )}
 
-                          <span className="text-xs text-[var(--ds-fg-muted)]">Level:</span>
-                          {LEVEL_SWITCH_CONTROLS.map((ctrl) => {
-                            const active = ctrl.isActive(lvl, pText);
-                            return (
-                              <button
-                                key={ctrl.level}
-                                type="button"
-                                onClick={() => handleChangeParagraphLevel(idx, ctrl.level)}
-                                className={cn(
-                                  "text-xs px-2 py-1 rounded-lg border transition-colors",
-                                  active
-                                    ? ctrl.activeClass
-                                    : cn("text-zinc-600 dark:text-zinc-400 border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
-                                )}
-                                title={ctrl.title}
-                              >
-                                {ctrl.label}
-                              </button>
-                            );
-                          })}
+                          {!isRincian && typeof pItem === "string" && (
+                            <>
+                              <span className="text-xs text-[var(--ds-fg-muted)]">Level:</span>
+                              {LEVEL_SWITCH_CONTROLS.map((ctrl) => {
+                                const active = ctrl.isActive(lvl, pItem);
+                                return (
+                                  <button
+                                    key={ctrl.level}
+                                    type="button"
+                                    onClick={() => handleChangeParagraphLevel(idx, ctrl.level)}
+                                    className={cn(
+                                      "text-xs px-2 py-1 rounded-lg border transition-colors",
+                                      active
+                                        ? ctrl.activeClass
+                                        : cn("text-zinc-600 dark:text-zinc-400 border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] hover:text-[var(--ds-fg)]", ctrl.hoverClass)
+                                    )}
+                                    title={ctrl.title}
+                                  >
+                                    {ctrl.label}
+                                  </button>
+                                );
+                              })}
+                            </>
+                          )}
 
                           {!isPenutup && pList.length > 1 && (
                             <button
@@ -1930,23 +2040,90 @@ function GenerateSuratDinasContent() {
                           )}
                         </div>
                       </div>
-                      <Textarea
-                        value={pText}
-                        onChange={(e) => handleParagraphChange(idx, e.target.value)}
-                        rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
-                        placeholder={
-                          isPenutup
-                            ? "Tulis isi penutup naskah..."
-                            : lvl === 1
-                            ? `Tulis isi poin utama...`
-                            : lvl === 2
-                            ? `Tulis isi sub-poin...`
-                            : lvl === 3
-                            ? `Tulis isi butir...`
-                            : `Tulis isi paragraf...`
-                        }
-                        className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
-                      />
+
+                      {isRincian ? (
+                        <div className="space-y-2">
+                          <div className="space-y-2">
+                            {pItem.items.map((row, rIdx) => (
+                              <div key={rIdx} className="flex items-start gap-1">
+                                <Input
+                                  value={row.label}
+                                  onChange={(e) => handleUpdateRincianRow(idx, rIdx, "label", e.target.value)}
+                                  placeholder="Label (mis: Hari/Tanggal)"
+                                  aria-label={`Label rincian baris ${rIdx + 1}`}
+                                  className="w-24 sm:w-28 shrink-0 h-8 text-xs font-semibold bg-white dark:bg-zinc-900 rounded-lg"
+                                />
+                                <span className="pt-2 px-1 text-xs font-bold text-[var(--ds-fg-muted)] select-none">:</span>
+                                <Textarea
+                                  data-paragraf-focus={rIdx === 0 ? idx : undefined}
+                                  value={row.value}
+                                  onChange={(e) => handleUpdateRincianRow(idx, rIdx, "value", e.target.value)}
+                                  rows={Math.min(5, Math.max(1, row.value.split("\n").length))}
+                                  placeholder="Isi rincian (tekan Enter untuk alamat/uraian multi-baris)..."
+                                  aria-label={`Isi ${row.label || `rincian baris ${rIdx + 1}`}`}
+                                  className="flex-1 min-w-0 min-h-8 py-1 text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveRincianRow(idx, rIdx)}
+                                  disabled={pItem.items.length <= 1}
+                                  className="mt-1 p-1 rounded-lg text-[var(--ds-fg-muted)] hover:text-[var(--ds-status-danger-fg)] disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                  title="Hapus baris rincian"
+                                  aria-label={`Hapus baris rincian ${rIdx + 1}`}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center flex-wrap gap-1 pt-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddRincianRow(idx, "")}
+                              className="h-7 text-xs px-2 py-1 gap-1 rounded-lg border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white dark:bg-zinc-900 hover:bg-teal-50 dark:hover:bg-teal-950/60"
+                            >
+                              <Plus className="w-3 h-3" />
+                              Baris
+                            </Button>
+                            {RINCIAN_QUICK_PRESETS.filter(
+                              (preset) =>
+                                !pItem.items.some(
+                                  (r) => r.label.trim().toLowerCase() === preset.toLowerCase()
+                                )
+                            ).map((preset) => (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => handleAddRincianRow(idx, preset)}
+                                className="h-7 text-xs px-2 py-1 rounded-lg border border-dashed border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 bg-white/80 dark:bg-zinc-900/60 hover:bg-teal-50 dark:hover:bg-teal-950/60 transition-colors"
+                              >
+                                + {preset}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <Textarea
+                          data-paragraf-focus={idx}
+                          value={pItem}
+                          onChange={(e) => handleParagraphChange(idx, e.target.value)}
+                          rows={isPembuka ? 3 : isPenutup ? 2 : lvl > 0 ? 2 : 3}
+                          placeholder={
+                            isPenutup
+                              ? "Tulis isi penutup naskah..."
+                              : lvl === 1
+                              ? `Tulis isi poin utama...`
+                              : lvl === 2
+                              ? `Tulis isi sub-poin...`
+                              : lvl === 3
+                              ? `Tulis isi butir...`
+                              : `Tulis isi paragraf...`
+                          }
+                          className="paragraf-textarea text-xs bg-white dark:bg-zinc-900 leading-relaxed font-sans rounded-lg"
+                        />
+                      )}
                     </div>
                   );
                 })}
