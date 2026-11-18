@@ -15,10 +15,10 @@ return [
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
     // Izinkan origin terverifikasi (Frontend Next.js, Mobile Expo, dsb)
-    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://localhost:19006,http://localhost:8000,https://bksdakaltim.net,https://www.bksdakaltim.net,https://api.bksdakaltim.net')))),
+    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://localhost:19006,http://localhost:8000,https://bksdakaltim.net,https://www.bksdakaltim.net,https://api.bksdakaltim.net,https://bksdakaltim.web.id,https://www.bksdakaltim.web.id,https://api.bksdakaltim.web.id')))),
 
     'allowed_origins_patterns' => array_values(array_filter([
-        '#^https?://([a-z0-9-]+\.)*bksdakaltim\.net(:[0-9]+)?$#',
+        '#^https?://([a-z0-9-]+\.)*bksdakaltim\.(net|web\.id)(:[0-9]+)?$#',
         env('APP_ENV', 'production') !== 'production'
             ? '#^http://(localhost|127\.0\.0\.1)(:\d+)?$#'
             : null,

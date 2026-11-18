@@ -45,7 +45,7 @@ services:
       SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS:-bksdakaltim.web.id,www.bksdakaltim.web.id,api.bksdakaltim.web.id,bksdakaltim.net,api.bksdakaltim.net,192.168.100.203,localhost,localhost:3000}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://bksdakaltim.web.id,https://www.bksdakaltim.web.id,http://bksdakaltim.web.id,https://bksdakaltim.net,http://192.168.100.203,http://localhost:3000}
       SESSION_SECURE_COOKIE: "false"
-      SESSION_DOMAIN: ${SESSION_DOMAIN:-}
+      SESSION_DOMAIN: ${SESSION_DOMAIN:-.bksdakaltim.web.id}
       APP_KEY: ${APP_KEY:-base64:c3wogjv1cxVZ071Pkv2Yorbse2L2KgbA9ix9cxvjE6k=}
       DB_CONNECTION: pgsql
       DB_HOST: db
