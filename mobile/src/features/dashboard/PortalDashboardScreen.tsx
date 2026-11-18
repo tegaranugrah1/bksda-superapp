@@ -10,10 +10,10 @@ import {
   Modal,
   Alert,
   TextInput,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS, RADIUS } from "../../theme";
-import { useTheme } from "../../theme/ThemeContext";
+import { PORTAL_5_TOKENS, type ThemeColors, useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { useAuth } from "../auth/AuthProvider";
 import { hasModule } from "../../lib/permissions";
@@ -35,70 +35,83 @@ interface PortalDashboardScreenProps {
   dashboardData?: DashboardData;
 }
 
-const MODULES = [
+type ToneKey = "accent" | "info" | "warning" | "success" | "danger" | "neutral";
+
+function getTonePalette(colors: ThemeColors, tone: ToneKey) {
+  const map = {
+    accent: { bg: colors.accentSoft, fg: colors.accentFg, border: colors.accentSoftBorder },
+    info: { bg: colors.infoBg, fg: colors.infoFg, border: colors.infoBorder },
+    warning: { bg: colors.warningBg, fg: colors.warningFg, border: colors.warningBorder },
+    success: { bg: colors.successBg, fg: colors.successFg, border: colors.successBorder },
+    danger: { bg: colors.dangerBg, fg: colors.dangerFg, border: colors.dangerBorder },
+    neutral: { bg: colors.neutralBg, fg: colors.neutralFg, border: colors.neutralBorder },
+  };
+  return map[tone];
+}
+
+const MODULES: {
+  key: string;
+  title: string;
+  subtitle: string;
+  iconName: string;
+  tone: "accent" | "info" | "warning";
+  isNew?: boolean;
+}[] = [
   {
     key: "kepegawaian",
     title: "Kepegawaian",
     subtitle: "Surat & SDM",
     iconName: "people-outline",
-    badgeBg: "#EFF6FF",
-    iconColor: "#2563EB",
+    tone: "info",
   },
   {
     key: "keuangan",
     title: "Keuangan",
     subtitle: "SPJ & Visum",
     iconName: "cash-outline",
-    badgeBg: "#FFFBEB",
-    iconColor: "#D97706",
+    tone: "warning",
   },
   {
     key: "bmn",
     title: "BMN",
     subtitle: "Barang Negara",
     iconName: "cube-outline",
-    badgeBg: "#ECFDF5",
-    iconColor: "#059669",
+    tone: "accent",
   },
   {
     key: "inventory",
     title: "Persediaan",
     subtitle: "Stok Barang",
     iconName: "apps-outline",
-    badgeBg: "#FFF7ED",
-    iconColor: "#EA580C",
+    tone: "warning",
   },
   {
     key: "dereporting",
     title: "DeReporting",
     subtitle: "Laporan Mandiri",
     iconName: "document-text-outline",
-    badgeBg: "#FAF5FF",
-    iconColor: "#9333EA",
+    tone: "info",
   },
   {
     key: "cms",
     title: "CMS Portal",
     subtitle: "Kelola Konten",
     iconName: "grid-outline",
-    badgeBg: "#F0FDFA",
-    iconColor: "#0D9488",
+    tone: "accent",
   },
   {
     key: "surat",
     title: "Persuratan",
     subtitle: "Disposisi Surat",
     iconName: "mail-outline",
-    badgeBg: "#ECFEFF",
-    iconColor: "#0891B2",
+    tone: "info",
   },
   {
     key: "drive",
     title: "BKSDA Drive",
     subtitle: "Cloud Berkas",
     iconName: "cloud-outline",
-    badgeBg: "#F0F9FF",
-    iconColor: "#0284C7",
+    tone: "accent",
     isNew: true,
   },
 ];
@@ -119,6 +132,29 @@ function formatDateIndo(dateStr?: string | null): string {
   return dateStr;
 }
 
+function getLiveGreeting(): { text: string; iconName: string } {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) return { text: "Selamat Pagi", iconName: "sunny-outline" };
+  if (hour >= 11 && hour < 15) return { text: "Selamat Siang", iconName: "sunny-outline" };
+  if (hour >= 15 && hour < 18) return { text: "Selamat Sore", iconName: "partly-sunny-outline" };
+  return { text: "Selamat Malam", iconName: "moon-outline" };
+}
+
+function formatTodayIndo(): string {
+  const d = new Date();
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const months = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ];
+  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+const PORTAL_FONT_FAMILY = Platform.select({
+  web: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  default: undefined,
+});
+
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
   userProfile,
@@ -126,6 +162,22 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 }) => {
   const { isDark, toggleTheme, colors } = useTheme();
   const { user, employee, logout } = useAuth();
+
+  React.useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+    if (!document.getElementById("portal-inter-font")) {
+      const link = document.createElement("link");
+      link.id = "portal-inter-font";
+      link.rel = "stylesheet";
+      link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
+      document.head.appendChild(link);
+    }
+    const bodyStyle = document.body?.style as any;
+    if (bodyStyle) {
+      bodyStyle.webkitFontSmoothing = "antialiased";
+      bodyStyle.mozOsxFontSmoothing = "grayscale";
+    }
+  }, []);
 
   // Bottom Navigation state: 'dashboard' | 'surattugas' | 'layanan' | 'profile'
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -213,6 +265,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   // 4. Employee Active Loans (GET /me/dashboard -> my_assets)
   const [activeLoansList, setActiveLoansList] = useState<any[]>([]);
+  const [loansLoadedFromApi, setLoansLoadedFromApi] = useState(false);
   const [pinjamanModalVisible, setPinjamanModalVisible] = useState(false);
 
   const fetchActiveLoans = React.useCallback(async () => {
@@ -221,8 +274,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       const raw = response.data?.data || response.data || {};
       const loans = Array.isArray(raw.my_assets) ? raw.my_assets : [];
       setActiveLoansList(loans);
+      setLoansLoadedFromApi(true);
     } catch {
       setActiveLoansList([]);
+      setLoansLoadedFromApi(false);
     }
   }, []);
 
@@ -284,14 +339,26 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     leaveBalance?.sisa_cuti_n ??
     12;
 
+  const resolvedPangkat =
+    (employee as any)?.rank ||
+    (user as any)?.employee?.rank ||
+    (user as any)?.rank ||
+    (user ? "-" : "Pembina (IV/a)");
+
+  const resolvedSisaCutiLabel =
+    user && !employee && !leaveBalance ? "-" : `${resolvedSisaCuti} Hari`;
+
+  const greetingMeta = getLiveGreeting();
+  const todayIndo = formatTodayIndo();
+
   const avatarInitial = (resolvedName.charAt(0) || "H").toUpperCase();
   const summary = dashboardData?.summary;
 
   const accessibleModules = MODULES.filter((mod) => hasModule(user, mod.key));
   const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || myStList.length || 0;
-  const cutiBadgeCount = leaveRequests.length;
   const assetsBadgeCount = myAssetsList.length || summary?.assigned_assets_count || 0;
-  const activeLoansCount = activeLoansList.length || summary?.active_loans_count || 0;
+  const shadowXs = PORTAL_5_TOKENS.shadow.xs(isDark);
+  const shadowLg = PORTAL_5_TOKENS.shadow.lg(isDark);
 
   // Mock ST items fallback when empty so user sees realistic state matching FigCraft
   const displayStList = myStList.length > 0 ? myStList : [
@@ -548,9 +615,72 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     return year === cutiYearFilter;
   });
 
+  const isRunningSt = (item: any) =>
+    item?.status === "approved" || item?.status === "SEDANG DINAS" || item?.kategori === "running";
+
+  const activeDutyItem = displayStList.find(isRunningSt) || displayStList[0];
+  const isActiveDutyRunning = isRunningSt(activeDutyItem);
+
+  const isReturnedLoan = (loan: any) =>
+    ["returned", "dikembalikan", "selesai"].includes(String(loan?.status || "").toLowerCase());
+  const homeLoansSource = loansLoadedFromApi ? activeLoansList : fallbackLoans;
+  const homeBorrowedLoans = homeLoansSource.filter((loan: any) => !isReturnedLoan(loan));
+  const primaryLoan = homeBorrowedLoans[0];
+  const isAnyLoanLate = homeBorrowedLoans.some((loan: any) =>
+    String(loan?.status || "").toLowerCase().includes("terlambat")
+  );
+
+  const quickStatItems: {
+    key: string;
+    icon: string;
+    tone: ToneKey;
+    label: string;
+    value: string;
+    onPress?: () => void;
+  }[] = [
+    {
+      key: "rank",
+      icon: "ribbon-outline",
+      tone: "info",
+      label: "Pangkat / Gol.",
+      value: resolvedPangkat,
+    },
+    {
+      key: "cuti",
+      icon: "calendar-outline",
+      tone: "warning",
+      label: "Sisa Cuti",
+      value: resolvedSisaCutiLabel,
+      onPress: () => {
+        setLayananSubScreen("cuti");
+        setActiveTab("layanan");
+      },
+    },
+    {
+      key: "st",
+      icon: "document-text-outline",
+      tone: "info",
+      label: "Surat Tugas",
+      value: `${stBadgeCount} ST Aktif`,
+      onPress: () => setActiveTab("surattugas"),
+    },
+    {
+      key: "aset",
+      icon: "cube-outline",
+      tone: "accent",
+      label: "Aset Saya",
+      value: `${assetsBadgeCount} Barang`,
+      onPress: () => {
+        setLayananSubScreen("bmn");
+        setBmnActiveTab("aset");
+        setActiveTab("layanan");
+      },
+    },
+  ];
+
   const filteredStList = displayStList.filter((item) => {
     if (stFilter === "running") {
-      return (item as any).status === "approved" || (item as any).status === "SEDANG DINAS" || (item as any).kategori === "running";
+      return isRunningSt(item);
     }
     if (stFilter === "completed") {
       return (item as any).status === "completed" || (item as any).kategori === "completed";
@@ -597,177 +727,275 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           />
           <View style={styles.headerTitleCol}>
             <Text style={[styles.brandTitle, { color: colors.textDark }]}>BKSDA Kaltim</Text>
-            <Text style={[styles.brandSubtitle, { color: "#059669" }]}>SUPERAPP PORTAL</Text>
+            <Text style={[styles.brandSubtitle, { color: colors.accentFg }]}>SUPERAPP PORTAL</Text>
           </View>
         </View>
 
         <View style={styles.headerRight}>
           {/* Active Light / Dark Mode Toggle Button */}
           <TouchableOpacity
-            style={[styles.headerIconBtn, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#f1f5f9" }]}
+            style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
             activeOpacity={0.7}
             onPress={toggleTheme}
           >
             <Ionicons
               name={isDark ? "sunny" : "moon-outline"}
-              size={17}
-              color={isDark ? "#f59e0b" : "#64748b"}
+              size={16}
+              color={isDark ? colors.warningFg : colors.textMuted}
             />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.headerIconBtn, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "#f1f5f9" }]}
+            style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
             activeOpacity={0.7}
           >
-            <Ionicons name="notifications-outline" size={17} color={isDark ? "#a7f3d0" : "#64748b"} />
-            <View style={styles.notifDot} />
+            <Ionicons name="notifications-outline" size={16} color={isDark ? colors.accentFg : colors.textMuted} />
+            <View style={[styles.notifDot, { backgroundColor: colors.dangerSolid }]} />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.avatarCircle}
+            style={[styles.avatarCircle, { backgroundColor: colors.accentSolid }]}
             onPress={() => setActiveTab("profile")}
           >
-            <Text style={styles.avatarInitial}>{avatarInitial}</Text>
+            <Text style={[styles.avatarInitial, { color: colors.accentOnSolid }]}>{avatarInitial}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          activeTab === "dashboard" && styles.scrollContentCompact,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* ========================================================================= */}
-        {/* TAB 1: BERANDA PORTAL ASN (MODUL 3x2, GREETING, STATS, TUGAS BERJALAN)    */}
+        {/* TAB 1: BERANDA PORTAL ASN (FOREST GREEN HERO, 3 MAIN CARDS, 5 TOKENS)     */}
         {/* ========================================================================= */}
         {activeTab === "dashboard" && (
           <>
-            {/* Soft Executive Greeting Banner */}
-            <View style={styles.heroBanner}>
-              <Text style={styles.heroDate}>Selasa, 28 Juli 2026</Text>
-              <Text style={styles.heroGreeting}>Selamat Siang, {resolvedName}! ☀️</Text>
+            {/* CARD 1: Forest Green Portal Hero Banner */}
+            <View style={[styles.heroBanner, shadowXs]}>
+              <View style={styles.heroTopRow}>
+                <View style={styles.heroDateRow}>
+                  <Ionicons name={greetingMeta.iconName as any} size={14} color="#bbf7d0" />
+                  <Text style={styles.heroDate} numberOfLines={1}>
+                    {todayIndo}
+                  </Text>
+                </View>
+                <View style={styles.heroNipBadge}>
+                  <Text style={styles.heroNipText} numberOfLines={1}>
+                    NIP {resolvedNip}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.heroGreeting} numberOfLines={1}>
+                {greetingMeta.text}, {resolvedName}!
+              </Text>
               <Text style={styles.heroSubtitle}>
-                Portal Terpadu BKSDA Kalimantan Timur (NIP: {resolvedNip}).
+                Pusat layanan operasional konservasi sumber daya alam, administrasi kepegawaian ASN, serta tata kelola kehutanan terpadu BKSDA Kalimantan Timur.
               </Text>
             </View>
 
-            {/* Quick Stats Cards */}
-            <View style={styles.quickStatsRow}>
-              <GlassCard style={[styles.quickStatCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                <View style={styles.quickStatHeader}>
-                  <View style={[styles.quickStatIconBg, { backgroundColor: "rgba(59, 130, 246, 0.1)" }]}>
-                    <Ionicons name="ribbon-outline" size={14} color="#2563EB" />
-                  </View>
-                  <Text style={[styles.quickStatTitle, { color: colors.textMuted }]} numberOfLines={1}>
-                    PANGKAT / GOLONGAN
-                  </Text>
-                </View>
-                <Text style={[styles.quickStatValue, { color: colors.textDark }]} numberOfLines={1}>
-                  {"Pembina (IV/a)"}
-                </Text>
-                <Text style={[styles.quickStatSubtitle, { color: colors.textMuted }]}>TMT: 01 April 2022</Text>
-              </GlassCard>
+            {/* Quick Stats 2x2 Grid (Pangkat, Sisa Cuti, Surat Tugas, Aset Saya) */}
+            <View style={styles.quickStatsGrid}>
+              {quickStatItems.map((item) => {
+                const pal = getTonePalette(colors, item.tone);
+                const content = (
+                  <GlassCard style={[styles.quickStripCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                    <View style={[styles.quickStripIcon, { backgroundColor: pal.bg, borderColor: pal.border }]}>
+                      <Ionicons name={item.icon as any} size={16} color={pal.fg} />
+                    </View>
+                    <View style={styles.quickStripBody}>
+                      <Text style={[styles.quickStripLabel, { color: colors.textMuted }]} numberOfLines={1}>
+                        {item.label}
+                      </Text>
+                      <Text style={[styles.quickStripValue, { color: colors.textDark }]} numberOfLines={1}>
+                        {item.value}
+                      </Text>
+                    </View>
+                    {item.onPress && (
+                      <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+                    )}
+                  </GlassCard>
+                );
 
-              <GlassCard style={[styles.quickStatCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                <View style={styles.quickStatHeader}>
-                  <View style={[styles.quickStatIconBg, { backgroundColor: "rgba(245, 158, 11, 0.1)" }]}>
-                    <Ionicons name="calendar-outline" size={14} color="#D97706" />
+                return (
+                  <View key={item.key} style={styles.quickStatCellWrapper}>
+                    {item.onPress ? (
+                      <TouchableOpacity activeOpacity={0.8} onPress={item.onPress}>
+                        {content}
+                      </TouchableOpacity>
+                    ) : (
+                      content
+                    )}
                   </View>
-                  <Text style={[styles.quickStatTitle, { color: colors.textMuted }]} numberOfLines={1}>
-                    SISA CUTI ({new Date().getFullYear()})
-                  </Text>
-                </View>
-                <Text style={[styles.quickStatValue, { color: colors.textDark }]}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
-                <Text style={[styles.quickStatSubtitle, { color: "#D97706", fontWeight: "600" }]}>Cuti Tahunan Ready</Text>
-              </GlassCard>
+                );
+              })}
             </View>
 
-            {/* Section Title */}
-            <View style={styles.sectionHeaderRow}>
-              <Text style={[styles.sectionTitle, { color: colors.textDark }]}>MODUL AKSES SYSTEM</Text>
-              <View style={styles.moduleAuthorizedBadge}>
-                <Text style={styles.moduleAuthorizedBadgeText}>8 Modul Terotorisasi</Text>
+            {/* CARD 2: Modul Akses System Container Card (matching Web Portal) */}
+            <GlassCard style={[styles.moduleSectionCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+              <View style={[styles.cardSectionHeader, { borderBottomColor: colors.glassBorder }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Modul Akses System</Text>
+                <View style={[styles.moduleAuthorizedBadge, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}>
+                  <Text style={[styles.moduleAuthorizedBadgeText, { color: colors.accentFg }]}>
+                    {accessibleModules.length} Modul Terotorisasi
+                  </Text>
+                </View>
               </View>
-            </View>
 
-            {/* Compact 3-Column Module Grid */}
-            <View style={styles.moduleGrid}>
-              {accessibleModules.map((mod: any) => (
+              <View style={styles.moduleGrid}>
+                {accessibleModules.map((mod) => {
+                  const pal = getTonePalette(colors, mod.tone);
+                  return (
+                    <View key={mod.key} style={styles.moduleCardWrapper}>
+                      <TouchableOpacity
+                        style={[
+                          styles.moduleTileCard,
+                          { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder },
+                        ]}
+                        activeOpacity={0.8}
+                        onPress={() => onNavigateToModule && onNavigateToModule(mod.key)}
+                      >
+                        {mod.isNew && (
+                          <View style={[styles.moduleNewDot, { backgroundColor: colors.accentSolid }]} />
+                        )}
+                        <View style={[styles.moduleIconBadge, { backgroundColor: pal.bg, borderColor: pal.border }]}>
+                          <Ionicons name={mod.iconName as any} size={16} color={pal.fg} />
+                        </View>
+                        <Text
+                          style={[styles.moduleTitle, { color: colors.textDark }]}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.8}
+                        >
+                          {mod.title}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
+              </View>
+            </GlassCard>
+
+            {/* CARD 3: Tugas Dinas Berjalan Card (Featured Single Running Assignment) */}
+            {activeDutyItem && (
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => handleOpenStPreview(activeDutyItem)}
+              >
+                <GlassCard
+                  style={[
+                    styles.activeDutyCard,
+                    {
+                      backgroundColor: colors.cardBg,
+                      borderColor: isActiveDutyRunning ? colors.accentSoftBorder : colors.glassBorder,
+                    },
+                    homeBorrowedLoans.length > 0 && styles.activeDutyCardWithBelow,
+                    shadowXs,
+                  ]}
+                >
+                  <View style={[styles.cardSectionHeader, { borderBottomColor: colors.glassBorder }]}>
+                    <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Tugas Dinas Berjalan</Text>
+                    <TouchableOpacity onPress={() => setActiveTab("surattugas")}>
+                      <Text style={[styles.seeAllText, { color: colors.accentFg }]}>Lihat Semua ›</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.activeDutyHeader}>
+                    {(() => {
+                      const badge = getTonePalette(colors, isActiveDutyRunning ? "accent" : "neutral");
+                      return (
+                        <View style={[styles.activeDutyBadge, { backgroundColor: badge.bg, borderColor: badge.border }]}>
+                          <Text style={[styles.activeDutyBadgeText, { color: badge.fg }]}>
+                            {isActiveDutyRunning ? "● SEDANG DINAS" : "● PENUGASAN"}
+                          </Text>
+                        </View>
+                      );
+                    })()}
+                    <Text style={[styles.activeDutyNumber, { color: colors.textMuted }]} numberOfLines={1}>
+                      {activeDutyItem.nomor_surat || "ST.042/K.18/TU/KSA/03/2026"}
+                    </Text>
+                  </View>
+
+                  <Text style={[styles.activeDutyTitle, { color: colors.textDark }]} numberOfLines={2}>
+                    {activeDutyItem.maksud_tujuan || "Melaksanakan Penugasan Kedinasan Resmi BKSDA"}
+                  </Text>
+
+                  <View style={styles.activeDutyMetaStack}>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="calendar-outline" size={14} color={colors.accentFg} />
+                      <Text style={[styles.metaItemText, { color: colors.textMuted }]} numberOfLines={1}>
+                        {`${formatDateIndo(activeDutyItem.tanggal_mulai)} – ${formatDateIndo(activeDutyItem.tanggal_selesai)}`}
+                      </Text>
+                    </View>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="location-outline" size={14} color={colors.accentFg} />
+                      <Text style={[styles.metaItemText, { color: colors.textMuted }]} numberOfLines={1}>
+                        {activeDutyItem.tempat_tujuan || "Wilayah Kerja BKSDA Kaltim"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={[styles.activeDutyFooterDivider, { borderTopColor: colors.glassBorder }]}>
+                    <Text style={[styles.activeDutyFooterCaption, { color: colors.textMuted }]} numberOfLines={1}>
+                      Surat Tugas Resmi Diterbitkan
+                    </Text>
+                    <View style={styles.activeDutyFooterAction}>
+                      <Text style={[styles.seeAllText, { color: colors.accentFg }]}>Detail Penugasan</Text>
+                      <Ionicons name="chevron-forward" size={14} color={colors.accentFg} />
+                    </View>
+                  </View>
+                </GlassCard>
+              </TouchableOpacity>
+            )}
+
+            {/* CARD 4 (Kondisional): Aset Dipinjam jika ada */}
+            {homeBorrowedLoans.length > 0 && primaryLoan && (() => {
+              const loanPal = getTonePalette(colors, isAnyLoanLate ? "danger" : "warning");
+              return (
                 <TouchableOpacity
-                  key={mod.key}
-                  style={styles.moduleCardWrapper}
-                  activeOpacity={0.8}
-                  onPress={() => onNavigateToModule && onNavigateToModule(mod.key)}
+                  activeOpacity={0.85}
+                  onPress={() => setPinjamanModalVisible(true)}
                 >
                   <GlassCard
                     style={[
-                      styles.moduleCard,
+                      styles.loanHomeCard,
                       {
                         backgroundColor: colors.cardBg,
-                        borderColor: mod.key === "drive" ? "#BAE6FD" : colors.glassBorder,
+                        borderColor: isAnyLoanLate ? colors.dangerBorder : colors.glassBorder,
                       },
+                      shadowXs,
                     ]}
                   >
-                    {mod.isNew && (
-                      <View style={styles.gridBaruBadge}>
-                        <Text style={styles.gridBaruBadgeText}>BARU</Text>
-                      </View>
-                    )}
-                    <View style={[styles.moduleIconBadge, { backgroundColor: mod.badgeBg }]}>
-                      <Ionicons name={mod.iconName as any} size={16} color={mod.iconColor} />
+                    <View style={[styles.loanHomeIconBox, { backgroundColor: loanPal.bg, borderColor: loanPal.border }]}>
+                      <Ionicons name="cube-outline" size={18} color={loanPal.fg} />
                     </View>
-                    <Text style={[styles.moduleTitle, { color: colors.textDark }]} numberOfLines={1}>
-                      {mod.title}
-                    </Text>
-                    <Text style={[styles.moduleSubtitle, { color: colors.textMuted }]} numberOfLines={1}>
-                      {mod.subtitle}
-                    </Text>
+                    <View style={styles.loanHomeBody}>
+                      <View style={styles.loanHomeTopRow}>
+                        <Text style={[styles.loanHomeLabel, { color: colors.textMuted }]}>Aset Dipinjam</Text>
+                        <View style={[styles.loanHomeCountPill, { backgroundColor: loanPal.bg, borderColor: loanPal.border }]}>
+                          <Text style={[styles.loanHomeCountText, { color: loanPal.fg }]}>
+                            {isAnyLoanLate ? "Terlambat" : `${homeBorrowedLoans.length} Aktif`}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.loanHomeTitle, { color: colors.textDark }]} numberOfLines={1}>
+                        {primaryLoan.nama_barang}
+                      </Text>
+                      <Text style={[styles.loanHomeSub, { color: colors.textMuted }]} numberOfLines={1}>
+                        {`NUP ${primaryLoan.nup || "-"} • Kembali ${formatDateIndo(primaryLoan.due_date || primaryLoan.tanggal_kembali)}${
+                          homeBorrowedLoans.length > 1 ? ` • +${homeBorrowedLoans.length - 1} lain` : ""
+                        }`}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.accentFg} />
                   </GlassCard>
                 </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Tugas Dinas Berjalan (Sedang Dinas) Card */}
-            <View style={styles.sectionHeaderRow}>
-              <Text style={[styles.sectionTitle, { color: colors.textDark }]}>Tugas Dinas Berjalan</Text>
-              <TouchableOpacity onPress={() => setActiveTab("surattugas")}>
-                <Text style={styles.seeAllText}>Lihat Semua ›</Text>
-              </TouchableOpacity>
-            </View>
-
-            <GlassCard style={[styles.activeDutyCard, { backgroundColor: colors.cardBg, borderColor: "#A7F3D0" }]}>
-              <View style={styles.activeDutyHeader}>
-                <View style={styles.activeDutyBadge}>
-                  <Text style={styles.activeDutyBadgeText}>● SEDANG DINAS</Text>
-                </View>
-                <Text style={styles.activeDutyNumber}>ST.128/K.18/TU/KSA.05.06/B/07/2026</Text>
-              </View>
-
-              <Text style={[styles.activeDutyTitle, { color: colors.textDark }]}>
-                Inventarisasi Aset BMN di Paser & Balikpapan
-              </Text>
-
-              <View style={styles.activeDutyMetaRow}>
-                <View style={styles.metaItem}>
-                  <Ionicons name="calendar-outline" size={13} color="#059669" />
-                  <Text style={[styles.metaItemText, { color: colors.textMuted }]}>28 - 30 Juli 2026 (3 Hari)</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Ionicons name="location-outline" size={13} color="#059669" />
-                  <Text style={[styles.metaItemText, { color: colors.textMuted }]}>SKW III Paser & Seksi I</Text>
-                </View>
-              </View>
-
-              {/* SPD dan Visum di-hide sementara karena modul keuangan dikerjakan tim lain */}
-            </GlassCard>
-
-            {/* Layanan Terpadu & Helpdesk TU Strip */}
-            <View style={styles.helpdeskStrip}>
-              <Ionicons name="shield-checkmark" size={20} color="#15803D" style={{ marginRight: 10 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.helpdeskTitle}>Layanan Terpadu & Helpdesk TU</Text>
-                <Text style={styles.helpdeskSub}>Konsultasi SPPD, Visum & SK: tu.bksdakaltim@ksdae.go.id</Text>
-              </View>
-            </View>
+              );
+            })()}
           </>
         )}
 
@@ -784,37 +1012,38 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </View>
 
             {/* Segmented Filter Bar */}
-            <View style={styles.filterSegmentContainer}>
+            <View style={[styles.filterSegmentContainer, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}>
               <TouchableOpacity
-                style={[styles.filterSegmentBtn, stFilter === "all" && styles.filterSegmentBtnActive]}
+                style={[styles.filterSegmentBtn, stFilter === "all" && [{ backgroundColor: colors.surfaceRaised }, shadowXs]]}
                 onPress={() => setStFilter("all")}
               >
-                <Text style={[styles.filterSegmentText, stFilter === "all" && styles.filterSegmentTextActive]}>
+                <Text style={[styles.filterSegmentText, { color: stFilter === "all" ? colors.accentFg : colors.textMuted }, stFilter === "all" && styles.filterSegmentTextActive]}>
                   Semua ({displayStList.length})
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.filterSegmentBtn, stFilter === "running" && styles.filterSegmentBtnActive]}
+                style={[styles.filterSegmentBtn, stFilter === "running" && [{ backgroundColor: colors.surfaceRaised }, shadowXs]]}
                 onPress={() => setStFilter("running")}
               >
-                <Text style={[styles.filterSegmentText, stFilter === "running" && styles.filterSegmentTextActive]}>
+                <Text style={[styles.filterSegmentText, { color: stFilter === "running" ? colors.accentFg : colors.textMuted }, stFilter === "running" && styles.filterSegmentTextActive]}>
                   Berjalan (1)
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.filterSegmentBtn, stFilter === "completed" && styles.filterSegmentBtnActive]}
+                style={[styles.filterSegmentBtn, stFilter === "completed" && [{ backgroundColor: colors.surfaceRaised }, shadowXs]]}
                 onPress={() => setStFilter("completed")}
               >
-                <Text style={[styles.filterSegmentText, stFilter === "completed" && styles.filterSegmentTextActive]}>
+                <Text style={[styles.filterSegmentText, { color: stFilter === "completed" ? colors.accentFg : colors.textMuted }, stFilter === "completed" && styles.filterSegmentTextActive]}>
                   Selesai ({Math.max(0, displayStList.length - 1)})
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* List of ST Cards */}
-            <View style={{ gap: 12 }}>
+            <View style={styles.listStack}>
               {filteredStList.map((stItem: any, idx: number) => {
                 const isRunning = stItem.status === "approved" || stItem.kategori === "running";
+                const stBadge = getTonePalette(colors, isRunning ? "accent" : "neutral");
                 return (
                   <GlassCard
                     key={stItem.id || idx}
@@ -822,24 +1051,25 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       styles.stListCard,
                       {
                         backgroundColor: colors.cardBg,
-                        borderColor: isRunning ? "#A7F3D0" : colors.glassBorder,
+                        borderColor: isRunning ? colors.accentSoftBorder : colors.glassBorder,
                       },
+                      shadowXs,
                     ]}
                   >
                     <View style={styles.stListHeaderRow}>
-                      <View style={[styles.stStatusBadge, isRunning ? styles.stStatusBadgeRunning : styles.stStatusBadgeCompleted]}>
-                        <Text style={[styles.stStatusBadgeText, isRunning ? styles.stStatusBadgeTextRunning : styles.stStatusBadgeTextCompleted]}>
+                      <View style={[styles.stStatusBadge, { backgroundColor: stBadge.bg, borderColor: stBadge.border }]}>
+                        <Text style={[styles.stStatusBadgeText, { color: stBadge.fg }]}>
                           {isRunning ? "● SEDANG DINAS" : "● SELESAI & LAPOR"}
                         </Text>
                       </View>
-                      <Text style={[styles.stListNumber, { color: isRunning ? "#059669" : colors.textMuted }]}>
+                      <Text style={[styles.stListNumber, { color: isRunning ? colors.accentFg : colors.textMuted }]}>
                         {stItem.nomor_surat || stItem.nomor || `ST.0${idx + 1}/K.18/TU/KSA/2026`}
                       </Text>
                       <TouchableOpacity
-                        style={styles.eyePreviewBtn}
+                        style={[styles.eyePreviewBtn, { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }]}
                         onPress={() => handleOpenStPreview(stItem)}
                       >
-                        <Ionicons name="eye-outline" size={17} color="#2563EB" />
+                        <Ionicons name="eye-outline" size={16} color={colors.infoFg} />
                       </TouchableOpacity>
                     </View>
 
@@ -851,8 +1081,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       {stItem.tempat_tujuan || "Wilayah Kerja BKSDA Kaltim"} • {formatDateIndo(stItem.tanggal_mulai)} s/d {formatDateIndo(stItem.tanggal_selesai)}
                     </Text>
 
-                    <View style={styles.stListFooterRow}>
-                      <Text style={[styles.stListFooterText, { color: isRunning ? "#047857" : "#059669" }]}>
+                    <View style={[styles.stListFooterRow, { borderTopColor: colors.glassBorder }]}>
+                      <Text style={[styles.stListFooterText, { color: colors.accentFg }]}>
                         {isRunning
                           ? "Status Anggaran: DIPA Balai KSDA Kaltim (SPPD Aktif)"
                           : "Laporan Pelaksanaan ST telah di-upload ke sistem TU ✓"}
@@ -864,11 +1094,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </View>
 
             {/* Quick Helper Strip */}
-            <View style={styles.quickPromptStrip}>
-              <Ionicons name="information-circle-outline" size={20} color="#2563EB" style={{ marginRight: 10 }} />
+            <View style={[styles.quickPromptStrip, { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }, shadowXs]}>
+              <Ionicons name="information-circle-outline" size={20} color={colors.infoFg} style={styles.stripIcon} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.quickPromptTitle}>Punya Surat Tugas yang Belum Ada di Daftar?</Text>
-                <Text style={styles.quickPromptSub}>
+                <Text style={[styles.quickPromptTitle, { color: colors.infoFg }]}>Punya Surat Tugas yang Belum Ada di Daftar?</Text>
+                <Text style={[styles.quickPromptSub, { color: colors.textMuted }]}>
                   Gunakan tombol (+) di tengah bawah untuk membuat SPT baru secara mandiri.
                 </Text>
               </View>
@@ -892,7 +1122,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 </View>
 
                 {/* 4 Core Service Cards - Aset Saya di Paling Atas */}
-                <View style={{ gap: 12 }}>
+                <View style={styles.listStack}>
                   {/* 1. Aset Saya (Paling Atas) -> Opens BMN Sub-screen on Aset tab */}
                   <TouchableOpacity
                     activeOpacity={0.8}
@@ -901,9 +1131,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       setBmnActiveTab("aset");
                     }}
                   >
-                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                      <View style={[styles.serviceIconBg, { backgroundColor: "#ECFDF5" }]}>
-                        <Ionicons name="briefcase-outline" size={22} color="#059669" />
+                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                      <View style={[styles.serviceIconBg, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}>
+                        <Ionicons name="briefcase-outline" size={20} color={colors.accentFg} />
                       </View>
                       <View style={styles.serviceMain}>
                         <Text style={[styles.serviceTitle, { color: colors.textDark }]}>Aset Saya</Text>
@@ -912,13 +1142,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                             ? `${displayAssetsList.length} Barang Milik Negara terdaftar atas nama Anda`
                             : "Belum ada BMN tetap yang ditugaskan"}
                         </Text>
-                        <View style={[styles.serviceBadge, { backgroundColor: "#ECFDF5", borderColor: "#A7F3D0" }]}>
-                          <Text style={[styles.serviceBadgeText, { color: "#047857" }]}>
+                        <View style={[styles.serviceBadge, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}>
+                          <Text style={[styles.serviceBadgeText, { color: colors.accentFg }]}>
                             {displayAssetsList.length > 0 ? "Buka Daftar Lengkap (10+) ›" : "Lihat Rincian"}
                           </Text>
                         </View>
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
                     </GlassCard>
                   </TouchableOpacity>
 
@@ -930,9 +1160,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       setBmnActiveTab("pinjaman");
                     }}
                   >
-                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                      <View style={[styles.serviceIconBg, { backgroundColor: "#EFF6FF" }]}>
-                        <Ionicons name="swap-horizontal-outline" size={22} color="#2563EB" />
+                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                      <View style={[styles.serviceIconBg, { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }]}>
+                        <Ionicons name="swap-horizontal-outline" size={20} color={colors.infoFg} />
                       </View>
                       <View style={styles.serviceMain}>
                         <Text style={[styles.serviceTitle, { color: colors.textDark }]}>Pinjaman BMN Aktif</Text>
@@ -941,13 +1171,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                             ? `${displayLoansList.length} Unit Dipinjam: ${displayLoansList.map((l: any) => l.nama_barang).slice(0, 2).join(", ")}`
                             : "Tidak ada pinjaman BMN yang sedang berjalan"}
                         </Text>
-                        <View style={[styles.serviceBadge, { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" }]}>
-                          <Text style={[styles.serviceBadgeText, { color: "#1D4ED8" }]}>
+                        <View style={[styles.serviceBadge, { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }]}>
+                          <Text style={[styles.serviceBadgeText, { color: colors.infoFg }]}>
                             {displayLoansList.length > 0 ? `${displayLoansList.length} Unit Berjalan ›` : "Status: Bersih"}
                           </Text>
                         </View>
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
                     </GlassCard>
                   </TouchableOpacity>
 
@@ -956,20 +1186,20 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     activeOpacity={0.8}
                     onPress={() => setLayananSubScreen("cuti")}
                   >
-                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                      <View style={[styles.serviceIconBg, { backgroundColor: "#FFFBEB" }]}>
-                        <Ionicons name="calendar-outline" size={22} color="#D97706" />
+                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                      <View style={[styles.serviceIconBg, { backgroundColor: colors.warningBg, borderColor: colors.warningBorder }]}>
+                        <Ionicons name="calendar-outline" size={20} color={colors.warningFg} />
                       </View>
                       <View style={styles.serviceMain}>
                         <Text style={[styles.serviceTitle, { color: colors.textDark }]}>Riwayat Pengajuan Cuti</Text>
                         <Text style={[styles.serviceSubtitle, { color: colors.textMuted }]}>
                           {`Sisa Kuota: ${resolvedSisaCuti} Hari Kerja • ${displayLeaveRequests.length} Pengajuan Arsip`}
                         </Text>
-                        <View style={[styles.serviceBadge, { backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }]}>
-                          <Text style={[styles.serviceBadgeText, { color: "#B45309" }]}>Buka Arsip Pertahun ›</Text>
+                        <View style={[styles.serviceBadge, { backgroundColor: colors.warningBg, borderColor: colors.warningBorder }]}>
+                          <Text style={[styles.serviceBadgeText, { color: colors.warningFg }]}>Buka Arsip Pertahun ›</Text>
                         </View>
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
                     </GlassCard>
                   </TouchableOpacity>
 
@@ -978,33 +1208,33 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     activeOpacity={0.8}
                     onPress={() => setSbmModalVisible(true)}
                   >
-                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                      <View style={[styles.serviceIconBg, { backgroundColor: "#F0FDFA" }]}>
-                        <Ionicons name="calculator-outline" size={22} color="#0D9488" />
+                    <GlassCard style={[styles.serviceCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                      <View style={[styles.serviceIconBg, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}>
+                        <Ionicons name="calculator-outline" size={20} color={colors.accentFg} />
                       </View>
                       <View style={styles.serviceMain}>
                         <Text style={[styles.serviceTitle, { color: colors.textDark }]}>Kalkulator Dinas (SBM)</Text>
                         <Text style={[styles.serviceSubtitle, { color: colors.textMuted }]}>
                           Simulasi uang harian, penginapan & biaya transport sesuai PMK SBM
                         </Text>
-                        <View style={[styles.serviceBadge, { backgroundColor: "#F0FDFA", borderColor: "#99F6E4" }]}>
-                          <Text style={[styles.serviceBadgeText, { color: "#0F766E" }]}>Hitung Estimasi (Modal) ›</Text>
+                        <View style={[styles.serviceBadge, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}>
+                          <Text style={[styles.serviceBadgeText, { color: colors.accentFg }]}>Hitung Estimasi (Modal) ›</Text>
                         </View>
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+                      <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
                     </GlassCard>
                   </TouchableOpacity>
                 </View>
 
                 {/* Helpdesk Strip dengan Spacing Lega */}
-                <View style={[styles.helpdeskStrip, styles.layananHelpdeskSpacing]}>
-                  <View style={styles.helpdeskIconCircle}>
-                    <Ionicons name="shield-checkmark" size={20} color="#15803D" />
+                <View style={[styles.helpdeskStrip, styles.layananHelpdeskSpacing, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }, shadowXs]}>
+                  <View style={[styles.helpdeskIconCircle, { backgroundColor: colors.cardBg, borderColor: colors.accentSoftBorder }]}>
+                    <Ionicons name="shield-checkmark" size={20} color={colors.accentFg} />
                   </View>
                   <View style={{ flex: 1, paddingLeft: 8 }}>
-                    <Text style={styles.helpdeskTitle}>Butuh bantuan administrasi & TU?</Text>
-                    <Text style={styles.helpdeskSub}>
-                      Hubungi Subbagian Tata Usaha Balai KSDA Kaltim untuk konsultasi SPPD, BMN & Cuti
+                    <Text style={[styles.helpdeskTitle, { color: colors.textDark }]}>Butuh bantuan administrasi & TU?</Text>
+                    <Text style={[styles.helpdeskSub, { color: colors.textMuted }]}>
+                      Konsultasi SPPD, Visum, BMN & Cuti: tu.bksdakaltim@ksdae.go.id
                     </Text>
                   </View>
                 </View>
@@ -1016,7 +1246,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               <>
                 <View style={styles.subScreenHeader}>
                   <TouchableOpacity
-                    style={styles.subScreenBackBtn}
+                    style={[styles.subScreenBackBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
                     onPress={() => setLayananSubScreen("menu")}
                     activeOpacity={0.7}
                   >
@@ -1030,81 +1260,88 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   </View>
                 </View>
 
-                {/* Segmented Switcher [ Aset Tetap Saya (12) | Pinjaman Berjalan (3) ] */}
-                <View style={styles.bmnSegmentedWrapper}>
+                {/* Segmented Switcher [ Aset Tetap Saya | Pinjaman Berjalan ] */}
+                <View style={[styles.bmnSegmentedWrapper, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}>
                   <TouchableOpacity
-                    style={[styles.bmnSegmentBtn, bmnActiveTab === "aset" && styles.bmnSegmentBtnActive]}
+                    style={[styles.bmnSegmentBtn, bmnActiveTab === "aset" && [{ backgroundColor: colors.surfaceRaised }, shadowXs]]}
                     onPress={() => setBmnActiveTab("aset")}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.bmnSegmentText, bmnActiveTab === "aset" && styles.bmnSegmentTextActive]}>
+                    <Text style={[styles.bmnSegmentText, { color: bmnActiveTab === "aset" ? colors.accentFg : colors.textMuted }, bmnActiveTab === "aset" && styles.bmnSegmentTextActive]}>
                       Aset Tetap ({displayAssetsList.length})
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.bmnSegmentBtn, bmnActiveTab === "pinjaman" && styles.bmnSegmentBtnActive]}
+                    style={[styles.bmnSegmentBtn, bmnActiveTab === "pinjaman" && [{ backgroundColor: colors.surfaceRaised }, shadowXs]]}
                     onPress={() => setBmnActiveTab("pinjaman")}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.bmnSegmentText, bmnActiveTab === "pinjaman" && styles.bmnSegmentTextActive]}>
+                    <Text style={[styles.bmnSegmentText, { color: bmnActiveTab === "pinjaman" ? colors.accentFg : colors.textMuted }, bmnActiveTab === "pinjaman" && styles.bmnSegmentTextActive]}>
                       Pinjaman Berjalan ({displayLoansList.length})
                     </Text>
                   </TouchableOpacity>
                 </View>
 
                 {/* Search Bar Input */}
-                <View style={[styles.searchBarWrapper, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                  <Ionicons name="search-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
+                <View style={[styles.searchBarWrapper, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                  <Ionicons name="search-outline" size={18} color={colors.textMuted} style={styles.searchIcon} />
                   <TextInput
                     style={[styles.searchInput, { color: colors.textDark }]}
                     placeholder={bmnActiveTab === "aset" ? "Cari nama barang, merk, atau NUP..." : "Cari pinjaman aktif..."}
-                    placeholderTextColor="#94A3B8"
+                    placeholderTextColor={colors.textMuted}
                     value={bmnSearchQuery}
                     onChangeText={setBmnSearchQuery}
                   />
                   {bmnSearchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => setBmnSearchQuery("")}>
-                      <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                      <Ionicons name="close-circle" size={16} color={colors.textMuted} />
                     </TouchableOpacity>
                   )}
                 </View>
 
                 {/* Category Pills (Only when Aset Tetap tab is active) */}
                 {bmnActiveTab === "aset" && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catPillScrollView} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catPillScrollView} contentContainerStyle={styles.catPillContent}>
                     {[
                       { key: "all", label: `Semua (${displayAssetsList.length})` },
                       { key: "kendaraan", label: "Kendaraan (3)" },
                       { key: "it", label: "IT & PC (5)" },
                       { key: "peralatan", label: "Peralatan (4)" },
-                    ].map((pill) => (
-                      <TouchableOpacity
-                        key={pill.key}
-                        style={[
-                          styles.catPillBtn,
-                          bmnCategoryFilter === pill.key && styles.catPillBtnActive,
-                        ]}
-                        onPress={() => setBmnCategoryFilter(pill.key)}
-                      >
-                        <Text
+                    ].map((pill) => {
+                      const active = bmnCategoryFilter === pill.key;
+                      return (
+                        <TouchableOpacity
+                          key={pill.key}
                           style={[
-                            styles.catPillText,
-                            bmnCategoryFilter === pill.key && styles.catPillTextActive,
+                            styles.catPillBtn,
+                            {
+                              backgroundColor: active ? colors.accentSoft : colors.cardBg,
+                              borderColor: active ? colors.accentSoftBorder : colors.glassBorder,
+                            },
                           ]}
+                          onPress={() => setBmnCategoryFilter(pill.key)}
                         >
-                          {pill.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                          <Text
+                            style={[
+                              styles.catPillText,
+                              { color: active ? colors.accentFg : colors.textMuted },
+                              active && styles.catPillTextActive,
+                            ]}
+                          >
+                            {pill.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </ScrollView>
                 )}
 
                 {/* Items List */}
-                <View style={{ gap: 10, marginTop: 12 }}>
+                <View style={[styles.listStack, { marginTop: 12 }]}>
                   {bmnActiveTab === "aset" ? (
                     filteredBmnAssets.length === 0 ? (
-                      <View style={styles.emptySubStateCard}>
-                        <Ionicons name="cube-outline" size={40} color="#94A3B8" />
+                      <View style={[styles.emptySubStateCard, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}>
+                        <Ionicons name="cube-outline" size={40} color={colors.textMuted} />
                         <Text style={[styles.emptySubTitle, { color: colors.textDark }]}>Tidak Ada Aset Ditemukan</Text>
                         <Text style={[styles.emptySubDesc, { color: colors.textMuted }]}>
                           Tidak ada Barang Milik Negara yang sesuai dengan filter pencarian "{bmnSearchQuery}".
@@ -1113,23 +1350,21 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     ) : (
                       filteredBmnAssets.map((asset: any, idx: number) => {
                         const kondisi = String(asset.kondisi || "B").toUpperCase();
-                        const isGood = kondisi === "B";
-                        const isLightDmg = kondisi === "RR";
-                        const badgeColor = isGood ? "#059669" : isLightDmg ? "#D97706" : "#DC2626";
-                        const badgeBg = isGood ? "#ECFDF5" : isLightDmg ? "#FFFBEB" : "#FEF2F2";
-                        const badgeLabel = isGood ? "Kondisi: Baik" : isLightDmg ? "Rusak Ringan" : "Rusak Berat";
+                        const tone: ToneKey = kondisi === "B" ? "success" : kondisi === "RR" ? "warning" : "danger";
+                        const badgePal = getTonePalette(colors, tone);
+                        const badgeLabel = kondisi === "B" ? "Kondisi: Baik" : kondisi === "RR" ? "Rusak Ringan" : "Rusak Berat";
 
                         return (
                           <GlassCard
                             key={asset.id || idx}
-                            style={[styles.bmnDetailCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
+                            style={[styles.bmnDetailCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}
                           >
                             <View style={styles.bmnDetailHeader}>
-                              <View style={styles.bmnIconBox}>
+                              <View style={[styles.bmnIconBox, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}>
                                 <Ionicons
                                   name={asset.no_polisi ? "car-outline" : asset.kategori === "it" ? "laptop-outline" : "cube-outline"}
-                                  size={22}
-                                  color="#059669"
+                                  size={20}
+                                  color={colors.accentFg}
                                 />
                               </View>
                               <View style={{ flex: 1 }}>
@@ -1142,13 +1377,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                                   {asset.merk_tipe || asset.merk || asset.jenis_bmn || "Inventaris Balai"}
                                 </Text>
                               </View>
-                              <View style={[styles.bmnConditionBadge, { backgroundColor: badgeBg, borderColor: badgeColor + "33" }]}>
-                                <Text style={[styles.bmnConditionText, { color: badgeColor }]}>{badgeLabel}</Text>
+                              <View style={[styles.bmnConditionBadge, { backgroundColor: badgePal.bg, borderColor: badgePal.border }]}>
+                                <Text style={[styles.bmnConditionText, { color: badgePal.fg }]}>{badgeLabel}</Text>
                               </View>
                             </View>
                             {asset.lokasi && (
-                              <View style={styles.bmnLocationRow}>
-                                <Ionicons name="location-outline" size={13} color="#059669" style={{ marginRight: 4 }} />
+                              <View style={[styles.bmnLocationRow, { borderTopColor: colors.glassBorder }]}>
+                                <Ionicons name="location-outline" size={14} color={colors.accentFg} style={styles.inlineIcon} />
                                 <Text style={[styles.bmnLocationText, { color: colors.textMuted }]}>
                                   Lokasi: {asset.lokasi}
                                 </Text>
@@ -1160,8 +1395,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     )
                   ) : (
                     filteredBmnLoans.length === 0 ? (
-                      <View style={styles.emptySubStateCard}>
-                        <Ionicons name="checkmark-circle-outline" size={40} color="#059669" />
+                      <View style={[styles.emptySubStateCard, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}>
+                        <Ionicons name="checkmark-circle-outline" size={40} color={colors.successFg} />
                         <Text style={[styles.emptySubTitle, { color: colors.textDark }]}>Tidak Ada Pinjaman Aktif</Text>
                         <Text style={[styles.emptySubDesc, { color: colors.textMuted }]}>
                           Seluruh alat dinas lapangan telah dikembalikan secara tertib ke petugas BMN Balai KSDA Kaltim.
@@ -1170,17 +1405,16 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     ) : (
                       filteredBmnLoans.map((loan: any, idx: number) => {
                         const isLate = String(loan.status || "").toLowerCase().includes("terlambat");
-                        const statusColor = isLate ? "#DC2626" : "#2563EB";
-                        const statusBg = isLate ? "#FEF2F2" : "#EFF6FF";
+                        const loanPal = getTonePalette(colors, isLate ? "danger" : "info");
 
                         return (
                           <GlassCard
                             key={loan.id || idx}
-                            style={[styles.bmnDetailCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
+                            style={[styles.bmnDetailCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}
                           >
                             <View style={styles.bmnDetailHeader}>
-                              <View style={[styles.bmnIconBox, { backgroundColor: statusBg }]}>
-                                <Ionicons name="swap-horizontal-outline" size={22} color={statusColor} />
+                              <View style={[styles.bmnIconBox, { backgroundColor: loanPal.bg, borderColor: loanPal.border }]}>
+                                <Ionicons name="swap-horizontal-outline" size={20} color={loanPal.fg} />
                               </View>
                               <View style={{ flex: 1 }}>
                                 <Text style={[styles.bmnItemTitle, { color: colors.textDark }]}>{loan.nama_barang}</Text>
@@ -1188,14 +1422,14 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                                   NUP: {loan.nup || "-"} • {loan.kode_barang || "-"}
                                 </Text>
                               </View>
-                              <View style={[styles.bmnConditionBadge, { backgroundColor: statusBg, borderColor: statusColor + "33" }]}>
-                                <Text style={[styles.bmnConditionText, { color: statusColor }]}>
+                              <View style={[styles.bmnConditionBadge, { backgroundColor: loanPal.bg, borderColor: loanPal.border }]}>
+                                <Text style={[styles.bmnConditionText, { color: loanPal.fg }]}>
                                   {loan.status?.toUpperCase() || "DIPINJAM"}
                                 </Text>
                               </View>
                             </View>
 
-                            <View style={styles.loanMetaGrid}>
+                            <View style={[styles.loanMetaGrid, { borderTopColor: colors.glassBorder }]}>
                               <View style={styles.loanMetaCol}>
                                 <Text style={[styles.loanMetaLabel, { color: colors.textMuted }]}>TGL PINJAM</Text>
                                 <Text style={[styles.loanMetaVal, { color: colors.textDark }]}>
@@ -1204,13 +1438,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                               </View>
                               <View style={styles.loanMetaCol}>
                                 <Text style={[styles.loanMetaLabel, { color: colors.textMuted }]}>BATAS KEMBALI</Text>
-                                <Text style={[styles.loanMetaVal, { color: isLate ? "#DC2626" : colors.textDark }]}>
+                                <Text style={[styles.loanMetaVal, { color: isLate ? colors.dangerFg : colors.textDark }]}>
                                   {loan.due_date ? String(loan.due_date).split("T")[0] : "-"}
                                 </Text>
                               </View>
                               <View style={styles.loanMetaCol}>
                                 <Text style={[styles.loanMetaLabel, { color: colors.textMuted }]}>STATUS</Text>
-                                <Text style={[styles.loanMetaVal, { color: statusColor }]}>
+                                <Text style={[styles.loanMetaVal, { color: loanPal.fg }]}>
                                   {isLate ? "Terlambat" : "Sisa 6 Hari"}
                                 </Text>
                               </View>
@@ -1229,7 +1463,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               <>
                 <View style={styles.subScreenHeader}>
                   <TouchableOpacity
-                    style={styles.subScreenBackBtn}
+                    style={[styles.subScreenBackBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
                     onPress={() => setLayananSubScreen("menu")}
                     activeOpacity={0.7}
                   >
@@ -1243,10 +1477,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   </View>
                 </View>
 
-                {/* Top Quota Summary Hero Card (Soft Emerald) */}
-                <View style={styles.cutiHeroCard}>
+                {/* Top Quota Summary Hero Card (Portal Forest Green) */}
+                <View style={[styles.cutiHeroCard, shadowXs]}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.cutiHeroLabel}>SISA KUOTA CUTI TAHUN 2026</Text>
+                    <Text style={styles.cutiHeroLabel}>SISA KUOTA CUTI TAHUN {new Date().getFullYear()}</Text>
                     <Text style={styles.cutiHeroValue}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
                     <Text style={styles.cutiHeroBreakdown}>
                       Hak Cuti N: 12 Hari • Sisa N-1: 0 Hari • Terpakai: {12 - resolvedSisaCuti} Hari
@@ -1257,17 +1491,17 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     onPress={() => setCutiModalVisible(true)}
                     activeOpacity={0.8}
                   >
-                    <Ionicons name="add" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-                    <Text style={styles.cutiHeroActionText}>+ Ajukan Cuti</Text>
+                    <Ionicons name="add" size={16} color="#ffffff" style={styles.inlineIcon} />
+                    <Text style={styles.cutiHeroActionText}>Ajukan</Text>
                   </TouchableOpacity>
                 </View>
 
                 {/* Horizontal Year Filter Pills */}
                 <View style={styles.yearPillsContainer}>
                   {[
-                    { year: 2026, label: "Tahun 2026 (3)" },
-                    { year: 2025, label: "Tahun 2025 (1)" },
-                    { year: 2024, label: "Tahun 2024 (1)" },
+                    { year: 2026, label: "2026 (3)" },
+                    { year: 2025, label: "2025 (1)" },
+                    { year: 2024, label: "2024 (1)" },
                     { year: "all" as const, label: `Semua (${displayLeaveRequests.length})` },
                   ].map((p) => {
                     const isActive = cutiYearFilter === p.year;
@@ -1276,13 +1510,17 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                         key={String(p.year)}
                         style={[
                           styles.yearPillBtn,
-                          isActive && styles.yearPillBtnActive,
+                          {
+                            backgroundColor: isActive ? colors.accentSoft : colors.cardBg,
+                            borderColor: isActive ? colors.accentSoftBorder : colors.glassBorder,
+                          },
                         ]}
                         onPress={() => setCutiYearFilter(p.year)}
                       >
                         <Text
                           style={[
                             styles.yearPillText,
+                            { color: isActive ? colors.accentFg : colors.textMuted },
                             isActive && styles.yearPillTextActive,
                           ]}
                         >
@@ -1294,10 +1532,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 </View>
 
                 {/* Leave Cards List */}
-                <View style={{ gap: 12, marginTop: 12 }}>
+                <View style={[styles.listStack, { marginTop: 12 }]}>
                   {filteredLeaveRequests.length === 0 ? (
-                    <View style={styles.emptySubStateCard}>
-                      <Ionicons name="calendar-outline" size={40} color="#D97706" />
+                    <View style={[styles.emptySubStateCard, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}>
+                      <Ionicons name="calendar-outline" size={40} color={colors.warningFg} />
                       <Text style={[styles.emptySubTitle, { color: colors.textDark }]}>Tidak Ada Pengajuan Cuti</Text>
                       <Text style={[styles.emptySubDesc, { color: colors.textMuted }]}>
                         Tidak ada riwayat cuti tercatat untuk filter tahun yang dipilih.
@@ -1308,13 +1546,12 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       const statusStr = String(req.status || "PENDING").toUpperCase();
                       const isApproved = statusStr.includes("SETUJU") || statusStr.includes("APPROV");
                       const isPending = statusStr.includes("PENDING") || statusStr.includes("MENUNGGU");
-                      const statusColor = isApproved ? "#059669" : isPending ? "#D97706" : "#DC2626";
-                      const statusBg = isApproved ? "#ECFDF5" : isPending ? "#FFFBEB" : "#FEF2F2";
+                      const badgePal = getTonePalette(colors, isApproved ? "success" : isPending ? "warning" : "danger");
 
                       return (
                         <GlassCard
                           key={req.id || idx}
-                          style={[styles.leaveDetailCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
+                          style={[styles.leaveDetailCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}
                         >
                           <View style={styles.leaveCardHeader}>
                             <View style={{ flex: 1 }}>
@@ -1322,34 +1559,34 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                                 {(req as any).jenis_cuti_label || req.jenis_cuti || "Cuti Tahunan"}
                               </Text>
                               <View style={styles.leaveDateRow}>
-                                <Ionicons name="calendar-outline" size={13} color="#059669" style={{ marginRight: 4 }} />
-                                <Text style={styles.leaveDateText}>
+                                <Ionicons name="calendar-outline" size={14} color={colors.accentFg} style={styles.inlineIcon} />
+                                <Text style={[styles.leaveDateText, { color: colors.accentFg }]}>
                                   {req.tanggal_mulai} s/d {req.tanggal_selesai} ({req.jumlah_hari || 1} Hari Kerja)
                                 </Text>
                               </View>
                             </View>
-                            <View style={[styles.bmnConditionBadge, { backgroundColor: statusBg, borderColor: statusColor + "33" }]}>
-                              <Text style={[styles.bmnConditionText, { color: statusColor }]}>
+                            <View style={[styles.bmnConditionBadge, { backgroundColor: badgePal.bg, borderColor: badgePal.border }]}>
+                              <Text style={[styles.bmnConditionText, { color: badgePal.fg }]}>
                                 {statusStr}
                               </Text>
                             </View>
                           </View>
 
-                          <Text style={[styles.leaveAlasanFullText, { color: colors.textDark }]}>
+                          <Text style={[styles.leaveAlasanFullText, { color: colors.textSecondary }]}>
                             "{req.alasan_cuti || "Keperluan dinas dan keluarga"}"
                           </Text>
 
                           <View style={styles.leaveCardActions}>
                             <TouchableOpacity
-                              style={styles.leavePrintOfficialBtn}
+                              style={[styles.leavePrintOfficialBtn, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}
                               onPress={() => {
                                 setCutiPreviewItem(req);
                                 setCutiPreviewVisible(true);
                               }}
                               activeOpacity={0.8}
                             >
-                              <Ionicons name="print-outline" size={14} color="#059669" style={{ marginRight: 5 }} />
-                              <Text style={styles.leavePrintOfficialText}>Cetak Formulir BKN ›</Text>
+                              <Ionicons name="print-outline" size={14} color={colors.accentFg} style={styles.inlineIcon} />
+                              <Text style={[styles.leavePrintOfficialText, { color: colors.accentFg }]}>Cetak Formulir BKN ›</Text>
                             </TouchableOpacity>
                           </View>
                         </GlassCard>
@@ -1360,12 +1597,12 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
                 {/* Big Bottom Action Button */}
                 <TouchableOpacity
-                  style={styles.ajukanCutiBottomBtn}
+                  style={[styles.ajukanCutiBottomBtn, { backgroundColor: colors.accentSolid }, shadowXs]}
                   onPress={() => setCutiModalVisible(true)}
                   activeOpacity={0.85}
                 >
-                  <Ionicons name="add-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-                  <Text style={styles.ajukanCutiBottomText}>+ Ajukan Permohonan Cuti Baru</Text>
+                  <Ionicons name="add-circle" size={20} color={colors.accentOnSolid} style={styles.btnIcon} />
+                  <Text style={[styles.ajukanCutiBottomText, { color: colors.accentOnSolid }]}>Ajukan Permohonan Cuti Baru</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -1385,63 +1622,63 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </View>
 
             {/* Profile Hero Card */}
-            <GlassCard style={[styles.profileHeroCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-              <View style={styles.profileAvatarBig}>
-                <Text style={styles.profileAvatarText}>{avatarInitial}</Text>
+            <GlassCard style={[styles.profileHeroCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+              <View style={[styles.profileAvatarBig, { backgroundColor: colors.accentSolid }]}>
+                <Text style={[styles.profileAvatarText, { color: colors.accentOnSolid }]}>{avatarInitial}</Text>
               </View>
               <View style={styles.profileHeroMain}>
                 <Text style={[styles.profileHeroName, { color: colors.textDark }]}>{resolvedName}</Text>
                 <Text style={[styles.profileHeroNip, { color: colors.textMuted }]}>NIP: {resolvedNip}</Text>
-                <Text style={styles.profileHeroJabatan}>{resolvedJabatan}</Text>
+                <Text style={[styles.profileHeroJabatan, { color: colors.accentFg }]}>{resolvedJabatan}</Text>
                 <Text style={[styles.profileHeroUnit, { color: colors.textMuted }]}>{resolvedUnitKerja}</Text>
               </View>
             </GlassCard>
 
             {/* 2 Metric Pills in Profile */}
             <View style={styles.profileMetricsRow}>
-              <GlassCard style={[styles.profileMetricBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                <Text style={styles.profileMetricLabel}>SISA CUTI TAHUNAN</Text>
-                <Text style={[styles.profileMetricValue, { color: "#D97706" }]}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
+              <GlassCard style={[styles.profileMetricBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                <Text style={[styles.profileMetricLabel, { color: colors.textMuted }]}>SISA CUTI TAHUNAN</Text>
+                <Text style={[styles.profileMetricValue, { color: colors.warningFg }]}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
               </GlassCard>
-              <GlassCard style={[styles.profileMetricBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                <Text style={styles.profileMetricLabel}>TOTAL ASET DIPEGANG</Text>
-                <Text style={[styles.profileMetricValue, { color: "#059669" }]}>
+              <GlassCard style={[styles.profileMetricBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                <Text style={[styles.profileMetricLabel, { color: colors.textMuted }]}>TOTAL ASET DIPEGANG</Text>
+                <Text style={[styles.profileMetricValue, { color: colors.accentFg }]}>
                   {`${myAssetsList.length} Aset (${activeLoansList.length} Pinjaman)`}
                 </Text>
               </GlassCard>
             </View>
 
             {/* Profile Menu Actions List */}
-            <View style={{ gap: 8, marginTop: 4 }}>
+            <View style={styles.profileMenuStack}>
               {[
                 {
                   label: "Informasi Riwayat Pangkat & Jabatan",
                   icon: "ribbon-outline",
-                  color: "#2563EB",
-                  action: () => Alert.alert("Pangkat & Jabatan", `Pangkat: Pembina (IV/a)\nJabatan: ${resolvedJabatan}\nUnit: ${resolvedUnitKerja}`),
+                  color: colors.infoFg,
+                  action: () => Alert.alert("Pangkat & Jabatan", `Pangkat: ${resolvedPangkat}\nJabatan: ${resolvedJabatan}\nUnit: ${resolvedUnitKerja}`),
                 },
                 {
                   label: "Riwayat Surat Tugas & SPPD",
                   icon: "document-text-outline",
-                  color: "#059669",
+                  color: colors.accentFg,
                   action: () => setActiveTab("surattugas"),
                 },
                 {
                   label: "Riwayat Pengajuan Cuti Online",
                   icon: "calendar-outline",
-                  color: "#D97706",
+                  color: colors.warningFg,
                   action: () => setCutiModalVisible(true),
                 },
                 {
                   label: "Keamanan Akun & Ubah Kata Sandi",
                   icon: "shield-checkmark-outline",
-                  color: "#475569",
+                  color: colors.textSecondary,
                   action: () => Alert.alert("Keamanan Akun", "Fitur reset sandi terhubung dengan IAM Portal BKSDA."),
                 },
                 {
                   label: "Hubungi Subbag Tata Usaha (TU)",
                   icon: "mail-outline",
-                  color: "#0D9488",
+                  color: colors.accentFg,
                   action: () => Alert.alert("Helpdesk TU", "Email: tu.bksdakaltim@ksdae.go.id\nWhatsApp TU: 0812-3456-7890"),
                 },
               ].map((item, idx) => (
@@ -1450,22 +1687,22 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   activeOpacity={0.7}
                   onPress={item.action}
                 >
-                  <GlassCard style={[styles.profileMenuItem, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-                    <Ionicons name={item.icon as any} size={18} color={item.color} style={{ marginRight: 12 }} />
+                  <GlassCard style={[styles.profileMenuItem, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+                    <Ionicons name={item.icon as any} size={18} color={item.color} style={styles.btnIcon} />
                     <Text style={[styles.profileMenuItemLabel, { color: colors.textDark }]}>{item.label}</Text>
-                    <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+                    <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
                   </GlassCard>
                 </TouchableOpacity>
               ))}
 
               {/* Logout Button */}
               <TouchableOpacity
-                style={styles.logoutBtn}
+                style={[styles.logoutBtn, { backgroundColor: colors.dangerBg, borderColor: colors.dangerBorder }, shadowXs]}
                 activeOpacity={0.8}
                 onPress={handleLogout}
               >
-                <Ionicons name="log-out-outline" size={18} color="#EF4444" style={{ marginRight: 8 }} />
-                <Text style={styles.logoutBtnText}>Keluar Akun (Logout)</Text>
+                <Ionicons name="log-out-outline" size={18} color={colors.dangerFg} style={styles.btnIcon} />
+                <Text style={[styles.logoutBtnText, { color: colors.dangerFg }]}>Keluar Akun (Logout)</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -1473,46 +1710,46 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       </ScrollView>
 
       {/* ========================================================================= */}
-      {/* FLOATING BOTTOM NAVIGATION (EXACT 5 ITEMS: BERANDA, ST, FAB, LAYANAN, PROFIL) */}
+      {/* FLOATING BOTTOM NAVIGATION (EXACT 5 ITEMS: BERANDA, TUGAS, FAB, LAYANAN, PROFIL) */}
       {/* ========================================================================= */}
-      <View style={[styles.bottomNavContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+      <View style={[styles.bottomNavContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowLg]}>
         {/* 1. Beranda */}
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("dashboard")}>
           <Ionicons
             name={activeTab === "dashboard" ? "home" : "home-outline"}
-            size={22}
-            color={activeTab === "dashboard" ? "#059669" : colors.textMuted}
+            size={20}
+            color={activeTab === "dashboard" ? colors.accentFg : colors.textMuted}
           />
-          <Text style={[styles.navText, { color: activeTab === "dashboard" ? "#059669" : colors.textMuted, fontWeight: activeTab === "dashboard" ? "700" : "500" }]}>
+          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "dashboard" ? colors.accentFg : colors.textMuted, fontWeight: activeTab === "dashboard" ? "700" : "500" }]}>
             Beranda
           </Text>
-          {activeTab === "dashboard" && <View style={styles.navActiveDot} />}
+          {activeTab === "dashboard" && <View style={[styles.navActiveDot, { backgroundColor: colors.accentSolid }]} />}
         </TouchableOpacity>
 
-        {/* 2. Surat Tugas */}
+        {/* 2. Tugas */}
         <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("surattugas")}>
           <View style={styles.navIconWrapper}>
             <Ionicons
               name={activeTab === "surattugas" ? "document-text" : "document-text-outline"}
-              size={22}
-              color={activeTab === "surattugas" ? "#059669" : colors.textMuted}
+              size={20}
+              color={activeTab === "surattugas" ? colors.accentFg : colors.textMuted}
             />
-            {stBadgeCount > 0 && <View style={styles.navBadge} />}
+            {stBadgeCount > 0 && <View style={[styles.navBadge, { backgroundColor: colors.dangerSolid }]} />}
           </View>
-          <Text style={[styles.navText, { color: activeTab === "surattugas" ? "#059669" : colors.textMuted, fontWeight: activeTab === "surattugas" ? "700" : "500" }]}>
-            Surat Tugas
+          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "surattugas" ? colors.accentFg : colors.textMuted, fontWeight: activeTab === "surattugas" ? "700" : "500" }]}>
+            Tugas
           </Text>
-          {activeTab === "surattugas" && <View style={styles.navActiveDot} />}
+          {activeTab === "surattugas" && <View style={[styles.navActiveDot, { backgroundColor: colors.accentSolid }]} />}
         </TouchableOpacity>
 
         {/* 3. Center Elevated FAB (+) -> Opens Modal */}
         <View style={styles.fabWrapper}>
           <TouchableOpacity
-            style={styles.fabButton}
+            style={[styles.fabButton, { backgroundColor: colors.accentSolid, borderColor: colors.cardBg }, shadowLg]}
             onPress={() => setFabModalVisible(true)}
             activeOpacity={0.9}
           >
-            <Ionicons name="add" size={28} color="#ffffff" />
+            <Ionicons name="add" size={28} color={colors.accentOnSolid} />
           </TouchableOpacity>
         </View>
 
@@ -1521,15 +1758,15 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <View style={styles.navIconWrapper}>
             <Ionicons
               name={activeTab === "layanan" ? "grid" : "grid-outline"}
-              size={22}
-              color={activeTab === "layanan" ? "#059669" : colors.textMuted}
+              size={20}
+              color={activeTab === "layanan" ? colors.accentFg : colors.textMuted}
             />
-            {assetsBadgeCount > 0 && <View style={styles.navBadge} />}
+            {assetsBadgeCount > 0 && <View style={[styles.navBadge, { backgroundColor: colors.dangerSolid }]} />}
           </View>
-          <Text style={[styles.navText, { color: activeTab === "layanan" ? "#059669" : colors.textMuted, fontWeight: activeTab === "layanan" ? "700" : "500" }]}>
+          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "layanan" ? colors.accentFg : colors.textMuted, fontWeight: activeTab === "layanan" ? "700" : "500" }]}>
             Layanan
           </Text>
-          {activeTab === "layanan" && <View style={styles.navActiveDot} />}
+          {activeTab === "layanan" && <View style={[styles.navActiveDot, { backgroundColor: colors.accentSolid }]} />}
         </TouchableOpacity>
 
         {/* 5. Profil Pegawai */}
@@ -1537,14 +1774,14 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <View style={styles.navIconWrapper}>
             <Ionicons
               name={activeTab === "profile" ? "person" : "person-outline"}
-              size={22}
-              color={activeTab === "profile" ? "#059669" : colors.textMuted}
+              size={20}
+              color={activeTab === "profile" ? colors.accentFg : colors.textMuted}
             />
           </View>
-          <Text style={[styles.navText, { color: activeTab === "profile" ? "#059669" : colors.textMuted, fontWeight: activeTab === "profile" ? "700" : "500" }]}>
+          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "profile" ? colors.accentFg : colors.textMuted, fontWeight: activeTab === "profile" ? "700" : "500" }]}>
             Profil
           </Text>
-          {activeTab === "profile" && <View style={styles.navActiveDot} />}
+          {activeTab === "profile" && <View style={[styles.navActiveDot, { backgroundColor: colors.accentSolid }]} />}
         </TouchableOpacity>
       </View>
 
@@ -1562,68 +1799,71 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           activeOpacity={1}
           onPress={() => setFabModalVisible(false)}
         >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowLg]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.glassBorder }]} />
 
             <View style={styles.menuModalHeader}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={[styles.menuModalTitle, { color: colors.textDark }]}>Buat Pengajuan Baru</Text>
                 <Text style={[styles.menuModalSubtitle, { color: colors.textMuted }]}>
                   Pilih jenis formulir kedinasan yang ingin Anda buat
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setFabModalVisible(false)} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={20} color="#64748B" />
+              <TouchableOpacity
+                onPress={() => setFabModalVisible(false)}
+                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
+              >
+                <Ionicons name="close" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             {/* Option 1: Buat Surat Tugas (SPT) Baru */}
             <TouchableOpacity
-              style={[styles.modalOptionCard, { backgroundColor: "#F0FDF4", borderColor: "#A7F3D0" }]}
+              style={[styles.modalOptionCard, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}
               activeOpacity={0.8}
               onPress={() => {
                 setFabModalVisible(false);
                 if (onNavigateToModule) onNavigateToModule("buat-surat-tugas");
               }}
             >
-              <View style={[styles.modalOptionIconBg, { backgroundColor: "#059669" }]}>
-                <Ionicons name="document-text" size={22} color="#FFFFFF" />
+              <View style={[styles.modalOptionIconBg, { backgroundColor: colors.accentSolid }]}>
+                <Ionicons name="document-text" size={20} color={colors.accentOnSolid} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.modalOptionTitle, { color: "#064E3B" }]}>Buat Surat Tugas (SPT) Baru</Text>
-                <Text style={[styles.modalOptionDesc, { color: "#166534" }]}>
+                <Text style={[styles.modalOptionTitle, { color: colors.textDark }]}>Buat Surat Tugas (SPT) Baru</Text>
+                <Text style={[styles.modalOptionDesc, { color: colors.textMuted }]}>
                   Ajukan penugasan dinas resmi, rute tujuan, jadwal pelaksanaan, dan pembebanan anggaran DIPA.
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#059669" />
+              <Ionicons name="chevron-forward" size={18} color={colors.accentFg} />
             </TouchableOpacity>
 
             {/* Option 2: Pengajuan Cuti Online */}
             <TouchableOpacity
-              style={[styles.modalOptionCard, { backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }]}
+              style={[styles.modalOptionCard, { backgroundColor: colors.warningBg, borderColor: colors.warningBorder }]}
               activeOpacity={0.8}
               onPress={() => {
                 setFabModalVisible(false);
                 setCutiModalVisible(true);
               }}
             >
-              <View style={[styles.modalOptionIconBg, { backgroundColor: "#D97706" }]}>
-                <Ionicons name="calendar" size={22} color="#FFFFFF" />
+              <View style={[styles.modalOptionIconBg, { backgroundColor: colors.warningFg }]}>
+                <Ionicons name="calendar" size={20} color={colors.accentOnSolid} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.modalOptionTitle, { color: "#78350F" }]}>Pengajuan Cuti Online</Text>
-                <Text style={[styles.modalOptionDesc, { color: "#92400E" }]}>
-                  Cuti tahunan, sakit, melahirkan, atau alasan penting. Kuota Anda saat ini: 12 Hari Kerja Ready.
+                <Text style={[styles.modalOptionTitle, { color: colors.textDark }]}>Pengajuan Cuti Online</Text>
+                <Text style={[styles.modalOptionDesc, { color: colors.textMuted }]}>
+                  Cuti tahunan, sakit, melahirkan, atau alasan penting. Kuota Anda saat ini: {resolvedSisaCuti} Hari Kerja Ready.
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color="#D97706" />
+              <Ionicons name="chevron-forward" size={18} color={colors.warningFg} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.cancelModalBtn}
+              style={[styles.cancelModalBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
               onPress={() => setFabModalVisible(false)}
             >
-              <Text style={styles.cancelModalBtnText}>Tutup Menu</Text>
+              <Text style={[styles.cancelModalBtnText, { color: colors.textSecondary }]}>Tutup Menu</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -1643,8 +1883,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           activeOpacity={1}
           onPress={() => setPinjamanModalVisible(false)}
         >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }]}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }, shadowLg]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.glassBorder }]} />
 
             <View style={styles.menuModalHeader}>
               <View style={{ flex: 1 }}>
@@ -1653,32 +1893,36 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   Daftar aset BMN operasional dinas yang sedang Anda pinjam
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setPinjamanModalVisible(false)} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={20} color="#64748B" />
+              <TouchableOpacity
+                onPress={() => setPinjamanModalVisible(false)}
+                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
+              >
+                <Ionicons name="close" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
               {activeLoansList.length === 0 ? (
                 <View style={styles.emptyServiceContainer}>
-                  <Ionicons name="checkmark-circle-outline" size={44} color="#059669" />
+                  <Ionicons name="checkmark-circle-outline" size={44} color={colors.successFg} />
                   <Text style={[styles.emptyServiceTitle, { color: colors.textDark }]}>Tidak Ada Pinjaman Aktif</Text>
                   <Text style={[styles.emptyServiceSub, { color: colors.textMuted }]}>
                     Seluruh barang operasional dinas tercatat telah dikembalikan ke pengurus BMN Balai KSDA Kaltim.
                   </Text>
                 </View>
               ) : (
-                <View style={{ gap: 10, marginVertical: 6 }}>
+                <View style={styles.modalListStack}>
                   {activeLoansList.map((loan, idx) => {
                     const isLate = String(loan.status || "").toLowerCase().includes("terlambat");
+                    const loanPal = getTonePalette(colors, isLate ? "danger" : "info");
                     return (
                       <View
                         key={loan.id || idx}
                         style={[
                           styles.loanItemCard,
                           {
-                            backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F8FAFC",
-                            borderColor: isDark ? "#334155" : "#E2E8F0",
+                            backgroundColor: colors.surfaceMuted,
+                            borderColor: colors.glassBorder,
                           },
                         ]}
                       >
@@ -1695,23 +1939,18 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                             style={[
                               styles.loanStatusBadge,
                               {
-                                backgroundColor: isLate ? "#FEF2F2" : "#EFF6FF",
-                                borderColor: isLate ? "#FECACA" : "#BFDBFE",
+                                backgroundColor: loanPal.bg,
+                                borderColor: loanPal.border,
                               },
                             ]}
                           >
-                            <Text
-                              style={[
-                                styles.loanStatusText,
-                                { color: isLate ? "#DC2626" : "#2563EB" },
-                              ]}
-                            >
+                            <Text style={[styles.loanStatusText, { color: loanPal.fg }]}>
                               {loan.status?.toUpperCase() || "DIPINJAM"}
                             </Text>
                           </View>
                         </View>
 
-                        <View style={styles.loanDatesRow}>
+                        <View style={[styles.loanDatesRow, { borderTopColor: colors.glassBorder }]}>
                           <View style={styles.loanDateCol}>
                             <Text style={[styles.loanDateLabel, { color: colors.textMuted }]}>TGL PINJAM</Text>
                             <Text style={[styles.loanDateVal, { color: colors.textDark }]}>
@@ -1720,7 +1959,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                           </View>
                           <View style={styles.loanDateCol}>
                             <Text style={[styles.loanDateLabel, { color: colors.textMuted }]}>BATAS KEMBALI</Text>
-                            <Text style={[styles.loanDateVal, { color: isLate ? "#DC2626" : colors.textDark }]}>
+                            <Text style={[styles.loanDateVal, { color: isLate ? colors.dangerFg : colors.textDark }]}>
                               {loan.due_date ? String(loan.due_date).split("T")[0] : "-"}
                             </Text>
                           </View>
@@ -1741,10 +1980,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </ScrollView>
 
             <TouchableOpacity
-              style={[styles.cancelModalBtn, { marginTop: 16 }]}
+              style={[styles.cancelModalBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder, marginTop: 16 }]}
               onPress={() => setPinjamanModalVisible(false)}
             >
-              <Text style={styles.cancelModalBtnText}>Tutup</Text>
+              <Text style={[styles.cancelModalBtnText, { color: colors.textSecondary }]}>Tutup</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -1764,8 +2003,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           activeOpacity={1}
           onPress={() => setAsetModalVisible(false)}
         >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }]}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }, shadowLg]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.glassBorder }]} />
 
             <View style={styles.menuModalHeader}>
               <View style={{ flex: 1 }}>
@@ -1774,26 +2013,28 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   Barang Milik Negara yang tercatat resmi dalam penguasaan dinas Anda
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setAsetModalVisible(false)} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={20} color="#64748B" />
+              <TouchableOpacity
+                onPress={() => setAsetModalVisible(false)}
+                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
+              >
+                <Ionicons name="close" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
               {myAssetsList.length === 0 ? (
                 <View style={styles.emptyServiceContainer}>
-                  <Ionicons name="cube-outline" size={44} color="#64748B" />
+                  <Ionicons name="cube-outline" size={44} color={colors.textMuted} />
                   <Text style={[styles.emptyServiceTitle, { color: colors.textDark }]}>Belum Ada Aset Terdaftar</Text>
                   <Text style={[styles.emptyServiceSub, { color: colors.textMuted }]}>
                     Belum ada Barang Milik Negara tetap yang dialokasikan resmi atas NIP/nama Anda.
                   </Text>
                 </View>
               ) : (
-                <View style={{ gap: 10, marginVertical: 6 }}>
+                <View style={styles.modalListStack}>
                   {myAssetsList.map((asset, idx) => {
                     const kondisi = String(asset.kondisi || "B").toUpperCase();
-                    const kondisiColor = kondisi === "B" ? "#059669" : kondisi === "RR" ? "#D97706" : "#DC2626";
-                    const kondisiBg = kondisi === "B" ? "#ECFDF5" : kondisi === "RR" ? "#FFFBEB" : "#FEF2F2";
+                    const kondisiPal = getTonePalette(colors, kondisi === "B" ? "success" : kondisi === "RR" ? "warning" : "danger");
                     const kondisiLabel = kondisi === "B" ? "Baik" : kondisi === "RR" ? "Rusak Ringan" : "Rusak Berat";
 
                     return (
@@ -1802,8 +2043,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                         style={[
                           styles.loanItemCard,
                           {
-                            backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F8FAFC",
-                            borderColor: isDark ? "#334155" : "#E2E8F0",
+                            backgroundColor: colors.surfaceMuted,
+                            borderColor: colors.glassBorder,
                           },
                         ]}
                       >
@@ -1819,16 +2060,16 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                           <View
                             style={[
                               styles.loanStatusBadge,
-                              { backgroundColor: kondisiBg, borderColor: kondisiColor + "40" },
+                              { backgroundColor: kondisiPal.bg, borderColor: kondisiPal.border },
                             ]}
                           >
-                            <Text style={[styles.loanStatusText, { color: kondisiColor }]}>
+                            <Text style={[styles.loanStatusText, { color: kondisiPal.fg }]}>
                               {kondisiLabel}
                             </Text>
                           </View>
                         </View>
 
-                        <View style={styles.loanDatesRow}>
+                        <View style={[styles.loanDatesRow, { borderTopColor: colors.glassBorder }]}>
                           <View style={styles.loanDateCol}>
                             <Text style={[styles.loanDateLabel, { color: colors.textMuted }]}>MERK / TIPE</Text>
                             <Text style={[styles.loanDateVal, { color: colors.textDark }]} numberOfLines={1}>
@@ -1858,10 +2099,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </ScrollView>
 
             <TouchableOpacity
-              style={[styles.cancelModalBtn, { marginTop: 16 }]}
+              style={[styles.cancelModalBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder, marginTop: 16 }]}
               onPress={() => setAsetModalVisible(false)}
             >
-              <Text style={styles.cancelModalBtnText}>Tutup</Text>
+              <Text style={[styles.cancelModalBtnText, { color: colors.textSecondary }]}>Tutup</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -1881,8 +2122,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           activeOpacity={1}
           onPress={() => setCutiHistoryModalVisible(false)}
         >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }]}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }, shadowLg]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.glassBorder }]} />
 
             <View style={styles.menuModalHeader}>
               <View style={{ flex: 1 }}>
@@ -1891,40 +2132,42 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   Sisa Kuota Cuti: {resolvedSisaCuti} Hari Kerja (Tahun {new Date().getFullYear()})
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setCutiHistoryModalVisible(false)} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={20} color="#64748B" />
+              <TouchableOpacity
+                onPress={() => setCutiHistoryModalVisible(false)}
+                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
+              >
+                <Ionicons name="close" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             {/* Quick Action: Ajukan Cuti Baru */}
             <TouchableOpacity
-              style={styles.ajukanCutiQuickBtn}
+              style={[styles.ajukanCutiQuickBtn, { backgroundColor: colors.accentSolid }, shadowXs]}
               onPress={() => {
                 setCutiHistoryModalVisible(false);
                 setCutiModalVisible(true);
               }}
             >
-              <Ionicons name="add-circle" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text style={styles.ajukanCutiQuickText}>+ Ajukan Permohonan Cuti Baru</Text>
+              <Ionicons name="add-circle" size={18} color={colors.accentOnSolid} style={styles.btnIcon} />
+              <Text style={[styles.ajukanCutiQuickText, { color: colors.accentOnSolid }]}>Ajukan Permohonan Cuti Baru</Text>
             </TouchableOpacity>
 
             <ScrollView style={{ maxHeight: 340, marginTop: 12 }} showsVerticalScrollIndicator={false}>
               {leaveRequests.length === 0 ? (
                 <View style={styles.emptyServiceContainer}>
-                  <Ionicons name="calendar-outline" size={44} color="#D97706" />
+                  <Ionicons name="calendar-outline" size={44} color={colors.warningFg} />
                   <Text style={[styles.emptyServiceTitle, { color: colors.textDark }]}>Belum Ada Pengajuan Cuti</Text>
                   <Text style={[styles.emptyServiceSub, { color: colors.textMuted }]}>
                     Anda belum pernah mengajukan cuti tahunan atau alasan penting tahun ini.
                   </Text>
                 </View>
               ) : (
-                <View style={{ gap: 10 }}>
+                <View style={styles.modalListStack}>
                   {leaveRequests.map((req, idx) => {
                     const statusStr = String(req.status || "PENDING").toUpperCase();
                     const isApproved = statusStr.includes("SETUJU") || statusStr.includes("APPROV");
                     const isPending = statusStr.includes("PENDING") || statusStr.includes("MENUNGGU");
-                    const statusColor = isApproved ? "#059669" : isPending ? "#D97706" : "#DC2626";
-                    const statusBg = isApproved ? "#ECFDF5" : isPending ? "#FFFBEB" : "#FEF2F2";
+                    const badgePal = getTonePalette(colors, isApproved ? "success" : isPending ? "warning" : "danger");
 
                     return (
                       <View
@@ -1932,8 +2175,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                         style={[
                           styles.loanItemCard,
                           {
-                            backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F8FAFC",
-                            borderColor: isDark ? "#334155" : "#E2E8F0",
+                            backgroundColor: colors.surfaceMuted,
+                            borderColor: colors.glassBorder,
                           },
                         ]}
                       >
@@ -1949,30 +2192,30 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                           <View
                             style={[
                               styles.loanStatusBadge,
-                              { backgroundColor: statusBg, borderColor: statusColor + "40" },
+                              { backgroundColor: badgePal.bg, borderColor: badgePal.border },
                             ]}
                           >
-                            <Text style={[styles.loanStatusText, { color: statusColor }]}>
+                            <Text style={[styles.loanStatusText, { color: badgePal.fg }]}>
                               {statusStr}
                             </Text>
                           </View>
                         </View>
 
-                        <Text style={[styles.leaveAlasanText, { color: colors.textDark }]} numberOfLines={2}>
+                        <Text style={[styles.leaveAlasanText, { color: colors.textSecondary }]} numberOfLines={2}>
                           "{req.alasan_cuti || "Keperluan keluarga"}"
                         </Text>
 
                         <View style={styles.leaveActionsRow}>
                           <TouchableOpacity
-                            style={styles.leavePrintBtn}
+                            style={[styles.leavePrintBtn, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}
                             onPress={() => {
                               setCutiHistoryModalVisible(false);
                               setCutiPreviewItem(req);
                               setCutiPreviewVisible(true);
                             }}
                           >
-                            <Ionicons name="document-text-outline" size={14} color="#059669" style={{ marginRight: 4 }} />
-                            <Text style={styles.leavePrintBtnText}>Cetak Lembar Cuti</Text>
+                            <Ionicons name="document-text-outline" size={14} color={colors.accentFg} style={styles.inlineIcon} />
+                            <Text style={[styles.leavePrintBtnText, { color: colors.accentFg }]}>Cetak Lembar Cuti</Text>
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -1983,10 +2226,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </ScrollView>
 
             <TouchableOpacity
-              style={[styles.cancelModalBtn, { marginTop: 14 }]}
+              style={[styles.cancelModalBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder, marginTop: 16 }]}
               onPress={() => setCutiHistoryModalVisible(false)}
             >
-              <Text style={styles.cancelModalBtnText}>Tutup</Text>
+              <Text style={[styles.cancelModalBtnText, { color: colors.textSecondary }]}>Tutup</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -2005,22 +2248,25 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           activeOpacity={1}
           onPress={() => setSbmModalVisible(false)}
         >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-            <View style={styles.sheetHandle} />
+          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowLg]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.glassBorder }]} />
 
             <View style={styles.menuModalHeader}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={[styles.menuModalTitle, { color: colors.textDark }]}>Kalkulator Dinas (SBM)</Text>
                 <Text style={[styles.menuModalSubtitle, { color: colors.textMuted }]}>
                   Standar Biaya Masukan PMK Wilayah Kalimantan Timur
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setSbmModalVisible(false)} style={styles.modalCloseBtn}>
-                <Ionicons name="close" size={20} color="#64748B" />
+              <TouchableOpacity
+                onPress={() => setSbmModalVisible(false)}
+                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
+              >
+                <Ionicons name="close" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
-            <View style={{ gap: 10, marginVertical: 8 }}>
+            <View style={styles.sbmStack}>
               <View style={styles.sbmRow}>
                 <Text style={[styles.sbmLabel, { color: colors.textMuted }]}>Kota Asal / Penugasan</Text>
                 <Text style={[styles.sbmVal, { color: colors.textDark }]}>Samarinda (Kantor Balai)</Text>
@@ -2029,7 +2275,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 <Text style={[styles.sbmLabel, { color: colors.textMuted }]}>Tujuan Dinas</Text>
                 <Text style={[styles.sbmVal, { color: colors.textDark }]}>Paser & Balikpapan (3 Hari)</Text>
               </View>
-              <View style={styles.sbmDivider} />
+              <View style={[styles.sbmDivider, { backgroundColor: colors.glassBorder }]} />
               <View style={styles.sbmRow}>
                 <Text style={[styles.sbmLabel, { color: colors.textMuted }]}>Uang Harian (3 × Rp 430.000)</Text>
                 <Text style={[styles.sbmVal, { color: colors.textDark }]}>Rp 1.290.000</Text>
@@ -2042,18 +2288,18 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 <Text style={[styles.sbmLabel, { color: colors.textMuted }]}>Transport Darat PP</Text>
                 <Text style={[styles.sbmVal, { color: colors.textDark }]}>Rp 350.000</Text>
               </View>
-              <View style={styles.sbmDivider} />
+              <View style={[styles.sbmDivider, { backgroundColor: colors.glassBorder }]} />
               <View style={styles.sbmRow}>
-                <Text style={[styles.sbmTotalLabel, { color: "#064E3B" }]}>Total Estimasi Biaya</Text>
-                <Text style={[styles.sbmTotalVal, { color: "#059669" }]}>Rp 3.100.000</Text>
+                <Text style={[styles.sbmTotalLabel, { color: colors.textDark }]}>Total Estimasi Biaya</Text>
+                <Text style={[styles.sbmTotalVal, { color: colors.accentFg }]}>Rp 3.100.000</Text>
               </View>
             </View>
 
             <TouchableOpacity
-              style={[styles.cancelModalBtn, { marginTop: 16 }]}
+              style={[styles.cancelModalBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder, marginTop: 16 }]}
               onPress={() => setSbmModalVisible(false)}
             >
-              <Text style={styles.cancelModalBtnText}>Tutup Kalkulator</Text>
+              <Text style={[styles.cancelModalBtnText, { color: colors.textSecondary }]}>Tutup Kalkulator</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -2085,6 +2331,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   );
 };
 
+const T = PORTAL_5_TOKENS.type;
+const S = PORTAL_5_TOKENS.space;
+const R = PORTAL_5_TOKENS.radius;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -2093,9 +2343,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 48,
-    paddingBottom: 12,
+    paddingHorizontal: S.x4,
+    paddingTop: Platform.OS === "web" ? S.x3 : S.x12,
+    paddingBottom: S.x3,
     borderBottomWidth: 1,
   },
   headerLeft: {
@@ -2103,537 +2353,574 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoImage: {
-    width: 30,
-    height: 30,
-    marginRight: 8,
+    width: S.x8,
+    height: S.x8,
+    marginRight: S.x2,
   },
   headerTitleCol: {
     justifyContent: "center",
   },
   brandTitle: {
-    fontSize: 14.5,
-    fontWeight: "800",
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.sm,
+    fontWeight: "700",
     letterSpacing: -0.2,
   },
   brandSubtitle: {
-    fontSize: 8.5,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "600",
+    letterSpacing: 0.4,
   },
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: S.x2,
   },
   headerIconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: S.x8,
+    height: S.x8,
+    borderRadius: R.pill,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
   },
   notifDot: {
     position: "absolute",
-    top: 5,
-    right: 5,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#ef4444",
+    top: S.x1,
+    right: S.x1,
+    width: S.x2,
+    height: S.x2,
+    borderRadius: R.pill,
   },
   avatarCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#059669",
+    width: S.x8,
+    height: S.x8,
+    borderRadius: R.pill,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarInitial: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "800",
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.sm,
+    fontWeight: "700",
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 110, // accommodate floating bottom nav
+    paddingHorizontal: S.x4,
+    paddingTop: S.x4,
+    paddingBottom: 112,
+  },
+  scrollContentCompact: {
+    paddingTop: S.x3,
+    paddingBottom: 96,
   },
 
-  // Hero greeting card
+  // CARD 1: Forest Green Portal Hero Banner (Date + NIP pill + divider + prose)
   heroBanner: {
-    backgroundColor: "#064E3B",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 14,
-    shadowColor: "#064E3B",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
+    backgroundColor: "#1e5433",
+    borderColor: "#164227",
+    borderWidth: 1,
+    borderRadius: R.card,
+    padding: S.x4,
+    marginBottom: S.x2,
+  },
+  heroTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: S.x2,
+    paddingBottom: S.x2,
+    marginBottom: S.x3,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.16)",
+  },
+  heroDateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: S.x1,
+    flex: 1,
   },
   heroDate: {
-    color: "#A7F3D0",
-    fontSize: 11,
+    fontFamily: PORTAL_FONT_FAMILY,
+    color: "#dce8dd",
+    fontSize: T.xs,
+    fontWeight: "500",
+    fontVariant: ["tabular-nums"],
+  },
+  heroNipBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.14)",
+    borderColor: "rgba(255, 255, 255, 0.22)",
+    borderWidth: 1,
+    borderRadius: R.inner,
+    paddingHorizontal: S.x2,
+    paddingVertical: S.x1,
+  },
+  heroNipText: {
+    fontFamily: PORTAL_FONT_FAMILY,
+    color: "#ffffff",
+    fontSize: T.xs,
     fontWeight: "600",
-    marginBottom: 4,
+    fontVariant: ["tabular-nums"],
   },
   heroGreeting: {
+    fontFamily: PORTAL_FONT_FAMILY,
     color: "#ffffff",
-    fontSize: 16.5,
-    fontWeight: "800",
-    marginBottom: 2,
-    letterSpacing: -0.2,
+    fontSize: T.sm,
+    fontWeight: "700",
+    marginBottom: S.x1,
   },
   heroSubtitle: {
-    color: "#D1FAE5",
-    fontSize: 11,
-    lineHeight: 16,
+    fontFamily: PORTAL_FONT_FAMILY,
+    color: "#dce8dd",
+    fontSize: T.xs,
+    fontWeight: "400",
+    lineHeight: 18,
   },
 
-  // Quick stats
-  quickStatsRow: {
+  // Quick Stats 2x2 Grid (Pangkat, Sisa Cuti, Surat Tugas, Aset Saya)
+  quickStatsGrid: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 16,
+    flexWrap: "wrap",
+    marginHorizontal: -S.x1,
   },
-  quickStatCard: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 14,
+  quickStatCellWrapper: {
+    width: "50%",
+    paddingHorizontal: S.x1,
+    marginBottom: S.x2,
+  },
+  quickStripCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: S.x2,
+    paddingVertical: S.x2,
+    paddingHorizontal: S.x3,
+    borderRadius: R.segment,
     borderWidth: 1,
   },
-  quickStatHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  quickStatIconBg: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+  quickStripIcon: {
+    width: S.x8,
+    height: S.x8,
+    borderRadius: R.inner,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 6,
   },
-  quickStatTitle: {
-    fontSize: 9,
-    fontWeight: "700",
+  quickStripBody: {
     flex: 1,
-    letterSpacing: 0.2,
   },
-  quickStatValue: {
-    fontSize: 12.5,
-    fontWeight: "800",
-    marginBottom: 2,
+  quickStripLabel: {
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "500",
   },
-  quickStatSubtitle: {
-    fontSize: 9.5,
+  quickStripValue: {
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "600",
+    fontVariant: ["tabular-nums"],
   },
 
-  // Modules Grid
-  sectionHeader: {
-    marginBottom: 8,
+  // CARD 2: Modul Akses System Container Card (concentric 24 = 16 + 8)
+  moduleSectionCard: {
+    padding: S.x4,
+    borderRadius: R.card,
+    borderWidth: 1,
+    marginBottom: S.x2,
+  },
+  cardSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: S.x2,
+    paddingBottom: S.x2,
+    marginBottom: S.x2,
+    borderBottomWidth: 1,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  sectionHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 8,
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
   seeAllText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#059669",
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "600",
   },
   moduleGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginHorizontal: -3,
-    marginBottom: 10,
+    marginHorizontal: -S.x1,
+    marginBottom: -S.x2,
   },
   moduleCardWrapper: {
     width: "25%",
-    paddingHorizontal: 3,
-    marginBottom: 6,
+    paddingHorizontal: S.x1,
+    marginBottom: S.x2,
   },
-  gridBaruBadge: {
-    position: "absolute",
-    top: 3,
-    right: 3,
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-    zIndex: 10,
-  },
-  gridBaruBadgeText: {
-    color: "#047857",
-    fontSize: 6.5,
-    fontWeight: "800",
-  },
-  moduleCard: {
+  moduleTileCard: {
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderRadius: 12,
+    paddingVertical: S.x2,
+    paddingHorizontal: S.x1,
+    borderRadius: R.inner,
     borderWidth: 1,
+    position: "relative",
   },
   moduleIconBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
+    width: S.x8,
+    height: S.x8,
+    borderRadius: R.inner,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
+    marginBottom: S.x1,
+  },
+  moduleNewDot: {
+    position: "absolute",
+    top: S.x1,
+    right: S.x1,
+    width: S.x2,
+    height: S.x2,
+    borderRadius: R.pill,
   },
   moduleTitle: {
-    fontSize: 11,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 1,
-  },
-  moduleSubtitle: {
-    fontSize: 8.5,
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "500",
     textAlign: "center",
   },
 
-  // Active duty card
+  // CARD 3: Active duty featured card
   moduleAuthorizedBadge: {
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingHorizontal: S.x2,
+    paddingVertical: S.x1,
+    borderRadius: R.pill,
     borderWidth: 1,
-    borderColor: "#A7F3D0",
   },
   moduleAuthorizedBadgeText: {
-    color: "#047857",
-    fontSize: 9,
-    fontWeight: "800",
-  },
-  driveCardWrapper: {
-    marginBottom: 12,
-  },
-  driveCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  driveIconBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  driveTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  driveSubtitle: {
-    fontSize: 9.5,
-    marginTop: 1,
-  },
-  baruBadge: {
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-  },
-  baruBadgeText: {
-    color: "#047857",
-    fontSize: 8,
-    fontWeight: "800",
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "600",
+    fontVariant: ["tabular-nums"],
   },
   activeDutyCard: {
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    marginBottom: 12,
+    padding: S.x4,
+    borderRadius: R.card,
+    borderWidth: 1,
+  },
+  activeDutyCardWithBelow: {
+    marginBottom: S.x2,
   },
   activeDutyHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
+    gap: S.x2,
+    marginBottom: S.x2,
   },
   activeDutyBadge: {
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingHorizontal: S.x2,
+    paddingVertical: S.x1,
+    borderRadius: R.pill,
     borderWidth: 1,
-    borderColor: "#A7F3D0",
   },
   activeDutyBadgeText: {
-    color: "#047857",
-    fontSize: 9,
-    fontWeight: "800",
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "700",
   },
   activeDutyNumber: {
-    color: "#64748B",
-    fontSize: 9.5,
-    fontWeight: "600",
+    flex: 1,
+    textAlign: "right",
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "500",
+    fontVariant: ["tabular-nums"],
   },
   activeDutyTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    marginBottom: 8,
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.sm,
+    fontWeight: "600",
+    marginBottom: S.x2,
   },
-  activeDutyMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 8,
+  activeDutyMetaStack: {
+    gap: S.x1,
   },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: S.x2,
   },
   metaItemText: {
-    fontSize: 10,
-    fontWeight: "500",
+    flex: 1,
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "400",
+    fontVariant: ["tabular-nums"],
   },
-  activeDutyLink: {
-    paddingTop: 6,
+  activeDutyFooterDivider: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: S.x2,
     borderTopWidth: 1,
-    borderTopColor: "rgba(148, 163, 184, 0.15)",
+    paddingTop: S.x2,
+    marginTop: S.x2,
   },
-  activeDutyLinkText: {
-    color: "#047857",
-    fontSize: 10.5,
-    fontWeight: "700",
+  activeDutyFooterCaption: {
+    flex: 1,
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "400",
+  },
+  activeDutyFooterAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: S.x1,
+  },
+
+  // Borrowed BMN card on Home (rendered only when active loans exist)
+  loanHomeCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: S.x3,
+    paddingHorizontal: S.x4,
+    paddingVertical: S.x3,
+    borderRadius: R.card,
+    borderWidth: 1,
+  },
+  loanHomeIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: R.inner,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loanHomeBody: {
+    flex: 1,
+  },
+  loanHomeTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: S.x2,
+    marginBottom: S.x1,
+  },
+  loanHomeLabel: {
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "600",
+  },
+  loanHomeCountPill: {
+    paddingHorizontal: S.x2,
+    borderRadius: R.pill,
+    borderWidth: 1,
+  },
+  loanHomeCountText: {
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "600",
+    fontVariant: ["tabular-nums"],
+  },
+  loanHomeTitle: {
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.sm,
+    fontWeight: "600",
+  },
+  loanHomeSub: {
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "400",
+    fontVariant: ["tabular-nums"],
+    marginTop: S.x1,
   },
 
   // Helpdesk TU Strip
   helpdeskStrip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F0FDF4",
     borderWidth: 1,
-    borderColor: "#BBF7D0",
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: R.card,
+    padding: S.x4,
+    marginBottom: S.x4,
+  },
+  stripIcon: {
+    marginRight: S.x3,
   },
   layananHelpdeskSpacing: {
-    marginTop: 22,
-    marginBottom: 95,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    marginTop: S.x6,
+    marginBottom: S.x4,
   },
   helpdeskIconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#DCFCE7",
+    width: 40,
+    height: 40,
+    borderRadius: R.pill,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   helpdeskTitle: {
-    color: "#14532D",
-    fontSize: 11.5,
+    fontSize: T.sm,
     fontWeight: "800",
   },
   helpdeskSub: {
-    color: "#166534",
-    fontSize: 10,
-    marginTop: 2,
-    lineHeight: 15,
+    fontSize: T.xs,
+    marginTop: S.x1,
+    lineHeight: 18,
   },
 
   // Subpage headers
   pageHeaderCol: {
-    marginBottom: 12,
+    marginBottom: S.x4,
   },
   pageMainTitle: {
-    fontSize: 16.5,
+    fontSize: T.xl,
     fontWeight: "800",
     letterSpacing: -0.2,
   },
   pageMainSubtitle: {
-    fontSize: 10.5,
-    marginTop: 2,
+    fontSize: T.xs,
+    marginTop: S.x1,
   },
 
-  // Filter segments
+  // Filter segments (12 outer = 8 inner + 4 padding)
   filterSegmentContainer: {
     flexDirection: "row",
-    backgroundColor: "#E2E8F0",
-    borderRadius: 12,
-    padding: 3,
-    marginBottom: 14,
+    borderRadius: R.segment,
+    borderWidth: 1,
+    padding: S.x1,
+    marginBottom: S.x4,
   },
   filterSegmentBtn: {
     flex: 1,
-    paddingVertical: 7,
+    paddingVertical: S.x2,
     alignItems: "center",
-    borderRadius: 9,
-  },
-  filterSegmentBtnActive: {
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    borderRadius: R.inner,
   },
   filterSegmentText: {
-    fontSize: 10.5,
+    fontSize: T.xs,
     fontWeight: "600",
-    color: "#64748B",
   },
   filterSegmentTextActive: {
-    color: "#059669",
     fontWeight: "800",
+  },
+
+  listStack: {
+    gap: S.x3,
   },
 
   // ST List cards
   stListCard: {
-    padding: 14,
-    borderRadius: 16,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
   },
   stListHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    gap: S.x2,
+    marginBottom: S.x2,
   },
   stStatusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  stStatusBadgeRunning: {
-    backgroundColor: "#ECFDF5",
+    paddingHorizontal: S.x2,
+    paddingVertical: S.x1,
+    borderRadius: R.inner,
     borderWidth: 1,
-    borderColor: "#A7F3D0",
-  },
-  stStatusBadgeCompleted: {
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
   },
   stStatusBadgeText: {
-    fontSize: 8.5,
+    fontSize: T.xs,
     fontWeight: "800",
   },
-  stStatusBadgeTextRunning: {
-    color: "#047857",
-  },
-  stStatusBadgeTextCompleted: {
-    color: "#475569",
-  },
   stListNumber: {
-    fontSize: 10,
+    fontSize: T.xs,
     fontWeight: "700",
+    fontVariant: ["tabular-nums"],
     flex: 1,
   },
   eyePreviewBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    backgroundColor: "#EFF6FF",
+    width: S.x8,
+    height: S.x8,
+    borderRadius: R.inner,
     borderWidth: 1,
-    borderColor: "#BFDBFE",
     alignItems: "center",
     justifyContent: "center",
   },
   stListTitle: {
-    fontSize: 12.5,
+    fontSize: T.sm,
     fontWeight: "700",
-    marginTop: 2,
-    marginBottom: 4,
+    marginBottom: S.x1,
   },
   stListDestination: {
-    fontSize: 10,
-    marginBottom: 6,
+    fontSize: T.xs,
+    fontVariant: ["tabular-nums"],
+    marginBottom: S.x2,
   },
   stListFooterRow: {
-    paddingTop: 6,
+    paddingTop: S.x2,
     borderTopWidth: 1,
-    borderTopColor: "rgba(148, 163, 184, 0.12)",
   },
   stListFooterText: {
-    fontSize: 9.5,
+    fontSize: T.xs,
     fontWeight: "600",
   },
 
   quickPromptStrip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
     borderWidth: 1,
-    borderColor: "#BFDBFE",
-    borderRadius: 14,
-    padding: 12,
-    marginTop: 12,
+    borderRadius: R.card,
+    padding: S.x4,
+    marginTop: S.x4,
   },
   quickPromptTitle: {
-    color: "#1E40AF",
-    fontSize: 10.5,
+    fontSize: T.sm,
     fontWeight: "700",
   },
   quickPromptSub: {
-    color: "#1E3A8A",
-    fontSize: 9,
-    marginTop: 1,
+    fontSize: T.xs,
+    marginTop: S.x1,
   },
 
   // Layanan Service Cards
   serviceCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
-    borderRadius: 16,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
   },
   serviceIconBg: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: R.inner,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: S.x3,
   },
   serviceMain: {
     flex: 1,
   },
   serviceTitle: {
-    fontSize: 13,
+    fontSize: T.sm,
     fontWeight: "800",
   },
   serviceSubtitle: {
-    fontSize: 10,
-    marginTop: 2,
-    marginBottom: 6,
+    fontSize: T.xs,
+    marginTop: S.x1,
+    marginBottom: S.x2,
   },
   serviceBadge: {
     alignSelf: "flex-start",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingHorizontal: S.x2,
+    paddingVertical: S.x1,
+    borderRadius: R.inner,
     borderWidth: 1,
   },
   serviceBadgeText: {
-    fontSize: 9,
+    fontSize: T.xs,
     fontWeight: "700",
   },
 
@@ -2641,78 +2928,77 @@ const styles = StyleSheet.create({
   profileHeroCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    borderRadius: 18,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
-    marginBottom: 12,
+    marginBottom: S.x4,
   },
   profileAvatarBig: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: "#059669",
+    width: 56,
+    height: 56,
+    borderRadius: R.pill,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 14,
+    marginRight: S.x4,
   },
   profileAvatarText: {
-    color: "#FFFFFF",
-    fontSize: 20,
+    fontSize: T.xl,
     fontWeight: "800",
   },
   profileHeroMain: {
     flex: 1,
   },
   profileHeroName: {
-    fontSize: 14,
+    fontSize: T.sm,
     fontWeight: "800",
   },
   profileHeroNip: {
-    fontSize: 10,
-    marginTop: 1,
+    fontSize: T.xs,
+    fontVariant: ["tabular-nums"],
+    marginTop: S.x1,
   },
   profileHeroJabatan: {
-    fontSize: 10,
+    fontSize: T.xs,
     fontWeight: "700",
-    color: "#059669",
-    marginTop: 2,
+    marginTop: S.x1,
   },
   profileHeroUnit: {
-    fontSize: 9,
-    marginTop: 1,
+    fontSize: T.xs,
+    marginTop: S.x1,
   },
   profileMetricsRow: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 12,
+    gap: S.x3,
+    marginBottom: S.x4,
   },
   profileMetricBox: {
     flex: 1,
-    padding: 12,
-    borderRadius: 14,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
   },
   profileMetricLabel: {
-    fontSize: 8.5,
+    fontSize: T.xs,
     fontWeight: "700",
-    color: "#94A3B8",
-    letterSpacing: 0.2,
   },
   profileMetricValue: {
-    fontSize: 13,
+    fontSize: T.sm,
     fontWeight: "800",
-    marginTop: 2,
+    fontVariant: ["tabular-nums"],
+    marginTop: S.x1,
+  },
+  profileMenuStack: {
+    gap: S.x2,
   },
   profileMenuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
   },
   profileMenuItemLabel: {
-    fontSize: 11.5,
+    fontSize: T.sm,
     fontWeight: "600",
     flex: 1,
   },
@@ -2720,37 +3006,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FEF2F2",
     borderWidth: 1,
-    borderColor: "#FECACA",
-    borderRadius: 12,
-    paddingVertical: 12,
-    marginTop: 8,
+    borderRadius: R.card,
+    padding: S.x4,
+    marginTop: S.x2,
   },
   logoutBtnText: {
-    color: "#EF4444",
-    fontSize: 11.5,
+    fontSize: T.sm,
     fontWeight: "700",
   },
 
   // Bottom Navigation Bar
   bottomNavContainer: {
     position: "absolute",
-    bottom: 24,
-    left: 20,
-    right: 20,
+    bottom: S.x6,
+    left: S.x4,
+    right: S.x4,
     height: 64,
-    borderRadius: 32,
+    borderRadius: R.pill,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: S.x2,
     borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 10,
   },
   navItem: {
     alignItems: "center",
@@ -2759,28 +3037,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navText: {
-    fontSize: 8.5,
-    marginTop: 2,
+    fontFamily: PORTAL_FONT_FAMILY,
+    fontSize: T.xs,
+    fontWeight: "500",
+    marginTop: S.x1,
   },
   navIconWrapper: {
     position: "relative",
   },
   navBadge: {
     position: "absolute",
-    top: -2,
-    right: -4,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: "#ef4444",
+    top: -S.x1,
+    right: -S.x1,
+    width: S.x2,
+    height: S.x2,
+    borderRadius: R.pill,
   },
   navActiveDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#059669",
+    width: S.x1,
+    height: S.x1,
+    borderRadius: R.pill,
     position: "absolute",
-    bottom: 4,
+    bottom: S.x1,
   },
   fabWrapper: {
     flex: 1,
@@ -2788,20 +3066,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   fabButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#059669",
+    width: 56,
+    height: 56,
+    borderRadius: R.pill,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: -26,
-    shadowColor: "#059669",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-    borderWidth: 3,
-    borderColor: "#ffffff",
+    marginTop: -28,
+    borderWidth: 4,
   },
 
   // Bottom Sheet Modal
@@ -2811,222 +3082,221 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   menuModalContent: {
-    padding: 20,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    padding: S.x4,
+    borderTopLeftRadius: R.card,
+    borderTopRightRadius: R.card,
     borderWidth: 1,
     borderBottomWidth: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 20,
   },
   sheetHandle: {
     width: 44,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#CBD5E1",
+    height: S.x1,
+    borderRadius: R.bar,
     alignSelf: "center",
-    marginBottom: 14,
+    marginBottom: S.x4,
   },
   menuModalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 16,
+    gap: S.x3,
+    marginBottom: S.x4,
   },
   menuModalTitle: {
-    fontSize: 16,
+    fontSize: T.xl,
     fontWeight: "800",
   },
   menuModalSubtitle: {
-    fontSize: 10.5,
-    marginTop: 2,
+    fontSize: T.xs,
+    marginTop: S.x1,
   },
   modalCloseBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#F1F5F9",
+    width: S.x8,
+    height: S.x8,
+    borderRadius: R.pill,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   modalOptionCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    marginBottom: 12,
+    padding: S.x4,
+    borderRadius: R.card,
+    borderWidth: 1,
+    marginBottom: S.x3,
   },
   modalOptionIconBg: {
     width: 44,
     height: 44,
-    borderRadius: 12,
+    borderRadius: R.inner,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: S.x3,
   },
   modalOptionTitle: {
-    fontSize: 12.5,
+    fontSize: T.sm,
     fontWeight: "800",
-    marginBottom: 2,
+    marginBottom: S.x1,
   },
   modalOptionDesc: {
-    fontSize: 9.5,
-    lineHeight: 14,
+    fontSize: T.xs,
+    lineHeight: 18,
   },
   cancelModalBtn: {
-    backgroundColor: "#F1F5F9",
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderWidth: 1,
+    borderRadius: R.inner,
+    paddingVertical: S.x3,
     alignItems: "center",
-    marginTop: 4,
+    marginTop: S.x1,
   },
   cancelModalBtnText: {
-    color: "#475569",
-    fontSize: 11.5,
+    fontSize: T.sm,
     fontWeight: "700",
   },
 
   // SBM Modal Styles
+  sbmStack: {
+    gap: S.x3,
+    marginVertical: S.x2,
+  },
   sbmRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   sbmLabel: {
-    fontSize: 11,
+    fontSize: T.xs,
     fontWeight: "500",
   },
   sbmVal: {
-    fontSize: 11,
+    fontSize: T.xs,
     fontWeight: "700",
+    fontVariant: ["tabular-nums"],
   },
   sbmDivider: {
     height: 1,
-    backgroundColor: "rgba(148, 163, 184, 0.2)",
-    marginVertical: 4,
+    marginVertical: S.x1,
   },
   sbmTotalLabel: {
-    fontSize: 12.5,
+    fontSize: T.sm,
     fontWeight: "800",
   },
   sbmTotalVal: {
-    fontSize: 13,
+    fontSize: T.sm,
     fontWeight: "800",
+    fontVariant: ["tabular-nums"],
   },
 
   // Service Modal Styles (Loans, Assets, Leave History)
   emptyServiceContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 28,
-    paddingHorizontal: 20,
+    paddingVertical: S.x8,
+    paddingHorizontal: S.x4,
   },
   emptyServiceTitle: {
-    fontSize: 15,
+    fontSize: T.sm,
     fontWeight: "800",
-    marginTop: 10,
-    marginBottom: 4,
+    marginTop: S.x3,
+    marginBottom: S.x1,
   },
   emptyServiceSub: {
-    fontSize: 12,
+    fontSize: T.xs,
     textAlign: "center",
     lineHeight: 18,
   },
+  modalListStack: {
+    gap: S.x3,
+    marginVertical: S.x2,
+  },
   loanItemCard: {
-    padding: 13,
-    borderRadius: 14,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
   },
   loanItemHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    gap: 8,
+    gap: S.x2,
   },
   loanItemTitle: {
-    fontSize: 13.5,
+    fontSize: T.sm,
     fontWeight: "800",
-    lineHeight: 18,
+    lineHeight: 20,
   },
   loanItemMeta: {
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: T.xs,
+    fontVariant: ["tabular-nums"],
+    marginTop: S.x1,
     fontWeight: "500",
   },
   loanStatusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingHorizontal: S.x2,
+    paddingVertical: S.x1,
+    borderRadius: R.inner,
     borderWidth: 1,
   },
   loanStatusText: {
-    fontSize: 10,
+    fontSize: T.xs,
     fontWeight: "800",
-    letterSpacing: 0.3,
   },
   loanDatesRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
-    paddingTop: 8,
+    marginTop: S.x3,
+    paddingTop: S.x2,
     borderTopWidth: 1,
-    borderTopColor: "rgba(148, 163, 184, 0.15)",
-    gap: 8,
+    gap: S.x2,
   },
   loanDateCol: {
     flex: 1,
   },
   loanDateLabel: {
-    fontSize: 9,
+    fontSize: T.xs,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.4,
   },
   loanDateVal: {
-    fontSize: 11.5,
+    fontSize: T.xs,
     fontWeight: "700",
-    marginTop: 2,
+    fontVariant: ["tabular-nums"],
+    marginTop: S.x1,
   },
   ajukanCutiQuickBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#059669",
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginTop: 6,
+    paddingVertical: S.x3,
+    borderRadius: R.inner,
+    marginTop: S.x2,
   },
   ajukanCutiQuickText: {
-    color: "#FFFFFF",
-    fontSize: 12.5,
+    fontSize: T.sm,
     fontWeight: "700",
   },
   leaveAlasanText: {
-    fontSize: 11.5,
+    fontSize: T.xs,
     fontStyle: "italic",
-    marginTop: 6,
-    lineHeight: 16,
+    marginTop: S.x2,
+    lineHeight: 18,
   },
   leaveActionsRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 8,
+    marginTop: S.x2,
   },
   leavePrintBtn: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    backgroundColor: "rgba(5, 150, 105, 0.1)",
+    paddingHorizontal: S.x3,
+    paddingVertical: S.x2,
+    borderRadius: R.inner,
+    borderWidth: 1,
   },
   leavePrintBtnText: {
-    color: "#059669",
-    fontSize: 11,
+    fontSize: T.xs,
     fontWeight: "700",
   },
 
@@ -3034,320 +3304,308 @@ const styles = StyleSheet.create({
   subScreenHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 14,
-    gap: 12,
+    marginBottom: S.x4,
+    gap: S.x3,
   },
   subScreenBackBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(148, 163, 184, 0.12)",
+    width: 40,
+    height: 40,
+    borderRadius: R.pill,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   subScreenTitle: {
-    fontSize: 16,
+    fontSize: T.xl,
     fontWeight: "800",
     letterSpacing: -0.2,
   },
   subScreenSubtitle: {
-    fontSize: 11,
+    fontSize: T.xs,
     fontWeight: "500",
-    marginTop: 1,
+    marginTop: S.x1,
   },
   bmnSegmentedWrapper: {
     flexDirection: "row",
-    backgroundColor: "#E2E8F0",
-    borderRadius: 12,
-    padding: 3,
-    marginBottom: 12,
+    borderRadius: R.segment,
+    borderWidth: 1,
+    padding: S.x1,
+    marginBottom: S.x3,
   },
   bmnSegmentBtn: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: S.x2,
     alignItems: "center",
-    borderRadius: 10,
-  },
-  bmnSegmentBtnActive: {
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    borderRadius: R.inner,
   },
   bmnSegmentText: {
-    fontSize: 11.5,
+    fontSize: T.xs,
     fontWeight: "600",
-    color: "#64748B",
   },
   bmnSegmentTextActive: {
-    color: "#064E3B",
     fontWeight: "800",
   },
   searchBarWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingHorizontal: S.x3,
+    paddingVertical: S.x2,
+    borderRadius: R.inner,
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: S.x3,
+  },
+  searchIcon: {
+    marginRight: S.x2,
   },
   searchInput: {
     flex: 1,
-    fontSize: 12,
+    fontSize: T.sm,
     padding: 0,
   },
   catPillScrollView: {
-    marginBottom: 4,
+    marginBottom: S.x1,
+  },
+  catPillContent: {
+    gap: S.x2,
+    paddingHorizontal: S.x1,
   },
   catPillBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: "#FFFFFF",
+    paddingHorizontal: S.x3,
+    paddingVertical: S.x2,
+    borderRadius: R.pill,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  catPillBtnActive: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#A7F3D0",
   },
   catPillText: {
-    fontSize: 10.5,
+    fontSize: T.xs,
     fontWeight: "600",
-    color: "#64748B",
   },
   catPillTextActive: {
-    color: "#064E3B",
     fontWeight: "800",
   },
   bmnDetailCard: {
-    padding: 14,
-    borderRadius: 16,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
   },
   bmnDetailHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 10,
+    gap: S.x3,
   },
   bmnIconBox: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: "#ECFDF5",
+    borderRadius: R.inner,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   bmnItemTitle: {
-    fontSize: 13.5,
+    fontSize: T.sm,
     fontWeight: "800",
-    lineHeight: 18,
+    lineHeight: 20,
   },
   bmnItemCode: {
-    fontSize: 10.5,
-    marginTop: 2,
+    fontSize: T.xs,
+    fontVariant: ["tabular-nums"],
+    marginTop: S.x1,
   },
   bmnItemSub: {
-    fontSize: 10.5,
-    marginTop: 2,
+    fontSize: T.xs,
+    marginTop: S.x1,
   },
   bmnConditionBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingHorizontal: S.x2,
+    paddingVertical: S.x1,
+    borderRadius: R.inner,
     borderWidth: 1,
     alignSelf: "flex-start",
   },
   bmnConditionText: {
-    fontSize: 9.5,
+    fontSize: T.xs,
     fontWeight: "800",
   },
   bmnLocationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    paddingTop: 6,
+    marginTop: S.x2,
+    paddingTop: S.x2,
     borderTopWidth: 1,
-    borderTopColor: "rgba(148, 163, 184, 0.15)",
+  },
+  inlineIcon: {
+    marginRight: S.x1,
+  },
+  btnIcon: {
+    marginRight: S.x2,
   },
   bmnLocationText: {
-    fontSize: 10.5,
+    fontSize: T.xs,
   },
   loanMetaGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
-    paddingTop: 8,
+    marginTop: S.x3,
+    paddingTop: S.x2,
     borderTopWidth: 1,
-    borderTopColor: "rgba(148, 163, 184, 0.15)",
+    gap: S.x2,
   },
   loanMetaCol: {
     flex: 1,
   },
   loanMetaLabel: {
-    fontSize: 9,
+    fontSize: T.xs,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.3,
   },
   loanMetaVal: {
-    fontSize: 11,
+    fontSize: T.xs,
     fontWeight: "700",
-    marginTop: 2,
+    fontVariant: ["tabular-nums"],
+    marginTop: S.x1,
   },
   cutiHeroCard: {
-    backgroundColor: "#064E3B",
-    borderRadius: 18,
-    padding: 16,
+    backgroundColor: "#1e5433",
+    borderColor: "#164227",
+    borderWidth: 1,
+    borderRadius: R.card,
+    padding: S.x4,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    gap: S.x3,
+    marginBottom: S.x3,
   },
   cutiHeroLabel: {
-    fontSize: 9.5,
+    fontSize: T.xs,
     fontWeight: "800",
-    color: "#6EE7B7",
-    letterSpacing: 0.5,
+    color: "#dce8dd",
+    letterSpacing: 0.4,
   },
   cutiHeroValue: {
-    fontSize: 22,
+    fontSize: T.xxl,
     fontWeight: "800",
-    color: "#FFFFFF",
-    marginVertical: 2,
+    fontVariant: ["tabular-nums"],
+    color: "#ffffff",
+    marginVertical: S.x1,
   },
   cutiHeroBreakdown: {
-    fontSize: 10,
-    color: "#D1FAE5",
+    fontSize: T.xs,
+    fontVariant: ["tabular-nums"],
+    color: "#dce8dd",
   },
   cutiHeroActionBtn: {
-    backgroundColor: "#059669",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.16)",
+    borderColor: "rgba(255, 255, 255, 0.28)",
+    borderWidth: 1,
+    paddingHorizontal: S.x3,
+    paddingVertical: S.x2,
+    borderRadius: R.inner,
     flexDirection: "row",
     alignItems: "center",
   },
   cutiHeroActionText: {
-    color: "#FFFFFF",
-    fontSize: 11.5,
+    color: "#ffffff",
+    fontSize: T.xs,
     fontWeight: "800",
   },
   yearPillsContainer: {
     flexDirection: "row",
-    gap: 8,
-    marginBottom: 4,
+    gap: S.x2,
+    marginBottom: S.x1,
   },
   yearPillBtn: {
     flex: 1,
-    paddingVertical: 7,
+    paddingVertical: S.x2,
     alignItems: "center",
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
+    borderRadius: R.pill,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  yearPillBtnActive: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#A7F3D0",
   },
   yearPillText: {
-    fontSize: 10.5,
+    fontSize: T.xs,
     fontWeight: "600",
-    color: "#64748B",
+    fontVariant: ["tabular-nums"],
   },
   yearPillTextActive: {
-    color: "#064E3B",
     fontWeight: "800",
   },
   leaveDetailCard: {
-    padding: 14,
-    borderRadius: 16,
+    padding: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
   },
   leaveCardHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 8,
+    gap: S.x2,
   },
   leaveItemTitle: {
-    fontSize: 13.5,
+    fontSize: T.sm,
     fontWeight: "800",
   },
   leaveDateRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 3,
+    marginTop: S.x1,
   },
   leaveDateText: {
-    fontSize: 11,
-    color: "#059669",
+    fontSize: T.xs,
     fontWeight: "600",
+    fontVariant: ["tabular-nums"],
   },
   leaveAlasanFullText: {
-    fontSize: 11.5,
+    fontSize: T.xs,
     fontStyle: "italic",
-    marginTop: 6,
-    lineHeight: 16,
+    marginTop: S.x2,
+    lineHeight: 18,
   },
   leaveCardActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 8,
+    marginTop: S.x2,
   },
   leavePrintOfficialBtn: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    backgroundColor: "#F0FDF4",
+    paddingHorizontal: S.x3,
+    paddingVertical: S.x2,
+    borderRadius: R.inner,
     borderWidth: 1,
-    borderColor: "#A7F3D0",
   },
   leavePrintOfficialText: {
-    fontSize: 11,
+    fontSize: T.xs,
     fontWeight: "700",
-    color: "#059669",
   },
   ajukanCutiBottomBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#059669",
-    paddingVertical: 12,
-    borderRadius: 14,
-    marginTop: 14,
-    marginBottom: 20,
+    paddingVertical: S.x3,
+    borderRadius: R.inner,
+    marginTop: S.x4,
+    marginBottom: S.x6,
   },
   ajukanCutiBottomText: {
-    color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: T.sm,
     fontWeight: "800",
   },
   emptySubStateCard: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 32,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    backgroundColor: "rgba(148, 163, 184, 0.05)",
+    paddingVertical: S.x8,
+    paddingHorizontal: S.x4,
+    borderRadius: R.card,
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.15)",
   },
   emptySubTitle: {
-    fontSize: 14,
+    fontSize: T.sm,
     fontWeight: "700",
-    marginTop: 8,
+    marginTop: S.x2,
   },
   emptySubDesc: {
-    fontSize: 11.5,
+    fontSize: T.xs,
     textAlign: "center",
-    marginTop: 4,
-    lineHeight: 16,
+    marginTop: S.x1,
+    lineHeight: 18,
   },
 });
