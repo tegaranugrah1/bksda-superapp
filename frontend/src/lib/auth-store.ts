@@ -183,25 +183,36 @@ export const authStore = {
     }
   },
 
-  // Update User Data only
-  updateUser(userData: unknown) {
+  // Update User Data and optional refreshed token
+  updateUser(userData: unknown, token?: string | null) {
     if (typeof window === "undefined") return;
 
     const userJson = JSON.stringify(userData);
-    const existing = localStorage.getItem("bksda_user");
-    if (existing === userJson) {
+    const existingUser = localStorage.getItem("bksda_user");
+    const existingToken = localStorage.getItem("bksda_token");
+    const nextToken = typeof token === "string" && token.length > 0 ? token : null;
+    const userChanged = existingUser !== userJson;
+    const tokenChanged = nextToken !== null && nextToken !== existingToken;
+
+    if (!userChanged && !tokenChanged) {
       return; // No change, avoid dispatching events
     }
 
-    localStorage.setItem("bksda_user", userJson);
-    setAuthCookie("bksda_user", userJson);
-    clearGetCache();
+    if (userChanged) {
+      localStorage.setItem("bksda_user", userJson);
+      setAuthCookie("bksda_user", userJson);
+      clearGetCache();
+    }
+
+    if (tokenChanged && nextToken) {
+      localStorage.setItem("bksda_token", nextToken);
+    }
 
     window.dispatchEvent(new Event("auth-change"));
 
     if (authChannel) {
       try {
-        authChannel.postMessage({ type: "USER_UPDATE", user: userData });
+        authChannel.postMessage({ type: "USER_UPDATE", user: userData, token: nextToken });
       } catch {}
     }
   },

@@ -650,4 +650,108 @@ class PortalIdentityBoundaryTest extends TestCase
         $response->assertUnprocessable();
         $this->assertSame($oldHash, $nextOwner->refresh()->password);
     }
+
+    public function test_stateful_session_recovers_realtime_token_after_module_update_while_blocking_inactive_accounts(): void
+    {
+        $owner = $this->dummy('realtime_recover', ['access_modules' => []]);
+        $login = $this->withHeader('Origin', 'http://localhost:3000')->postJson('/api/login', [
+            'username' => $owner->username, 'password' => self::CURRENT_PASSWORD,
+        ])->assertOk();
+
+        $cookie = collect($login->headers->getCookies())->first(fn ($item) => $item->getName() === config('session.cookie'));
+        $this->assertNotNull($cookie, 'Stateful browser login must issue session cookie.');
+        $initialToken = $login->json('token');
+
+        // Simulate IAM module update: update access_modules and revoke previous tokens.
+        $owner->update(['access_modules' => ['kepegawaian']]);
+        $owner->tokens()->delete();
+
+        // Stateful session with stale bearer recovers fresh realtime_token + latest access_modules via GET /api/user?sync_realtime_token=1.
+        $this->anonymous();
+        $this->withUnencryptedCookies([$cookie->getName() => $cookie->getValue()])
+            ->withCredentials()
+            ->withHeaders([
+                'Origin' => 'http://localhost:3000',
+                'Authorization' => 'Bearer '.$initialToken,
+            ]);
+        $sync = $this->getJson('/api/user?sync_realtime_token=1')->assertOk();
+        $sync->assertJsonPath('data.access_modules.0', 'kepegawaian');
+        $recoveredToken = $sync->json('realtime_token');
+        $this->assertIsString($recoveredToken);
+        $this->assertNotSame('', $recoveredToken);
+        $this->assertNotSame($initialToken, $recoveredToken);
+
+        // Recovered bearer authorizes its own user channel, while cookie-only auth remains forbidden.
+        $recoveredId = explode('|', $recoveredToken, 2)[0];
+        $channel = 'private-App.Models.User.'.$owner->id.'.'.$recoveredId;
+        $this->anonymous();
+        $this->flushHeaders();
+        $this->withUnencryptedCookies([$cookie->getName() => $cookie->getValue()])
+            ->withCredentials()
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->postJson('/api/broadcasting/auth', ['channel_name' => $channel, 'socket_id' => '123.456'])
+            ->assertForbidden();
+
+        $this->channelAuth($recoveredToken, $channel)->assertOk()->assertJsonPath('auth', $this->hmac($channel));
+
+        // Valid stateful bearer and pure stateless bearer must not churn tokens.
+        $this->anonymous();
+        $this->withUnencryptedCookies([$cookie->getName() => $cookie->getValue()])
+            ->withCredentials()
+            ->withHeaders([
+                'Origin' => 'http://localhost:3000',
+                'Authorization' => 'Bearer '.$recoveredToken,
+                'X-Sync-Realtime-Token' => '1',
+            ]);
+        $this->getJson('/api/user')->assertOk()->assertJsonMissingPath('realtime_token');
+
+        $this->bearer($recoveredToken);
+        $this->withHeader('X-Sync-Realtime-Token', '1')->getJson('/api/user')->assertOk()->assertJsonMissingPath('realtime_token');
+
+        // Deactivated accounts are rejected and receive no realtime token.
+        $owner->update(['is_active' => false]);
+        $this->anonymous();
+        $this->withUnencryptedCookies([$cookie->getName() => $cookie->getValue()])
+            ->withCredentials()
+            ->withHeaders([
+                'Origin' => 'http://localhost:3000',
+                'X-Sync-Realtime-Token' => '1',
+            ]);
+        $this->getJson('/api/user')->assertForbidden()->assertJsonPath('reason', 'account_inactive')->assertJsonMissingPath('realtime_token');
+    }
+
+    public function test_multi_device_login_preserves_concurrent_active_tokens_up_to_limit(): void
+    {
+        $owner = $this->dummy('multi_device_login');
+        $tokens = [];
+        for ($i = 0; $i < 2; $i++) {
+            $this->anonymous();
+            $this->flushHeaders();
+            $this->app['session']->flush();
+            $tokens[] = $this->postJson('/api/login', [
+                'username' => $owner->username, 'password' => self::CURRENT_PASSWORD,
+            ])->assertOk()->json('token');
+        }
+
+        // First and second sessions must both remain valid concurrently (e.g. Web + Mobile).
+        foreach ($tokens as $token) {
+            $this->bearer($token);
+            $this->getJson('/api/me')->assertOk()->assertJsonPath('data.id', $owner->id);
+        }
+
+        // Add 3 more active tokens (5 total), then log in once more so oldest token is pruned cleanly.
+        for ($i = 0; $i < 3; $i++) {
+            $owner->createToken('dummy-extra-device-'.$i);
+        }
+        $this->anonymous();
+        $this->flushHeaders();
+        $this->app['session']->flush();
+        $this->postJson('/api/login', [
+            'username' => $owner->username, 'password' => self::CURRENT_PASSWORD,
+        ])->assertOk();
+
+        $this->assertLessThanOrEqual(5, $owner->tokens()->count());
+        $this->bearer($tokens[0]);
+        $this->getJson('/api/me')->assertUnauthorized();
+    }
 }

@@ -15,6 +15,7 @@ use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -24,6 +25,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\TransientToken;
 
 class AuthController extends Controller
 {
@@ -70,11 +73,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // Hapus token lama jika ada (agar tidak menumpuk di DB)
-        $user->tokens()->delete();
-
-        // Buat token baru Sanctum
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $this->createBoundedAuthToken($user);
 
         // Login user secara session-based (HttpOnly Cookie)
         \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
@@ -91,13 +90,69 @@ class AuthController extends Controller
     }
 
     /**
+     * Issue a personal access token while pruning expired or excess older sessions.
+     */
+    private function createBoundedAuthToken(User $user): string
+    {
+        $now = now();
+        $expiration = (int) config('sanctum.expiration');
+
+        $user->tokens()
+            ->where(function ($query) use ($now, $expiration) {
+                $query->where(fn ($q) => $q->whereNotNull('expires_at')->where('expires_at', '<=', $now));
+                if ($expiration > 0) {
+                    $query->orWhere('created_at', '<=', $now->copy()->subMinutes($expiration));
+                }
+            })
+            ->delete();
+
+        // Keep up to 4 prior active sessions so web portal and mobile stay signed in concurrently.
+        $staleIds = $user->tokens()->orderByDesc('id')->pluck('id')->slice(4);
+        if ($staleIds->isNotEmpty()) {
+            $user->tokens()->whereIn('id', $staleIds)->delete();
+        }
+
+        return $user->createToken('auth_token')->plainTextToken;
+    }
+
+    /**
      * Endpoint: GET /api/user
      */
     public function me(Request $request): JsonResponse
     {
-        return response()->json([
-            'data' => new UserResource($request->user()),
-        ]);
+        $user = $request->user();
+        $payload = [
+            'data' => new UserResource($user),
+        ];
+
+        $needs2faSetup = config('auth.two_factor_enforce', false)
+            && (in_array($user->role, ['admin', 'super_admin'], true)
+                || in_array('admin', array_values($user->module_roles ?? []), true))
+            && $user->two_factor_confirmed_at === null;
+
+        // Recover missing/revoked frontend bearer token for active stateful web cookie sessions.
+        if (
+            ($request->boolean('sync_realtime_token') || $request->header('X-Sync-Realtime-Token') === '1')
+            && $request->hasSession()
+            && Auth::guard('web')->check()
+            && $user->currentAccessToken() instanceof TransientToken
+            && $user->is_active
+            && empty($user->must_change_password)
+            && ! $needs2faSetup
+        ) {
+            $bearer = $request->bearerToken();
+            $tokenModel = $bearer ? PersonalAccessToken::findToken($bearer) : null;
+            $hasValidBearer = $tokenModel !== null
+                && $tokenModel->tokenable_type === $user->getMorphClass()
+                && (string) $tokenModel->tokenable_id === (string) $user->getKey()
+                && in_array((string) $tokenModel->getKey(), $user->broadcastTokenIds(), true);
+
+            if (! $hasValidBearer) {
+                $payload['realtime_token'] = $this->createBoundedAuthToken($user);
+            }
+        }
+
+        return response()->json($payload);
     }
 
     /**
@@ -843,9 +898,7 @@ class AuthController extends Controller
         \Illuminate\Support\Facades\Cache::forget($challengeKey);
         RateLimiter::clear($attemptKey);
 
-        // Terbitkan token Sanctum baru
-        $user->tokens()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $this->createBoundedAuthToken($user);
 
         \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
         if ($request->hasSession()) {

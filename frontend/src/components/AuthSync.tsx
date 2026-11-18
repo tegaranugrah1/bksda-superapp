@@ -48,23 +48,26 @@ export function AuthSync() {
     }
 
     let cancelled = false;
-    const syncUser = async (forceOnPathChange = false) => {
+    const syncUser = async (mode: "path" | "focus" | "force" = "focus") => {
       const now = Date.now();
       const sameUser = lastSyncRef.current.username === user.username;
       const samePath = lastSyncRef.current.path === pathname;
       if (syncingRef.current) return;
-      if (sameUser && (!forceOnPathChange || samePath) && now - lastSyncRef.current.at < 3000) {
+      const minIntervalMs = mode === "force" ? 1000 : mode === "path" && !samePath ? 0 : 3000;
+      if (sameUser && now - lastSyncRef.current.at < minIntervalMs) {
         return;
       }
 
       syncingRef.current = true;
       try {
         const base = (api.defaults.baseURL || "/api").replace(/\/$/, "");
-        const headers: Record<string, string> = { Accept: "application/json" };
+        const headers: Record<string, string> = {
+          Accept: "application/json",
+        };
         const token = localStorage.getItem("bksda_token");
         if (token) headers.Authorization = `Bearer ${token}`;
 
-        const res = await fetch(`${base}/user`, { credentials: "include", headers });
+        const res = await fetch(`${base}/user?sync_realtime_token=1`, { credentials: "include", headers });
         lastSyncRef.current = { at: Date.now(), path: pathname, username: user.username };
         if (!res.ok || cancelled) return;
 
@@ -84,7 +87,8 @@ export function AuthSync() {
           authStore.logout();
           return;
         }
-        authStore.updateUser(freshUser);
+        const refreshedToken = typeof json?.realtime_token === "string" ? json.realtime_token : null;
+        authStore.updateUser(freshUser, refreshedToken);
       } catch {
         // Ignore transient sync errors so route API calls own auth failure handling.
       } finally {
@@ -92,19 +96,31 @@ export function AuthSync() {
       }
     };
 
-    syncUser(true);
+    syncUser("path");
 
     const onFocusOrVisible = () => {
       if (document.visibilityState === "hidden") return;
-      syncUser(false);
+      syncUser("focus");
     };
+    const onForceSync = () => {
+      syncUser("force");
+    };
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        syncUser("focus");
+      }
+    }, 10000);
+
     window.addEventListener("focus", onFocusOrVisible);
     document.addEventListener("visibilitychange", onFocusOrVisible);
+    window.addEventListener("sync-auth-now", onForceSync);
 
     return () => {
       cancelled = true;
+      window.clearInterval(interval);
       window.removeEventListener("focus", onFocusOrVisible);
       document.removeEventListener("visibilitychange", onFocusOrVisible);
+      window.removeEventListener("sync-auth-now", onForceSync);
     };
   }, [isAuthenticated, pathname, user?.username]);
 
