@@ -1163,7 +1163,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         {/* TAB 1: BERANDA PORTAL ASN (FOREST GREEN HERO, 3 MAIN CARDS, 5 TOKENS)     */}
         {/* ========================================================================= */}
         {activeTab === "dashboard" && (
-          <>
+          <View style={styles.listStack}>
             {/* CARD 1: Forest Green Portal Hero Banner */}
             <View style={[styles.heroBanner, shadowXs]}>
               <View style={styles.heroTopRow}>
@@ -1283,7 +1283,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       backgroundColor: colors.cardBg,
                       borderColor: isActiveDutyRunning ? colors.accentSoftBorder : colors.glassBorder,
                     },
-                    homeBorrowedLoans.length > 0 && styles.activeDutyCardWithBelow,
                     shadowXs,
                   ]}
                 >
@@ -1423,7 +1422,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 </GlassCard>
               );
             })()}
-          </>
+          </View>
         )}
 
         {/* ========================================================================= */}
@@ -2368,7 +2367,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </View>
 
             {/* Profile Menu Actions List */}
-            <View style={styles.profileMenuStack}>
+            <View style={styles.listStack}>
               {[
                 {
                   label: "Informasi Riwayat Pangkat & Jabatan",
@@ -3293,7 +3292,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: R.card,
     padding: S.x4,
-    marginBottom: S.x2,
   },
   heroTopRow: {
     flexDirection: "row",
@@ -3353,6 +3351,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     marginHorizontal: -S.x1,
+    marginBottom: -S.x2,
   },
   quickStatCellWrapper: {
     width: "50%",
@@ -3396,7 +3395,6 @@ const styles = StyleSheet.create({
     padding: S.x4,
     borderRadius: R.card,
     borderWidth: 1,
-    marginBottom: S.x2,
   },
   cardSectionHeader: {
     flexDirection: "row",
@@ -3479,9 +3477,6 @@ const styles = StyleSheet.create({
     padding: S.x4,
     borderRadius: R.card,
     borderWidth: 1,
-  },
-  activeDutyCardWithBelow: {
-    marginBottom: S.x2,
   },
   activeDutyHeader: {
     flexDirection: "row",
@@ -3697,7 +3692,7 @@ const styles = StyleSheet.create({
     padding: S.x4,
     borderRadius: R.card,
     borderWidth: 1,
-    marginBottom: S.x4,
+    marginBottom: S.x3,
   },
   profileAvatarBig: {
     width: 56,
@@ -3735,7 +3730,7 @@ const styles = StyleSheet.create({
   profileMetricsRow: {
     flexDirection: "row",
     gap: S.x3,
-    marginBottom: S.x4,
+    marginBottom: S.x3,
   },
   profileMetricBox: {
     flex: 1,
@@ -3752,9 +3747,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontVariant: ["tabular-nums"],
     marginTop: S.x1,
-  },
-  profileMenuStack: {
-    gap: S.x2,
   },
   profileMenuItem: {
     flexDirection: "row",
@@ -3775,7 +3767,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: R.card,
     padding: S.x4,
-    marginTop: S.x2,
   },
   logoutBtnText: {
     fontSize: T.sm,
