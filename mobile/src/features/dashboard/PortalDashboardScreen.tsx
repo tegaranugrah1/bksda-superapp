@@ -49,8 +49,8 @@ interface PortalDashboardScreenProps {
 
 const BKSDA_FOREST = "#1e5433";
 
-// Dashboard-only surface roles. Other tabs and the shared application theme retain their palette.
-const DASHBOARD_SURFACES = {
+// Shared portal surfaces keep Beranda, Tugas, Layanan and Profil consistent.
+const PORTAL_SURFACES = {
   light: {
     bgDark: "#f1f6f0",
     cardBg: "#ffffff",
@@ -397,9 +397,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   // Bottom Navigation state: 'dashboard' | 'surattugas' | 'layanan' | 'profile'
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const isDashboard = activeTab === "dashboard";
-  const colors = React.useMemo(() => isDashboard
-    ? { ...themeColors, ...DASHBOARD_SURFACES[isDark ? "dark" : "light"] }
-    : themeColors, [isDashboard, isDark, themeColors]);
+  const colors = React.useMemo(() => ({
+    ...themeColors,
+    ...PORTAL_SURFACES[isDark ? "dark" : "light"],
+  }), [isDark, themeColors]);
 
   // Center FAB Quick Action Modal
   const [fabModalVisible, setFabModalVisible] = useState(false);
@@ -1187,49 +1188,39 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     );
   };
 
+  // Match the app-bar backing so fractional web pixels cannot expose a pale seam.
   return (
-    <View testID="portal-surface" style={[styles.container, { backgroundColor: colors.bgDark }]}>
-      {isScreenFocused && <StatusBar style={isDashboard || isDark ? "light" : "dark"} />}
-      {/* Official ministry identity stays on the dashboard brand bar. */}
+    <View testID="portal-surface" style={[styles.container, { backgroundColor: BKSDA_FOREST }]}>
+      {isScreenFocused && <StatusBar style="light" />}
+      {/* All portal tabs share the official ministry brand bar. */}
       <View
         testID="portal-header"
         style={[
           styles.header,
-          isDashboard && styles.dashboardHeader,
-          {
-            backgroundColor: isDashboard ? BKSDA_FOREST : colors.headerBg,
-            borderBottomColor: colors.headerBorder,
-            borderBottomWidth: isDashboard ? 0 : 1,
-          },
+          styles.portalHeader,
+          { backgroundColor: BKSDA_FOREST },
         ]}
       >
-        <View style={[styles.headerInner, isDashboard && styles.dashboardHeaderInner]}>
-          <View style={[styles.headerLeft, isDashboard && styles.dashboardHeaderLeft]}>
-            <View style={isDashboard ? styles.headerLogoBadge : undefined}>
+        <View style={[styles.headerInner, styles.portalHeaderInner]}>
+          <View style={[styles.headerLeft, styles.portalHeaderLeft]}>
+            <View style={styles.headerLogoBadge}>
               <Image
-                source={isDashboard ? require("../../../assets/kemenhutlogo.png") : require("../../../assets/logo_bksda.png")}
-                style={[styles.logoImage, isDashboard && styles.dashboardLogoImage]}
+                source={require("../../../assets/kemenhutlogo.png")}
+                style={[styles.logoImage, styles.portalLogoImage]}
                 resizeMode="contain"
-                accessibilityLabel={isDashboard ? "Logo Kementerian Kehutanan" : "Logo BKSDA Kalimantan Timur"}
+                accessibilityLabel="Logo Kementerian Kehutanan"
               />
             </View>
-            {isDashboard ? (
-              <View testID="portal-brand-identity" style={styles.dashboardBrandText}>
-                <Text style={styles.dashboardMinistry}>Kementerian Kehutanan</Text>
-                <Text style={styles.dashboardInstitution}>Balai KSDA Kalimantan Timur</Text>
-              </View>
-            ) : (
-              <View style={styles.headerTitleCol}>
-                <Text style={[styles.brandTitle, { color: colors.textDark }]}>BKSDA Kaltim</Text>
-                <Text style={[styles.brandSubtitle, { color: colors.accentFg }]}>SUPERAPP PORTAL</Text>
-              </View>
-            )}
+            <View testID="portal-brand-identity" style={styles.portalBrandText}>
+              <Text style={styles.portalMinistry}>Kementerian Kehutanan</Text>
+              <Text style={styles.portalInstitution}>Balai KSDA Kalimantan Timur</Text>
+            </View>
           </View>
 
-          <View style={[styles.headerRight, isDashboard && styles.dashboardHeaderRight]}>
+          <View style={[styles.headerRight, styles.portalHeaderRight]}>
             {/* Active Light / Dark Mode Toggle Button */}
             <TouchableOpacity
-              style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }, isDashboard && styles.dashboardHeaderControl]}
+              style={[styles.headerIconBtn, styles.portalHeaderControl]}
               accessibilityLabel={isDark ? "Aktifkan tema terang" : "Aktifkan tema gelap"}
               activeOpacity={0.7}
               onPress={toggleTheme}
@@ -1237,35 +1228,27 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               <Ionicons
                 name={isDark ? "sunny" : "moon-outline"}
                 size={r.size.iconMd}
-                color={isDashboard ? "#ffffff" : isDark ? colors.warningFg : colors.textMuted}
+                color="#ffffff"
               />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }, isDashboard && styles.dashboardHeaderControl]}
+              style={[styles.headerIconBtn, styles.portalHeaderControl]}
               activeOpacity={0.7}
             >
-              <Ionicons name="notifications-outline" size={r.size.iconMd} color={isDashboard ? "#ffffff" : isDark ? colors.accentFg : colors.textMuted} />
+              <Ionicons name="notifications-outline" size={r.size.iconMd} color="#ffffff" />
               <View style={[styles.notifDot, { backgroundColor: colors.dangerSolid }]} />
             </TouchableOpacity>
 
-            {!isDashboard && <TouchableOpacity
-              style={[styles.avatarCircle, { backgroundColor: colors.accentSolid }]}
-              accessibilityRole="button"
-              accessibilityLabel="Buka profil"
-              onPress={() => setActiveTab("profile")}
-            >
-              <Text style={[styles.avatarInitial, { color: isDashboard ? "#ffffff" : colors.accentOnSolid }]}>{avatarInitial}</Text>
-            </TouchableOpacity>}
           </View>
         </View>
       </View>
 
       <ScrollView
-        style={isDashboard && styles.dashboardScroll}
+        style={styles.portalScroll}
         contentContainerStyle={[
           styles.scrollContent,
-          isDashboard && [styles.scrollContentCompact, { backgroundColor: colors.bgDark }],
+          [styles.scrollContentCompact, { backgroundColor: colors.bgDark }],
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -3391,7 +3374,7 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       paddingHorizontal: S.x4,
       paddingTop: Platform.OS === "web" ? S.x3 : S.x12,
       paddingBottom: S.x3,
-      borderBottomWidth: 1,
+      borderBottomWidth: 0,
     },
     headerInner: {
       width: "100%",
@@ -3418,16 +3401,16 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       height: S.x8,
       marginRight: S.x2,
     },
-    dashboardHeader: {
+    portalHeader: {
       paddingHorizontal: 12,
     },
-    dashboardHeaderInner: {
+    portalHeaderInner: {
       gap: 4,
     },
-    dashboardHeaderRight: {
+    portalHeaderRight: {
       gap: 4,
     },
-    dashboardHeaderLeft: {
+    portalHeaderLeft: {
       flex: 1,
       gap: 6,
     },
@@ -3436,49 +3419,33 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       borderRadius: R.inner,
       padding: 4,
     },
-    dashboardLogoImage: {
+    portalLogoImage: {
       width: 40,
       height: 40,
       marginRight: 0,
     },
-    dashboardBrandText: {
+    portalBrandText: {
       flex: 1,
       minWidth: 0,
       gap: 2,
     },
-    dashboardMinistry: {
+    portalMinistry: {
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: 14,
       lineHeight: 18,
       fontWeight: "700",
       color: "#ffffff",
     },
-    dashboardInstitution: {
+    portalInstitution: {
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: 12,
       lineHeight: 16,
       fontWeight: "500",
       color: "#e2efe4",
     },
-    dashboardHeaderControl: {
+    portalHeaderControl: {
       backgroundColor: "rgba(255,255,255,0.12)",
       borderColor: "rgba(255,255,255,0.24)",
-    },
-    headerTitleCol: {
-      flexShrink: 1,
-      justifyContent: "center",
-    },
-    brandTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "700",
-      letterSpacing: -0.2,
-    },
-    brandSubtitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      letterSpacing: 0.4,
     },
     headerRight: {
       flexDirection: "row",
@@ -3502,24 +3469,12 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       height: S.x2,
       borderRadius: R.pill,
     },
-    avatarCircle: {
-      width: S.x8,
-      height: S.x8,
-      borderRadius: R.pill,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    avatarInitial: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "700",
-    },
     scrollContent: {
       paddingHorizontal: S.x4,
       paddingTop: S.x4,
       paddingBottom: r.size.bottomNavHeight + r.size.bottomNavBottom + S.x8,
     },
-    dashboardScroll: {
+    portalScroll: {
       backgroundColor: BKSDA_FOREST,
     },
     scrollContentCompact: {

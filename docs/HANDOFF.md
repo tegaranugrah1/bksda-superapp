@@ -3410,3 +3410,21 @@ Setelah semua command clean:
 - Tema dan notifikasi tetap di kanan dengan target 48px. Avatar header dashboard yang berulang dihilangkan untuk memberi ruang identitas; profil tetap dapat dibuka melalui kartu NIP dan bottom navigation. Tab lain tetap seperti sebelumnya.
 - Typecheck/lint mobile dan 14 tes responsif/motion/dashboard/navigasi lulus. Browser fixture light/dark pada 360/440/landscape 800 memeriksa identitas, tidak ada overlap, warna kartu, modul realtime 3→2, reload tanpa login ulang, navigasi profil dan formulir cuti tanpa error JS. Perangkat fisik belum diuji.
 - Checkpoint sebelumnya 22f96daa. Bagian 156–160 disimpan dalam commit lokal penyempurnaan dashboard mobile; belum di-push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 161 Header dan Background Seragam pada Tab Portal Mobile
+
+- Header Tugas, Layanan dan Profil kini sama dengan Beranda: bidang Forest Green, logo Kemenhut dari login, judul Kementerian Kehutanan 14px dan Balai KSDA Kalimantan Timur 12px. Tema/notifikasi tetap di kanan dengan target sentuh 48px; profil tersedia melalui bottom navigation.
+- Keempat tab memakai role PORTAL_SURFACES bersama: canvas light #f1f6f0 dan dark #101813, kartu putih/light dan #1b2820/dark. Sheet konten membulat tepat di bawah header dan memenuhi tinggi layar. Konten, fungsi dan susunan kartu masing-masing tab dipertahankan.
+- Pengondisian header/palet khusus Beranda dihapus dari shared shell. Status bar memakai teks terang selama screen portal fokus. Login, tema global dan source web tidak diubah.
+- Typecheck, ESLint mobile dan 14 tes responsif/motion/dashboard/navigasi lulus. Browser fixture memeriksa keempat tab pada 360/440/landscape 800, light/dark: identitas penuh tanpa overlap, header hijau, canvas yang sama dan sheet membulat tanpa celah. Navigasi, pembaruan modul realtime 3→2, reload tanpa login ulang dan form cuti berjalan tanpa error JS. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya fb945f03; Bagian 161 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 162 Garis Terang pada Sambungan Header Mobile
+
+- Screenshot pengguna menunjukkan garis lurus terang tepat di bawah toolbar hijau, di atas sudut sheet. Sudut membulat tetap dipertahankan sesuai klarifikasi terakhir.
+- Penyebab berhasil direproduksi dengan browser deviceScaleFactor 1,25 dan zoom pecahan: background root yang terang terlihat di antara tepi header/scroll yang diraster pada pecahan piksel. Root backing kini memakai Forest Green yang sama dengan header dan viewport scroll; canvas yang terlihat tetap memakai sheet light/dark sebelumnya.
+- Perubahan source hanya satu role background dan komentar penjelas; berlaku bersama untuk Beranda, Tugas, Layanan dan Profil. Logo, teks, ukuran, border kartu, padding, animasi dan fungsi tidak diubah.
+- Typecheck dan ESLint mobile lulus. Pemeriksaan piksel sebelum/sesudah pada zoom 90%, 100%, 110%, 125% menunjukkan warna di celah kembali #1e5433; sebelumnya warna menyimpang pada zoom 110%/125%. Browser fixture keempat tab pada 360/440/landscape 800 light/dark juga lulus tanpa error JS, dengan sudut sheet tetap membulat dan canvas mengikuti tema.
+- Checkpoint sebelumnya fb945f03; Bagian 161–162 disimpan sebagai checkpoint lokal penyamaan header dan perbaikan garis terang; belum di-push. Perangkat fisik belum diuji.
