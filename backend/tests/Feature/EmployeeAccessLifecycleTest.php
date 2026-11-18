@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Events\UserAccessChanged;
 use App\Models\User;
 use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
 class EmployeeAccessLifecycleTest extends TestCase
@@ -66,5 +68,60 @@ class EmployeeAccessLifecycleTest extends TestCase
         $this->putJson($url, ['role' => 'super_admin', 'is_active' => false])->assertForbidden();
         $this->assertTrue($owner->fresh()->is_active);
         $this->putJson($url, ['role' => 'super_admin', 'is_active' => 'invalid'])->assertUnprocessable()->assertJsonValidationErrors('is_active');
+    }
+
+    public function test_module_changes_preserve_mobile_token_and_enforce_new_access_on_next_request(): void
+    {
+        config(['auth.two_factor_enforce' => false, 'broadcasting.default' => 'null']);
+        $employee = Employee::create(['nip' => '900000000000000083', 'nama_lengkap' => 'Dummy Mobile IAM']);
+        $user = User::factory()->create([
+            'username' => $employee->nip,
+            'role' => 'user',
+            'access_modules' => ['kepegawaian', 'inventory', 'bmn'],
+        ]);
+        $mobileToken = $user->createToken('dummy-mobile')->plainTextToken;
+        $this->authenticate(User::factory()->create(['role' => 'super_admin']));
+        $this->putJson('/api/kepegawaian/employees/'.$employee->id.'/access', [
+            'role' => 'user', 'access_modules' => ['kepegawaian', 'bmn'],
+            'module_roles' => ['kepegawaian' => 'user', 'bmn' => 'user'],
+        ])->assertOk();
+        $this->assertNotNull(PersonalAccessToken::findToken($mobileToken));
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($mobileToken)->getJson('/api/me')
+            ->assertOk()->assertJsonPath('data.access_modules', ['kepegawaian', 'bmn']);
+        $this->app['auth']->forgetGuards();
+        $this->getJson('/api/inventory/items')->assertForbidden();
+    }
+
+    public function test_access_event_is_private_and_excludes_revoked_tokens_and_inactive_owners(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $live = $user->createToken('dummy-live');
+        $revoked = $user->createToken('dummy-revoked');
+        $revoked->accessToken->delete();
+        User::factory()->create()->createToken('dummy-other-owner');
+        $event = new UserAccessChanged($user->id);
+        $this->assertSame('access.updated', $event->broadcastAs());
+        $this->assertSame(['user_id' => $user->id], $event->broadcastWith());
+        $this->assertSame(
+            ['private-App.Models.User.'.$user->id.'.'.$live->accessToken->id],
+            array_map(fn ($channel) => $channel->name, $event->broadcastOn()),
+        );
+        $user->updateQuietly(['is_active' => false]);
+        $this->assertSame([], $event->broadcastOn());
+    }
+
+    public function test_password_reset_still_revokes_mobile_token(): void
+    {
+        config(['auth.two_factor_enforce' => false, 'broadcasting.default' => 'null']);
+        $employee = Employee::create(['nip' => '900000000000000084', 'nama_lengkap' => 'Dummy Mobile Reset']);
+        $user = User::factory()->create(['username' => $employee->nip, 'role' => 'user']);
+        $mobileToken = $user->createToken('dummy-mobile')->plainTextToken;
+        $this->authenticate(User::factory()->create(['role' => 'super_admin']));
+        $this->putJson('/api/kepegawaian/employees/'.$employee->id.'/access', [
+            'role' => 'user', 'password' => 'DummyReplacementPassword42!',
+        ])->assertOk();
+        $this->assertNull(PersonalAccessToken::findToken($mobileToken));
     }
 }

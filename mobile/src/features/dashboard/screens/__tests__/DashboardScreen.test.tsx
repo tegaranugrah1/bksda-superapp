@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable react/display-name */
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import DashboardScreen from '../DashboardScreen';
@@ -115,7 +114,7 @@ describe('DashboardScreen', () => {
     act(() => {
       onNavigateToModule('kepegawaian');
     });
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('KepegawaianDashboard');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('KepegawaianMain');
 
     act(() => {
       onNavigateToModule('profile');

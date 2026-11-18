@@ -1,3 +1,5 @@
+import { useTheme } from "../theme/ThemeContext";
+import { AnimateUiScreen } from "../components/motion/AnimateUi";
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import DashboardScreen from "../features/dashboard/screens/DashboardScreen";
@@ -51,11 +53,18 @@ export type AppTabParamList = {
 const Tab = createBottomTabNavigator<AppTabParamList>();
 
 export default function AppTabs() {
+  const { colors } = useTheme();
   return (
     <Tab.Navigator
+      screenLayout={({ children, route }) =>
+        ["Dashboard", "KepegawaianMain", "BmnMain"].includes(route.name)
+          ? <>{children}</>
+          : <AnimateUiScreen style={{ flex: 1 }}>{children}</AnimateUiScreen>
+      }
       backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
+        sceneStyle: { backgroundColor: colors.bgDark },
         tabBarStyle: {
           display: "none", // Hide standard fixed bottom bar in favor of Floating Action Button (FabMenu)
         },

@@ -184,41 +184,25 @@ export default function LoginPage() {
   const activeView = is2FaStep ? "2fa" : isForgotStep ? "forgot" : "login";
 
   return (
-    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 font-sans text-zinc-900 dark:text-zinc-100 flex overflow-hidden relative">
-      {/* Floating Theme Toggle (Top Right) */}
-      <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-30">
-        <ThemeToggle size="sm" />
-      </div>
-
-      <div className="flex min-h-screen w-full">
-        {/* Left Side: Form Container */}
-        <div className="w-full lg:w-[48%] xl:w-[44%] flex flex-col justify-between p-6 sm:p-10 md:p-14 bg-white dark:bg-zinc-900/90 backdrop-blur-md relative z-10 shadow-2xl border-r border-zinc-200/70 dark:border-zinc-800/80 overflow-hidden">
-          <div className="w-full max-w-md mx-auto my-auto py-6">
-            {/* Branding Header with Official Kemenhut Logo & Exact Hierarchy */}
-            <div className="flex items-center gap-3.5 mb-8">
-              <div className="p-2 rounded-2xl bg-[#edf3ee] dark:bg-emerald-950/40 border border-[#dce8dd] dark:border-emerald-900/50 shadow-xs shrink-0">
-                <Image
-                  src="/kemenhutlogo.png"
-                  alt="Logo Kementerian Kehutanan"
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 object-contain"
-                  priority
-                />
-              </div>
-              <div className="flex flex-col justify-center min-w-0">
-                <span className="text-xs sm:text-sm font-black tracking-wide text-[#1e5433] dark:text-emerald-400 uppercase leading-snug">
-                  KEMENTERIAN KEHUTANAN
-                </span>
-                <span className="text-[11px] sm:text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase leading-snug tracking-tight">
-                  BALAI KONSERVASI SUMBER DAYA ALAM
-                </span>
-                <span className="text-[10px] sm:text-[11px] font-semibold text-[#164227] dark:text-emerald-400 uppercase tracking-widest leading-snug">
-                  KALIMANTAN TIMUR
-                </span>
-              </div>
+    <div className="relative isolate min-h-svh w-full bg-[#123b31] font-sans text-zinc-900 dark:text-zinc-100">
+      <div className="fixed inset-0 -z-20 bg-cover bg-center" style={{ backgroundImage: "url('/assets/images/background/sangalaki.png')" }} aria-hidden="true" />
+      <div className="fixed inset-0 -z-10 bg-linear-to-r from-[#072b23]/70 via-[#123b31]/20 to-[#072b23]/30" aria-hidden="true" />
+      <div className="absolute top-5 right-5 z-30 sm:top-6 sm:right-6"><ThemeToggle size="sm" /></div>
+      <main className="relative mx-auto grid min-h-svh w-full content-center lg:content-stretch max-w-[1600px] gap-8 px-6 pb-8 pt-16 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:gap-16 lg:px-14 lg:py-14">
+        <section className="hidden w-full max-w-xl flex-col justify-end lg:flex">
+          <div className="hidden max-w-lg space-y-5 pb-8 lg:block">
+            <h2 className="text-4xl font-bold leading-[1.12] tracking-tight text-white xl:text-5xl">Melindungi Warisan Alam Untuk Generasi Masa Depan</h2>
+            <p className="max-w-md text-base leading-relaxed text-white/90">Platform terpadu tata kelola kepegawaian, administrasi naskah dinas, inventarisasi aset, dan perlindungan keanekaragaman hayati Balai Konservasi Sumber Daya Alam Kalimantan Timur.</p>
+          </div>
+        </section>
+        <section className="mx-auto w-full max-w-md self-center rounded-[28px] border border-white/60 bg-white/60 p-6 shadow-[0_24px_80px_-24px_rgba(3,25,17,0.6)] backdrop-blur-2xl sm:p-10 lg:max-w-none dark:border-white/20 dark:bg-[#082b23]/65">
+          <div className="mb-6 flex items-center gap-3.5">
+            <div className="shrink-0 rounded-2xl border border-white/60 bg-white/70 p-2 shadow-sm"><Image src="/kemenhutlogo.png" alt="Logo Kementerian Kehutanan" width={48} height={48} className="h-12 w-12 object-contain" priority /></div>
+            <div className="min-w-0 leading-tight text-[#164227] dark:text-emerald-300">
+              <p className="text-xs font-bold uppercase tracking-tight sm:text-base">Kementerian Kehutanan</p>
+              <p className="mt-1 text-xs font-medium text-zinc-700 sm:text-sm dark:text-zinc-200">Balai KSDA Kalimantan Timur</p>
             </div>
-
+          </div>
             <div className="relative overflow-hidden p-1 -m-1">
               <AnimatePresence mode="wait" initial={false} custom={direction}>
                 <motion.div
@@ -243,7 +227,7 @@ export default function LoginPage() {
                         <h1 className="text-2xl font-black text-zinc-900 dark:text-white">
                           {isRecoveryMode ? "Masukkan Recovery Code" : "Kode Verifikasi Authenticator"}
                         </h1>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-sm font-normal leading-relaxed">
+                        <p className="text-zinc-700 dark:text-zinc-300 text-sm font-normal leading-relaxed">
                           {isRecoveryMode
                             ? "Gunakan salah satu dari kode pemulihan darurat yang Anda simpan saat mengaktifkan 2FA."
                             : "Buka aplikasi authenticator Anda (Google Authenticator / 1Password) dan masukkan 6-digit kode."}
@@ -263,7 +247,7 @@ export default function LoginPage() {
                             maxLength={isRecoveryMode ? 20 : 8}
                             autoFocus
                             required
-                            className={`w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none font-mono ${
+                            className={`w-full px-4 py-3.5 bg-white/65 dark:bg-zinc-950/35 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none font-mono ${
                               isRecoveryMode
                                 ? "text-base tracking-wider uppercase"
                                 : "text-2xl tracking-[0.3em] text-center font-bold"
@@ -321,7 +305,7 @@ export default function LoginPage() {
                         <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
                           Lupa Kata Sandi?
                         </h1>
-                        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal leading-relaxed">
+                        <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 font-normal leading-relaxed">
                           Masukkan alamat Gmail terverifikasi akun Anda untuk menerima tautan pemulihan kata sandi.
                         </p>
                       </div>
@@ -380,7 +364,7 @@ export default function LoginPage() {
                                 placeholder="nama.pegawai@gmail.com"
                                 autoFocus
                                 required
-                                className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                                className="w-full pl-10 pr-4 py-3 bg-white/65 dark:bg-zinc-950/35 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 dark:placeholder:text-zinc-400"
                               />
                             </div>
                           </div>
@@ -426,7 +410,7 @@ export default function LoginPage() {
                         <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
                           Selamat Datang
                         </h1>
-                        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 font-normal leading-relaxed">
+                        <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300 font-normal leading-relaxed">
                           Silakan masukkan NIP atau akun resmi Anda untuk mengakses portal BKSDA Kalimantan Timur.
                         </p>
                       </div>
@@ -448,8 +432,8 @@ export default function LoginPage() {
                                     </div>
                                     <input
                                       {...field}
-                                      className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
-                                      placeholder="Contoh: 19850101... atau username"
+                                      className="w-full pl-10 pr-4 py-3 bg-white/65 dark:bg-zinc-950/35 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 dark:placeholder:text-zinc-400"
+                                      placeholder="Masukkan NIP / username"
                                       type="text"
                                       autoComplete="username"
                                     />
@@ -489,7 +473,7 @@ export default function LoginPage() {
                                     </div>
                                     <input
                                       {...field}
-                                      className="w-full pl-10 pr-12 py-3 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                                      className="w-full pl-10 pr-12 py-3 bg-white/65 dark:bg-zinc-950/35 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-[#1e5433]/15 focus:border-[#1e5433] dark:focus:ring-emerald-500/20 dark:focus:border-emerald-500 outline-none text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 dark:placeholder:text-zinc-400"
                                       placeholder="••••••••"
                                       type={showPassword ? "text" : "password"}
                                       autoComplete="current-password"
@@ -533,41 +517,14 @@ export default function LoginPage() {
                 </motion.div>
               </AnimatePresence>
             </div>
-          </div>
-
-          {/* Copyright Footer */}
-          <div className="w-full max-w-md mx-auto pt-6 border-t border-zinc-100 dark:border-zinc-800/80 text-center">
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium leading-relaxed">
-              &copy; {new Date().getFullYear()} Balai Konservasi Sumber Daya Alam Kalimantan Timur
-              <br />
-              <span className="text-[10px] text-zinc-400/80 dark:text-zinc-500/80">Kementerian Kehutanan Republik Indonesia</span>
+          <div className="w-full max-w-md mx-auto pt-6 text-center">
+            <p className="text-xs text-zinc-700 dark:text-zinc-300 font-medium leading-relaxed">
+              &copy; {new Date().getFullYear()} Balai KSDA Kalimantan Timur<br />
+              <span className="text-[11px]">Kementerian Kehutanan Republik Indonesia</span>
             </p>
           </div>
-        </div>
-
-        {/* Right Side: Visual Hero Branding Showcase (Foto Jernih, Terang, & Terlihat Jelas) */}
-        <div className="hidden lg:flex lg:w-[52%] xl:w-[56%] relative overflow-hidden bg-zinc-900 flex-col justify-end p-12 xl:p-16 text-white">
-          {/* Foto Konservasi Lokal (Pulau Sangalaki) - Terang & Nyata tanpa shadow pekat */}
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage: "url('/assets/images/background/sangalaki.png')",
-            }}
-          />
-          {/* Gradien lembut di dasar saja agar teks terbaca kontras tanpa menggelapkan pemandangan */}
-          <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />
-
-          {/* Bottom Branding Showcase */}
-          <div className="relative z-10 max-w-xl space-y-4">
-            <h2 className="text-3xl xl:text-4xl font-black leading-tight tracking-tight text-white drop-shadow-md">
-              Melindungi Warisan Alam Untuk Generasi Masa Depan
-            </h2>
-            <p className="text-sm xl:text-base text-zinc-200 leading-relaxed font-normal drop-shadow-xs">
-              Platform terpadu tata kelola kepegawaian, administrasi naskah dinas, inventarisasi aset, dan perlindungan keanekaragaman hayati Balai Konservasi Sumber Daya Alam Kalimantan Timur.
-            </p>
-          </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

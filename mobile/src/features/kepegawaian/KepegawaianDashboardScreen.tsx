@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,12 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   Dimensions,
+  Animated,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../theme/ThemeContext";
+import { useAnimateUiProgress } from "../../components/motion/AnimateUi";
 import { GlassCard } from "../../components/ui/GlassCard";
-import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
 import { useForegroundRefresh } from "../../hooks/useForegroundRefresh";
 import { useReverbRefresh } from "../../hooks/useReverbRefresh";
@@ -40,9 +41,10 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
   onBack,
   onNavigateToModule,
 }) => {
-  const { isDark, colors } = useTheme();
+  const { isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const chartProgress = useAnimateUiProgress({ duration: 600, enabled: !loading });
 
   // Metrics Data State
   const [stats, setStats] = useState({
@@ -420,7 +422,7 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
                 </View>
 
                 <View style={styles.satkerTrack}>
-                  <View style={[styles.satkerBar, { width: `${Math.max(5, item.percentage)}%`, backgroundColor: item.color }]} />
+                  <Animated.View style={[styles.satkerBar, { width: `${Math.max(5, item.percentage)}%`, backgroundColor: item.color, transformOrigin: "left center", transform: [{ scaleX: chartProgress }] }]} />
                 </View>
               </View>
             ))}

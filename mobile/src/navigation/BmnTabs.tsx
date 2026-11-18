@@ -1,3 +1,4 @@
+import { AnimateUiScreen } from "../components/motion/AnimateUi";
 import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -124,12 +125,16 @@ export default function BmnTabs({ navigation }: any) {
 
   return (
     <Tab.Navigator
+      screenLayout={({ children }) => (
+        <AnimateUiScreen style={{ flex: 1 }}>{children}</AnimateUiScreen>
+      )}
       backBehavior="history"
       tabBar={({ state, navigation: tabNavigation }) => (
         <BmnTabBar state={state} navigation={tabNavigation} colors={colors} />
       )}
       screenOptions={({ route }) => ({
         headerShown: false,
+        sceneStyle: { backgroundColor: colors.bgDark },
         tabBarStyle: {
           position: 'absolute',
           bottom: 24,

@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (18 November 2026):** Pembaruan aplikasi **Mobile Portal** mencakup migrasi polling ke **Laravel Reverb WebSocket** + guard 404 `/me/leave-balance` ([`996d9ba8`](file:///e:/bksda-superapp/mobile/src/lib/reverb.ts)) serta penerapan **5 Design Tokens** & redesign Beranda 1-layar selaras Web Portal ([`f8b1e903`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx)) pada [`ThemeContext.tsx`](file:///e:/bksda-superapp/mobile/src/theme/ThemeContext.tsx) dan [`PortalDashboardScreen.tsx`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx) (Hero Forest Green tanggal + pill `NIP` + narasi resmi, grid `2×2` Quick Stats, card `MODUL AKSES SYSTEM` `4×2`, card `TUGAS DINAS BERJALAN`, card kondisional `Aset Dipinjam`, & tipografi halus bergaya `Inter` Web; Node 5-token audit, `tsc --noEmit` `0`, ESLint `0`, & `6` suite Jest target lulus `17/17`), serta pemulihan `nginx-backend` DNS cache pasca-PR #604 ([`deploy/nginx-backend.conf`](file:///e:/bksda-superapp/deploy/nginx-backend.conf)). Melengkapi fitur **Blok Rincian / Jadwal** modul Persuratan ([`3fabe7ff`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/dinas/page.tsx)), [`PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx), upgrade **Next.js** (`16.4.2` → `16.4.6`), audit 6 modul (`/security-audit` `SEC-01`–`SEC-11`, `/ponytail-audit` `P-01`–`P-07`), serta penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)). Knowledge Graph (`graphify-out/`): `15541` nodes, `29078` edges, `1045` communities. (Bagian 115–144).
+**Status terbaru (18 November 2026):** Redesign penuh dibatalkan (Bagian 154). Sesuai klarifikasi Bagian 155, hanya mobile menggabungkan empat statistik dalam satu panel serta memperbaiki spacing/ukuran kartu/padding; warna dan font tetap sebelumnya. Web tetap sebelum redesign. Perbaikan bundel, sesi, Reverb dan animasi Bagian 147–152 dipertahankan. Checkpoint lokal Bagian 147–155; belum di-push.
 
 ## Status Update: 2 November 2026
 
@@ -3178,3 +3178,115 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Backend (pasca-edit `AuthController.php`): `php -l` bersih; `PortalPersonalSecurityTest` (`personal_asset_list` & `asset_list_cannot_overwrite`) lulus (`2/2` tests, `8` assertions).
   - Knowledge Graph: `graphify update .` exit `0` (`15551` nodes, `29106` edges, `1051` communities).
 - **Status**: ✅ Ter-commit lokal di branch `codex/portal-security-pentest` (`2b7a2263`, `3c80c7d9`, `3b135c91`).
+
+---
+
+## 146. Pemulihan Produksi Realtime & Sesi (`d0cdc666`, `9c3e7b19`) serta Penyempurnaan Portal Web & Mobile (`81321f24`, `d0f7e082`, `cb70ecf8`) (18 November 2026)
+
+- **Auth, Realtime Portal & Konfigurasi Produksi (`d0cdc666`, `9c3e7b19`)**:
+  - [`backend/app/Http/Controllers/Api/AuthController.php`](file:///e:/bksda-superapp/backend/app/Http/Controllers/Api/AuthController.php), [`frontend/src/lib/echo.ts`](file:///e:/bksda-superapp/frontend/src/lib/echo.ts), [`frontend/src/components/AuthSync.tsx`](file:///e:/bksda-superapp/frontend/src/components/AuthSync.tsx), [`frontend/src/lib/auth-store.ts`](file:///e:/bksda-superapp/frontend/src/lib/auth-store.ts), [`frontend/src/app/portal/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/page.tsx): Pemulihan broadcast token `/api/broadcasting/auth`, sinkronisasi live modul portal (`GET /api/user?sync_realtime_token=1`), serta update CSP Cloudflare Insights pada [`frontend/next.config.ts`](file:///e:/bksda-superapp/frontend/next.config.ts) dan `loading="eager"` avatar [`PortalProfileSidebar.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalProfileSidebar.tsx) (+ [`PortalIdentityBoundaryTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/PortalIdentityBoundaryTest.php)).
+  - [`backend/config/cors.php`](file:///e:/bksda-superapp/backend/config/cors.php), [`backend/config/sanctum.php`](file:///e:/bksda-superapp/backend/config/sanctum.php), [`deploy/nginx-backend.conf`](file:///e:/bksda-superapp/deploy/nginx-backend.conf), [`docker-compose.dokploy.yml`](file:///e:/bksda-superapp/docker-compose.dokploy.yml): Default `SESSION_DOMAIN=.bksdakaltim.web.id` serta penyesuaian CORS/Sanctum/DNS resolver nginx produksi.
+- **Ringkasan Surat Tugas, Lokasi, Sumber Dana & Toast Pegawai (`d0f7e082`)**:
+  - [`frontend/src/lib/letter-utils.ts`](file:///e:/bksda-superapp/frontend/src/lib/letter-utils.ts), [`frontend/src/app/portal/_components/SuratTugasTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/SuratTugasTab.tsx), [`mobile/src/features/dashboard/PortalDashboardScreen.tsx`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx): Ekstraksi frasa inti `dalam rangka` (memangkas narasi panjang, durasi, dan lokasi buntut), menampilkan lokasi `Di {tempat_tujuan}` & sumber dana terpilih di Portal Web dan Mobile, disertai test [`frontend/tests/surat-tugas-summary.cjs`](file:///e:/bksda-superapp/frontend/tests/surat-tugas-summary.cjs).
+  - [`backend/app/Http/Controllers/AssignmentLetterController.php`](file:///e:/bksda-superapp/backend/app/Http/Controllers/AssignmentLetterController.php): Mempersingkat isi toast/notifikasi Surat Tugas ke pegawai menjadi ringkasan inti kegiatan.
+- **Penyelarasan Spacing, Merk/Tipe Pinjaman Aktif & Penghapusan Dot Status Pill (`81321f24`, `cb70ecf8`)**:
+  - [`mobile/src/features/dashboard/PortalDashboardScreen.tsx`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx): Menyamakan jarak antar-card Beranda & Profil dengan tab Surat Tugas, memindahkan **Merk / Tipe** tepat di bawah **Nama Barang** pada kartu Beranda & modal `Detail Pinjaman`, serta menghapus prefix titik (`"● "`) pada label status pill (`SEDANG DINAS`, `PENUGASAN`, `TERLAMBAT`, `DIPINJAM`, `SELESAI & LAPOR`) — lolos `npm run typecheck` & `npx eslint` (`MOBILE_ESLINT_EXIT:0`).
+- **Status**: ✅ Ter-commit di branch `codex/portal-security-pentest` (`d0cdc666`, `9c3e7b19`, `81321f24`, `d0f7e082`, `cb70ecf8`).
+
+---
+
+## 147. Mobile Portal Responsif & Pemulihan Bundel Expo HTTP 500 (18 November 2026) — Selesai di Working Tree
+
+- **Akar masalah**: Metro mengembalikan JSON `TransformError` karena `View` pembungkus konten di `PortalDashboardScreen.tsx` belum ditutup. Setelah parser diperbaiki, pemanggilan `buildResponsivePortalStyles()` yang belum tersedia juga perlu diselesaikan.
+- **Implementasi**:
+  - Helper `getResponsivePortalMetrics()`, `chunkGridRows()`, dan `usePortalResponsive()` di `mobile/src/theme/ThemeContext.tsx` mengikuti perubahan ukuran window.
+  - Satu factory `createPortalStyles()` memakai token responsif untuk seluruh tab dan sheet; factory `createLeaveStyles()` menerapkannya ke `FormulirCutiModal.tsx`. Tidak ada lapisan override style duplikat.
+  - Grid modul menggunakan baris fleksibel, `flex: 1` dan `minWidth: 0`, sehingga baris parsial tetap memenuhi lebar container. Grid BMN dan quick stats menyesuaikan kolom; tablet membatasi lebar konten.
+  - Tanggal dan NIP ditata vertikal pada layar compact agar tanggal utuh. Ukuran ikon, padding, radius, preview dokumen, dan ruang bawah navigasi ikut menyesuaikan window; tombol header/tutup minimum 48.
+- **Verifikasi**:
+  - Bundle Web di URL yang dilaporkan: HTTP 200, `application/javascript; charset=UTF-8`.
+  - `npm run typecheck` lulus; tes terkait: 4 suite, 14 tes lulus. Tes navigasi lama diperbarui agar sesuai rute `KepegawaianMain` yang sudah dipakai aplikasi.
+  - Browser Playwright/Edge, data API uji terisolasi: Beranda pada 360×800, 440×956, landscape 800×360; baris grid 1/3/5 modul mengisi container; Tugas, BMN, Profil dan Formulir Cuti terbuka tanpa error JavaScript.
+  - Screenshot dan skrip pemeriksaan tersimpan di `scratch/mobile-responsive/` serta `scratch/check-mobile-responsive.cjs` (diabaikan Git). Pemeriksaan browser tidak menggantikan uji perangkat Android fisik.
+- **Status**: Selesai di working tree, belum commit/push; typecheck, ESLint tanpa warning dan tes terkait lulus; sinkronisasi graph selesai.
+
+
+## 148. Sinkronisasi IAM Mobile Tanpa Refresh dan Pemulihan Sesi `/me` (18 November 2026)
+
+- **Akar masalah**: `EmployeeAccessController` mencabut seluruh bearer token ketika modul/role/permission berubah, sehingga reload mobile memanggil `/me` dengan token yang sudah dicabut (401). Portal Web mempunyai cookie sesi dan mekanisme sync sendiri. Mobile belum menyegarkan profil `AuthProvider` saat IAM berubah.
+- **Backend**: perubahan IAM biasa kini mempertahankan token Sanctum; middleware tetap membaca hak akses terbaru pada setiap request. Password reset dan deaktivasi tetap mencabut token. `UserAccessChanged` dipancarkan setelah commit pada perubahan atribut IAM melalui hook `User::updated`, menuju channel privat pemilik dan token aktif saja, dengan payload ID pengguna untuk refetch REST terautentikasi.
+- **Mobile**: `AuthProvider` berlangganan `access.updated`, menyegarkan `/me` saat event/reconnect/foreground, dan memakai fallback 30 detik hanya ketika app aktif. Refresh dideduplikasi dan respons sesi lama tidak boleh memulihkan profil setelah logout. Sesi yang ditolak 401 mengosongkan state auth.
+- **Verifikasi**: simulasi browser Edge dengan REST/WebSocket fixture mengubah 3→2 modul tanpa reload, lalu reload tetap masuk dan tetap 2 modul; permintaan API divalidasi memakai bearer yang sama. Tes auth/Reverb/API mobile: 3 suite, 16 tes lulus, termasuk remount, fallback saat event terlewat, 401 dan respons refresh setelah logout. Tes lifecycle IAM backend: 5 tes/34 assertion lulus, termasuk modul tercabut langsung 403 dengan token yang tetap valid serta password reset tetap mencabut token. Regresi lifecycle + identity boundary: 32 tes/258 assertion lulus. Typecheck dan ESLint mobile tanpa warning; Pint backend lulus; diff kode/dokumentasi bersih.
+- **Catatan sesi lama**: token yang sudah dicabut sebelum perbaikan tidak diaktifkan kembali; pengguna yang sudah keluar perlu login sekali untuk mendapatkan sesi baru. Tidak ada perubahan data atau hak akses akun pengguna nyata selama pengujian.
+
+
+## 149. Penyelarasan Login Web dan Mobile (18 November 2026)
+
+- Header login memakai satu logo Kemenhut, berukuran 48 px seperti login web semula, di samping `Kementerian Kehutanan` dan `Balai KSDA Kalimantan Timur`. Teks `BKSDA KALTIM` / `SuperApp Portal` dihapus dari kedua halaman login sesuai arahan terbaru.
+- Ukuran teks identitas web diperbesar menjadi 16/14 px pada desktop (14/14 px pada layar kecil); footer menjadi 12 px agar lebih terbaca.
+- Mobile memakai salinan aset logo resmi yang sama (`mobile/assets/kemenhutlogo.png`) dan susunan horizontal yang serupa. Border hijau, radius dan komponen `GlassCard` login tetap dipertahankan; judul dan tombol mengikuti copy login web.
+- Footer web dan mobile: `© {tahun berjalan} Balai KSDA Kalimantan Timur`, diikuti `Kementerian Kehutanan Republik Indonesia`.
+- Bukti browser Edge, sebelum/sesudah pada web 1440×1000 & 360×800 serta mobile preview 360×800 & 440×956: `scratch/login-branding/`; skrip `scratch/check-login-branding.cjs`. Tidak ada error JavaScript pada pemeriksaan render.
+- Typecheck dan ESLint web/mobile telah lulus pada penyesuaian login; lima tes login mobile lulus. Alur autentikasi tidak diubah oleh perapian halaman login.
+
+
+## 150. Login Web/Mobile Berlatar Foto, Glassmorphism dan Dark Mode (18 November 2026)
+
+- Komposisi mengikuti referensi pengguna: foto Sangalaki yang sudah ada pada login web memenuhi latar. Web desktop menempatkan narasi konservasi di kiri dan kartu login di kanan; viewport kecil menampilkan kartu dalam satu kolom.
+- Glassmorphism web menggunakan latar transparan, backdrop blur dan border ringan. Mobile menambah dependency resmi `expo-blur` SDK 56 (`BlurView` + `BlurTargetView`, Android memakai metode SDK 31+ dengan fallback library pada versi lama). Aset foto native disalin dari gambar web ke `mobile/assets/sangalaki.png`.
+- Identitas/logo dan footer berada di dalam kartu login pada kedua aplikasi. Logo mobile memakai PNG yang identik dengan web; gambar 48×48 berada di bingkai 66×66 dengan padding, tidak diberi radius pada gambar agar tidak terpotong.
+- Dark mode login mobile memakai `ThemeContext` yang sama dengan Portal, melalui tombol 48×48. Warna form, blur, ikon dan border mengikuti tema. Pergantian tema tidak menghapus NIP/password yang sedang diisi; pilihan tema terbawa saat beralih ke Portal dalam sesi aplikasi.
+- Teks `Balai KSDA Kalimantan Timur` di mobile diperbesar ke 13 px pada layar compact dan 14 px pada layar lebih lebar. Besarnya disesuaikan dengan judul kementerian agar tidak melewati ujung judul; diperiksa lewat geometri teks pada preview 360/440 px.
+- Pemisah footer web yang menempel pada bagian bawah tombol dihapus untuk menghilangkan garis putih. Footer tetap `© {tahun} Balai KSDA Kalimantan Timur` dan `Kementerian Kehutanan Republik Indonesia`.
+- Verifikasi: typecheck/ESLint web/mobile lulus; enam tes login mobile lulus, termasuk toggle tema tanpa kehilangan isian. Browser Edge memeriksa web 1440×1000/360×800, mobile preview 360×800/440×956, light/dark, lupa sandi dan transisi 2FA menggunakan fixture REST; tanpa error JavaScript. Bukti `scratch/login-branding/final-checked-*` dan skrip `scratch/check-login-branding.cjs` (ignored). Android fisik belum diuji.
+
+
+## 151. Motion Mobile Mengikuti Kepegawaian Web dan Transisi Tema (18 November 2026)
+
+- Bottom nav Portal: hapus empat titik aktif beserta style `navActiveDot`. Ikon tetap outline dan bobot label tetap sama; hanya warna yang berubah saat aktif. Badge notifikasi tetap dipertahankan.
+- Acuan source web: `frontend/src/app/kepegawaian/layout.tsx` (entrance 160 ms, y=6 px, ease-out) dan `page.tsx` (grafik 600 ms). Istilah Animate UI mengikuti pedoman repo: pola gerak, bukan pemasangan komponen DOM `@animate-ui/react` di React Native.
+- Primitive native `mobile/src/components/motion/AnimateUi.tsx` menggunakan Animated bawaan. Konten tetap terlihat pada nilai default dan entrance memakai opacity 0.85→1, translateY 6→0. Dipakai pada tab internal Portal dan scene navigasi modul, Kepegawaian serta BMN tanpa entrance ganda pada navigator bersarang. Grafik satker Kepegawaian memakai scaleX 600 ms dari kiri; label dan nilai data tetap langsung tampil.
+- `ThemeContext` memakai View Transitions radial 650 ms pada preview web (`themeTransition.web.ts`, flushSync + clip-path) dan fallback fade 240 ms pada native/browser tanpa dukungan API. Berlaku pada login dan Portal, dengan pusat lingkaran mengikuti tombol tema. Isian form dan state navigasi dipertahankan; animasi dihentikan/restart saat toggling ulang.
+- Warning dari log pengguna (`useNativeDriver`/`RCTAnimation`) diperbaiki: native driver hanya dipakai Android/iOS, preview web memakai JS driver. Tidak memerlukan pod install untuk preview Windows/web.
+- Reduce Motion: entrance/reveal dilewati dan nilai akhir langsung ditampilkan; transisi tema juga dilewati/dihentikan saat preferensi berubah. Callback async setelah unmount tidak memulai animasi.
+- Verifikasi: typecheck dan lint mobile bersih; tiga uji motion lulus. Regresi login/navigasi/dashboard yang relevan juga lulus. Browser Edge dengan REST fixture: mode normal mencatat frame entrance dan tema, mode reduced tidak mencatat frame animasi; tidak ada error JavaScript atau warning native-driver. Bottom nav diuji tanpa titik bawah. Native Kepegawaian dapat dibuka dan dinavigasi. Bukti `scratch/mobile-motion/`, skrip `scratch/check-mobile-motion.cjs`. Perangkat Android fisik belum diuji.
+
+- **Verifikasi khusus preview web `http://localhost:8081/`**: kedua arah tema menghasilkan dua radial View Transitions dengan clip-path, cuplikan tengah animasi diperiksa (`scratch/mobile-motion/theme-to-dark-mid.png`, `theme-to-light-mid.png`). Pada Reduce Motion jumlah transisi nol. `@types/react-dom` ditambahkan sebagai dev dependency untuk `flushSync` yang berasal dari dependency react-dom yang sudah ada. Berkas platform native tidak mengimpor React DOM.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 152 Reverb dan Request Berulang
+
+- Reverb lokal port 8080 membalas handshake `pusher:connection_established`. Log REST bukan bukti realtime tidak dipakai: event memicu refetch snapshot API.
+- Client mobile melacak konfirmasi subscription personal. Polling `/me` 30 detik hanya berjalan saat aktif dan subscription belum tersedia/terputus; event akses, reconnect dan foreground tetap menyegarkan profil.
+- `useReverbRefresh` bergantung pada nama channel efektif, bukan referensi objek user. Hak admin yang dicabut tetap menghapus subscription terkait. Eligibility cuti memakai boolean stabil agar refresh profil tidak mengulang focus effect dan lima request Portal.
+- Verifikasi: typecheck/ESLint bersih, 13 tes auth/Reverb lulus. Browser Edge preview 8081 dengan fixture REST/WebSocket: idle >60 detik tanpa request ulang, akses 3→2 cukup satu `/me`, notifikasi refetch data Portal sekali, subscription tidak tersedia mengaktifkan fallback. Handshake server lokal diuji terpisah tanpa kredensial. Skrip ignored `scratch/check-mobile-reverb.cjs`.
+- Belum commit/push; sesi akun pengguna nyata dan perangkat Android fisik tidak dioperasikan.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 153 Lima Token dan Hierarki Portal (Dibatalkan pada Bagian 154)
+
+- Fondasi dark web/mobile memakai arang bernuansa hijau, foreground/secondary/muted yang terpisah dan aksen brand yang lebih lembut. Forest Green, logo resmi serta foto Sangalaki dipertahankan. Glass hanya pada login.
+- Portal mempertahankan panel berbingkai untuk Ringkasan Pegawai, Modul Akses System, serta tugas/pinjaman. Heading dan divider memperjelas batas bagian; sapaan diperkecil agar tidak mendominasi. Navigasi modul memakai surface bertingkat dan ikon soft yang tetap berwarna, bukan bingkai dekoratif bertumpuk.
+- Web memakai satu workspace dan rail profil/menu; bantuan/pengumuman mengikuti konten dalam workspace. Pada layar sempit workspace muncul dahulu. Identitas kementerian di header desktop tidak lagi terpotong karena alokasi kolom logo diperlebar.
+- Sumber warna/type/spacing mobile dipusatkan di `theme/tokens.ts`; ThemeContext dan useAppTheme memakai sumber yang sama. Spacing responsif kelipatan 4, skala 12/14/20/24 tetap, radius mengikuti padding aktual; auto-fit yang mengecilkan teks Portal dihapus. Alias lama masih tersedia agar modul lain tetap bekerja.
+- Login kedua platform mempertahankan logo, foto, footer, border mobile, 2FA dan form recovery. Warna dan skala login web memakai role token; ukuran minimum footer mobile 12px.
+- Verifikasi fondasi: tes khusus kontras teks/tombol/control, responsif dan regresi terkait 49 tes lulus. Suite mobile penuh: 62 suite/317 tes lulus; 10 assertion gagal pada lima suite lama (label/filter BMN, konfigurasi API dan mock file sharing), tidak berkaitan dengan perubahan susunan panel. Typecheck/lint web/mobile bersih, termasuk pemeriksaan ulang setelah koreksi panel. Android bundle HTTP 200 JavaScript; perangkat fisik belum diuji.
+- Browser Edge dengan fixture: light/dark web 360/768/1440/1920, mobile 360/440/landscape 800, modul 1/3/5, form cuti, login/2FA/recovery; tidak ada error JS. Reverb idle >60 detik, akses 3→2 dan fallback tetap lulus. Bukti ignored `scratch/five-tokens/`, `scratch/mobile-responsive/`, `scratch/login-branding/`.
+- Panduan `DESIGN.md`, `docs/DESIGN_SYSTEM_5_TOKENS.md` dan `docs/DESIGN_SYSTEM_COLORS.md` diselaraskan. Belum commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 154 Pembatalan Redesign
+
+- Atas permintaan pengguna, redesign Bagian 153 dibatalkan. Palet light/dark, tipografi/spacing responsif, kartu statistik terpisah, grid modul, susunan tiga kolom Portal web, serta style kartu mobile dikembalikan ke sebelum redesign.
+- Login kembali ke glassmorphism Sangalaki sebelumnya, dengan logo Kemenhut dan footer di dalam kartu. Animasi entrance/tema, bottom nav aktif hanya warna, perbaikan bundel/responsif sebelumnya tetap dipertahankan.
+- Perbaikan token/sesi IAM dan Reverb Bagian 148/152 tidak dibatalkan. Langganan privat, pembaruan akses dan polling hanya sebagai fallback tetap aktif.
+- Pedoman lima token/warna dikembalikan ke versi sebelum redesign; dokumen desain mobile mempertahankan spesifikasi login yang telah disepakati sebelumnya. Tidak mereset seluruh working tree atau pekerjaan lain.
+- Typecheck web/mobile, lint login web, dan 30 tes auth/Reverb/login/motion/responsif lulus. Pemeriksaan visual browser diulang untuk login/2FA/recovery, Portal mobile light/dark dan grid modul. Belum commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 155 Penyesuaian Layout Mobile Terbatas
+
+- Pengguna memperjelas bahwa hanya mobile yang mengambil penyesuaian jarak, ukuran kartu, margin/padding serta penggabungan empat statistik dari redesign sebelumnya. Web tetap pada tampilan sebelum redesign.
+- Pangkat/Golongan, Sisa Cuti, Surat Tugas dan Aset Saya kini berada dalam satu panel dengan divider horizontal/vertikal. Tinggi minimum sel 64 px, padding memakai spacing responsif yang sudah ada, dan jarak antarbagian diperlonggar. Font, warna, ikon, modul, banner dan urutan utama tetap versi sebelum redesign.
+- Callback navigasi statistik serta perbaikan login/sesi/Reverb/animasi tetap dipertahankan. Checkpoint mencakup Bagian 147–155 dan disimpan lokal; belum di-push.
+- Verifikasi akhir: typecheck/lint mobile bersih; browser fixture memeriksa satu panel empat sel, dua baris, tinggi minimum 64 px, layar 360/440/landscape 800 serta navigasi/form cuti tanpa error JS. Diff layout/warna Portal web kosong; 30 tes auth/Reverb/login/motion/responsif dari checkpoint sebelumnya tetap lulus.

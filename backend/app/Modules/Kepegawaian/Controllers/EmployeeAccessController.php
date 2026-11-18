@@ -180,12 +180,9 @@ class EmployeeAccessController extends Controller
                     $user->tokens()->delete();
                 }
 
-                // Jika role, access_modules, module_roles, atau permissions berubah, revoke token agar user login ulang dengan wewenang baru
-                if ($user->role !== $validated['role']
-                    || $oldActive !== $updateData['is_active']
-                    || $user->access_modules !== $selectedModules
-                    || $oldModuleRoles !== ($sanitizedModuleRoles ?? [])
-                    || $user->permissions !== ($validated['permissions'] ?? [])) {
+                // Permissions are read from the user on every request; ordinary IAM edits keep sessions alive.
+                // Deactivation and password resets still revoke credentials.
+                if (! $updateData['is_active']) {
                     $user->tokens()->delete();
                 }
 
@@ -210,17 +207,17 @@ class EmployeeAccessController extends Controller
                 return [$user, 'Data hak akses berhasil diperbarui.'];
             });
 
-        return response()->json([
-            'message' => $message,
-            'data' => [
-                'username' => $user->username,
-                'role' => $user->role,
-                'is_active' => $user->is_active,
-                'access_modules' => $user->access_modules,
-                'module_roles' => $user->moduleRolesPayload(),
-                'permissions' => $user->permissions,
-            ],
-        ]);
+            return response()->json([
+                'message' => $message,
+                'data' => [
+                    'username' => $user->username,
+                    'role' => $user->role,
+                    'is_active' => $user->is_active,
+                    'access_modules' => $user->access_modules,
+                    'module_roles' => $user->moduleRolesPayload(),
+                    'permissions' => $user->permissions,
+                ],
+            ]);
         } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'Server Error',

@@ -51,20 +51,13 @@ A state-of-the-art dark theme inspired by lush forestry conservation, featuring 
 
 ## 📱 Screen Architecture & Layouts
 
-### Screen 0: Mobile Login Screen (Halaman Awal / Entry Point)
-- **Branding Header**:
-  - Center alignment with dual logos: Logo BKSDA Kaltim & Logo Kementerian Lingkungan Hidup dan Kehutanan (Kemenhut).
-  - Title: "BKSDA Kaltim Superapp Mobile".
-  - Subtitle: "Sistem Informasi Terpadu Balai Konservasi Sumber Daya Alam Kalimantan Timur".
-- **Login Glass Form Card**:
-  - Field 1: Input NIP / Username ("Masukkan NIP Pegawai 18 digit atau Username").
-  - Field 2: Input Password ("Masukkan Kata Sandi") dengan toggle icon mata (show/hide password).
-  - Checkbox option: "Ingat Saya" & Link "Lupa Password?".
-- **Primary Actions**:
-  - Tombol Utama: "Masuk ke Aplikasi" (Glowing Emerald Full-Width Button).
-  - Biometric Action: Tombol Quick Login dengan Sidik Jari / Biometrik.
-- **Footer**:
-  - Copyright "BKSDA Kaltim © 2026. Mobile App v1.0".
+### Screen 0: Shared Web and Mobile Login
+- **Mode**: Operate. The user enters existing credentials; preserve login, validation, password visibility, web 2FA and password recovery behavior.
+- **Composition**: full-bleed Sangalaki photo from `/assets/images/background/sangalaki.png`, with a forest tint. Desktop web retains conservation copy at left and a glass login card at right. Narrow viewports use a single card; the native screen uses the same local photo asset.
+- **Glass card**: translucent fill, soft offset shadow and blur; retain the native card's green border. Web uses CSS backdrop blur, native uses Expo BlurView with the photo as BlurTargetView on Android. Light and dark surfaces keep form text readable.
+- **Identity**: one official Kemenhut logo inside the card, 48px image in a padded 66px frame. Rounded corners belong to the frame, never clip the image itself. The two identity lines are Kementerian Kehutanan / Balai KSDA Kalimantan Timur. Native institution subtitle uses 13/14px responsive type and stays within the ministry title's width.
+- **Theme**: native login shares ThemeContext with Portal; a 48px theme toggle keeps entered credentials intact. Web retains its existing theme toggle.
+- **Footer**: inside the card on both platforms: © {current year} Balai KSDA Kalimantan Timur, followed by Kementerian Kehutanan Republik Indonesia. No divider directly against the web submit button.
 
 ### Screen 1: Mobile Portal Hub (Home / Dashboard)
 - **Header**:
@@ -86,6 +79,8 @@ A state-of-the-art dark theme inspired by lush forestry conservation, featuring 
   - Vertical list of frosted glass cards showing recent letters, loan statuses, and quick action buttons.
 - **Bottom Navigation**:
   - Floating glassmorphism tab bar with 4 items: **Beranda**, **Aset BMN**, **Disposisi**, **Profil**.
+
+**Current mobile layout (18 November 2026):** Rank/grade, leave balance, assignments and assets share one bordered summary panel with internal row/column dividers. Cells have a 64px minimum height and responsive padding; sections use a larger gap. Keep the preceding palette, typography, banner and module card design. This limited layout change applies only to mobile.
 
 ### Screen 2: BMN Asset Catalog & Loan Tracker
 - **Search & Filter Bar**:

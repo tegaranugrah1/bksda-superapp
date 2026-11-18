@@ -297,3 +297,13 @@ Pada11 November2026 pengguna meminta animasi yang sudah sesuai Inbox Surat Tugas
 
 
 Pelembutan badge/ikon dashboard Kepegawaian pada11 November2026 hanya menambahkan penanda style dan aturan background/border-color yang terlokalisasi. Source dashboard dan komponennya identik dengan snapshot sebelum perubahan setelah dua nama class penanda dihapus; CSS existing identik setelah tiga aturan warna baru dihapus. Dengan demikian konfigurasi motion, hover/tap, warna/pengisian grafik, navigasi dan fallback reduced motion tetap. Tidak menambah transition, entrance atau animasi baru untuk badge/ikon tersebut.
+
+
+## 10. Adaptasi Native Mobile (18 November 2026)
+
+- Native memakai Animated React Native melalui `mobile/src/components/motion/AnimateUi.tsx`, bukan Framer Motion atau komponen DOM Animate UI. Entrance mengikuti Kepegawaian web: 160 ms, ease-out, offset 6 px, opacity awal 0.85 agar konten tidak menunggu animasi.
+- `screenLayout` menjaga entrance terpusat per navigator; Portal menangani tab internal sendiri. Navigator bersarang dikecualikan pada wrapper induk agar geraknya tidak bertumpuk.
+- Grafik satker Kepegawaian memperlihatkan batang dengan scaleX 600 ms, origin kiri, setelah data awal selesai dimuat. Angka langsung merupakan nilai akhirnya.
+- Preview web menggunakan View Transitions radial 650 ms melalui `themeTransition.web.ts`, meniru ThemeToggler web utama. Native/browser tanpa API memakai fallback fade 240 ms pada overlay tanpa pointer events; bukan loading screen. Isian dan navigasi tidak di-remount ketika tema berganti.
+- `AccessibilityInfo` mengendalikan Reduce Motion termasuk saat preferensi berubah di tengah animasi. Promise terlambat setelah blur/unmount diabaikan.
+- Gunakan native driver hanya pada Android/iOS; preview React Native Web memakai JS driver, agar tidak memunculkan warning RCTAnimation.
