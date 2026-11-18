@@ -3020,6 +3020,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       {/* Formulir Pengajuan Cuti Baru Modal */}
       <FormulirCutiModal
         visible={cutiModalVisible}
+        sisaCuti={Number(leaveBalance?.sisa_cuti_dapat_diajukan ?? Math.max(0, resolvedSisaCuti - cutiPendingHari))}
+        pendingCutiHari={cutiPendingHari}
         onClose={() => setCutiModalVisible(false)}
         onSuccess={() => {
           fetchMyLeaveRequests();
