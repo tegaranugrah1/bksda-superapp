@@ -119,6 +119,48 @@ const MODULES: {
   },
 ];
 
+export function extractSuratTugasDalamRangka(text?: string | null, tempatTujuan?: string | null): string {
+  const firstLine = (text || "").trim().split(/\r?\n/)[0]?.split(";")[0]?.trim() || "";
+  if (!firstLine) return "";
+
+  let summary = firstLine
+    .replace(/,\s*selama\s+\d+(?:\s*\([^)]+\))?\s*hari\b.*$/i, "")
+    .replace(/,\s*(?:terhitung\s+mulai|pada\s+tanggal)\b.*$/i, "")
+    .trim();
+
+  const rangkaMatch = summary.match(/\bdalam\s+rangka\s+(.+)$/i);
+  summary = rangkaMatch
+    ? rangkaMatch[1].trim()
+    : summary
+        .replace(
+          /^(?:melaksanakan\s+(?:perjalanan\s+dinas(?:\s+dari\s+.+?\s+ke\s+.+?)?(?:\s+untuk)?|kegiatan)|menugaskan\s+staf(?:\s+untuk)?)\s+/i,
+          ""
+        )
+        .trim();
+
+  for (let i = 0; i < 2; i++) {
+    if (tempatTujuan?.trim()) {
+      const escaped = tempatTujuan.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      summary = summary.replace(new RegExp(`\\s+(?:di|pada)\\s+${escaped}$`, "i"), "").trim();
+    }
+    summary = summary.replace(/\s+(?:di|pada)\s+[^,;]+$/i, "").trim();
+  }
+
+  const result = summary || firstLine;
+  return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
+function formatSumberDanaLabel(item: any): string {
+  if (item?.sumber_dana_label) return String(item.sumber_dana_label).trim();
+  const raw = String(item?.sumber_dana || "").trim();
+  if (!raw) return "";
+  const lower = raw.toLowerCase();
+  if (lower === "other") return String(item?.sumber_dana_other || "Lainnya").trim();
+  if (lower === "dipa") return "DIPA";
+  if (lower === "dl1") return "DL 1 / Tidak ada biaya";
+  return raw;
+}
+
 function formatDateIndo(dateStr?: string | null): string {
   if (!dateStr) return "-";
   const cleaned = String(dateStr).split("T")[0].trim();
@@ -516,6 +558,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       nomor_surat: "ST.042/K.18/TU/KSA/03/2026",
       maksud_tujuan: "Patroli Satwa Liar & Habitat Bekantan",
       tempat_tujuan: "Muara Siran, Kutai Kartanegara",
+      sumber_dana: "dipa",
       tanggal_mulai: "2026-11-04",
       tanggal_selesai: "2026-11-08",
       status: "approved",
@@ -526,6 +569,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       nomor_surat: "ST.038/K.18/TU/KSA/02/2026",
       maksud_tujuan: "Koordinasi Penegakan Hukum TSL Ditreskrimsus",
       tempat_tujuan: "Polda Kaltim, Balikpapan",
+      sumber_dana: "dipa",
       tanggal_mulai: "2026-10-20",
       tanggal_selesai: "2026-10-22",
       status: "completed",
@@ -536,6 +580,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       nomor_surat: "ST.031/K.18/TU/KSA/01/2026",
       maksud_tujuan: "Verifikasi Tapak Batas Cagar Alam Teluk Adang",
       tempat_tujuan: "SKW III Balikpapan",
+      sumber_dana: "folu",
       tanggal_mulai: "2026-01-12",
       tanggal_selesai: "2026-01-15",
       status: "completed",
@@ -1310,7 +1355,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   </View>
 
                   <Text style={[styles.activeDutyTitle, { color: colors.textDark }]} numberOfLines={2}>
-                    {activeDutyItem.maksud_tujuan || "Melaksanakan Penugasan Kedinasan Resmi BKSDA"}
+                    {extractSuratTugasDalamRangka(activeDutyItem.maksud_tujuan, activeDutyItem.tempat_tujuan) || "Penugasan Kedinasan Resmi BKSDA"}
                   </Text>
 
                   <View style={styles.activeDutyMetaStack}>
@@ -1326,6 +1371,14 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                         {activeDutyItem.tempat_tujuan || "Wilayah Kerja BKSDA Kaltim"}
                       </Text>
                     </View>
+                    {Boolean(formatSumberDanaLabel(activeDutyItem)) && (
+                      <View style={styles.metaItem}>
+                        <Ionicons name="wallet-outline" size={14} color={colors.accentFg} />
+                        <Text style={[styles.metaItemText, { color: colors.textMuted }]} numberOfLines={1}>
+                          {formatSumberDanaLabel(activeDutyItem)}
+                        </Text>
+                      </View>
+                    )}
                   </View>
 
                   <View style={[styles.activeDutyFooterDivider, { borderTopColor: colors.glassBorder }]}>
@@ -1508,7 +1561,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                         </View>
 
                         <Text style={[styles.activeDutyTitle, { color: colors.textDark }]} numberOfLines={2}>
-                          {stItem.maksud_tujuan || stItem.kegiatan || "Melaksanakan Penugasan Kedinasan Resmi BKSDA"}
+                          {extractSuratTugasDalamRangka(stItem.maksud_tujuan || stItem.kegiatan, stItem.tempat_tujuan) || "Penugasan Kedinasan Resmi BKSDA"}
                         </Text>
 
                         <View style={styles.activeDutyMetaStack}>
@@ -1524,11 +1577,19 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                               {stItem.tempat_tujuan || "Wilayah Kerja BKSDA Kaltim"}
                             </Text>
                           </View>
+                          {Boolean(formatSumberDanaLabel(stItem)) && (
+                            <View style={styles.metaItem}>
+                              <Ionicons name="wallet-outline" size={14} color={iconColor} />
+                              <Text style={[styles.metaItemText, { color: colors.textMuted }]} numberOfLines={1}>
+                                {formatSumberDanaLabel(stItem)}
+                              </Text>
+                            </View>
+                          )}
                         </View>
 
                         <View style={[styles.activeDutyFooterDivider, { borderTopColor: colors.glassBorder }]}>
                           <Text style={[styles.activeDutyFooterCaption, { color: colors.textMuted }]} numberOfLines={1}>
-                            {isRunning ? "SPPD Aktif • DIPA Balai KSDA" : "Laporan Pelaksanaan Terunggah ✓"}
+                            {isRunning ? "SPPD Aktif" : "Laporan Pelaksanaan Terunggah ✓"}
                           </Text>
                           <View style={styles.activeDutyFooterAction}>
                             <Text style={[styles.seeAllText, { color: colors.accentFg }]}>Lihat Surat</Text>

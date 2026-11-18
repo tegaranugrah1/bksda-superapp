@@ -97,6 +97,10 @@ interface SuratTugasItem {
   id: string;
   nomor_surat: string | null;
   maksud_tujuan: string;
+  tempat_tujuan?: string | null;
+  sumber_dana?: string | null;
+  sumber_dana_other?: string | null;
+  sumber_dana_label?: string | null;
   tanggal_mulai: string;
   tanggal_selesai: string;
   status: string;

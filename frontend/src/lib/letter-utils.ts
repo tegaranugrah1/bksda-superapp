@@ -421,3 +421,55 @@ export function toggleItalicInTextarea(
 ) {
   toggleInlineFormat(textarea, currentValue, "italic", onUpdate);
 }
+
+/**
+ * Ringkas maksud_tujuan Surat Tugas agar menampilkan inti kegiatan ("dalam rangka")
+ * tanpa kalimat pembuka "Melaksanakan..." dan tanpa duplikasi tempat tujuan di akhir.
+ */
+export function extractSuratTugasDalamRangka(text?: string | null, tempatTujuan?: string | null): string {
+  const firstLine = (text || "").trim().split(/\r?\n/)[0]?.split(";")[0]?.trim() || "";
+  if (!firstLine) return "";
+
+  let summary = firstLine
+    .replace(/,\s*selama\s+\d+(?:\s*\([^)]+\))?\s*hari\b.*$/i, "")
+    .replace(/,\s*(?:terhitung\s+mulai|pada\s+tanggal)\b.*$/i, "")
+    .trim();
+
+  const rangkaMatch = summary.match(/\bdalam\s+rangka\s+(.+)$/i);
+  summary = rangkaMatch
+    ? rangkaMatch[1].trim()
+    : summary
+        .replace(
+          /^(?:melaksanakan\s+(?:perjalanan\s+dinas(?:\s+dari\s+.+?\s+ke\s+.+?)?(?:\s+untuk)?|kegiatan)|menugaskan\s+staf(?:\s+untuk)?)\s+/i,
+          ""
+        )
+        .trim();
+
+  for (let i = 0; i < 2; i++) {
+    if (tempatTujuan?.trim()) {
+      const escaped = tempatTujuan.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      summary = summary.replace(new RegExp(`\\s+(?:di|pada)\\s+${escaped}$`, "i"), "").trim();
+    }
+    summary = summary.replace(/\s+(?:di|pada)\s+[^,;]+$/i, "").trim();
+  }
+
+  const result = summary || firstLine;
+  return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
+/**
+ * Format label sumber dana Surat Tugas untuk tampilan Portal Web.
+ */
+export function formatSumberDanaLabel(
+  sumberDana?: string | null,
+  sumberDanaOther?: string | null,
+  sumberDanaLabel?: string | null
+): string {
+  if (sumberDanaLabel?.trim()) return sumberDanaLabel.trim();
+  const raw = (sumberDana || "").trim();
+  if (!raw) return "";
+  if (raw.toLowerCase() === "other") return (sumberDanaOther || "").trim() || "Lainnya";
+  if (raw.toLowerCase() === "dipa") return "DIPA";
+  if (raw.toLowerCase() === "dl1") return "DL 1 / Tidak ada biaya";
+  return raw;
+}

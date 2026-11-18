@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use App\Modules\SuratTugas\Services\AssignmentLetterConflictService;
 use App\Services\PortalNotificationService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -67,11 +68,12 @@ class AssignmentLetterController extends Controller
         $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
         $perPage = min($requestedPerPage, $isMobile ? 50 : 200);
         $letters = $query->latest()->paginate($perPage);
+        $expenseNamesByCode = $this->loadExpenseNamesByCode();
 
         return response()->json([
             'data' => $isMobile
-                ? collect($letters->items())->map(fn (AssignmentLetter $letter) => $this->toMobileListItem($letter, personal: true))->values()
-                : $letters->items(),
+                ? collect($letters->items())->map(fn (AssignmentLetter $letter) => $this->toMobileListItem($letter, personal: true, expenseNamesByCode: $expenseNamesByCode))->values()
+                : $this->attachSumberDanaLabels($letters->items(), $expenseNamesByCode),
             'meta' => $this->paginationMeta($letters),
         ]);
     }
@@ -107,6 +109,10 @@ class AssignmentLetterController extends Controller
             return response()->json([
                 'message' => 'Dokumen Surat Tugas belum diterbitkan secara resmi.',
             ], 403);
+        }
+
+        if (! $this->isMobileRequest($request)) {
+            $surat->setAttribute('sumber_dana_label', $this->resolveSumberDanaLabel($surat));
         }
 
         return response()->json([
@@ -273,16 +279,77 @@ class AssignmentLetterController extends Controller
         $isMobile = $request->boolean('mobile') || $request->header('X-Client') === 'mobile';
         $perPage = min($requestedPerPage, $isMobile ? 50 : 200);
         $letters = $query->latest()->paginate($perPage);
+        $expenseNamesByCode = $this->loadExpenseNamesByCode();
 
         return response()->json([
             'data' => $isMobile
-                ? collect($letters->items())->map(fn (AssignmentLetter $letter) => $this->toMobileListItem($letter))->values()
-                : $letters->items(),
+                ? collect($letters->items())->map(fn (AssignmentLetter $letter) => $this->toMobileListItem($letter, expenseNamesByCode: $expenseNamesByCode))->values()
+                : $this->attachSumberDanaLabels($letters->items(), $expenseNamesByCode),
             'meta' => $this->paginationMeta($letters),
         ]);
     }
 
-    private function baseMobileItem(AssignmentLetter $letter, $mappedEmployees, string $downloadUrl): array
+    private function loadExpenseNamesByCode(): array
+    {
+        if (! Schema::hasTable('st_expense_templates')) {
+            return [];
+        }
+
+        $map = [];
+        foreach (StExpenseTemplate::withTrashed()->get(['code', 'name']) as $tpl) {
+            $code = strtolower(trim((string) $tpl->code));
+            $name = trim((string) $tpl->name);
+            if ($code !== '' && $name !== '') {
+                $map[$code] = $name;
+            }
+        }
+
+        return $map;
+    }
+
+    private function resolveSumberDanaLabel(AssignmentLetter $letter, ?array $expenseNamesByCode = null): ?string
+    {
+        $raw = trim((string) ($letter->sumber_dana ?? ''));
+        if ($raw === '') {
+            return null;
+        }
+
+        $lower = strtolower($raw);
+        if ($lower === 'other') {
+            $other = trim((string) ($letter->sumber_dana_other ?? ''));
+
+            return $other !== '' ? $other : 'Lainnya';
+        }
+
+        $expenseNamesByCode ??= $this->loadExpenseNamesByCode();
+        if (isset($expenseNamesByCode[$lower])) {
+            return $expenseNamesByCode[$lower];
+        }
+
+        return match ($lower) {
+            'dipa' => 'DIPA',
+            'kja' => 'Dana Kerjasama KJA',
+            'mja' => 'Dana Kerjasama MJA',
+            'cop' => 'Dana Kerjasama COP',
+            'tjiwi_kimia' => 'Dana Kerjasama PT. Tjiwi Kimia Tbk.',
+            'bosf' => 'Dana Kerjasama BOSF',
+            'can' => 'Dana Kerjasama CAN',
+            'alert' => 'Dana Kerjasama ALeRT',
+            'folu' => 'Dana Kerjasama FOLU NC 2&3',
+            'dl1' => 'DL 1 / Tidak ada biaya',
+            default => $raw,
+        };
+    }
+
+    private function attachSumberDanaLabels(array $letters, array $expenseNamesByCode): array
+    {
+        return collect($letters)
+            ->each(fn (AssignmentLetter $letter) => $letter->setAttribute('sumber_dana_label', $this->resolveSumberDanaLabel($letter, $expenseNamesByCode)))
+            ->values()
+            ->all();
+    }
+
+    private function baseMobileItem(AssignmentLetter $letter, $mappedEmployees, string $downloadUrl, ?array $expenseNamesByCode = null): array
     {
         return [
             'id' => $letter->id,
@@ -299,6 +366,8 @@ class AssignmentLetterController extends Controller
             'tanggal_surat' => $letter->tanggal_surat?->toDateString(),
             'status' => $letter->status,
             'sumber_dana' => $letter->sumber_dana,
+            'sumber_dana_other' => $letter->sumber_dana_other,
+            'sumber_dana_label' => $this->resolveSumberDanaLabel($letter, $expenseNamesByCode),
             'template_type' => $letter->template_type,
             'nama_plh' => $letter->nama_plh,
             'menimbang' => $letter->menimbang,
@@ -322,7 +391,7 @@ class AssignmentLetterController extends Controller
         ];
     }
 
-    private function toMobileListItem(AssignmentLetter $letter, bool $personal = false): array
+    private function toMobileListItem(AssignmentLetter $letter, bool $personal = false, ?array $expenseNamesByCode = null): array
     {
         $employees = $letter->employees;
         $firstNames = $employees->pluck('nama_lengkap')->filter()->take(2)->values();
@@ -336,7 +405,7 @@ class AssignmentLetterController extends Controller
         $downloadUrl = $personal ? "/api/surat-tugas/my/{$letter->id}/download" : "/api/surat-tugas/{$letter->id}/download";
 
         return array_merge(
-            $this->baseMobileItem($letter, $this->mapMobileEmployees($employees), $downloadUrl),
+            $this->baseMobileItem($letter, $this->mapMobileEmployees($employees), $downloadUrl, $expenseNamesByCode),
             [
                 'personel_summary' => $personelSummary ?: null,
                 'personel_count' => $employees->count(),
@@ -537,10 +606,11 @@ class AssignmentLetterController extends Controller
                 try {
                     $cleanStatus = strtolower($surat->status ?? 'pending');
                     $isApproved = in_array($cleanStatus, ['approved', 'completed', 'published', 'diterbitkan'], true);
+                    $ringkas = $this->summarizeMaksudTujuan($surat);
                     $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Penugasan Baru Diajukan';
                     $notifMsg = $isApproved
-                        ? "Surat tugas resmi diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
-                        : "Anda didaftarkan dalam pengajuan Surat Tugas: '{$surat->maksud_tujuan}'";
+                        ? "Surat tugas resmi diterbitkan: '{$ringkas}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
+                        : "Anda didaftarkan dalam pengajuan Surat Tugas: '{$ringkas}'";
 
                     $this->notifyLetterEmployees($surat, $notifTitle, $notifMsg);
 
@@ -749,8 +819,9 @@ class AssignmentLetterController extends Controller
         try {
             $surat->load('employees');
             $isApproved = in_array($cleanStatus, ['approved', 'completed'], true);
+            $ringkas = $this->summarizeMaksudTujuan($surat);
             $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Status Surat Tugas: '.strtoupper($cleanStatus);
-            $notifMsg = "Status Surat Tugas '{$surat->maksud_tujuan}' kini: ".strtoupper($cleanStatus).($surat->nomor_surat ? " ({$surat->nomor_surat})" : '');
+            $notifMsg = "Status Surat Tugas '{$ringkas}' kini: ".strtoupper($cleanStatus).($surat->nomor_surat ? " ({$surat->nomor_surat})" : '');
 
             if ($notificationChanged) $this->notifyLetterEmployees($surat, $notifTitle, $notifMsg);
         } catch (\Throwable $e) {
@@ -885,6 +956,33 @@ class AssignmentLetterController extends Controller
         $attributes = $letter->getAttributes();
         unset($attributes['created_at'], $attributes['updated_at']);
         return [$attributes, collect($this->existingEmployees($letter))->sortBy('id')->values()->all()];
+    }
+
+    private function summarizeMaksudTujuan(AssignmentLetter $letter): string
+    {
+        $raw = trim((string) ($letter->maksud_tujuan ?? ''));
+        $firstLine = trim(explode(';', preg_split('/\r?\n/', $raw, 2)[0] ?? '', 2)[0] ?? '');
+        if ($firstLine === '') {
+            return '';
+        }
+
+        $summary = trim((string) preg_replace('/,\s*(?:selama\s+\d+(?:\s*\([^)]+\))?\s*hari\b|terhitung\s+mulai\b|pada\s+tanggal\b).*$/iu', '', $firstLine));
+        if (preg_match('/\bdalam\s+rangka\s+(.+)$/iu', $summary, $matches)) {
+            $summary = trim($matches[1]);
+        } else {
+            $summary = trim((string) preg_replace('/^(?:melaksanakan\s+(?:perjalanan\s+dinas(?:\s+dari\s+.+?\s+ke\s+.+?)?(?:\s+untuk)?|kegiatan)|menugaskan\s+staf(?:\s+untuk)?)\s+/iu', '', $summary));
+        }
+
+        $tempat = trim((string) ($letter->tempat_tujuan ?? ''));
+        for ($i = 0; $i < 2; $i++) {
+            if ($tempat !== '') {
+                $escaped = preg_quote($tempat, '/');
+                $summary = trim((string) preg_replace('/\s+(?:di|pada)\s+'.$escaped.'$/iu', '', $summary));
+            }
+            $summary = trim((string) preg_replace('/\s+(?:di|pada)\s+[^,;]+$/iu', '', $summary));
+        }
+
+        return Str::ucfirst($summary !== '' ? $summary : $firstLine);
     }
 
     private function notifyLetterEmployees(AssignmentLetter $letter, string $title, string $message, array $previousEmployees = []): void
@@ -1198,10 +1296,11 @@ $count = 0;
             if ($notificationChanged && strtolower((string) $surat->status) !== 'draft') {
                 try {
                     $surat->load('employees');
+                    $ringkas = $this->summarizeMaksudTujuan($surat);
                     $notifTitle = $isApproved ? 'Surat Tugas Diterbitkan' : 'Pembaruan Surat Tugas';
                     $notifMsg = $isApproved
-                        ? "Surat tugas resmi telah diterbitkan: '{$surat->maksud_tujuan}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
-                        : "Pembaruan data pada Surat Tugas: '{$surat->maksud_tujuan}'";
+                        ? "Surat tugas resmi telah diterbitkan: '{$ringkas}'".($surat->nomor_surat ? " ({$surat->nomor_surat})" : '')
+                        : "Pembaruan data pada Surat Tugas: '{$ringkas}'";
 
                     $this->notifyLetterEmployees($surat, $notifTitle, $notifMsg, $previousEmployees);
 
