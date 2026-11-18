@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Employee } from '@/types/auth';
 import { getToken, setToken, clearToken } from '@/lib/auth/tokenStorage';
+import { disconnectReverb } from '@/lib/reverb';
 import { login as loginApi, getMe as getMeApi, logout as logoutApi } from './authApi';
 
 export interface AuthContextType {
@@ -13,7 +14,7 @@ export interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -70,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTokenState(null);
       setUser(null);
       setEmployee(null);
+      disconnectReverb();
       setIsLoading(false);
     }
   };
@@ -107,4 +109,8 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+export const useOptionalAuth = (): AuthContextType | null => {
+  return useContext(AuthContext) ?? null;
 };

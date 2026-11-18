@@ -18,6 +18,8 @@ import { GlassCard } from "../../components/ui/GlassCard";
 import { useAuth } from "../auth/AuthProvider";
 import { hasModule } from "../../lib/permissions";
 import { apiClient } from "../../lib/api/client";
+import { useForegroundRefresh } from "../../hooks/useForegroundRefresh";
+import { useReverbRefresh } from "../../hooks/useReverbRefresh";
 import { PratinjauSuratTugasModal, PratinjauSuratTugasItem } from "../../components/PratinjauSuratTugasModal";
 import { FormulirCutiModal } from "./FormulirCutiModal";
 import { FormulirCutiPrintModal, LeaveRequestPrintData } from "../../components/FormulirCutiPrintModal";
@@ -180,14 +182,20 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   // 2. Employee Leave Balance (GET /me/leave-balance)
   const fetchMyLeaveBalance = React.useCallback(async () => {
+    const emp = employee ?? user?.employee;
+    if (!emp || emp.nip?.toUpperCase().startsWith("MMP-")) {
+      setLeaveBalance(null);
+      return;
+    }
     try {
-      const response = await apiClient.get<any>("/me/leave-balance?year=2026");
+      const year = new Date().getFullYear();
+      const response = await apiClient.get<any>(`/me/leave-balance?year=${year}`);
       const data = response.data?.data || response.data || {};
       setLeaveBalance(data);
     } catch {
       setLeaveBalance(null);
     }
-  }, []);
+  }, [employee, user?.employee]);
 
   // 3. Employee Assigned Assets (GET /me/assets - correct endpoint for personal BMN)
   const [myAssetsList, setMyAssetsList] = useState<any[]>([]);
@@ -239,13 +247,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   useFocusEffect(
     React.useCallback(() => {
       refreshAllPortalData();
-      const interval = setInterval(() => {
-        refreshAllPortalData();
-      }, 15000);
-
-      return () => clearInterval(interval);
     }, [refreshAllPortalData])
   );
+
+  useForegroundRefresh(refreshAllPortalData);
+  useReverbRefresh(["user"], refreshAllPortalData);
 
   // Dynamic user profile resolution
   const resolvedName =
@@ -2064,7 +2070,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       <FormulirCutiModal
         visible={cutiModalVisible}
         onClose={() => setCutiModalVisible(false)}
-        onSuccess={() => fetchMyLeaveRequests()}
+        onSuccess={() => {
+          fetchMyLeaveRequests();
+          fetchMyLeaveBalance();
+        }}
       />
 
       <FormulirCutiPrintModal
