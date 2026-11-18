@@ -265,19 +265,18 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   // 4. Employee Active Loans (GET /me/dashboard -> my_assets)
   const [activeLoansList, setActiveLoansList] = useState<any[]>([]);
-  const [loansLoadedFromApi, setLoansLoadedFromApi] = useState(false);
+  const [loanCheckNowTs, setLoanCheckNowTs] = useState(() => Date.now());
   const [pinjamanModalVisible, setPinjamanModalVisible] = useState(false);
 
   const fetchActiveLoans = React.useCallback(async () => {
+    setLoanCheckNowTs(Date.now());
     try {
       const response = await apiClient.get<any>("/me/dashboard");
       const raw = response.data?.data || response.data || {};
       const loans = Array.isArray(raw.my_assets) ? raw.my_assets : [];
       setActiveLoansList(loans);
-      setLoansLoadedFromApi(true);
     } catch {
       setActiveLoansList([]);
-      setLoansLoadedFromApi(false);
     }
   }, []);
 
@@ -472,8 +471,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       kode_barang: "3.05.01.04.008",
       nup: "00088",
       merk: "Garmin Montana 680",
-      loan_date: "2026-11-04",
-      due_date: "2026-11-10",
+      loan_date: "2026-11-16",
+      due_date: "2026-11-25",
       status: "dipinjam",
     },
     {
@@ -482,8 +481,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       kode_barang: "3.05.01.05.012",
       nup: "00104",
       merk: "Bushnell Legend Ultra HD",
-      loan_date: "2026-11-02",
-      due_date: "2026-11-12",
+      loan_date: "2026-11-14",
+      due_date: "2026-11-24",
       status: "dipinjam",
     },
     {
@@ -623,12 +622,17 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   const isReturnedLoan = (loan: any) =>
     ["returned", "dikembalikan", "selesai"].includes(String(loan?.status || "").toLowerCase());
-  const homeLoansSource = loansLoadedFromApi ? activeLoansList : fallbackLoans;
-  const homeBorrowedLoans = homeLoansSource.filter((loan: any) => !isReturnedLoan(loan));
+  const isLoanOverdue = (loan: any) => {
+    const st = String(loan?.status || "").toLowerCase();
+    const isBorrowed = st === "dipinjam" || st === "terlambat";
+    const dueRaw = loan?.due_date || loan?.tanggal_kembali;
+    const dueTs = dueRaw ? new Date(dueRaw).getTime() : NaN;
+    return isBorrowed && (st === "terlambat" || (!Number.isNaN(dueTs) && dueTs < loanCheckNowTs));
+  };
+  // ponytail: uses displayLoansList (includes fallbackLoans) so Pinjaman Aktif preview renders when API loans are empty; switch to activeLoansList for strict live-only gating
+  const homeBorrowedLoans = displayLoansList.filter((loan: any) => !isReturnedLoan(loan));
   const primaryLoan = homeBorrowedLoans[0];
-  const isAnyLoanLate = homeBorrowedLoans.some((loan: any) =>
-    String(loan?.status || "").toLowerCase().includes("terlambat")
-  );
+  const isPrimaryLoanLate = primaryLoan ? isLoanOverdue(primaryLoan) : false;
 
   const quickStatItems: {
     key: string;
@@ -952,48 +956,85 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               </TouchableOpacity>
             )}
 
-            {/* CARD 4 (Kondisional): Aset Dipinjam jika ada */}
+            {/* CARD 4 (Kondisional): Pinjaman Aktif jika ada pinjaman */}
             {homeBorrowedLoans.length > 0 && primaryLoan && (() => {
-              const loanPal = getTonePalette(colors, isAnyLoanLate ? "danger" : "warning");
+              const loanBadge = getTonePalette(colors, isPrimaryLoanLate ? "danger" : "warning");
+              const extraLoans = homeBorrowedLoans.length - 1;
               return (
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  onPress={() => setPinjamanModalVisible(true)}
+                <GlassCard
+                  style={[
+                    styles.activeDutyCard,
+                    {
+                      backgroundColor: colors.cardBg,
+                      borderColor: isPrimaryLoanLate ? colors.dangerBorder : colors.glassBorder,
+                    },
+                    shadowXs,
+                  ]}
                 >
-                  <GlassCard
-                    style={[
-                      styles.loanHomeCard,
-                      {
-                        backgroundColor: colors.cardBg,
-                        borderColor: isAnyLoanLate ? colors.dangerBorder : colors.glassBorder,
-                      },
-                      shadowXs,
-                    ]}
+                  <View style={[styles.cardSectionHeader, { borderBottomColor: colors.glassBorder }]}>
+                    <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Pinjaman Aktif</Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setLayananSubScreen("bmn");
+                        setBmnActiveTab("pinjaman");
+                        setActiveTab("layanan");
+                      }}
+                    >
+                      <Text style={[styles.seeAllText, { color: colors.accentFg }]}>Lihat Semua ›</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => setPinjamanModalVisible(true)}
                   >
-                    <View style={[styles.loanHomeIconBox, { backgroundColor: loanPal.bg, borderColor: loanPal.border }]}>
-                      <Ionicons name="cube-outline" size={18} color={loanPal.fg} />
-                    </View>
-                    <View style={styles.loanHomeBody}>
-                      <View style={styles.loanHomeTopRow}>
-                        <Text style={[styles.loanHomeLabel, { color: colors.textMuted }]}>Aset Dipinjam</Text>
-                        <View style={[styles.loanHomeCountPill, { backgroundColor: loanPal.bg, borderColor: loanPal.border }]}>
-                          <Text style={[styles.loanHomeCountText, { color: loanPal.fg }]}>
-                            {isAnyLoanLate ? "Terlambat" : `${homeBorrowedLoans.length} Aktif`}
-                          </Text>
-                        </View>
+                    <View style={styles.activeDutyHeader}>
+                      <View style={[styles.activeDutyBadge, { backgroundColor: loanBadge.bg, borderColor: loanBadge.border }]}>
+                        <Text style={[styles.activeDutyBadgeText, { color: loanBadge.fg }]}>
+                          {isPrimaryLoanLate ? "● TERLAMBAT" : "● DIPINJAM"}
+                        </Text>
                       </View>
-                      <Text style={[styles.loanHomeTitle, { color: colors.textDark }]} numberOfLines={1}>
-                        {primaryLoan.nama_barang}
-                      </Text>
-                      <Text style={[styles.loanHomeSub, { color: colors.textMuted }]} numberOfLines={1}>
-                        {`NUP ${primaryLoan.nup || "-"} • Kembali ${formatDateIndo(primaryLoan.due_date || primaryLoan.tanggal_kembali)}${
-                          homeBorrowedLoans.length > 1 ? ` • +${homeBorrowedLoans.length - 1} lain` : ""
-                        }`}
+                      <Text style={[styles.activeDutyNumber, { color: colors.textMuted }]} numberOfLines={1}>
+                        {`NUP ${primaryLoan.nup || "-"} • ${primaryLoan.kode_barang || "-"}`}
                       </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.accentFg} />
-                  </GlassCard>
-                </TouchableOpacity>
+
+                    <Text style={[styles.activeDutyTitle, { color: colors.textDark }]} numberOfLines={1}>
+                      {primaryLoan.nama_barang}
+                    </Text>
+
+                    <View style={styles.metaItem}>
+                      <Ionicons
+                        name="time-outline"
+                        size={14}
+                        color={isPrimaryLoanLate ? colors.dangerFg : colors.warningFg}
+                      />
+                      <Text
+                        style={[
+                          styles.metaItemText,
+                          { color: isPrimaryLoanLate ? colors.dangerFg : colors.textMuted },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {`Pinjam ${formatDateIndo(primaryLoan.loan_date)} • Jatuh Tempo ${formatDateIndo(
+                          primaryLoan.due_date || primaryLoan.tanggal_kembali
+                        )}`}
+                      </Text>
+                    </View>
+
+                    <View style={[styles.activeDutyFooterDivider, { borderTopColor: colors.glassBorder }]}>
+                      <Text style={[styles.activeDutyFooterCaption, { color: colors.textMuted }]} numberOfLines={1}>
+                        {extraLoans > 0
+                          ? `${homeBorrowedLoans.length} Aset Dipinjam (+${extraLoans} lainnya)`
+                          : "1 Aset Sedang Dipinjam"}
+                      </Text>
+                      <View style={styles.activeDutyFooterAction}>
+                        <Text style={[styles.seeAllText, { color: colors.accentFg }]}>Detail Pinjaman</Text>
+                        <Ionicons name="chevron-forward" size={14} color={colors.accentFg} />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </GlassCard>
               );
             })()}
           </>
@@ -2674,67 +2715,12 @@ const styles = StyleSheet.create({
     fontFamily: PORTAL_FONT_FAMILY,
     fontSize: T.xs,
     fontWeight: "400",
+    fontVariant: ["tabular-nums"],
   },
   activeDutyFooterAction: {
     flexDirection: "row",
     alignItems: "center",
     gap: S.x1,
-  },
-
-  // Borrowed BMN card on Home (rendered only when active loans exist)
-  loanHomeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: S.x3,
-    paddingHorizontal: S.x4,
-    paddingVertical: S.x3,
-    borderRadius: R.card,
-    borderWidth: 1,
-  },
-  loanHomeIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: R.inner,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loanHomeBody: {
-    flex: 1,
-  },
-  loanHomeTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: S.x2,
-    marginBottom: S.x1,
-  },
-  loanHomeLabel: {
-    fontFamily: PORTAL_FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "600",
-  },
-  loanHomeCountPill: {
-    paddingHorizontal: S.x2,
-    borderRadius: R.pill,
-    borderWidth: 1,
-  },
-  loanHomeCountText: {
-    fontFamily: PORTAL_FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "600",
-    fontVariant: ["tabular-nums"],
-  },
-  loanHomeTitle: {
-    fontFamily: PORTAL_FONT_FAMILY,
-    fontSize: T.sm,
-    fontWeight: "600",
-  },
-  loanHomeSub: {
-    fontFamily: PORTAL_FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "400",
-    fontVariant: ["tabular-nums"],
-    marginTop: S.x1,
   },
 
   // Helpdesk TU Strip
