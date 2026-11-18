@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
 import {
   View,
   Text,
@@ -45,6 +46,34 @@ interface PortalDashboardScreenProps {
   };
   dashboardData?: DashboardData;
 }
+
+const BKSDA_FOREST = "#1e5433";
+
+// Dashboard-only surface roles. Other tabs and the shared application theme retain their palette.
+const DASHBOARD_SURFACES = {
+  light: {
+    bgDark: "#f1f6f0",
+    cardBg: "#ffffff",
+    bgSurface: "#ffffff",
+    surfaceRaised: "#ffffff",
+    surfaceMuted: "#eaf1e8",
+    glassBorder: "#d4e2d3",
+    borderControl: "#71836f",
+    headerBg: "#ffffff",
+    headerBorder: "#d4e2d3",
+  },
+  dark: {
+    bgDark: "#101813",
+    cardBg: "#1b2820",
+    bgSurface: "#1b2820",
+    surfaceRaised: "#25362b",
+    surfaceMuted: "#25362b",
+    glassBorder: "#3b5242",
+    borderControl: "#849387",
+    headerBg: "#1b2820",
+    headerBorder: "#3b5242",
+  },
+} satisfies Record<"light" | "dark", Partial<ThemeColors>>;
 
 type ToneKey = "accent" | "info" | "warning" | "success" | "danger" | "neutral";
 
@@ -343,7 +372,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   userProfile,
   dashboardData,
 }) => {
-  const { isDark, toggleTheme, colors } = useTheme();
+  const isScreenFocused = useIsFocused();
+  const { isDark, toggleTheme, colors: themeColors } = useTheme();
   const { user, employee, logout } = useAuth();
   const r = usePortalResponsive();
   const styles = React.useMemo(() => createPortalStyles(r), [r]);
@@ -366,6 +396,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   // Bottom Navigation state: 'dashboard' | 'surattugas' | 'layanan' | 'profile'
   const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const isDashboard = activeTab === "dashboard";
+  const colors = React.useMemo(() => isDashboard
+    ? { ...themeColors, ...DASHBOARD_SURFACES[isDark ? "dark" : "light"] }
+    : themeColors, [isDashboard, isDark, themeColors]);
 
   // Center FAB Quick Action Modal
   const [fabModalVisible, setFabModalVisible] = useState(false);
@@ -1154,34 +1188,48 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bgDark }]}>
-      {/* Top App Bar */}
+    <View testID="portal-surface" style={[styles.container, { backgroundColor: colors.bgDark }]}>
+      {isScreenFocused && <StatusBar style={isDashboard || isDark ? "light" : "dark"} />}
+      {/* Official ministry identity stays on the dashboard brand bar. */}
       <View
+        testID="portal-header"
         style={[
           styles.header,
+          isDashboard && styles.dashboardHeader,
           {
-            backgroundColor: colors.headerBg,
+            backgroundColor: isDashboard ? BKSDA_FOREST : colors.headerBg,
             borderBottomColor: colors.headerBorder,
+            borderBottomWidth: isDashboard ? 0 : 1,
           },
         ]}
       >
-        <View style={styles.headerInner}>
-          <View style={styles.headerLeft}>
-            <Image
-              source={require("../../../assets/logo_bksda.png")}
-              style={[styles.logoImage]}
-              resizeMode="contain"
-            />
-            <View style={styles.headerTitleCol}>
-              <Text style={[styles.brandTitle, { color: colors.textDark }]}>BKSDA Kaltim</Text>
-              <Text style={[styles.brandSubtitle, { color: colors.accentFg }]}>SUPERAPP PORTAL</Text>
+        <View style={[styles.headerInner, isDashboard && styles.dashboardHeaderInner]}>
+          <View style={[styles.headerLeft, isDashboard && styles.dashboardHeaderLeft]}>
+            <View style={isDashboard ? styles.headerLogoBadge : undefined}>
+              <Image
+                source={isDashboard ? require("../../../assets/kemenhutlogo.png") : require("../../../assets/logo_bksda.png")}
+                style={[styles.logoImage, isDashboard && styles.dashboardLogoImage]}
+                resizeMode="contain"
+                accessibilityLabel={isDashboard ? "Logo Kementerian Kehutanan" : "Logo BKSDA Kalimantan Timur"}
+              />
             </View>
+            {isDashboard ? (
+              <View testID="portal-brand-identity" style={styles.dashboardBrandText}>
+                <Text style={styles.dashboardMinistry}>Kementerian Kehutanan</Text>
+                <Text style={styles.dashboardInstitution}>Balai KSDA Kalimantan Timur</Text>
+              </View>
+            ) : (
+              <View style={styles.headerTitleCol}>
+                <Text style={[styles.brandTitle, { color: colors.textDark }]}>BKSDA Kaltim</Text>
+                <Text style={[styles.brandSubtitle, { color: colors.accentFg }]}>SUPERAPP PORTAL</Text>
+              </View>
+            )}
           </View>
 
-          <View style={[styles.headerRight]}>
+          <View style={[styles.headerRight, isDashboard && styles.dashboardHeaderRight]}>
             {/* Active Light / Dark Mode Toggle Button */}
             <TouchableOpacity
-              style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
+              style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }, isDashboard && styles.dashboardHeaderControl]}
               accessibilityLabel={isDark ? "Aktifkan tema terang" : "Aktifkan tema gelap"}
               activeOpacity={0.7}
               onPress={toggleTheme}
@@ -1189,113 +1237,128 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               <Ionicons
                 name={isDark ? "sunny" : "moon-outline"}
                 size={r.size.iconMd}
-                color={isDark ? colors.warningFg : colors.textMuted}
+                color={isDashboard ? "#ffffff" : isDark ? colors.warningFg : colors.textMuted}
               />
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
+              style={[styles.headerIconBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }, isDashboard && styles.dashboardHeaderControl]}
               activeOpacity={0.7}
             >
-              <Ionicons name="notifications-outline" size={r.size.iconMd} color={isDark ? colors.accentFg : colors.textMuted} />
+              <Ionicons name="notifications-outline" size={r.size.iconMd} color={isDashboard ? "#ffffff" : isDark ? colors.accentFg : colors.textMuted} />
               <View style={[styles.notifDot, { backgroundColor: colors.dangerSolid }]} />
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {!isDashboard && <TouchableOpacity
               style={[styles.avatarCircle, { backgroundColor: colors.accentSolid }]}
+              accessibilityRole="button"
+              accessibilityLabel="Buka profil"
               onPress={() => setActiveTab("profile")}
             >
-              <Text style={[styles.avatarInitial, { color: colors.accentOnSolid }]}>{avatarInitial}</Text>
-            </TouchableOpacity>
+              <Text style={[styles.avatarInitial, { color: isDashboard ? "#ffffff" : colors.accentOnSolid }]}>{avatarInitial}</Text>
+            </TouchableOpacity>}
           </View>
         </View>
       </View>
 
       <ScrollView
+        style={isDashboard && styles.dashboardScroll}
         contentContainerStyle={[
           styles.scrollContent,
-          activeTab === "dashboard" && [styles.scrollContentCompact],
+          isDashboard && [styles.scrollContentCompact, { backgroundColor: colors.bgDark }],
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <AnimateUiScreen style={styles.contentWidthWrap} transitionKey={`${activeTab}:${layananSubScreen}`}>
+        <AnimateUiScreen style={[styles.contentWidthWrap, isDashboard && styles.dashboardContentWidth]} transitionKey={`${activeTab}:${layananSubScreen}`}>
         {/* ========================================================================= */}
         {/* TAB 1: BERANDA PORTAL ASN (FOREST GREEN HERO, 3 MAIN CARDS, 5 TOKENS)     */}
         {/* ========================================================================= */}
         {activeTab === "dashboard" && (
-          <View style={[styles.listStack]}>
-            {/* CARD 1: Forest Green Portal Hero Banner */}
-            <View style={[styles.heroBanner, shadowXs]}>
-              <View style={[styles.heroTopRow]}>
-                <View style={[styles.heroDateRow]}>
-                  <Ionicons name={greetingMeta.iconName as any} size={r.size.iconSm} color="#bbf7d0" />
-                  <Text
-                    style={[styles.heroDate]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.85}
-                  >
-                    {todayIndo}
-                  </Text>
+          <View style={styles.dashboardStack}>
+            {/* Welcome belongs to the soft dashboard sheet; the strong brand color stays in the app bar. */}
+            <View testID="portal-welcome" style={styles.heroBanner}>
+              <View style={styles.heroContent}>
+                <View style={styles.heroHeadingRow}>
+                  <View style={styles.heroGreetingBody}>
+                    <Text style={[styles.heroSalutation, { color: colors.textMuted }]}>{greetingMeta.text},</Text>
+                    <Text style={[styles.heroGreeting, { color: colors.textDark }]} numberOfLines={2}>{resolvedName}</Text>
+                    <Text style={[styles.heroDate, { color: colors.textMuted }]}>{todayIndo}</Text>
+                  </View>
                 </View>
-                <View style={[styles.heroNipBadge]}>
-                  <Text style={[styles.heroNipText]} numberOfLines={1}>
-                    NIP {resolvedNip}
-                  </Text>
-                </View>
-              </View>
 
-              <Text style={[styles.heroGreeting]} numberOfLines={2}>
-                {greetingMeta.text}, {resolvedName}!
-              </Text>
-              <Text style={[styles.heroSubtitle]}>
-                Pusat layanan operasional konservasi sumber daya alam, administrasi kepegawaian ASN, serta tata kelola kehutanan terpadu BKSDA Kalimantan Timur.
-              </Text>
+                <TouchableOpacity
+                  style={[styles.heroIdentityCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel="Lihat profil pegawai"
+                  onPress={() => setActiveTab("profile")}
+                >
+                  <View style={styles.heroIdentityRow}>
+                    <View style={styles.heroIdentityBody}>
+                      <Text style={[styles.heroIdentityLabel, { color: colors.textMuted }]}>NIP / Username</Text>
+                      <Text style={[styles.heroNipText, { color: colors.textDark }]} numberOfLines={1}>{resolvedNip}</Text>
+                    </View>
+                    <View style={[styles.heroProfileIcon, { backgroundColor: colors.accentSoft }]}>
+                      <Ionicons name="person-outline" size={r.size.iconLg} color={colors.accentFg} />
+                    </View>
+                  </View>
+                  <View style={[styles.heroIdentityFooter, { borderTopColor: colors.glassBorder }]}>
+                    <Text style={[styles.heroPosition, { color: colors.textSecondary }]} numberOfLines={1}>{resolvedJabatan}</Text>
+                    <Ionicons name="chevron-forward" size={r.size.iconSm} color={colors.accentFg} />
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Quick Stats 2x2 Grid (Pangkat, Sisa Cuti, Surat Tugas, Aset Saya) */}
-            <View testID="portal-quick-stats" style={[styles.quickStatsGrid, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
-              {quickStatItems.map((item, index) => {
-                const pal = getTonePalette(colors, item.tone);
-                const content = (
-                  <View style={[styles.quickStripCard, {
-                    borderColor: colors.glassBorder,
-                    borderRightWidth: r.grid.quickStatCols === 2 && index % 2 === 0 ? 1 : 0,
-                    borderBottomWidth: index < quickStatItems.length - r.grid.quickStatCols ? 1 : 0,
-                  }]}>
-                    <View style={[styles.quickStripIcon, { backgroundColor: pal.bg, borderColor: pal.border }]}>
-                      <Ionicons name={item.icon as any} size={r.size.iconMd} color={pal.fg} />
+            <View testID="portal-quick-stats" style={[styles.dashboardPanelWidth, styles.quickStatsPanel, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+              <View style={[styles.summaryHeader, { borderBottomColor: colors.glassBorder }]}>
+                <Ionicons name="stats-chart-outline" size={r.size.iconMd} color={colors.accentFg} />
+                <Text style={[styles.summaryTitle, { color: colors.textDark }]}>Ringkasan Pegawai</Text>
+              </View>
+              <View testID="portal-quick-stat-cells" style={styles.quickStatsGrid}>
+                {quickStatItems.map((item, index) => {
+                  const pal = getTonePalette(colors, item.tone);
+                  const content = (
+                    <View style={[styles.quickStripCard, {
+                      borderColor: colors.glassBorder,
+                      borderRightWidth: r.grid.quickStatCols === 2 && index % 2 === 0 ? 1 : 0,
+                      borderBottomWidth: index < quickStatItems.length - r.grid.quickStatCols ? 1 : 0,
+                    }]}>
+                      <View style={[styles.quickStripIcon, { backgroundColor: pal.bg, borderColor: pal.border }]}>
+                        <Ionicons name={item.icon as any} size={r.size.iconMd} color={pal.fg} />
+                      </View>
+                      <View style={styles.quickStripBody}>
+                        <Text style={[styles.quickStripLabel, { color: colors.textMuted }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+                          {item.label}
+                        </Text>
+                        <Text style={[styles.quickStripValue, { color: colors.textDark }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+                          {item.value}
+                        </Text>
+                      </View>
+                      {item.onPress && (
+                        <Ionicons name="chevron-forward" size={r.size.iconSm} color={colors.textMuted} />
+                      )}
                     </View>
-                    <View style={styles.quickStripBody}>
-                      <Text style={[styles.quickStripLabel, { color: colors.textMuted }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-                        {item.label}
-                      </Text>
-                      <Text style={[styles.quickStripValue, { color: colors.textDark }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-                        {item.value}
-                      </Text>
-                    </View>
-                    {item.onPress && (
-                      <Ionicons name="chevron-forward" size={r.size.iconSm} color={colors.textMuted} />
-                    )}
-                  </View>
-                );
+                  );
 
-                return (
-                  <View key={item.key} style={styles.quickStatCellWrapper}>
-                    {item.onPress ? (
-                      <TouchableOpacity style={styles.quickStatTouchable} activeOpacity={0.8} onPress={item.onPress}>
-                        {content}
-                      </TouchableOpacity>
-                    ) : (
-                      content
-                    )}
-                  </View>
-                );
-              })}
+                  return (
+                    <View key={item.key} style={styles.quickStatCellWrapper}>
+                      {item.onPress ? (
+                        <TouchableOpacity style={styles.quickStatTouchable} activeOpacity={0.8} onPress={item.onPress}>
+                          {content}
+                        </TouchableOpacity>
+                      ) : (
+                        content
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
             </View>
 
             {/* CARD 2: Modul Akses System Container Card (matching Web Portal) */}
-            <GlassCard style={[styles.moduleSectionCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
+            <GlassCard style={[styles.dashboardPanelWidth, styles.moduleSectionCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
               <View style={[styles.cardSectionHeader, { borderBottomColor: colors.glassBorder }]}>
                 <Text
                   style={[styles.sectionTitle, { color: colors.textMuted }]}
@@ -1352,6 +1415,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             {/* CARD 3: Tugas Dinas Berjalan Card (Featured Single Running Assignment) */}
             {activeDutyItem && (
               <TouchableOpacity
+                style={[styles.dashboardPanelWidth, styles.homeActivitySpacing]}
                 activeOpacity={0.88}
                 onPress={() => handleOpenStPreview(activeDutyItem)}
               >
@@ -1438,6 +1502,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               return (
                 <GlassCard
                   style={[
+                    styles.dashboardPanelWidth,
                     styles.activeDutyCard,
                     {
                       backgroundColor: colors.cardBg,
@@ -3353,6 +3418,52 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       height: S.x8,
       marginRight: S.x2,
     },
+    dashboardHeader: {
+      paddingHorizontal: 12,
+    },
+    dashboardHeaderInner: {
+      gap: 4,
+    },
+    dashboardHeaderRight: {
+      gap: 4,
+    },
+    dashboardHeaderLeft: {
+      flex: 1,
+      gap: 6,
+    },
+    headerLogoBadge: {
+      backgroundColor: "#ffffff",
+      borderRadius: R.inner,
+      padding: 4,
+    },
+    dashboardLogoImage: {
+      width: 40,
+      height: 40,
+      marginRight: 0,
+    },
+    dashboardBrandText: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2,
+    },
+    dashboardMinistry: {
+      fontFamily: PORTAL_FONT_FAMILY,
+      fontSize: 14,
+      lineHeight: 18,
+      fontWeight: "700",
+      color: "#ffffff",
+    },
+    dashboardInstitution: {
+      fontFamily: PORTAL_FONT_FAMILY,
+      fontSize: 12,
+      lineHeight: 16,
+      fontWeight: "500",
+      color: "#e2efe4",
+    },
+    dashboardHeaderControl: {
+      backgroundColor: "rgba(255,255,255,0.12)",
+      borderColor: "rgba(255,255,255,0.24)",
+    },
     headerTitleCol: {
       flexShrink: 1,
       justifyContent: "center",
@@ -3408,85 +3519,142 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       paddingTop: S.x4,
       paddingBottom: r.size.bottomNavHeight + r.size.bottomNavBottom + S.x8,
     },
+    dashboardScroll: {
+      backgroundColor: BKSDA_FOREST,
+    },
     scrollContentCompact: {
+      flexGrow: 1,
+      borderTopLeftRadius: R.card + S.x2,
+      borderTopRightRadius: R.card + S.x2,
       paddingTop: S.x3,
       paddingBottom: r.size.bottomNavHeight + r.size.bottomNavBottom + S.x6,
     },
 
-    // CARD 1: Forest Green Portal Hero Banner (Date + NIP pill + divider + prose)
-    heroBanner: {
-      backgroundColor: "#1e5433",
-      borderColor: "#164227",
-      borderWidth: 1,
-      borderRadius: R.card,
-      padding: S.x4,
+    dashboardContentWidth: {
+      maxWidth: "100%",
     },
-    heroTopRow: {
-      flexWrap: "wrap",
-      flexDirection: r.isCompact ? "column" : "row",
-      alignItems: r.isCompact ? "flex-start" : "center",
-      justifyContent: "space-between",
-      gap: S.x2,
-      paddingBottom: S.x2,
+    dashboardPanelWidth: {
+      width: "100%",
+      maxWidth: r.size.maxContentWidth,
+      alignSelf: "center",
+    },
+    dashboardStack: {
+      gap: 0,
+    },
+    homeActivitySpacing: {
       marginBottom: S.x3,
-      borderBottomWidth: 1,
-      borderBottomColor: "rgba(255, 255, 255, 0.16)",
     },
-    heroDateRow: {
-      minWidth: 120,
+    heroBanner: {
+      width: "100%",
+      maxWidth: r.size.maxContentWidth,
+      alignSelf: "center",
+      paddingTop: S.x2,
+      marginBottom: S.x4,
+    },
+    heroContent: {
+      width: "100%",
+      maxWidth: r.size.maxContentWidth,
+      alignSelf: "center",
+    },
+    heroHeadingRow: {
       flexDirection: "row",
-      alignItems: "center",
-      gap: S.x1,
-      flex: r.isCompact ? 0 : 1,
+      alignItems: "flex-start",
+      gap: S.x3,
+      marginBottom: S.x4,
     },
-    heroDate: {
+    heroGreetingBody: {
+      flex: 1,
+      minWidth: 0,
+    },
+    heroSalutation: {
       fontFamily: PORTAL_FONT_FAMILY,
-      color: "#dce8dd",
       fontSize: T.xs,
-      fontWeight: "500",
-      fontVariant: ["tabular-nums"],
-    },
-    heroNipBadge: {
-      backgroundColor: "rgba(255, 255, 255, 0.14)",
-      borderColor: "rgba(255, 255, 255, 0.22)",
-      borderWidth: 1,
-      borderRadius: R.inner,
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-    },
-    heroNipText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      color: "#ffffff",
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
+      marginBottom: S.x1,
     },
     heroGreeting: {
       fontFamily: PORTAL_FONT_FAMILY,
-      color: "#ffffff",
-      fontSize: T.sm,
+      fontSize: T.xl,
       fontWeight: "700",
+      marginBottom: S.x2,
+    },
+    heroDate: {
+      fontFamily: PORTAL_FONT_FAMILY,
+      fontSize: T.xs,
+      fontVariant: ["tabular-nums"],
+    },
+    heroIdentityCard: {
+      borderRadius: R.inner,
+      borderWidth: 1,
+      padding: S.x3,
+    },
+    heroIdentityRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: S.x2,
+    },
+    heroIdentityBody: {
+      flex: 1,
+      minWidth: 0,
+    },
+    heroIdentityLabel: {
+      fontFamily: PORTAL_FONT_FAMILY,
+      fontSize: T.xs,
       marginBottom: S.x1,
     },
-    heroSubtitle: {
+    heroNipText: {
       fontFamily: PORTAL_FONT_FAMILY,
-      color: "#dce8dd",
+      fontSize: T.sm,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
+    heroProfileIcon: {
+      width: S.x8,
+      height: S.x8,
+      borderRadius: R.inner,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    heroIdentityFooter: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: S.x2,
+      borderTopWidth: 1,
+      marginTop: S.x2,
+      paddingTop: S.x2,
+    },
+    heroPosition: {
+      flex: 1,
+      minWidth: 0,
+      fontFamily: PORTAL_FONT_FAMILY,
       fontSize: T.xs,
-      fontWeight: "400",
-      lineHeight: r.lineHeight.body,
     },
 
     // Quick Stats 2x2 Grid (Pangkat, Sisa Cuti, Surat Tugas, Aset Saya)
-    quickStatsGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
+    quickStatsPanel: {
       borderRadius: R.card,
       borderWidth: 1,
       overflow: "hidden",
+      marginBottom: S.x6,
+    },
+    summaryHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: S.x2,
+      paddingHorizontal: S.x3,
+      paddingVertical: S.x3,
+      borderBottomWidth: 1,
+    },
+    summaryTitle: {
+      fontFamily: PORTAL_FONT_FAMILY,
+      fontSize: T.sm,
+      fontWeight: "700",
+    },
+    quickStatsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
     },
     quickStatCellWrapper: {
       width: r.grid.quickStatCols === 1 ? "100%" : "50%",
-
     },
     quickStatTouchable: {
       flex: 1,
@@ -3525,6 +3693,7 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
 
     // CARD 2: Modul Akses System Container Card (concentric 24 = 16 + 8)
     moduleSectionCard: {
+      marginBottom: S.x6,
       padding: S.x4,
       borderRadius: R.card,
       borderWidth: 1,

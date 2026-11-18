@@ -3320,8 +3320,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalDashboardScreen.tsx": {
-    "mtime": 1795000128.9257147,
-    "ast_hash": "73cb7f78f820b9a2b7e87b87f6a517d7",
+    "mtime": 1795005532.7650862,
+    "ast_hash": "4fc7fc55701791de203484c6eee77ed9",
     "semantic_hash": ""
   },
   "mobile/src/features/inventory/InventoryStockScreen.tsx": {
@@ -3370,8 +3370,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1795000101.21396,
-    "ast_hash": "42948dfe5cf9831662b6bc3a05e5181c",
+    "mtime": 1795005583.496333,
+    "ast_hash": "b665c0f620c28eab5c94f1dcf5270eeb",
     "semantic_hash": ""
   },
   "ONBOARDING.md": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1795000247.381625,
-    "ast_hash": "519b8a648e31ade77b4d351622c284a6",
+    "mtime": 1795005659.395074,
+    "ast_hash": "efedb52c642ce1fe20cff25176b362b1",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1795000247.378625,
-    "ast_hash": "305671d1f88974c2f1ef55e2ea676d3d",
+    "mtime": 1795005659.3840733,
+    "ast_hash": "0d5f6ee9c728caa5c3d9d76a8d29fe17",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {

@@ -3363,3 +3363,50 @@ Setelah semua command clean:
 - Pangkat/Golongan, Sisa Cuti, Surat Tugas dan Aset Saya kini berada dalam satu panel dengan divider horizontal/vertikal. Tinggi minimum sel 64 px, padding memakai spacing responsif yang sudah ada, dan jarak antarbagian diperlonggar. Font, warna, ikon, modul, banner dan urutan utama tetap versi sebelum redesign.
 - Callback navigasi statistik serta perbaikan login/sesi/Reverb/animasi tetap dipertahankan. Checkpoint mencakup Bagian 147–155 dan disimpan lokal; belum di-push.
 - Verifikasi akhir: typecheck/lint mobile bersih; browser fixture memeriksa satu panel empat sel, dua baris, tinggi minimum 64 px, layar 360/440/landscape 800 serta navigasi/form cuti tanpa error JS. Diff layout/warna Portal web kosong; 30 tes auth/Reverb/login/motion/responsif dari checkpoint sebelumnya tetap lulus.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 156 Sapaan Referensi dan Judul Ringkasan Mobile
+
+- Menambahkan heading Ringkasan Pegawai ke panel empat statistik yang sudah disepakati. Warna, angka, ikon dan callback navigasi tetap memakai data/komponen yang sama.
+- Sapaan mobile mengikuti komposisi referensi pengguna: area Forest Green untuk sapaan/nama/tanggal, dengan kartu identitas inset untuk NIP/username dan jabatan. Kartu identitas membuka tab Profil; tidak menambahkan grafik atau angka ilustratif.
+- Ritme jarak dashboard bervariasi melalui token responsif yang sudah ada: setelah sapaan x4, ringkasan x6, modul x4, tugas x3. Tab lain tetap memakai spacing sebelumnya; web tidak diubah.
+- Typecheck/ESLint mobile lulus. Browser Edge dengan fixture memeriksa judul, empat sel dalam satu panel, batas identitas inset, navigasi Profil→Beranda, modul 1/3/5, layar 360/440/landscape 800, light/dark serta formulir cuti tanpa error JS. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya tetap 22f96daa; perubahan Bagian 156 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 157 Background Dashboard Mobile BKSDA
+
+- Sesuai persetujuan pengguna, background dashboard mobile kini bernuansa BKSDA pada kedua tema: light memakai kanvas hijau sangat muda dengan kartu putih; dark memakai arang kehijauan dengan kartu satu tingkat lebih terang dan border hijau netral.
+- Role warna dashboard terpusat pada `DASHBOARD_SURFACES` dan dipilih melalui memo tema/tab. Tema bersama, tab lain, login dan source web tidak diubah. Teks, aksen/status, judul Ringkasan Pegawai dan callback navigasi tetap memakai sumber yang sudah ada.
+- Bidang sapaan Forest Green melebar hingga tepi layar pada ponsel dengan sudut bawah membulat; viewport besar tetap memakai kartu terpusat. Variasi jarak antarbagian dari Bagian 156 dipertahankan.
+- Kontras numerik pada canvas/card/muted baru: minimum teks light 6,58:1 dan dark 4,99:1; minimum batas kontrol light 3,52:1 dan dark 3,96:1. Bukan sertifikasi aksesibilitas seluruh aplikasi.
+- Browser Edge dengan fixture memeriksa nilai warna kedua mode, sapaan full-width pada 360 px, panel empat statistik, navigasi Profil→Beranda, modul 1/3/5 dan form cuti pada 360/440/landscape 800 tanpa error JS. Typecheck/lint mobile dan 14 tes responsif/motion/dashboard/navigasi lulus. E2E tema mencatat 2 transisi radial normal dan 0 saat Reduce Motion, tanpa warning/error; interupsi transisi hanya mengganti tema sekali. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya tetap 22f96daa; Bagian 156–157 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 158 Toolbar dan Ritme Dashboard Mobile
+
+- Baris logo/ikon dashboard kini menyatu dengan bidang Forest Green sapaan, tanpa garis pembatas atau celah. Logo resmi ada di kiri; tema/notifikasi/profil di kanan memakai kontrol 48px. Judul aplikasi pada toolbar tetap ada di tab lain.
+- Latar area NIP/jabatan memakai canvas dashboard yang sama pada light/dark, bukan permukaan kartu putih/terangkat. Aksi membuka profil dipertahankan. Ikon dekoratif siang/malam pada sapaan dihapus sehingga tombol tema hanya satu, di samping notifikasi.
+- Jarak antarpanel utama diselaraskan pada x6; elemen setara dalam grid modul memakai x2, kegiatan terkait x3, dan sapaan→ringkasan x4. Bidang hijau full-width tetap koheren pada landscape/tablet, dengan isi/panel maksimum terpusat.
+- Expo StatusBar mengikuti dashboard/tema hanya saat screen fokus, agar ikon sistem terbaca di atas bidang hijau dan tidak menimpa screen modul lain.
+- Typecheck/lint mobile bersih. Browser fixture light/dark 360/440/landscape 800 memeriksa sambungan toolbar–sapaan tanpa celah, satu tombol tema, latar NIP sama dengan canvas, ringkasan 4 sel, akses modul realtime, navigasi profil dan formulir cuti tanpa error JS. 14 tes responsif/motion/dashboard/navigasi lulus. E2E normal/reduced mencatat 2/0 transisi radial tanpa error/warning; interupsi transisi mengganti tema tepat sekali. Android bundle HTTP 200 JavaScript; perangkat fisik belum diuji.
+- Source web dan palet bersama tetap. Checkpoint lokal sebelumnya 22f96daa; Bagian 156–158 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 159 Bidang Utama Hanya di Atas
+
+- Mengikuti klarifikasi referensi terakhir, warna Forest Green kuat dibatasi pada toolbar logo/ikon. Sapaan tidak lagi menjadi bidang hijau besar; sapaan, NIP/jabatan dan seluruh panel kerja berada di lembar konten lembut dengan sudut atas membulat.
+- Light/dark tetap memakai role dashboard Bagian 157. Teks sapaan/tanggal kini memakai foreground biasa agar terbaca pada latar lembut. Panel NIP tetap menyamai canvas, ringkasan berjudul tetap empat sel, dan fungsi/navigasi dipertahankan.
+- Scroll content memakai flexGrow agar latar lembut memenuhi layar saat data sedikit; hijau hanya terlihat di toolbar dan belakang sudut atas sheet. Layout layar besar tetap terpusat.
+- Typecheck/lint mobile lulus. Browser fixture 360/440/landscape 800 dan light/dark memeriksa toolbar hijau, sheet lembut membulat tepat di bawahnya, warna/posisi konten, satu tombol tema, modul realtime 3→2, grid 1/3/5, navigasi Profil dan form cuti tanpa error JS. Perangkat fisik belum diuji.
+- Source web dan tema bersama tidak diubah. Checkpoint sebelumnya 22f96daa; Bagian 156–159 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 160 Identitas Kemenhut dan Kartu NIP Mobile
+
+- Kartu NIP/Username dan jabatan kini memakai surface yang sama dengan ringkasan/panel lain: putih pada light mode dan #1b2820 pada dark mode.
+- Header dashboard memakai aset kemenhutlogo.png yang sama dengan login, resizeMode contain, dengan identitas Kementerian Kehutanan dan Balai KSDA Kalimantan Timur. Sesuai tindak lanjut, judul kementerian diperbesar menjadi 14px bold; subtitle 12px dan keduanya sejajar kiri. Pada 360px teks tampil dua baris tanpa terpotong atau menimpa kontrol.
+- Tema dan notifikasi tetap di kanan dengan target 48px. Avatar header dashboard yang berulang dihilangkan untuk memberi ruang identitas; profil tetap dapat dibuka melalui kartu NIP dan bottom navigation. Tab lain tetap seperti sebelumnya.
+- Typecheck/lint mobile dan 14 tes responsif/motion/dashboard/navigasi lulus. Browser fixture light/dark pada 360/440/landscape 800 memeriksa identitas, tidak ada overlap, warna kartu, modul realtime 3→2, reload tanpa login ulang, navigasi profil dan formulir cuti tanpa error JS. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya 22f96daa. Bagian 156–160 disimpan dalam commit lokal penyempurnaan dashboard mobile; belum di-push.
