@@ -9,6 +9,17 @@ if (typeof window !== "undefined") {
 
 let echoInstance: Echo<"reverb"> | null = null;
 let currentToken: string | null = null;
+let lastAuthRecoveryAt = 0;
+
+function requestRealtimeAuthSync(resetConnection: boolean): void {
+  const now = Date.now();
+  if (now - lastAuthRecoveryAt < 3000) return;
+  lastAuthRecoveryAt = now;
+  if (resetConnection) {
+    disconnectEcho();
+  }
+  window.dispatchEvent(new Event("sync-auth-now"));
+}
 
 export function getRealtimeTokenId(): string | null {
   if (typeof window === "undefined") return null;
@@ -102,6 +113,48 @@ export function getEcho(): Echo<"reverb"> | null {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
+        },
+      },
+      channelAuthorization: {
+        customHandler: async ({ socketId, channelName }, callback) => {
+          const activeToken = localStorage.getItem("bksda_token");
+          if (!activeToken) {
+            requestRealtimeAuthSync(true);
+            callback(new Error("Missing realtime auth token"), null);
+            return;
+          }
+
+          try {
+            const res = await fetch(authEndpoint, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${activeToken}`,
+                Accept: "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: new URLSearchParams({
+                socket_id: socketId,
+                channel_name: channelName,
+              }).toString(),
+            });
+
+            if (res.status === 401 || res.status === 403) {
+              // Revoked token requires teardown + token recovery; 403 only syncs latest role/modules.
+              requestRealtimeAuthSync(res.status === 401);
+              callback(new Error(`Broadcasting auth failed with HTTP ${res.status}`), null);
+              return;
+            }
+
+            if (!res.ok) {
+              callback(new Error(`Broadcasting auth failed with HTTP ${res.status}`), null);
+              return;
+            }
+
+            const data = await res.json();
+            callback(null, data);
+          } catch (err) {
+            callback(err instanceof Error ? err : new Error("Broadcasting auth failed"), null);
+          }
         },
       },
     });

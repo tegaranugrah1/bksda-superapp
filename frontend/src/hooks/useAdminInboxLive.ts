@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getEcho, getRealtimeTokenId } from "@/lib/echo";
 
 export interface AdminInboxEventData {
@@ -25,9 +25,21 @@ export function useAdminInboxLive(
   onChanged: (data: AdminInboxEventData) => void
 ): void {
   const callbackRef = useRef(onChanged);
+  const [authEpoch, setAuthEpoch] = useState(0);
+
   useEffect(() => {
     callbackRef.current = onChanged;
   }, [onChanged]);
+
+  useEffect(() => {
+    const bump = () => setAuthEpoch((v) => v + 1);
+    window.addEventListener("auth-change", bump);
+    window.addEventListener("storage", bump);
+    return () => {
+      window.removeEventListener("auth-change", bump);
+      window.removeEventListener("storage", bump);
+    };
+  }, []);
 
   useEffect(() => {
     const tokenId = getRealtimeTokenId();
@@ -51,5 +63,5 @@ export function useAdminInboxLive(
         // Fallback cleanup
       }
     };
-  }, [module]);
+  }, [module, authEpoch]);
 }

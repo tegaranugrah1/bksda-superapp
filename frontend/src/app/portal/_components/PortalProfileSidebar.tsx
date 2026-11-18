@@ -240,6 +240,7 @@ export function PortalProfileSidebar({
                   alt={displayName}
                   width={80}
                   height={80}
+                  loading="eager"
                   className="w-full h-full object-cover"
                   unoptimized
                 />

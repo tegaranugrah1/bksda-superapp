@@ -19,6 +19,8 @@ import { GlassCard } from "../../components/ui/GlassCard";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { NotificationModal } from "../../components/ui/NotificationModal";
 import { apiClient } from "../../lib/api/client";
+import { useForegroundRefresh } from "../../hooks/useForegroundRefresh";
+import { useReverbRefresh } from "../../hooks/useReverbRefresh";
 import { downloadAssignmentFile } from "@/lib/files/download";
 import { shareFile } from "@/lib/files/share";
 
@@ -195,12 +197,15 @@ export const RiwayatSuratTugasScreen: React.FC<RiwayatSuratTugasScreenProps> = (
   useFocusEffect(
     useCallback(() => {
       fetchHistory(false);
-      const timer = setInterval(() => {
-        fetchHistory(true);
-      }, 5000);
-      return () => clearInterval(timer);
     }, [fetchHistory])
   );
+
+  const silentRefresh = useCallback(() => {
+    void fetchHistory(true);
+  }, [fetchHistory]);
+
+  useForegroundRefresh(silentRefresh);
+  useReverbRefresh(["admin:surat_tugas"], silentRefresh);
 
   useFocusEffect(
     useCallback(() => {

@@ -17,6 +17,8 @@ import { RADIUS } from "../../theme";
 import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { apiClient } from "../../lib/api/client";
+import { useForegroundRefresh } from "../../hooks/useForegroundRefresh";
+import { useReverbRefresh } from "../../hooks/useReverbRefresh";
 import { downloadAssignmentFile } from "@/lib/files/download";
 import { shareFile } from "@/lib/files/share";
 
@@ -204,13 +206,11 @@ export const InboxSuratTugasScreen: React.FC<InboxSuratTugasScreenProps> = ({
   useFocusEffect(
     React.useCallback(() => {
       fetchSuratTugas();
-      const interval = setInterval(() => {
-        fetchSuratTugas();
-      }, 5000);
-
-      return () => clearInterval(interval);
     }, [fetchSuratTugas])
   );
+
+  useForegroundRefresh(fetchSuratTugas);
+  useReverbRefresh(["admin:surat_tugas", "user"], fetchSuratTugas);
 
   // Handle hardware back press & back gesture: return to Inbox list view first
   useEffect(() => {

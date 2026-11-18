@@ -210,6 +210,7 @@ const ALL_MODULE_CARDS = [
 
 function PortalContent() {
   const router = useRouter();
+  const { user: authUser } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -623,12 +624,35 @@ function PortalContent() {
     }
   };
 
+  const liveAccessKey = authUser
+    ? `${authUser.username}|${authUser.role}|${(authUser.access_modules || []).join(",")}`
+    : "";
+  const prevAccessKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!liveAccessKey) return;
+    if (prevAccessKeyRef.current === null) {
+      prevAccessKeyRef.current = liveAccessKey;
+      return;
+    }
+    if (prevAccessKeyRef.current !== liveAccessKey) {
+      prevAccessKeyRef.current = liveAccessKey;
+      clearGetCache();
+      fetchDashboard();
+    }
+  }, [liveAccessKey, fetchDashboard]);
+
   const modules = useMemo(() => {
     if (!data) return [];
-    return data.user.role === "super_admin" || (data.user.access_modules?.includes("*"))
+    const sameUser = authUser && authUser.username === data.user.username;
+    const role = sameUser ? authUser.role : data.user.role;
+    const accessModules = sameUser
+      ? authUser.access_modules
+      : data.user.access_modules;
+    return role === "super_admin" || accessModules?.includes("*")
       ? ["kepegawaian", "keuangan", "bmn", "inventory", "dereporting", "cms", "surat", "drive"]
-      : Array.from(new Set([...(data.user.access_modules || []), "drive"]));
-  }, [data]);
+      : Array.from(new Set([...(accessModules || []), "drive"]));
+  }, [data, authUser]);
 
   const moduleCards = useMemo(
     () => ALL_MODULE_CARDS.filter((m) => modules.includes(m.key)),

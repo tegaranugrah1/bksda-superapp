@@ -16,6 +16,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { apiClient } from "@/lib/api/client";
+import { useForegroundRefresh } from "@/hooks/useForegroundRefresh";
+import { useReverbRefresh } from "@/hooks/useReverbRefresh";
 import {
   FormulirCutiPrintModal,
   LeaveRequestPrintData,
@@ -88,6 +90,9 @@ export const InboxSuratCutiScreen: React.FC = () => {
       fetchLeaveRequests();
     }, [fetchLeaveRequests])
   );
+
+  useForegroundRefresh(fetchLeaveRequests);
+  useReverbRefresh(["admin:kepegawaian"], fetchLeaveRequests);
 
 
   const onRefresh = () => {

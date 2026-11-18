@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/api/client';
+import { useReverbRefresh } from '@/hooks/useReverbRefresh';
 import { ApiError, ApiSuccess } from '@/types/api';
 import { DashboardData } from './types';
 
@@ -27,6 +28,10 @@ export function useMobileDashboard() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDashboard();
   }, [fetchDashboard]);
+
+  useReverbRefresh(['user'], () => {
+    void fetchDashboard();
+  });
 
   return {
     data,

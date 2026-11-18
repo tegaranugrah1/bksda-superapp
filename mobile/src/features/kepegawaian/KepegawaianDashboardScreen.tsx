@@ -15,6 +15,8 @@ import { useTheme } from "../../theme/ThemeContext";
 import { GlassCard } from "../../components/ui/GlassCard";
 import { FabMenu } from "../../components/ui/FabMenu";
 import { apiClient } from "../../lib/api/client";
+import { useForegroundRefresh } from "../../hooks/useForegroundRefresh";
+import { useReverbRefresh } from "../../hooks/useReverbRefresh";
 
 function cleanMaksudTujuan(text?: string | null): string {
   if (!text) return "";
@@ -140,12 +142,15 @@ export const KepegawaianDashboardScreen: React.FC<KepegawaianDashboardScreenProp
   useFocusEffect(
     useCallback(() => {
       fetchDashboardData(false);
-      const timer = setInterval(() => {
-        fetchDashboardData(true);
-      }, 5000);
-      return () => clearInterval(timer);
     }, [fetchDashboardData])
   );
+
+  const silentRefresh = useCallback(() => {
+    void fetchDashboardData(true);
+  }, [fetchDashboardData]);
+
+  useForegroundRefresh(silentRefresh);
+  useReverbRefresh(["admin:kepegawaian", "admin:surat_tugas"], silentRefresh);
 
   const onRefresh = () => {
     setRefreshing(true);
