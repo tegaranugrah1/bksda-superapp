@@ -363,6 +363,7 @@ class AuthController extends Controller
         ->select([
             'id', 'nama_barang', 'kode_barang', 'nup', 'nup_lama',
             'merk', 'tipe', 'merk_tipe', 'kondisi', 'no_polisi', 'jenis_bmn',
+            'lokasi_ruang', 'lokasi_spesifik',
             'foto_geotag_url', 'foto_geotag_path',
             'foto_depan_path', 'foto_belakang_path', 'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path', 'foto_url',
             'employee_id', 'pengguna', 'nama_pengguna', 'updated_at',
