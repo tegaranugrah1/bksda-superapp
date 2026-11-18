@@ -1344,7 +1344,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       return (
                         <View style={[styles.activeDutyBadge, { backgroundColor: badge.bg, borderColor: badge.border }]}>
                           <Text style={[styles.activeDutyBadgeText, { color: badge.fg }]}>
-                            {isActiveDutyRunning ? "● SEDANG DINAS" : "● PENUGASAN"}
+                            {isActiveDutyRunning ? "SEDANG DINAS" : "PENUGASAN"}
                           </Text>
                         </View>
                       );
@@ -1398,6 +1398,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             {homeBorrowedLoans.length > 0 && primaryLoan && (() => {
               const loanBadge = getTonePalette(colors, isPrimaryLoanLate ? "danger" : "warning");
               const extraLoans = homeBorrowedLoans.length - 1;
+              const primaryLoanMerk = formatAssetMerkTipe(primaryLoan);
               return (
                 <GlassCard
                   style={[
@@ -1429,7 +1430,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     <View style={styles.activeDutyHeader}>
                       <View style={[styles.activeDutyBadge, { backgroundColor: loanBadge.bg, borderColor: loanBadge.border }]}>
                         <Text style={[styles.activeDutyBadgeText, { color: loanBadge.fg }]}>
-                          {isPrimaryLoanLate ? "● TERLAMBAT" : "● DIPINJAM"}
+                          {isPrimaryLoanLate ? "TERLAMBAT" : "DIPINJAM"}
                         </Text>
                       </View>
                       <Text style={[styles.activeDutyNumber, { color: colors.textMuted }]} numberOfLines={1}>
@@ -1437,9 +1438,27 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       </Text>
                     </View>
 
-                    <Text style={[styles.activeDutyTitle, { color: colors.textDark }]} numberOfLines={1}>
+                    <Text
+                      style={[
+                        styles.activeDutyTitle,
+                        primaryLoanMerk !== "-" && { marginBottom: 0 },
+                        { color: colors.textDark },
+                      ]}
+                      numberOfLines={1}
+                    >
                       {primaryLoan.nama_barang}
                     </Text>
+                    {primaryLoanMerk !== "-" && (
+                      <Text
+                        style={[
+                          styles.bmnGridSub,
+                          { color: colors.textSecondary, marginBottom: PORTAL_5_TOKENS.space.x2 },
+                        ]}
+                        numberOfLines={1}
+                      >
+                        {primaryLoanMerk}
+                      </Text>
+                    )}
 
                     <View style={styles.metaItem}>
                       <Ionicons
@@ -1552,7 +1571,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                         <View style={styles.activeDutyHeader}>
                           <View style={[styles.activeDutyBadge, { backgroundColor: stBadge.bg, borderColor: stBadge.border }]}>
                             <Text style={[styles.activeDutyBadgeText, { color: stBadge.fg }]}>
-                              {isRunning ? "● SEDANG DINAS" : "● SELESAI & LAPOR"}
+                              {isRunning ? "SEDANG DINAS" : "SELESAI & LAPOR"}
                             </Text>
                           </View>
                           <Text style={[styles.activeDutyNumber, { color: colors.textMuted }]} numberOfLines={1}>
@@ -2694,6 +2713,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   {activeLoansList.map((loan, idx) => {
                     const isLate = String(loan.status || "").toLowerCase().includes("terlambat");
                     const loanPal = getTonePalette(colors, isLate ? "danger" : "info");
+                    const loanMerk = formatAssetMerkTipe(loan);
                     return (
                       <View
                         key={loan.id || idx}
@@ -2710,6 +2730,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                             <Text style={[styles.loanItemTitle, { color: colors.textDark }]}>
                               {loan.nama_barang || "Aset BMN"}
                             </Text>
+                            {loanMerk !== "-" && (
+                              <Text style={[styles.bmnGridSub, { color: colors.textSecondary }]} numberOfLines={2}>
+                                {loanMerk}
+                              </Text>
+                            )}
                             <Text style={[styles.loanItemMeta, { color: colors.textMuted }]}>
                               NUP: {loan.nup || "-"} • Kode: {loan.kode_barang || "-"}
                             </Text>
@@ -2742,14 +2767,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                               {loan.due_date ? String(loan.due_date).split("T")[0] : "-"}
                             </Text>
                           </View>
-                          {loan.merk && (
-                            <View style={styles.loanDateCol}>
-                              <Text style={[styles.loanDateLabel, { color: colors.textMuted }]}>MERK / TIPE</Text>
-                              <Text style={[styles.loanDateVal, { color: colors.textDark }]} numberOfLines={1}>
-                                {loan.merk}
-                              </Text>
-                            </View>
-                          )}
                         </View>
                       </View>
                     );
