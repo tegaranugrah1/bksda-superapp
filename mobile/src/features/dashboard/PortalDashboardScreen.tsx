@@ -990,9 +990,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               disabled={!hasSuratIzin}
               style={[
                 styles.leavePrintOfficialBtn,
-                hasSuratIzin
-                  ? { backgroundColor: colors.accentSolid, borderColor: colors.accentSolid }
-                  : { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder },
+                { backgroundColor: hasSuratIzin ? colors.cardBg : colors.surfaceMuted, borderColor: hasSuratIzin ? colors.borderControl : colors.glassBorder },
               ]}
               onPress={() => {
                 beforeModalOpen?.();
@@ -1003,13 +1001,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               <Ionicons
                 name="checkmark-done-outline"
                 size={r.size.iconSm}
-                color={hasSuratIzin ? colors.accentOnSolid : colors.textMuted}
+                color={hasSuratIzin ? colors.textDark : colors.textMuted}
                 style={[styles.inlineIcon]}
               />
               <Text
                 style={[
                   styles.leavePrintOfficialText,
-                  { color: hasSuratIzin ? colors.accentOnSolid : colors.textMuted },
+                  { color: hasSuratIzin ? colors.textDark : colors.textMuted },
                 ]}
               >
                 Surat Izin (Fisik/TTE)
@@ -1020,9 +1018,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               disabled={!hasFormulir}
               style={[
                 styles.leavePrintOfficialBtn,
-                hasFormulir
-                  ? { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }
-                  : { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder },
+                { backgroundColor: hasFormulir ? colors.cardBg : colors.surfaceMuted, borderColor: hasFormulir ? colors.borderControl : colors.glassBorder },
               ]}
               onPress={() => {
                 beforeModalOpen?.();
@@ -1033,24 +1029,19 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               <Ionicons
                 name="document-text-outline"
                 size={r.size.iconSm}
-                color={hasFormulir ? colors.infoFg : colors.textMuted}
+                color={hasFormulir ? colors.textDark : colors.textMuted}
                 style={[styles.inlineIcon]}
               />
               <Text
                 style={[
                   styles.leavePrintOfficialText,
-                  { color: hasFormulir ? colors.infoFg : colors.textMuted },
+                  { color: hasFormulir ? colors.textDark : colors.textMuted },
                 ]}
               >
                 Formulir Scan
               </Text>
             </TouchableOpacity>
           </View>
-          {(!hasSuratIzin || !hasFormulir) && (
-            <Text style={[styles.leaveScanWaitHint, { color: colors.textMuted }]}>
-              Sebagian berkas scan menunggu unggahan admin kepegawaian.
-            </Text>
-          )}
         </>
       );
     }
@@ -1071,7 +1062,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={[styles.leavePrintOfficialBtn, { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }]}
+          style={[styles.leavePrintOfficialBtn, { backgroundColor: colors.cardBg, borderColor: colors.borderControl }]}
           onPress={() => {
             beforeModalOpen?.();
             setCutiPreviewItem(req);
@@ -1079,8 +1070,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           }}
           activeOpacity={0.8}
         >
-          <Ionicons name="print-outline" size={r.size.iconSm} color={colors.infoFg} style={[styles.inlineIcon]} />
-          <Text style={[styles.leavePrintOfficialText, { color: colors.infoFg }]}>Cetak Formulir Cuti</Text>
+          <Ionicons name="print-outline" size={r.size.iconSm} color={colors.textDark} style={[styles.inlineIcon]} />
+          <Text style={[styles.leavePrintOfficialText, { color: colors.textDark }]}>Cetak Formulir Cuti</Text>
         </TouchableOpacity>
       </View>
     );
@@ -2327,40 +2318,40 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   </View>
                 </View>
 
-                {/* Top Quota Summary Hero Card (Portal Forest Green — 5 Design Tokens) */}
-                <View style={[styles.cutiHeroCard, shadowXs]}>
-                  <View style={styles.cutiHeroTopRow}>
+                {/* Grouped quota summary; brand color is reserved for the application action. */}
+                <View style={[styles.cutiHeroCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }]}>
+                  <View style={[styles.cutiHeroTopRow, { borderBottomColor: colors.glassBorder }]}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.cutiHeroLabel}>{`SISA KUOTA CUTI ${cutiCurrentYear}`}</Text>
-                      <Text style={styles.cutiHeroValue}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
+                      <Text style={[styles.cutiHeroLabel, { color: colors.textMuted }]}>{`SISA KUOTA CUTI ${cutiCurrentYear}`}</Text>
+                      <Text style={[styles.cutiHeroValue, { color: colors.textDark }]}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
                       {cutiPendingHari > 0 && (
-                        <Text style={styles.cutiHeroPendingNote}>
+                        <Text style={[styles.cutiHeroPendingNote, { color: colors.textMuted }]}>
                           {`${cutiPendingHari} Hari sedang proses pengajuan`}
                         </Text>
                       )}
                     </View>
                     <TouchableOpacity
-                      style={styles.cutiHeroActionBtn}
+                      style={[styles.cutiHeroActionBtn, { backgroundColor: colors.accentSolid, borderColor: colors.accentSolid }]}
                       onPress={() => setCutiModalVisible(true)}
                       activeOpacity={0.8}
                     >
-                      <Ionicons name="add" size={r.size.iconMd} color="#ffffff" style={styles.inlineIcon} />
-                      <Text style={styles.cutiHeroActionText}>Ajukan Cuti</Text>
+                      <Ionicons name="add" size={r.size.iconMd} color={colors.accentOnSolid} style={styles.inlineIcon} />
+                      <Text style={[styles.cutiHeroActionText, { color: colors.accentOnSolid }]}>Ajukan Cuti</Text>
                     </TouchableOpacity>
                   </View>
 
                   <View style={styles.cutiQuotaStrip}>
-                    <View style={styles.cutiQuotaCell}>
-                      <Text style={styles.cutiQuotaLabel}>Hak Tahun N</Text>
-                      <Text style={styles.cutiQuotaVal}>{`${cutiHakN} Hari`}</Text>
+                    <View style={[styles.cutiQuotaCell, { borderRightColor: colors.glassBorder }]}>
+                      <Text style={[styles.cutiQuotaLabel, { color: colors.textMuted }]}>Hak Tahun N</Text>
+                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{`${cutiHakN} Hari`}</Text>
                     </View>
-                    <View style={styles.cutiQuotaCell}>
-                      <Text style={styles.cutiQuotaLabel}>{cutiSisaN2 > 0 ? "Sisa N-1 & N-2" : "Sisa N-1"}</Text>
-                      <Text style={styles.cutiQuotaVal}>{`${cutiSisaN1 + cutiSisaN2} Hari`}</Text>
+                    <View style={[styles.cutiQuotaCell, { borderRightColor: colors.glassBorder }]}>
+                      <Text style={[styles.cutiQuotaLabel, { color: colors.textMuted }]}>{cutiSisaN2 > 0 ? "Sisa N-1 & N-2" : "Sisa N-1"}</Text>
+                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{`${cutiSisaN1 + cutiSisaN2} Hari`}</Text>
                     </View>
-                    <View style={styles.cutiQuotaCell}>
-                      <Text style={styles.cutiQuotaLabel}>Terpakai</Text>
-                      <Text style={styles.cutiQuotaVal}>{`${cutiTerpakai} Hari`}</Text>
+                    <View style={[styles.cutiQuotaCell, { borderRightWidth: 0 }]}>
+                      <Text style={[styles.cutiQuotaLabel, { color: colors.textMuted }]}>Terpakai</Text>
+                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{`${cutiTerpakai} Hari`}</Text>
                     </View>
                   </View>
                 </View>
@@ -2413,7 +2404,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   ) : (
                     filteredLeaveRequests.map((req: any, idx: number) => {
                       const statusMeta = getLeaveStatusMeta(req);
-                      const badgePal = getTonePalette(colors, statusMeta.tone);
+                      const badgePal = getTonePalette(colors, statusMeta.kind === "approved" || statusMeta.kind === "verified" ? "neutral" : statusMeta.tone);
                       const cleanAlasan =
                         !req.alasan_cuti || String(req.alasan_cuti).toLowerCase().includes("sisa cuti")
                           ? `Sesuai ketentuan ${req.jenis_cuti || "Cuti"}`
@@ -2437,11 +2428,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                                 </View>
                               </View>
                               {req.nomor_pengajuan ? (
-                                <View style={[styles.leaveNomorChip, { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }]}>
-                                  <Text style={[styles.leaveNomorText, { color: colors.infoFg }]}>
-                                    {`SI: ${req.nomor_pengajuan}`}
-                                  </Text>
-                                </View>
+                                <Text style={[styles.leaveNomorText, { color: colors.textMuted }]}>
+                                  {req.nomor_pengajuan}
+                                </Text>
                               ) : (
                                 <Text style={[styles.leaveNomorEmpty, { color: colors.textMuted }]}>
                                   (Nomor surat penetapan belum diterbitkan)
@@ -2469,8 +2458,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                           </Text>
 
                           {Boolean(req.catatan_atasan) && (
-                            <View style={[styles.leaveApprovalNote, { backgroundColor: colors.successBg, borderColor: colors.successBorder }]}>
-                              <Text style={[styles.leaveApprovalNoteText, { color: colors.successFg }]}>
+                            <View style={[styles.leaveApprovalNote, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}>
+                              <Text style={[styles.leaveApprovalNoteText, { color: colors.textSecondary }]}>
                                 <Text style={styles.leaveApprovalNoteStrong}>Catatan Persetujuan: </Text>
                                 {req.catatan_atasan}
                               </Text>
@@ -3260,6 +3249,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               </View>
               <TouchableOpacity
                 onPress={closeLeaveScanModal}
+                accessibilityLabel="Tutup pratinjau berkas cuti"
                 style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
               >
                 <Ionicons name="close" size={r.size.iconMd} color={colors.textMuted} />
@@ -4656,8 +4646,6 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       marginTop: S.x1,
     },
     cutiHeroCard: {
-      backgroundColor: "#1e5433",
-      borderColor: "#164227",
       borderWidth: 1,
       borderRadius: R.card,
       padding: S.x4,
@@ -4671,13 +4659,11 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       gap: S.x3,
       paddingBottom: S.x3,
       borderBottomWidth: 1,
-      borderBottomColor: "rgba(255, 255, 255, 0.16)",
     },
     cutiHeroLabel: {
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: T.xs,
       fontWeight: "600",
-      color: "#dce8dd",
       letterSpacing: 0.4,
     },
     cutiHeroValue: {
@@ -4685,19 +4671,15 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       fontSize: T.xxl,
       fontWeight: "700",
       fontVariant: ["tabular-nums"],
-      color: "#ffffff",
       marginTop: S.x1,
     },
     cutiHeroPendingNote: {
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: T.xs,
       fontWeight: "500",
-      color: "#fde68a",
       marginTop: S.x1,
     },
     cutiHeroActionBtn: {
-      backgroundColor: "rgba(255, 255, 255, 0.16)",
-      borderColor: "rgba(255, 255, 255, 0.28)",
       borderWidth: 1,
       paddingHorizontal: S.x3,
       paddingVertical: S.x2,
@@ -4707,7 +4689,6 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
     },
     cutiHeroActionText: {
       fontFamily: PORTAL_FONT_FAMILY,
-      color: "#ffffff",
       fontSize: T.xs,
       fontWeight: "700",
     },
@@ -4717,10 +4698,7 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
     },
     cutiQuotaCell: {
       flex: 1,
-      backgroundColor: "rgba(255, 255, 255, 0.12)",
-      borderColor: "rgba(255, 255, 255, 0.18)",
-      borderWidth: 1,
-      borderRadius: R.inner,
+      borderRightWidth: 1,
       paddingHorizontal: S.x2,
       paddingVertical: S.x2,
       gap: S.x1,
@@ -4729,14 +4707,12 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: T.xs,
       fontWeight: "500",
-      color: "#dce8dd",
     },
     cutiQuotaVal: {
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: T.sm,
       fontWeight: "700",
       fontVariant: ["tabular-nums"],
-      color: "#ffffff",
     },
     yearPillsContainer: {
       gap: S.x2,
@@ -4784,15 +4760,8 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       fontSize: T.sm,
       fontWeight: "700",
     },
-    leaveNomorChip: {
-      alignSelf: "flex-start",
-      marginTop: S.x1,
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.bar,
-      borderWidth: 1,
-    },
     leaveNomorText: {
+      marginTop: S.x2,
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: T.xs,
       fontWeight: "600",
@@ -4869,6 +4838,8 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       gap: S.x2,
     },
     leavePrintOfficialBtn: {
+      minHeight: 44,
+      justifyContent: "center",
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: S.x3,
@@ -4880,11 +4851,6 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       fontFamily: PORTAL_FONT_FAMILY,
       fontSize: T.xs,
       fontWeight: "700",
-    },
-    leaveScanWaitHint: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      textAlign: "right",
     },
     modalOverlayCenter: {
       flex: 1,

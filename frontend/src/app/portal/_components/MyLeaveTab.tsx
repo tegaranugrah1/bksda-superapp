@@ -34,13 +34,13 @@ function getLeaveStatusBadge(item: LeaveRequestPrintData): { label: string; clas
   if (status === "DISETUJUI" || status === "APPROVED") {
     return {
       label: "Disetujui",
-      className: "bg-[var(--ds-status-success-bg)] text-[var(--ds-status-success-fg)] border border-[var(--ds-status-success-border)]",
+      className: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] border border-[var(--ds-border-subtle)]",
     };
   }
   if (atasanStatus === "DISETUJUI" || atasanStatus === "APPROVED") {
     return {
       label: "Verifikasi Atasan",
-      className: "bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] border border-[var(--ds-status-info-border)]",
+      className: "bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] border border-[var(--ds-border-subtle)]",
     };
   }
   return {
@@ -113,9 +113,9 @@ export function MyLeaveTab({
     <div className="p-4 sm:p-6 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-[var(--ds-fg)] flex items-center gap-2">
+          <h3 className="text-base font-semibold text-[var(--ds-fg)] flex items-center gap-2 flex-wrap">
             <span>Riwayat & Pengajuan Cuti Saya</span>
-            <span className="text-xs font-semibold bg-[var(--ds-status-info-bg)] text-[var(--ds-status-info-fg)] px-2 py-0 rounded-full border border-[var(--ds-status-info-border)] tabular-nums">
+            <span className="text-xs font-medium text-[var(--ds-fg-muted)] tabular-nums">
               {filteredRequests.length} Data
             </span>
           </h3>
@@ -129,6 +129,7 @@ export function MyLeaveTab({
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
+              aria-label="Filter tahun cuti"
               className="h-9 px-3 rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-fg)] outline-none tabular-nums cursor-pointer"
             >
               <option value="all">Semua Tahun</option>
@@ -173,7 +174,7 @@ export function MyLeaveTab({
           }}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 items-start gap-4"
         >
           {filteredRequests.map((item, idx) => (
             <motion.div
@@ -182,8 +183,7 @@ export function MyLeaveTab({
                 hidden: { opacity: 0, y: 10 },
                 show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } }
               }}
-              whileHover={{ y: -3, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-              className="bg-[var(--ds-surface-muted)] border border-slate-200/80 dark:border-zinc-800 rounded-lg p-4 space-y-3 shadow-xs transition-colors"
+              className="bg-[var(--ds-surface)] border border-[var(--ds-border-subtle)] rounded-xl p-4 sm:p-5 space-y-4"
             >
               <div className="flex items-start justify-between border-b border-slate-200/70 dark:border-zinc-800 pb-3 gap-2">
                 <div>
@@ -196,7 +196,7 @@ export function MyLeaveTab({
                       return (
                         <span
                           className={cn(
-                            "text-xs font-bold px-2 py-0 rounded-full uppercase tracking-wider",
+                            "text-xs font-medium px-2 py-0.5 rounded-md",
                             badge.className
                           )}
                         >
@@ -206,9 +206,9 @@ export function MyLeaveTab({
                     })()}
                   </div>
                   {item.nomor_pengajuan ? (
-                    <div className="font-mono text-xs text-[var(--ds-status-info-fg)] bg-[var(--ds-status-info-bg)] border border-[var(--ds-status-info-border)] px-2 py-0 rounded-lg mt-1 inline-block tabular-nums">
-                      SI: {item.nomor_pengajuan}
-                    </div>
+                    <p className="text-xs text-[var(--ds-fg-muted)] mt-2 tabular-nums break-all">
+                      {item.nomor_pengajuan}
+                    </p>
                   ) : (
                     <div className="text-xs text-[var(--ds-fg-muted)] italic mt-1">
                       (Nomor surat penetapan belum diterbitkan)
@@ -221,9 +221,9 @@ export function MyLeaveTab({
               </div>
 
               <div className="space-y-1 text-xs">
-                <div className="text-[var(--ds-fg-muted)] flex items-center justify-between text-xs gap-2">
-                  <span>Periode:</span>
-                  <span className="font-semibold text-[var(--ds-fg)] tabular-nums text-right">
+                <div className="flex items-center gap-2 rounded-lg bg-[var(--ds-surface-muted)] px-3 py-2 text-xs">
+                  <Calendar aria-hidden="true" className="size-4 shrink-0 text-[var(--ds-fg-muted)]" />
+                  <span className="font-semibold text-[var(--ds-fg)] tabular-nums">
                     {formatDateRangeIndonesian(item.tanggal_mulai, item.tanggal_selesai)}
                   </span>
                 </div>
@@ -236,7 +236,7 @@ export function MyLeaveTab({
                   )}
                 </p>
                 {item.catatan_atasan && (
-                  <div className="text-xs text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] border border-[var(--ds-status-success-border)] rounded-lg p-2 font-medium mt-2">
+                  <div className="text-xs text-[var(--ds-fg-secondary)] bg-[var(--ds-surface-muted)] rounded-lg p-3 mt-3">
                     <span className="font-bold">Catatan Persetujuan: </span>
                     {item.catatan_atasan}
                   </div>
@@ -276,6 +276,7 @@ export function MyLeaveTab({
                           <Button
                             type="button"
                             size="sm"
+                            variant="outline"
                             disabled={!hasSuratIzin}
                             onClick={() => {
                               if (hasSuratIzin) {
@@ -287,9 +288,9 @@ export function MyLeaveTab({
                               }
                             }}
                             className={cn(
-                              "font-bold text-xs h-8 rounded-lg gap-2 shadow-xs transition-colors",
+                              "font-medium text-xs min-h-9 h-auto py-2 rounded-lg gap-2 transition-colors border",
                               hasSuratIzin
-                                ? "bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] cursor-pointer"
+                                ? "bg-[var(--ds-surface)] hover:bg-[var(--ds-secondary-hover)] text-[var(--ds-fg)] border-[var(--ds-border-control)] cursor-pointer"
                                 : "bg-[var(--ds-disabled-bg)] text-[var(--ds-disabled-fg)] border border-slate-200/80 dark:border-zinc-800 cursor-not-allowed"
                             )}
                             title={hasSuratIzin ? "Lihat Surat Izin Cuti Resmi (TTE Kepala Balai)" : "Menunggu Unggahan Admin"}
@@ -301,6 +302,7 @@ export function MyLeaveTab({
                           <Button
                             type="button"
                             size="sm"
+                            variant="outline"
                             disabled={!hasFormulir}
                             onClick={() => {
                               if (hasFormulir) {
@@ -312,9 +314,9 @@ export function MyLeaveTab({
                               }
                             }}
                             className={cn(
-                              "font-bold text-xs h-8 rounded-lg gap-2 shadow-xs transition-colors",
+                              "font-medium text-xs min-h-9 h-auto py-2 rounded-lg gap-2 transition-colors border",
                               hasFormulir
-                                ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                                ? "bg-[var(--ds-surface)] hover:bg-[var(--ds-secondary-hover)] text-[var(--ds-fg)] border-[var(--ds-border-control)] cursor-pointer"
                                 : "bg-[var(--ds-disabled-bg)] text-[var(--ds-disabled-fg)] border border-slate-200/80 dark:border-zinc-800 cursor-not-allowed"
                             )}
                             title={hasFormulir ? "Lihat Scan Formulir Cuti (TTD Manual & Cap Balai)" : "Menunggu Unggahan Admin"}
@@ -332,7 +334,8 @@ export function MyLeaveTab({
                         type="button"
                         size="sm"
                         onClick={() => onPrintLeave(item)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-8 rounded-lg gap-2 shadow-xs cursor-pointer"
+                        variant="outline"
+                        className="bg-[var(--ds-surface)] hover:bg-[var(--ds-secondary-hover)] text-[var(--ds-fg)] border-[var(--ds-border-control)] font-medium text-xs min-h-9 h-auto py-2 rounded-lg gap-2 cursor-pointer"
                         title="Cetak Formulir Cuti untuk penandatanganan fisik"
                       >
                         <Printer className="w-4 h-4" />

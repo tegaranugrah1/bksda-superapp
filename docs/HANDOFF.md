@@ -3428,3 +3428,13 @@ Setelah semua command clean:
 - Perubahan source hanya satu role background dan komentar penjelas; berlaku bersama untuk Beranda, Tugas, Layanan dan Profil. Logo, teks, ukuran, border kartu, padding, animasi dan fungsi tidak diubah.
 - Typecheck dan ESLint mobile lulus. Pemeriksaan piksel sebelum/sesudah pada zoom 90%, 100%, 110%, 125% menunjukkan warna di celah kembali #1e5433; sebelumnya warna menyimpang pada zoom 110%/125%. Browser fixture keempat tab pada 360/440/landscape 800 light/dark juga lulus tanpa error JS, dengan sudut sheet tetap membulat dan canvas mengikuti tema.
 - Checkpoint sebelumnya fb945f03; Bagian 161–162 disimpan sebagai checkpoint lokal penyamaan header dan perbaikan garis terang; belum di-push. Perangkat fisik belum diuji.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 163 Riwayat Cuti Web dan Mobile
+
+- Redesign terbatas halaman cuti pribadi: nomor surat tampil sebagai teks biasa, catatan persetujuan memakai surface netral, dan tombol dokumen memakai gaya outline yang sama. Label status tetap jelas; warna peringatan/penolakan dipertahankan, sedangkan aksen BKSDA kuat dipusatkan pada aksi pengajuan.
+- Web: kartu putih/charcoal dengan border tipis dan tinggi mengikuti isi, header lebih terbaca, jumlah data netral, serta periode bertanggal dalam satu baris kalender. Efek kartu terangkat saat hover dihapus karena kartu bukan tombol.
+- Mobile: ringkasan kuota kini berupa satu panel netral dengan tiga nilai dipisahkan divider dan satu tombol Ajukan Cuti beraksen BKSDA. Layout tanggal yang disukai pengguna tetap. Teks Sebagian berkas scan menunggu unggahan admin kepegawaian dihapus; berkas yang belum tersedia tetap disabled. Target tombol dokumen minimum 44px.
+- Prefix presentasi SI: dihapus di kedua platform; nomor resmi asli, termasuk kode yang memang merupakan bagian nomornya, tidak dimodifikasi. Handler/filter/status/endpoint tetap.
+- Typecheck dan ESLint kedua proyek lulus. Browser fixture memeriksa web 1440/390 dan mobile 360/440 pada light/dark tanpa error JS, label/nomor, filter tahun, form pengajuan, preview scan dan pembatalan. Cetak serta empty state web juga lulus. Seluruh mutasi hanya pada fixture lokal; tidak mengubah data akun nyata. Pasangan teks/aksi yang diperiksa memenuhi 4,5:1. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya ed781f16; Bagian 163 disimpan sebagai checkpoint lokal redesign riwayat cuti web/mobile; belum di-push.
