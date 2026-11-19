@@ -1235,12 +1235,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         </View>
       </View>
 
+      <View testID="portal-body" style={[styles.portalBody, { backgroundColor: colors.bgDark }]}>
       <ScrollView
         style={styles.portalScroll}
-        contentContainerStyle={[
-          styles.scrollContent,
-          [styles.scrollContentCompact, { backgroundColor: colors.bgDark }],
-        ]}
+        contentContainerStyle={[styles.scrollContent, styles.scrollContentCompact]}
         showsVerticalScrollIndicator={false}
       >
         <AnimateUiScreen style={[styles.contentWidthWrap, isDashboard && styles.dashboardContentWidth]} transitionKey={`${activeTab}:${layananSubScreen}`}>
@@ -2582,6 +2580,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         )}
         </AnimateUiScreen>
       </ScrollView>
+      </View>
 
       {/* ========================================================================= */}
       {/* FLOATING BOTTOM NAVIGATION (EXACT 5 ITEMS: BERANDA, TUGAS, FAB, LAYANAN, PROFIL) */}
@@ -3464,13 +3463,21 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       paddingTop: S.x4,
       paddingBottom: r.size.bottomNavHeight + r.size.bottomNavBottom + S.x8,
     },
+    portalBody: {
+      flex: 1,
+      minHeight: 0,
+      overflow: "hidden",
+      borderTopLeftRadius: R.card + S.x2,
+      borderTopRightRadius: R.card + S.x2,
+      // Cover fractional browser seams while keeping the content at its original position.
+      marginTop: Platform.OS === "web" ? -1 : 0,
+      paddingTop: Platform.OS === "web" ? 1 : 0,
+    },
     portalScroll: {
-      backgroundColor: BKSDA_FOREST,
+      flex: 1,
     },
     scrollContentCompact: {
       flexGrow: 1,
-      borderTopLeftRadius: R.card + S.x2,
-      borderTopRightRadius: R.card + S.x2,
       paddingTop: S.x3,
       paddingBottom: r.size.bottomNavHeight + r.size.bottomNavBottom + S.x6,
     },

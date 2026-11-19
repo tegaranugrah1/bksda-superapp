@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (19 November 2026):** Checkpoint header/background portal mobile Bagian 161–162 tersimpan pada commit lokal ed781f16. Bagian 163 merapikan riwayat cuti pribadi web/mobile dengan surface netral, tombol dokumen konsisten, nomor tanpa label SI: dan penghapusan helper scan di mobile. Layout tanggal mobile dipertahankan. Typecheck/lint kedua proyek serta browser fixture light/dark dan alur utama lulus. Bagian 163 disimpan sebagai checkpoint lokal redesign riwayat cuti web/mobile; belum di-push.
+**Status terbaru (19 November 2026):** Checkpoint redesign cuti pribadi web/mobile Bagian 163 tersimpan pada commit lokal c2e23883. Bagian 164 memperkuat sambungan header mobile dengan portal-body tetap di luar scroll dan overlap web 1px. Typecheck/lint, fixture Chrome dua role serta 128 pemeriksaan piksel dan alur responsif lulus. Pengguna sudah mengonfirmasi garis putih hilang pada sesi akun Tegar. Bagian 164 disimpan sebagai checkpoint lokal perbaikan sambungan lengkung portal mobile; belum di-push.
 
 ## Status Update: 2 November 2026
 
@@ -3365,3 +3365,14 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
 - Prefix presentasi SI: dihapus di kedua platform; nomor resmi asli, termasuk kode yang memang merupakan bagian nomornya, tidak dimodifikasi. Handler/filter/status/endpoint tetap.
 - Typecheck dan ESLint kedua proyek lulus. Browser fixture memeriksa web 1440/390 dan mobile 360/440 pada light/dark tanpa error JS, label/nomor, filter tahun, form pengajuan, preview scan dan pembatalan. Cetak serta empty state web juga lulus. Seluruh mutasi hanya pada fixture lokal; tidak mengubah data akun nyata. Pasangan teks/aksi yang diperiksa memenuhi 4,5:1. Perangkat fisik belum diuji.
 - Checkpoint sebelumnya ed781f16; Bagian 163 disimpan sebagai checkpoint lokal redesign riwayat cuti web/mobile; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 164 Lengkungan Portal Tetap di Luar Scroll
+
+- Pengguna melaporkan garis putih masih tampak pada sesi Chrome akun Tegar setelah Ctrl+Shift+R, sedangkan superadmin bersih. Tidak diasumsikan sebagai masalah cache atau hak akses; source header/palet tidak memiliki cabang per-role.
+- Penguatan shared shell: latar dan clipping lengkung kini ditangani View portal-body yang tetap di luar ScrollView transparan. Sudut tidak ikut bergeser ketika isi di-scroll. Pada web, overlap 1px dengan header dan padding kompensasi 1px menutup celah raster tanpa menggeser posisi isi; native tidak memakai overlap.
+- Warna light/dark, header Kemenhut, kartu, hak akses, urutan halaman dan fungsi tetap. Fresh fixture Chrome memuat bundle terbaru dengan Cache-Control no-store/no-cache dan tanpa service worker.
+- Typecheck/ESLint mobile lulus. Fixture Chrome role super_admin dan pegawai memeriksa 2 tema × 4 tab × 4 zoom (90/100/110/125%) sebelum/sesudah scroll. Pemeriksaan piksel 128 potongan memastikan sisi sambungan tetap Forest Green; warna canvas, posisi lengkung tetap dan overlap juga diperiksa.
+- Browser responsif 360/440/landscape 800 light/dark lulus tanpa error JS, termasuk akses modul realtime 3→2, reload sesi, navigasi profil dan formulir cuti. Pemeriksaan header setelah resize menunggu layout responsif selesai agar tidak membandingkan dua frame berbeda.
+- Pengguna mengonfirmasi garis putih sudah hilang pada sesi Chrome akun Tegar. Pengujian otomatis memakai fixture terisolasi tanpa mengubah akun/data nyata. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya c2e23883; Bagian 164 disimpan sebagai checkpoint lokal perbaikan sambungan lengkung portal mobile; belum di-push.
