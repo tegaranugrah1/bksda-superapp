@@ -3604,3 +3604,14 @@ Setelah semua command clean:
 - Pengguna menyetujui checkpoint Bagian 179. Refactor aksi dan pratinjau berkas cuti mobile disimpan sebagai commit lokal dengan basis bcceb026; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi. Ponytail diterapkan dengan memindahkan kode yang ada, menggunakan ulang tipe/komponen/style dan mempertahankan perilaku. Rincian: docs/mobile-portal-refactor.md.
 
 - Graph kode tahap 6 diperbarui setelah perubahan source/regresi akhir: 15.813 node, 29.855 edge dan 1.053 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 180 Perbaikan Respons Scan dan Formulir Cuti Mobile
+
+- Scan menggunakan penanda request terbaru; respons sukses/gagal yang datang setelah ditutup, diganti, atau portal dilepas diabaikan. Blob URL dibersihkan saat penggantian, penutupan dan unmount, tanpa efek samping di updater state. Endpoint dan validasi format scan tetap sama.
+- Formulir memuat /me/leave-types setiap dibuka dan saat retry. Opsi, hitungan hari kerja/kalender, pemotongan saldo tahunan serta batas durasi mengikuti metadata katalog API; bukan tebakan nama. Katalog memuat/gagal/kosong menahan pengiriman, dan respons katalog lama diabaikan. Pesan ApiError.message/fieldErrors ditampilkan; kunci submit mencegah pengiriman ganda dan perubahan/penutupan saat sedang mengirim.
+- Seluruh createLeaveStyles dan atribut style inline yang sudah ada identik terhadap e79f5efa; stylesheet portal, halaman utama, tombol aksi dan modal pratinjau tidak berubah. Dropdown memakai daftar bergulir terbatas tinggi agar tambahan jenis cuti tetap dapat dijangkau. Warna, bentuk kartu, font, padding/margin dan spacing dipertahankan; tanpa dependency/backend/konfigurasi produksi baru.
+- TypeScript mobile 0 diagnostik. Tiga suite Jest terfokus dijalankan di Docker sandbox lokal: 12/12 tes lolos, exit 0 (30,205 detik). Mencakup race scan, blob cleanup, pembatalan, katalog cuti, aturan hari/saldo/durasi, error validasi, retry dan submit ganda. Sandbox tanpa jaringan, root/source/toolchain read-only, env allowlist, user non-root, cap-drop serta batas CPU/RAM/PID/file/disk/waktu. Browser E2E, pemeriksaan piksel dan perangkat fisik belum dijalankan; hasil ini tidak memvalidasi seluruh suite tahap sebelumnya.
+- Pengguna meminta langsung commit. Basis e79f5efa; perbaikan disimpan sebagai checkpoint lokal, belum di-push. Rincian reproduksi dan batas validasi: docs/mobile-portal-refactor.md. Risiko token pada URL foto BMN serta penyederhanaan style/filter dari review tetap di luar tahap ini.
+
+- Graph kode tahap 7 diperbarui setelah perubahan source/tes akhir: 15.827 node, 29.894 edge dan 1.052 komunitas melalui AST tanpa LLM.

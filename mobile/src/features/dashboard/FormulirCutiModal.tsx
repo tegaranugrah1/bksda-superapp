@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { apiClient } from "../../lib/api/client";
 import { PORTAL_5_TOKENS, useTheme, usePortalResponsive, type ResponsivePortalMetrics } from "../../theme/ThemeContext";
 import { AppDatePickerModal } from "../../components/AppDatePickerModal";
+import type { ApiError, ApiSuccess } from "@/types/api";
 
 interface FormulirCutiModalProps {
   visible: boolean;
@@ -25,14 +26,14 @@ interface FormulirCutiModalProps {
   onSuccess: () => void;
 }
 
-const JENIS_CUTI_OPTIONS = [
-  "Cuti Tahunan",
-  "Cuti Besar",
-  "Cuti Sakit",
-  "Cuti Melahirkan",
-  "Cuti Karena Alasan Penting",
-  "Cuti di Luar Tanggungan Negara",
-];
+interface PortalLeaveType {
+  id: number | string;
+  nama: string;
+  kode: string;
+  hitung_hari: "hari_kerja" | "hari_kalender";
+  potong_kuota_tahunan: boolean;
+  maks_hari: number | null;
+}
 
 const FONT_FAMILY = Platform.select({
   web: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -87,7 +88,11 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   const shadowLg = PORTAL_5_TOKENS.shadow.lg(isDark);
   const currentYear = new Date().getFullYear();
 
-  const [jenisCuti, setJenisCuti] = useState("Cuti Tahunan");
+  const [jenisCuti, setJenisCuti] = useState("");
+  const [leaveTypes, setLeaveTypes] = useState<PortalLeaveType[]>([]);
+  const [typesStatus, setTypesStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [typesError, setTypesError] = useState<string | null>(null);
+  const [typesRevision, setTypesRevision] = useState(0);
   const [jenisDropdownOpen, setJenisDropdownOpen] = useState(false);
   const [alasanCuti, setAlasanCuti] = useState("");
   const [tanggalMulai, setTanggalMulai] = useState(formatTodayIso);
@@ -98,10 +103,39 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isHariKerja = jenisCuti.toLowerCase().includes("tahunan");
+  const submitLock = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!visible) return;
+    let current = true;
+    setTypesStatus("loading");
+    setTypesError(null);
+    setLeaveTypes([]);
+    setJenisDropdownOpen(false);
+    void apiClient.get<ApiSuccess<PortalLeaveType[]>>("/me/leave-types").then(response => {
+      if (!current) return;
+      if (!Array.isArray(response.data.data)) throw new Error("Daftar jenis cuti tidak valid. Silakan muat ulang.");
+      const options = response.data.data;
+      setLeaveTypes(options);
+      setJenisCuti(previous => options.some(option => option.nama === previous)
+        ? previous : (options.find(option => option.kode === "CT") || options[0])?.nama || "");
+      setTypesStatus("ready");
+      if (!options.length) setTypesError("Tidak ada jenis cuti yang tersedia untuk akun ini.");
+    }).catch((failure: ApiError) => {
+      if (!current) return;
+      setTypesStatus("error");
+      setTypesError(Object.values(failure.fieldErrors || {}).flat().join("\n") || failure.message || "Jenis cuti belum dapat dimuat. Ketuk pilihan jenis cuti untuk mencoba lagi.");
+    });
+    return () => { current = false; };
+  }, [visible, typesRevision]);
+
+  const selectedLeaveType = leaveTypes.find(option => option.nama === jenisCuti);
+  const isHariKerja = selectedLeaveType?.hitung_hari === "hari_kerja";
+  const usesAnnualQuota = selectedLeaveType?.potong_kuota_tahunan === true;
   const calculatedDays = calcLeaveDurationDays(tanggalMulai, tanggalSelesai, isHariKerja);
 
   const handleClose = () => {
+    if (submitLock.current) return;
     setJenisDropdownOpen(false);
     setActiveDateField(null);
     setErrorMsg(null);
@@ -109,7 +143,12 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (isHariKerja && !balanceAvailable) {setErrorMsg("Saldo cuti belum tersedia. Perbarui data lalu coba lagi.");return;}
+    if (submitLock.current) return;
+    if (typesStatus !== "ready" || !selectedLeaveType) {
+      setErrorMsg("Pilih jenis cuti yang tersedia terlebih dahulu.");
+      return;
+    }
+    if (usesAnnualQuota && !balanceAvailable) {setErrorMsg("Saldo cuti belum tersedia. Perbarui data lalu coba lagi.");return;}
     if (calculatedDays <= 0) {
       setErrorMsg("Tanggal selesai tidak boleh sebelum tanggal mulai.");
       return;
@@ -118,10 +157,14 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
       setErrorMsg("Pengajuan cuti tidak boleh lintas tahun kalender. Silakan ajukan terpisah per tahun.");
       return;
     }
-    if (isHariKerja && calculatedDays > sisaCuti) {
+    if (usesAnnualQuota && calculatedDays > sisaCuti) {
       setErrorMsg(
         `Jumlah hari cuti (${calculatedDays} hari) melebihi sisa hak cuti tahunan yang dapat diajukan (${sisaCuti} hari).`
       );
+      return;
+    }
+    if (selectedLeaveType.maks_hari && calculatedDays > selectedLeaveType.maks_hari) {
+      setErrorMsg(`Jumlah hari cuti (${calculatedDays} hari) melebihi batas maksimal untuk jenis cuti ${selectedLeaveType.nama} (${selectedLeaveType.maks_hari} hari).`);
       return;
     }
     if (!alasanCuti.trim()) {
@@ -133,6 +176,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
       return;
     }
 
+    submitLock.current = true;
     setErrorMsg(null);
     setIsSubmitting(true);
     try {
@@ -155,14 +199,13 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
       setAlamat("");
       setTelepon("");
       onSuccess();
+      submitLock.current = false;
       handleClose();
-    } catch (err: any) {
-      setErrorMsg(
-        err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          "Gagal mengirim permohonan cuti."
-      );
+    } catch (failure) {
+      const error = failure as ApiError;
+      setErrorMsg(Object.values(error.fieldErrors || {}).flat().join("\n") || error.message || "Gagal mengirim permohonan cuti.");
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
@@ -200,6 +243,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                   styles.closeBtn,
                   { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder },
                 ]}
+                disabled={isSubmitting}
                 onPress={handleClose}
                 accessibilityLabel="Tutup formulir cuti"
               >
@@ -236,7 +280,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 </View>
               </View>
 
-              {Boolean(errorMsg) && (
+              {Boolean(errorMsg || typesError) && (
                 <View
                   style={[
                     styles.errorBanner,
@@ -245,7 +289,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 >
                   <Ionicons name="alert-circle-outline" size={16} color={colors.dangerFg} />
                   <Text style={[styles.errorBannerText, { color: colors.dangerFg }]}>
-                    {errorMsg}
+                    {errorMsg || typesError}
                   </Text>
                 </View>
               )}
@@ -260,11 +304,16 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                     borderColor: jenisDropdownOpen ? colors.accentFg : colors.glassBorder,
                   },
                 ]}
-                onPress={() => setJenisDropdownOpen((open) => !open)}
+                accessibilityLabel="Jenis cuti"
+                disabled={typesStatus === "loading" || isSubmitting}
+                onPress={() => {
+                  if (typesStatus === "error" || !leaveTypes.length) { setTypesRevision(value => value + 1); return; }
+                  setJenisDropdownOpen((open) => !open);
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.pickerTriggerText, { color: colors.textDark }]} numberOfLines={1}>
-                  {jenisCuti}
+                  {typesStatus === "loading" ? "Memuat jenis cuti..." : selectedLeaveType?.nama || "Ketuk untuk memuat ulang jenis cuti"}
                 </Text>
                 <Ionicons
                   name={jenisDropdownOpen ? "chevron-up" : "chevron-down"}
@@ -282,6 +331,8 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                       styles.pickerTrigger,
                       { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
                     ]}
+                    accessibilityLabel="Tanggal mulai cuti"
+                    disabled={isSubmitting}
                     onPress={() => {
                       setJenisDropdownOpen(false);
                       setActiveDateField("mulai");
@@ -307,6 +358,8 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                       styles.pickerTrigger,
                       { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
                     ]}
+                    accessibilityLabel="Tanggal selesai cuti"
+                    disabled={isSubmitting}
                     onPress={() => {
                       setJenisDropdownOpen(false);
                       setActiveDateField("selesai");
@@ -354,6 +407,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
               {/* 4. Alasan Cuti */}
               <Text style={[styles.label, { color: colors.textDark }]}>4. Alasan Cuti</Text>
               <TextInput
+                editable={!isSubmitting}
                 style={[
                   styles.input,
                   styles.multilineInput,
@@ -379,6 +433,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 5. Alamat Menjalankan Cuti
               </Text>
               <TextInput
+                editable={!isSubmitting}
                 style={[
                   styles.input,
                   styles.multilineInput,
@@ -404,6 +459,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 6. Nomor Telepon / HP
               </Text>
               <TextInput
+                editable={!isSubmitting}
                 style={[
                   styles.input,
                   {
@@ -434,6 +490,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                   styles.cancelBtn,
                   { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder },
                 ]}
+                disabled={isSubmitting}
                 onPress={handleClose}
               >
                 <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>Batal</Text>
@@ -446,7 +503,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                   isSubmitting && styles.btnDisabled,
                 ]}
                 onPress={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || typesStatus !== "ready" || !selectedLeaveType}
                 activeOpacity={0.85}
               >
                 {isSubmitting ? (
@@ -491,18 +548,20 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                     <Ionicons name="close" size={18} color={colors.textMuted} />
                   </TouchableOpacity>
                 </View>
-                {JENIS_CUTI_OPTIONS.map((option, idx) => {
-                  const selected = jenisCuti === option;
+                <ScrollView style={{ maxHeight: r.height * 0.55 }} keyboardShouldPersistTaps="handled">
+                {leaveTypes.map((option, idx) => {
+                  const selected = jenisCuti === option.nama;
                   return (
                     <TouchableOpacity
-                      key={option}
+                      key={option.id}
                       style={[
                         styles.dropdownItem,
                         idx > 0 && { borderTopWidth: 1, borderTopColor: colors.glassBorder },
                         selected && { backgroundColor: colors.accentSoft },
                       ]}
                       onPress={() => {
-                        setJenisCuti(option);
+                        setJenisCuti(option.nama);
+                        setErrorMsg(null);
                         setJenisDropdownOpen(false);
                       }}
                       activeOpacity={0.8}
@@ -514,7 +573,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                           selected && styles.dropdownItemTextSelected,
                         ]}
                       >
-                        {option}
+                        {option.nama}
                       </Text>
                       {selected && (
                         <Ionicons name="checkmark" size={16} color={colors.accentFg} />
@@ -522,6 +581,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                     </TouchableOpacity>
                   );
                 })}
+                </ScrollView>
               </View>
             </View>
           )}

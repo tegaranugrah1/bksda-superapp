@@ -35,16 +35,27 @@ export function usePortalLeaveActions({
   const [isCancellingLeave, setIsCancellingLeave] = useState(false);
   const [leaveScanModal, setLeaveScanModal] = useState<PortalLeaveScanState>({ visible: false, title: "", loading: false });
 
-  const closeLeaveScanModal = React.useCallback(() => {
-    setLeaveScanModal((prev) => {
-      if (prev.blobUrl && typeof URL !== "undefined") {
-        URL.revokeObjectURL(prev.blobUrl);
-      }
-      return { visible: false, title: "", loading: false };
-    });
+  const scanRequestId = React.useRef(0);
+  const scanBlobUrl = React.useRef<string | null>(null);
+  const releaseScanBlob = React.useCallback(() => {
+    if (scanBlobUrl.current && typeof URL !== "undefined") URL.revokeObjectURL(scanBlobUrl.current);
+    scanBlobUrl.current = null;
   }, []);
 
+  React.useEffect(() => () => {
+    scanRequestId.current++;
+    releaseScanBlob();
+  }, [releaseScanBlob]);
+
+  const closeLeaveScanModal = React.useCallback(() => {
+    scanRequestId.current++;
+    releaseScanBlob();
+    setLeaveScanModal({ visible: false, title: "", loading: false });
+  }, [releaseScanBlob]);
+
   const handleOpenLeaveScan = React.useCallback(async (req: any, kind: "surat_izin" | "formulir") => {
+    const requestId = ++scanRequestId.current;
+    releaseScanBlob();
     const isSuratIzin = kind === "surat_izin";
     const fileName = isSuratIzin
       ? (req.scan_surat_izin_nama || req.scan_surat_nama || "Surat_Izin_Cuti.pdf")
@@ -57,6 +68,7 @@ export function usePortalLeaveActions({
     setLeaveScanModal({ visible: true, title, fileName, loading: true });
     try {
       const response = await apiClient.get<any>(endpoint, { params: { preview: 1 } });
+      if (requestId !== scanRequestId.current) return;
       const dataUrl = response.data?.data_url || response.data?.data?.data_url;
       if (typeof dataUrl !== "string" || !/^data:(application\/pdf|image\/(png|jpeg|webp));base64,[A-Za-z0-9+/=\r\n]+$/.test(dataUrl)) {
         throw new Error("Format berkas scan tidak didukung.");
@@ -68,6 +80,7 @@ export function usePortalLeaveActions({
           ? base64DataUrlToBlobUrl(dataUrl)
           : null;
 
+      scanBlobUrl.current = blobUrl;
       setLeaveScanModal({
         visible: true,
         title,
@@ -78,6 +91,7 @@ export function usePortalLeaveActions({
         loading: false,
       });
     } catch (err: any) {
+      if (requestId !== scanRequestId.current) return;
       const msg = err?.message || "Berkas scan belum diunggah atau tidak ditemukan.";
       setLeaveScanModal({
         visible: true,
@@ -87,7 +101,7 @@ export function usePortalLeaveActions({
         error: msg,
       });
     }
-  }, []);
+  }, [releaseScanBlob]);
 
   const handleConfirmCancelLeave = React.useCallback(async () => {
     if (!cancelLeaveTarget) return;

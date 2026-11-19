@@ -173,3 +173,36 @@ Rencana validasi runtime di sandbox yang memenuhi syarat: jalankan regresi hook 
 Pengguna menyetujui checkpoint tahap 6; refactor aksi dan pratinjau berkas cuti mobile disimpan sebagai commit lokal, belum di-push. Validasi runtime tetap dicatat belum selesai. Desain, warna, bentuk kartu dan spacing yang disetujui dipertahankan.
 
 - Graph kode tahap 6 diperbarui setelah perubahan source/regresi akhir: 15.813 node, 29.855 edge dan 1.053 komunitas melalui AST tanpa LLM.
+
+
+## Tahap 7 — Respons scan dan integrasi formulir cuti (19 November 2026)
+
+Basis checkpoint `e79f5efa`. Pengguna menyetujui perbaikan respons scan/formulir cuti dan meminta langsung commit, dengan desain yang sama.
+
+- `usePortalLeaveActions.ts`: penanda request meningkat pada buka/tutup/unmount; hanya request terbaru boleh memperbarui pratinjau. Sukses maupun gagal yang terlambat tidak membuka ulang modal atau menimpa berkas lain. Ref blob aktif dibersihkan saat penggantian, penutupan dan unmount; respons usang tidak membuat blob baru. Helper konversi, allowlist PDF/JPEG/PNG/WebP, endpoint pribadi, modal dan perilaku pembatalan cuti dipertahankan.
+- `FormulirCutiModal.tsx`: katalog dari `/me/leave-types` dimuat setiap pembukaan/retry. Pilihan valid sebelumnya dipertahankan; default CT atau pilihan pertama berasal dari hasil API. Loading, kegagalan, hasil kosong dan retry memakai komponen/pesan yang sudah ada. Callback katalog yang ditinggalkan tidak memperbarui form berikutnya.
+- Penghitungan hari mengikuti `hitung_hari`; validasi saldo mengikuti `potong_kuota_tahunan` dan batas durasi mengikuti `maks_hari`. Pengajuan baru ditahan sampai katalog siap dan jenis terpilih valid. API tetap menjadi otoritas untuk hak pegawai, jenis aktif, aturan/periode dan saldo saat pengiriman.
+- Error API dibaca dari `ApiError.fieldErrors` dan `message`. Input tetap tersedia untuk diperbaiki setelah penolakan. Kunci ref mencegah dua POST pada frame yang sama; input/tanggal/pilihan serta penutupan diblokir ketika pengiriman berlangsung. Setelah sukses tetap refresh data dan menutup form.
+- Stylesheet formulir `createLeaveStyles` dan semua atribut style lama identik terhadap checkpoint. File portalStyles, PortalDashboardScreen, PortalLeaveCardActions dan PortalLeaveModals tidak berubah. Dropdown mendapat ScrollView dengan tinggi maksimal 55% layar agar katalog yang bertambah tidak melampaui layar; font, warna, border/radius, margin/padding dan spacing baris tetap sama. Label aksesibilitas ditambahkan untuk pilihan jenis dan tanggal. Tidak mengubah backend, endpoint, kredensial atau dependency.
+
+Verifikasi:
+
+- TypeScript mobile melalui compiler API tanpa emit: **0 diagnostik**. Pemeriksaan whitespace lolos, termasuk berkas tes baru.
+- Pemeriksaan AST memverifikasi fungsi stylesheet dan seluruh style inline yang sudah ada identik; satu tambahan adalah batas scrolling dropdown. Perbandingan file memverifikasi layout portal, stylesheet, tombol aksi dan modal scan/konfirmasi tetap identik.
+- **Jest: 3 suite, 12 tes lolos, exit 0**, 30,205 detik, pada sandbox Docker lokal. Tujuh kasus hook mencakup persistensi cetak/konfirmasi, scan valid/HTML/gagal, pembatalan sukses/gagal, respons setelah close dan urutan terbalik, unmount serta pelepasan blob. Empat kasus katalog/form memeriksa pemuatan saat dibuka, metadata hari/saldo/maksimum, field errors/message, retry, submit ganda, katalog kosong/gagal dan respons usang. Satu kasus lama memeriksa penghitungan hari kerja/kalender.
+- Percobaan pertama meloloskan 12 tes tetapi exit 1 karena lazy Expo native fetch di teardown mock RN. Eksekusi akhir memakai opsi resmi Expo `EXPO_PUBLIC_USE_RN_FETCH=1` hanya dalam fixture sandbox; API seluruhnya dimock, konfigurasi aplikasi/deployment tidak diubah. Masalah tipe Buffer pada tes juga diperbaiki sebelum pemeriksaan akhir.
+- **Browser E2E, perbandingan piksel dan perangkat fisik belum dijalankan.** Hasil terfokus ini tidak menyatakan seluruh suite auth/profil/modul atau runtime tahap sebelumnya telah tervalidasi. Seluruh uji memakai data dummy; tidak memakai akun/data nyata.
+
+Sandbox memakai image lokal `bksda-security-sandbox:browser`, ID `sha256:34f1faad757152f989d334628096d8f7e1ffd80beb34e4434b70ae84c3597c54`, tanpa pull/build/install. Container sementara dihapus otomatis; hanya `/scratch` berupa tmpfs dapat dipakai untuk file kerja/cache. Source dan dependency dipasang read-only secara terpisah, tanpa `.env`, direktori home host atau soket Docker. Environment proses dikosongkan dan hanya berisi PATH/HOME/TMPDIR/NODE_ENV/CI/EXPO_NO_TELEMETRY/EXPO_PUBLIC_USE_RN_FETCH berikut. Batas: 1 CPU, RAM+swap 1536 MB, 128 PID, 1024 fd, ukuran file 32 MB, scratch 256 MB dan timeout 90 detik. Network dan IPC dimatikan; UID/GID 65534, semua capability dibuang dan no-new-privileges diaktifkan.
+
+Perintah reproduksi dari PowerShell, dengan Docker Desktop lokal dan dependency yang sudah tersedia:
+
+```powershell
+docker --context desktop-linux run --rm --pull=never --network=none --ipc=none --read-only --user=65534:65534 --cap-drop=ALL --security-opt=no-new-privileges --cpus=1 --memory=1536m --memory-swap=1536m --pids-limit=128 --ulimit nofile=1024:1024 --ulimit fsize=33554432:33554432 --tmpfs /scratch:rw,nosuid,nodev,size=268435456,mode=1777 --mount type=bind,source=E:/bksda-superapp/mobile/src,target=/source/src,readonly --mount type=bind,source=E:/bksda-superapp/mobile/node_modules,target=/source/node_modules,readonly --mount type=bind,source=E:/bksda-superapp/mobile/package.json,target=/source/package.json,readonly --mount type=bind,source=E:/bksda-superapp/mobile/jest.config.js,target=/source/jest.config.js,readonly --mount type=bind,source=E:/bksda-superapp/mobile/jest.setup.js,target=/source/jest.setup.js,readonly --mount type=bind,source=E:/bksda-superapp/mobile/tsconfig.json,target=/source/tsconfig.json,readonly --workdir=/source --entrypoint=/usr/bin/env bksda-security-sandbox:browser -i PATH=/usr/local/bin:/usr/bin:/bin HOME=/scratch TMPDIR=/scratch NODE_ENV=test CI=1 EXPO_NO_TELEMETRY=1 EXPO_PUBLIC_USE_RN_FETCH=1 /usr/bin/timeout --signal=KILL 90 /usr/local/bin/node /source/node_modules/jest/bin/jest.js --config=/source/jest.config.js --runInBand --no-watchman --watch=false --cacheDirectory=/scratch/jest-cache --runTestsByPath src/features/dashboard/__tests__/usePortalLeaveActions.test.tsx src/features/dashboard/__tests__/FormulirCutiModal.catalog.test.tsx src/features/dashboard/__tests__/FormulirCutiModal.test.ts
+```
+
+Rencana pemeriksaan UI berikutnya: buka/tutup scan sebelum respons, pindah scan A/B, tampilkan PDF/gambar dan tutup; buka formulir di light/dark, coba katalog panjang/gagal/kosong, jenis berganti aturan, validasi dari server dan submit ulang. Bandingkan bentuk/warna/spacing pada browser dan perangkat. Risiko token URL foto BMN serta penghapusan style/filter berulang dari review belum termasuk perubahan ini.
+
+Atas instruksi pengguna, perubahan disimpan sebagai checkpoint lokal, belum di-push. Progress dan handoff diperbarui dengan hasil uji terfokus serta batas cakupan di atas.
+
+- Graph kode tahap 7 diperbarui setelah perubahan source/tes akhir: 15.827 node, 29.894 edge dan 1.052 komunitas melalui AST tanpa LLM.
