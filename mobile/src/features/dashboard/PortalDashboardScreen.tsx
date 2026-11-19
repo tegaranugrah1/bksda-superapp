@@ -6,7 +6,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  StyleSheet,
   Image,
   Modal,
   Alert,
@@ -20,7 +19,6 @@ import {
   PORTAL_5_TOKENS,
   chunkGridRows,
   usePortalResponsive,
-  type ResponsivePortalMetrics,
   type ThemeColors,
   useTheme,
 } from "../../theme/ThemeContext";
@@ -38,6 +36,8 @@ import { ChangePasswordModal } from "../profile/ChangePasswordModal";
 import { ProfileSettingsModal, type ProfileSetting } from "../profile/ProfileSettingsModal";
 import { FormulirCutiModal } from "./FormulirCutiModal";
 import { FormulirCutiPrintModal, LeaveRequestPrintData } from "../../components/FormulirCutiPrintModal";
+import { PortalNotifications, usePortalNotifications } from "./PortalNotifications";
+import { createPortalStyles } from "./portalStyles";
 import { DashboardData } from "./types";
 
 interface PortalDashboardScreenProps {
@@ -48,6 +48,8 @@ interface PortalDashboardScreenProps {
     avatarUrl?: string;
   };
   dashboardData?: DashboardData;
+  requestedTab?: "profile";
+  onTabRequestHandled?: () => void;
 }
 
 const BKSDA_FOREST = "#1e5433";
@@ -235,10 +237,6 @@ function formatTodayIndo(): string {
   return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-const PORTAL_FONT_FAMILY = Platform.select({
-  web: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  default: undefined,
-});
 
 function resolveMobilePhotoUrl(rawUrl?: string | null): string | null {
   if (!rawUrl) return null;
@@ -373,7 +371,7 @@ function base64DataUrlToBlobUrl(dataUrl: string): string | null {
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
   userProfile,
-  dashboardData,
+  dashboardData, requestedTab, onTabRequestHandled,
 }) => {
   const isScreenFocused = useIsFocused();
   const { isDark, toggleTheme, colors: themeColors } = useTheme();
@@ -402,8 +400,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [profileSetting, setProfileSetting] = useState<ProfileSetting | null>(null);
   const [profilePasswordVisible, setProfilePasswordVisible] = useState(false);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+  const [notificationsVisible, setNotificationsVisible] = useState(false);
+  const notifications = usePortalNotifications();
   const [profileNotice, setProfileNotice] = useState("");
   const [failedProfilePhoto, setFailedProfilePhoto] = useState<string | null>(null);
+  useFocusEffect(React.useCallback(() => {
+    if (requestedTab) {setActiveTab(requestedTab);onTabRequestHandled?.();}
+  }, [requestedTab, onTabRequestHandled]));
   const isDashboard = activeTab === "dashboard";
   const colors = React.useMemo(() => ({
     ...themeColors,
@@ -446,10 +449,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [cutiYearFilter, setCutiYearFilter] = useState<number | "all">("all");
 
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestPrintData[]>([]);
-  const [dismissedMockLeaveIds, setDismissedMockLeaveIds] = useState<(number | string)[]>([]);
   const [leaveBalance, setLeaveBalance] = useState<any>(null);
   const [cutiModalVisible, setCutiModalVisible] = useState(false);
-  const [cutiHistoryModalVisible, setCutiHistoryModalVisible] = useState(false);
   const [cutiPreviewItem, setCutiPreviewItem] = useState<LeaveRequestPrintData | null>(null);
   const [cutiPreviewVisible, setCutiPreviewVisible] = useState(false);
   const [cancelLeaveTarget, setCancelLeaveTarget] = useState<any>(null);
@@ -463,8 +464,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     blobUrl?: string | null;
     loading: boolean;
     error?: string | null;
-    isDemo?: boolean;
-    demoMeta?: { jenisCuti?: string; nomor?: string | null; periode?: string };
   }>({ visible: false, title: "", loading: false });
 
   // 1. Employee Leave Requests (GET /me/leave-requests)
@@ -498,7 +497,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   // 3. Employee Assigned Assets (GET /me/assets - correct endpoint for personal BMN)
   const [assignedAssetsList, setAssignedAssetsList] = useState<any[]>([]);
-  const [asetModalVisible, setAsetModalVisible] = useState(false);
 
   const fetchMyAssets = React.useCallback(async () => {
     try {
@@ -565,33 +563,33 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     user?.name ||
     employee?.name ||
     user?.employee?.name ||
-    "Drs. Hendra Setiawan, M.Si.";
+    "Pengguna BKSDA";
 
   const resolvedNip =
     userProfile?.nip ||
     employee?.nip ||
     user?.employee?.nip ||
     user?.username ||
-    "19820412 200801 1 003";
+    "—";
 
   const resolvedJabatan =
     employee?.position ||
     (user as any)?.position ||
-    "Polisi Kehutanan Ahli Madya";
+    "—";
 
   const resolvedSisaCuti =
     leaveBalance?.sisa_cuti_tersedia ??
     leaveBalance?.sisa_cuti_n ??
-    12;
+    null;
 
   const resolvedPangkat =
     (employee as any)?.rank ||
     (user as any)?.employee?.rank ||
     (user as any)?.rank ||
-    (user ? "-" : "Pembina (IV/a)");
+    "—";
 
   const resolvedSisaCutiLabel =
-    user && !employee && !leaveBalance ? "-" : `${resolvedSisaCuti} Hari`;
+    resolvedSisaCuti == null ? "—" : `${resolvedSisaCuti ?? "—"} Hari`;
 
   const profileEmployee = employee || user?.employee;
   const profileName = profileEmployee?.name || user?.name || "Pengguna BKSDA";
@@ -610,124 +608,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const shadowXs = PORTAL_5_TOKENS.shadow.xs(isDark);
   const shadowLg = PORTAL_5_TOKENS.shadow.lg(isDark);
 
-  // Mock ST items fallback when empty so user sees realistic state matching FigCraft
-  const displayStList = myStList.length > 0 ? myStList : user ? [] : [
-    {
-      id: 1,
-      nomor_surat: "ST.042/K.18/TU/KSA/03/2026",
-      maksud_tujuan: "Patroli Satwa Liar & Habitat Bekantan",
-      tempat_tujuan: "Muara Siran, Kutai Kartanegara",
-      sumber_dana: "dipa",
-      tanggal_mulai: "2026-11-04",
-      tanggal_selesai: "2026-11-08",
-      status: "approved",
-      kategori: "running",
-    },
-    {
-      id: 2,
-      nomor_surat: "ST.038/K.18/TU/KSA/02/2026",
-      maksud_tujuan: "Koordinasi Penegakan Hukum TSL Ditreskrimsus",
-      tempat_tujuan: "Polda Kaltim, Balikpapan",
-      sumber_dana: "dipa",
-      tanggal_mulai: "2026-10-20",
-      tanggal_selesai: "2026-10-22",
-      status: "completed",
-      kategori: "completed",
-    },
-    {
-      id: 3,
-      nomor_surat: "ST.031/K.18/TU/KSA/01/2026",
-      maksud_tujuan: "Verifikasi Tapak Batas Cagar Alam Teluk Adang",
-      tempat_tujuan: "SKW III Balikpapan",
-      sumber_dana: "folu",
-      tanggal_mulai: "2026-01-12",
-      tanggal_selesai: "2026-01-15",
-      status: "completed",
-      kategori: "completed",
-    },
-  ];
-
-  const fallbackLeaveRequests: any[] = [
-    {
-      id: 101,
-      nomor_pengajuan: "SI.042/K.18/TU/PEG/07/2026",
-      tanggal_pengajuan: "2026-07-08",
-      jenis_cuti: "Cuti Tahunan",
-      jenis_cuti_label: "Cuti Tahunan (5 Hari Kerja)",
-      tanggal_mulai: "2026-07-14",
-      tanggal_selesai: "2026-07-18",
-      jumlah_hari: 5,
-      alasan_cuti: "Keperluan silaturahmi keluarga tahunan ke Balikpapan",
-      catatan_atasan: "Disetujui sesuai jadwal kerja seksi.",
-      status: "DISETUJUI",
-      scan_surat_izin_path: "demo-surat-izin",
-      scan_surat_izin_nama: "SI_Cuti_Tahunan_2026.pdf",
-      scan_formulir_path: "demo-formulir",
-      scan_formulir_nama: "Formulir_Cuti_Tahunan_2026.pdf",
-      alamat_menjalankan_cuti: "Jl. Jenderal Sudirman No. 45 Balikpapan",
-      year: 2026,
-    },
-    {
-      id: 102,
-      nomor_pengajuan: "SI.019/K.18/TU/PEG/03/2026",
-      tanggal_pengajuan: "2026-03-01",
-      jenis_cuti: "Cuti Sakit",
-      jenis_cuti_label: "Cuti Sakit (3 Hari Kerja)",
-      tanggal_mulai: "2026-03-02",
-      tanggal_selesai: "2026-03-04",
-      jumlah_hari: 3,
-      alasan_cuti: "Rawat inap demam berdarah di RSUD AW Sjahranie Samarinda",
-      status: "DISETUJUI",
-      alamat_menjalankan_cuti: "Samarinda",
-      year: 2026,
-    },
-    {
-      id: 103,
-      tanggal_pengajuan: "2026-12-03",
-      jenis_cuti: "Cuti Karena Alasan Penting",
-      jenis_cuti_label: "Cuti Alasan Penting (3 Hari Kerja)",
-      tanggal_mulai: "2026-12-10",
-      tanggal_selesai: "2026-12-12",
-      jumlah_hari: 3,
-      alasan_cuti: "Mendampingi orang tua rujukan pengobatan medis",
-      status: "PENGAJUAN",
-      alamat_menjalankan_cuti: "Samarinda",
-      year: 2026,
-    },
-    {
-      id: 201,
-      nomor_pengajuan: "SI.088/K.18/TU/PEG/10/2025",
-      tanggal_pengajuan: "2025-10-14",
-      jenis_cuti: "Cuti Tahunan",
-      jenis_cuti_label: "Cuti Tahunan (4 Hari Kerja)",
-      tanggal_mulai: "2025-10-21",
-      tanggal_selesai: "2025-10-24",
-      jumlah_hari: 4,
-      alasan_cuti: "Urusan keluarga pasca penugasan dinas Muara Siran",
-      status: "DISETUJUI",
-      alamat_menjalankan_cuti: "Samarinda",
-      year: 2025,
-    },
-    {
-      id: 301,
-      nomor_pengajuan: "SI.071/K.18/TU/PEG/11/2024",
-      tanggal_pengajuan: "2024-11-08",
-      jenis_cuti: "Cuti Tahunan",
-      jenis_cuti_label: "Cuti Tahunan (3 Hari Kerja)",
-      tanggal_mulai: "2024-11-15",
-      tanggal_selesai: "2024-11-17",
-      jumlah_hari: 3,
-      alasan_cuti: "Pernikahan saudara kandung di Tenggarong",
-      status: "DISETUJUI",
-      alamat_menjalankan_cuti: "Kutai Kartanegara",
-      year: 2024,
-    },
-  ];
-
-  const isMockLeaveMode = !user && leaveRequests.length === 0;
-  const displayLeaveRequests = (isMockLeaveMode ? fallbackLeaveRequests : leaveRequests).filter(
-    (req: any) => !isMockLeaveMode || !dismissedMockLeaveIds.includes(req.id)
-  );
+  const displayStList = myStList;
+  const displayLeaveRequests = leaveRequests;
 
   const filteredBmnAssets = myAssetsList.filter((item: any) => {
     const q = bmnSearchQuery.toLowerCase().trim();
@@ -762,10 +644,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const activeBmnItems = bmnActiveTab === "aset" ? filteredBmnAssets : filteredBmnLoans;
 
   const cutiCurrentYear = new Date().getFullYear();
-  const cutiHakN = Number(leaveBalance?.hak_cuti_n ?? 12);
+  const cutiHakN = leaveBalance?.hak_cuti_n == null ? null : Number(leaveBalance.hak_cuti_n);
   const cutiSisaN1 = Number(leaveBalance?.hak_n1_diakui ?? leaveBalance?.sisa_cuti_n1 ?? 0);
   const cutiSisaN2 = Number(leaveBalance?.hak_n2_diakui ?? 0);
-  const cutiTerpakai = Number(leaveBalance?.cuti_terpakai_n0 ?? Math.max(0, cutiHakN - resolvedSisaCuti));
+  const cutiTerpakai = leaveBalance?.cuti_terpakai_n0 ?? (cutiHakN != null && resolvedSisaCuti != null ? Math.max(0, cutiHakN - resolvedSisaCuti) : null);
   const cutiPendingHari = Number(leaveBalance?.pending_cuti_tahunan ?? 0);
 
   const cutiYearCounts = displayLeaveRequests.reduce((acc: Record<number, number>, req: any) => {
@@ -798,7 +680,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   const handleOpenLeaveScan = React.useCallback(async (req: any, kind: "surat_izin" | "formulir") => {
     const isSuratIzin = kind === "surat_izin";
-    const rawPath = isSuratIzin ? (req.scan_surat_izin_path || req.scan_surat_path) : req.scan_formulir_path;
     const fileName = isSuratIzin
       ? (req.scan_surat_izin_nama || req.scan_surat_nama || "Surat_Izin_Cuti.pdf")
       : (req.scan_formulir_nama || "Formulir_Cuti.pdf");
@@ -806,27 +687,14 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       ? "Surat Izin Cuti Resmi (TTE Kepala Balai)"
       : "Scan Formulir Permohonan Cuti (TTD & Cap Balai)";
 
-    if (typeof rawPath === "string" && rawPath.startsWith("demo-")) {
-      setLeaveScanModal({
-        visible: true,
-        title,
-        fileName,
-        loading: false,
-        isDemo: true,
-        demoMeta: {
-          jenisCuti: req.jenis_cuti,
-          nomor: req.nomor_pengajuan,
-          periode: `${formatDateIndo(req.tanggal_mulai)} – ${formatDateIndo(req.tanggal_selesai)}`,
-        },
-      });
-      return;
-    }
-
     const endpoint = `/me/leave-requests/${req.id}/${isSuratIzin ? "scan-surat-izin" : "scan-formulir"}`;
     setLeaveScanModal({ visible: true, title, fileName, loading: true });
     try {
       const response = await apiClient.get<any>(endpoint, { params: { preview: 1 } });
       const dataUrl = response.data?.data_url || response.data?.data?.data_url;
+      if (typeof dataUrl !== "string" || !/^data:(application\/pdf|image\/(png|jpeg|webp));base64,[A-Za-z0-9+/=\r\n]+$/.test(dataUrl)) {
+        throw new Error("Format berkas scan tidak didukung.");
+      }
       const serverName = response.data?.file_name || response.data?.data?.file_name || fileName;
       const mimeType = String(response.data?.mime_type || response.data?.data?.mime_type || "application/pdf");
       const blobUrl =
@@ -844,7 +712,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         loading: false,
       });
     } catch (err: any) {
-      const msg = err?.response?.data?.message || "Berkas scan belum diunggah atau tidak ditemukan.";
+      const msg = err?.message || "Berkas scan belum diunggah atau tidak ditemukan.";
       setLeaveScanModal({
         visible: true,
         title,
@@ -857,11 +725,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   const handleConfirmCancelLeave = React.useCallback(async () => {
     if (!cancelLeaveTarget) return;
-    if (isMockLeaveMode) {
-      setDismissedMockLeaveIds((prev) => [...prev, cancelLeaveTarget.id]);
-      setCancelLeaveTarget(null);
-      return;
-    }
     setIsCancellingLeave(true);
     try {
       await apiClient.delete(`/me/leave-requests/${cancelLeaveTarget.id}`);
@@ -869,7 +732,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       fetchMyLeaveRequests();
       fetchMyLeaveBalance();
     } catch (err: any) {
-      const msg = err?.response?.data?.message || "Gagal membatalkan permohonan cuti.";
+      const msg = err?.message || "Gagal membatalkan permohonan cuti.";
       if (Platform.OS === "web" && typeof window !== "undefined") {
         window.alert(msg);
       } else {
@@ -878,7 +741,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     } finally {
       setIsCancellingLeave(false);
     }
-  }, [cancelLeaveTarget, isMockLeaveMode, fetchMyLeaveRequests, fetchMyLeaveBalance]);
+  }, [cancelLeaveTarget, fetchMyLeaveRequests, fetchMyLeaveBalance]);
 
   const renderLeaveCardActions = (req: any, beforeModalOpen?: () => void) => {
     const statusMeta = getLeaveStatusMeta(req);
@@ -1114,10 +977,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
             <TouchableOpacity
               style={[styles.headerIconBtn, styles.portalHeaderControl]}
-              activeOpacity={0.7}
+              activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Buka notifikasi"
+              onPress={() => {setNotificationsVisible(true);void notifications.refresh();}}
             >
               <Ionicons name="notifications-outline" size={r.size.iconMd} color="#ffffff" />
-              <View style={[styles.notifDot, { backgroundColor: colors.dangerSolid }]} />
+              {notifications.unread > 0 && <View style={[styles.notifDot, { backgroundColor: colors.dangerSolid }]} />}
             </TouchableOpacity>
 
           </View>
@@ -1686,7 +1550,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       <View style={styles.serviceMain}>
                         <Text style={[styles.serviceTitle, { color: colors.textDark }]}>Riwayat Pengajuan Cuti</Text>
                         <Text style={[styles.serviceSubtitle, { color: colors.textMuted }]}>
-                          {`Sisa Kuota: ${resolvedSisaCuti} Hari Kerja • ${displayLeaveRequests.length} Pengajuan Arsip`}
+                          {`Sisa Kuota: ${resolvedSisaCuti ?? "—"} Hari Kerja • ${displayLeaveRequests.length} Pengajuan Arsip`}
                         </Text>
                         <View style={[styles.serviceBadge, { backgroundColor: colors.warningBg, borderColor: colors.warningBorder }]}>
                           <Text style={[styles.serviceBadgeText, { color: colors.warningFg }]}>Buka Arsip Pertahun ›</Text>
@@ -2210,7 +2074,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   <View style={[styles.cutiHeroTopRow, { borderBottomColor: colors.glassBorder }]}>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.cutiHeroLabel, { color: colors.textMuted }]}>{`SISA KUOTA CUTI ${cutiCurrentYear}`}</Text>
-                      <Text style={[styles.cutiHeroValue, { color: colors.textDark }]}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
+                      <Text style={[styles.cutiHeroValue, { color: colors.textDark }]}>{`${resolvedSisaCuti ?? "—"} Hari Kerja`}</Text>
                       {cutiPendingHari > 0 && (
                         <Text style={[styles.cutiHeroPendingNote, { color: colors.textMuted }]}>
                           {`${cutiPendingHari} Hari sedang proses pengajuan`}
@@ -2230,15 +2094,15 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   <View style={styles.cutiQuotaStrip}>
                     <View style={[styles.cutiQuotaCell, { borderRightColor: colors.glassBorder }]}>
                       <Text style={[styles.cutiQuotaLabel, { color: colors.textMuted }]}>Hak Tahun N</Text>
-                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{`${cutiHakN} Hari`}</Text>
+                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{cutiHakN != null ? `${cutiHakN} Hari` : "—"}</Text>
                     </View>
                     <View style={[styles.cutiQuotaCell, { borderRightColor: colors.glassBorder }]}>
                       <Text style={[styles.cutiQuotaLabel, { color: colors.textMuted }]}>{cutiSisaN2 > 0 ? "Sisa N-1 & N-2" : "Sisa N-1"}</Text>
-                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{`${cutiSisaN1 + cutiSisaN2} Hari`}</Text>
+                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{leaveBalance && [leaveBalance.hak_n1_diakui, leaveBalance.sisa_cuti_n1, leaveBalance.hak_n2_diakui].some(value => value != null) ? `${cutiSisaN1 + cutiSisaN2} Hari` : "—"}</Text>
                     </View>
                     <View style={[styles.cutiQuotaCell, { borderRightWidth: 0 }]}>
                       <Text style={[styles.cutiQuotaLabel, { color: colors.textMuted }]}>Terpakai</Text>
-                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{`${cutiTerpakai} Hari`}</Text>
+                      <Text style={[styles.cutiQuotaVal, { color: colors.textDark }]}>{cutiTerpakai != null ? `${cutiTerpakai} Hari` : "—"}</Text>
                     </View>
                   </View>
                 </View>
@@ -2556,6 +2420,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         </TouchableOpacity>
       </View>
 
+      <PortalNotifications visible={notificationsVisible} model={notifications} onClose={() => setNotificationsVisible(false)} onSelect={type => {
+        if(type === "surat_tugas") setActiveTab("surattugas");
+        else if(type === "cuti" || type === "bmn") {setActiveTab("layanan");setLayananSubScreen(type === "cuti" ? "cuti" : "bmn");}
+      }} />
       <ConfirmModal visible={logoutModalVisible} title="Konfirmasi Logout"
         message="Apakah Anda yakin ingin keluar dari SuperApp BKSDA Kaltim?"
         confirmText="Ya, Keluar" cancelText="Batal" variant="danger"
@@ -2640,7 +2508,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               <View style={{ flex: 1 }}>
                 <Text style={[styles.modalOptionTitle, { color: colors.textDark }]}>Pengajuan Cuti Online</Text>
                 <Text style={[styles.modalOptionDesc, { color: colors.textMuted }]}>
-                  Cuti tahunan, sakit, melahirkan, atau alasan penting. Kuota Anda saat ini: {resolvedSisaCuti} Hari Kerja Ready.
+                  Cuti tahunan, sakit, melahirkan, atau alasan penting. Kuota Anda saat ini: {resolvedSisaCuti ?? "—"} Hari Kerja.
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={r.size.iconMd} color={colors.warningFg} />
@@ -2775,237 +2643,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       </Modal>
 
       {/* ========================================================================= */}
-      {/* ASET SAYA MODAL (PERSONAL ASSIGNED ASSETS LIST)                            */}
-      {/* ========================================================================= */}
-      <Modal
-        visible={asetModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setAsetModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setAsetModalVisible(false)}
-        >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }, shadowLg]}>
-            <View style={[styles.sheetHandle, { backgroundColor: colors.glassBorder }]} />
-
-            <View style={styles.menuModalHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.menuModalTitle, { color: colors.textDark }]}>Aset BMN Saya</Text>
-                <Text style={[styles.menuModalSubtitle, { color: colors.textMuted }]}>
-                  Barang Milik Negara yang tercatat resmi dalam penguasaan dinas Anda
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setAsetModalVisible(false)}
-                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
-              >
-                <Ionicons name="close" size={r.size.iconMd} color={colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={{ maxHeight: r.size.modalScrollMaxH }} showsVerticalScrollIndicator={false}>
-              {myAssetsList.length === 0 ? (
-                <View style={styles.emptyServiceContainer}>
-                  <Ionicons name="cube-outline" size={44} color={colors.textMuted} />
-                  <Text style={[styles.emptyServiceTitle, { color: colors.textDark }]}>Belum Ada Aset Terdaftar</Text>
-                  <Text style={[styles.emptyServiceSub, { color: colors.textMuted }]}>
-                    Belum ada Barang Milik Negara tetap yang dialokasikan resmi atas NIP/nama Anda.
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.modalListStack}>
-                  {myAssetsList.map((asset, idx) => {
-                    const kondisi = String(asset.kondisi || "B").toUpperCase();
-                    const kondisiPal = getTonePalette(colors, kondisi === "B" ? "success" : kondisi === "RR" ? "warning" : "danger");
-                    const kondisiLabel = kondisi === "B" ? "Baik" : kondisi === "RR" ? "Rusak Ringan" : "Rusak Berat";
-
-                    return (
-                      <View
-                        key={asset.id || idx}
-                        style={[
-                          styles.loanItemCard,
-                          {
-                            backgroundColor: colors.surfaceMuted,
-                            borderColor: colors.glassBorder,
-                          },
-                        ]}
-                      >
-                        <View style={styles.loanItemHeader}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={[styles.loanItemTitle, { color: colors.textDark }]}>
-                              {asset.nama_barang || "Barang Milik Negara"}
-                            </Text>
-                            <Text style={[styles.loanItemMeta, { color: colors.textMuted }]}>
-                              NUP: {asset.nup || "-"} • Kode: {asset.kode_barang || "-"}
-                            </Text>
-                          </View>
-                          <View
-                            style={[
-                              styles.loanStatusBadge,
-                              { backgroundColor: kondisiPal.bg, borderColor: kondisiPal.border },
-                            ]}
-                          >
-                            <Text style={[styles.loanStatusText, { color: kondisiPal.fg }]}>
-                              {kondisiLabel}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View style={[styles.loanDatesRow, { borderTopColor: colors.glassBorder }]}>
-                          <View style={styles.loanDateCol}>
-                            <Text style={[styles.loanDateLabel, { color: colors.textMuted }]}>MERK / TIPE</Text>
-                            <Text style={[styles.loanDateVal, { color: colors.textDark }]} numberOfLines={1}>
-                              {asset.merk_tipe || asset.merk || asset.tipe || "-"}
-                            </Text>
-                          </View>
-                          {asset.no_polisi && (
-                            <View style={styles.loanDateCol}>
-                              <Text style={[styles.loanDateLabel, { color: colors.textMuted }]}>NO. POLISI</Text>
-                              <Text style={[styles.loanDateVal, { color: colors.textDark }]}>
-                                {asset.no_polisi}
-                              </Text>
-                            </View>
-                          )}
-                          <View style={styles.loanDateCol}>
-                            <Text style={[styles.loanDateLabel, { color: colors.textMuted }]}>JENIS BMN</Text>
-                            <Text style={[styles.loanDateVal, { color: colors.textDark }]} numberOfLines={1}>
-                              {asset.jenis_bmn || "Inventaris"}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={[styles.cancelModalBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder, marginTop: 16 }]}
-              onPress={() => setAsetModalVisible(false)}
-            >
-              <Text style={[styles.cancelModalBtnText, { color: colors.textSecondary }]}>Tutup</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* ========================================================================= */}
-      {/* RIWAYAT PENGAJUAN CUTI MODAL                                              */}
-      {/* ========================================================================= */}
-      <Modal
-        visible={cutiHistoryModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setCutiHistoryModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setCutiHistoryModalVisible(false)}
-        >
-          <View style={[styles.menuModalContent, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder, maxHeight: "85%" }, shadowLg]}>
-            <View style={[styles.sheetHandle, { backgroundColor: colors.glassBorder }]} />
-
-            <View style={styles.menuModalHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.menuModalTitle, { color: colors.textDark }]}>Riwayat Pengajuan Cuti</Text>
-                <Text style={[styles.menuModalSubtitle, { color: colors.textMuted }]}>
-                  Sisa Kuota Cuti: {resolvedSisaCuti} Hari Kerja (Tahun {new Date().getFullYear()})
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setCutiHistoryModalVisible(false)}
-                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder }]}
-              >
-                <Ionicons name="close" size={r.size.iconMd} color={colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Quick Action: Ajukan Cuti Baru */}
-            <TouchableOpacity
-              style={[styles.ajukanCutiQuickBtn, { backgroundColor: colors.accentSolid }, shadowXs]}
-              onPress={() => {
-                setCutiHistoryModalVisible(false);
-                setCutiModalVisible(true);
-              }}
-            >
-              <Ionicons name="add-circle" size={r.size.iconMd} color={colors.accentOnSolid} style={styles.btnIcon} />
-              <Text style={[styles.ajukanCutiQuickText, { color: colors.accentOnSolid }]}>Ajukan Permohonan Cuti Baru</Text>
-            </TouchableOpacity>
-
-            <ScrollView style={{ maxHeight: r.size.modalScrollMaxH, marginTop: 12 }} showsVerticalScrollIndicator={false}>
-              {leaveRequests.length === 0 ? (
-                <View style={styles.emptyServiceContainer}>
-                  <Ionicons name="calendar-outline" size={44} color={colors.warningFg} />
-                  <Text style={[styles.emptyServiceTitle, { color: colors.textDark }]}>Belum Ada Pengajuan Cuti</Text>
-                  <Text style={[styles.emptyServiceSub, { color: colors.textMuted }]}>
-                    Anda belum pernah mengajukan cuti tahunan atau alasan penting tahun ini.
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.modalListStack}>
-                  {displayLeaveRequests.map((req: any, idx: number) => {
-                    const statusMeta = getLeaveStatusMeta(req);
-                    const badgePal = getTonePalette(colors, statusMeta.tone);
-
-                    return (
-                      <View
-                        key={req.id || idx}
-                        style={[
-                          styles.loanItemCard,
-                          {
-                            backgroundColor: colors.surfaceMuted,
-                            borderColor: colors.glassBorder,
-                          },
-                        ]}
-                      >
-                        <View style={styles.loanItemHeader}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={[styles.loanItemTitle, { color: colors.textDark }]}>
-                              {req.jenis_cuti || "Cuti Tahunan"}
-                            </Text>
-                            <Text style={[styles.loanItemMeta, { color: colors.textMuted }]}>
-                              {`${formatDateIndo(req.tanggal_mulai)} s/d ${formatDateIndo(req.tanggal_selesai)} (${req.jumlah_hari || 1} Hari)`}
-                            </Text>
-                          </View>
-                          <View
-                            style={[
-                              styles.loanStatusBadge,
-                              { backgroundColor: badgePal.bg, borderColor: badgePal.border },
-                            ]}
-                          >
-                            <Text style={[styles.loanStatusText, { color: badgePal.fg }]}>
-                              {statusMeta.label.toUpperCase()}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <Text style={[styles.leaveAlasanText, { color: colors.textSecondary }]} numberOfLines={2}>
-                          "{req.alasan_cuti || "Keperluan keluarga"}"
-                        </Text>
-
-                        {renderLeaveCardActions(req, () => setCutiHistoryModalVisible(false))}
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={[styles.cancelModalBtn, { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder, marginTop: 16 }]}
-              onPress={() => setCutiHistoryModalVisible(false)}
-            >
-              <Text style={[styles.cancelModalBtnText, { color: colors.textSecondary }]}>Tutup</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-      {/* ========================================================================= */}
       {/* SBM CALCULATOR MODAL                                                      */}
       {/* ========================================================================= */}
       <Modal
@@ -3086,7 +2723,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       {/* Formulir Pengajuan Cuti Baru Modal */}
       <FormulirCutiModal
         visible={cutiModalVisible}
-        sisaCuti={Number(leaveBalance?.sisa_cuti_dapat_diajukan ?? Math.max(0, resolvedSisaCuti - cutiPendingHari))}
+        balanceAvailable={resolvedSisaCuti != null}
+        sisaCuti={Number(leaveBalance?.sisa_cuti_dapat_diajukan ?? Math.max(0, (resolvedSisaCuti ?? 0) - cutiPendingHari))}
         pendingCutiHari={cutiPendingHari}
         onClose={() => setCutiModalVisible(false)}
         onSuccess={() => {
@@ -3181,14 +2819,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     Memuat berkas scan resmi...
                   </Text>
                 </View>
-              ) : leaveScanModal.isDemo ? (
-                <View style={styles.scanModalCenter}>
-                  <Ionicons name="document-attach-outline" size={r.size.iconEmpty} color={colors.accentFg} />
-                  <Text style={[styles.emptySubTitle, { color: colors.textDark }]}>Pratinjau Dokumen Resmi (Demo)</Text>
-                  <Text style={[styles.emptySubDesc, { color: colors.textMuted }]}>
-                    {`${leaveScanModal.demoMeta?.jenisCuti || "Cuti"} • ${leaveScanModal.demoMeta?.nomor || "-"}\nPeriode: ${leaveScanModal.demoMeta?.periode || "-"}\n\nFile PDF asli dapat dibuka langsung saat masuk menggunakan akun pegawai dengan unggahan scan aktif.`}
-                  </Text>
-                </View>
               ) : leaveScanModal.error ? (
                 <View style={styles.scanModalCenter}>
                   <Ionicons name="document-outline" size={r.size.iconEmpty} color={colors.warningFg} />
@@ -3267,1640 +2897,3 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     </View>
   );
 };
-
-function createPortalStyles(r: ResponsivePortalMetrics) {
-  const T = r.type;
-  const S = r.space;
-  const R = r.radius;
-
-  return StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    header: {
-      paddingHorizontal: S.x4,
-      paddingTop: Platform.OS === "web" ? S.x3 : S.x12,
-      paddingBottom: S.x3,
-      borderBottomWidth: 0,
-    },
-    headerInner: {
-      width: "100%",
-      maxWidth: r.size.maxContentWidth,
-      alignSelf: "center",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: S.x2,
-    },
-    contentWidthWrap: {
-      width: "100%",
-      maxWidth: r.size.maxContentWidth,
-      alignSelf: "center",
-    },
-    headerLeft: {
-      flexShrink: 1,
-      minWidth: 0,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    logoImage: {
-      width: S.x8,
-      height: S.x8,
-      marginRight: S.x2,
-    },
-    portalHeader: {
-      paddingHorizontal: 12,
-    },
-    portalHeaderInner: {
-      gap: 4,
-    },
-    portalHeaderRight: {
-      gap: 4,
-    },
-    portalHeaderLeft: {
-      flex: 1,
-      gap: 6,
-    },
-    headerLogoBadge: {
-      backgroundColor: "#ffffff",
-      borderRadius: R.inner,
-      padding: 4,
-    },
-    portalLogoImage: {
-      width: 40,
-      height: 40,
-      marginRight: 0,
-    },
-    portalBrandText: {
-      flex: 1,
-      minWidth: 0,
-      gap: 2,
-    },
-    portalMinistry: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: 14,
-      lineHeight: 18,
-      fontWeight: "700",
-      color: "#ffffff",
-    },
-    portalInstitution: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: 12,
-      lineHeight: 16,
-      fontWeight: "500",
-      color: "#e2efe4",
-    },
-    portalHeaderControl: {
-      backgroundColor: "rgba(255,255,255,0.12)",
-      borderColor: "rgba(255,255,255,0.24)",
-    },
-    headerRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: S.x2,
-    },
-    headerIconBtn: {
-      width: 48,
-      height: 48,
-      borderRadius: R.pill,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      position: "relative",
-    },
-    notifDot: {
-      position: "absolute",
-      top: S.x1,
-      right: S.x1,
-      width: S.x2,
-      height: S.x2,
-      borderRadius: R.pill,
-    },
-    scrollContent: {
-      paddingHorizontal: S.x4,
-      paddingTop: S.x4,
-      paddingBottom: r.size.bottomNavHeight + r.size.bottomNavBottom + S.x8,
-    },
-    portalBody: {
-      flex: 1,
-      minHeight: 0,
-      overflow: "hidden",
-      borderTopLeftRadius: R.card + S.x2,
-      borderTopRightRadius: R.card + S.x2,
-      // Cover fractional browser seams while keeping the content at its original position.
-      marginTop: Platform.OS === "web" ? -1 : 0,
-      paddingTop: Platform.OS === "web" ? 1 : 0,
-    },
-    portalScroll: {
-      flex: 1,
-    },
-    scrollContentCompact: {
-      flexGrow: 1,
-      paddingTop: S.x3,
-      paddingBottom: r.size.bottomNavHeight + r.size.bottomNavBottom + S.x6,
-    },
-
-    dashboardContentWidth: {
-      maxWidth: "100%",
-    },
-    dashboardPanelWidth: {
-      width: "100%",
-      maxWidth: r.size.maxContentWidth,
-      alignSelf: "center",
-    },
-    dashboardStack: {
-      gap: 0,
-    },
-    homeActivitySpacing: {
-      marginBottom: S.x3,
-    },
-    heroBanner: {
-      width: "100%",
-      maxWidth: r.size.maxContentWidth,
-      alignSelf: "center",
-      paddingTop: S.x2,
-      marginBottom: S.x4,
-    },
-    heroContent: {
-      width: "100%",
-      maxWidth: r.size.maxContentWidth,
-      alignSelf: "center",
-    },
-    heroHeadingRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: S.x3,
-      marginBottom: S.x4,
-    },
-    heroGreetingBody: {
-      flex: 1,
-      minWidth: 0,
-    },
-    heroSalutation: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      marginBottom: S.x1,
-    },
-    heroGreeting: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xl,
-      fontWeight: "700",
-      marginBottom: S.x2,
-    },
-    heroDate: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontVariant: ["tabular-nums"],
-    },
-    heroIdentityCard: {
-      borderRadius: R.inner,
-      borderWidth: 1,
-      padding: S.x3,
-    },
-    heroIdentityRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: S.x2,
-    },
-    heroIdentityBody: {
-      flex: 1,
-      minWidth: 0,
-    },
-    heroIdentityLabel: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      marginBottom: S.x1,
-    },
-    heroNipText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-    },
-    heroProfileIcon: {
-      width: S.x8,
-      height: S.x8,
-      borderRadius: R.inner,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    heroIdentityFooter: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: S.x2,
-      borderTopWidth: 1,
-      marginTop: S.x2,
-      paddingTop: S.x2,
-    },
-    heroPosition: {
-      flex: 1,
-      minWidth: 0,
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-    },
-
-    // Quick Stats 2x2 Grid (Pangkat, Sisa Cuti, Surat Tugas, Aset Saya)
-    quickStatsPanel: {
-      borderRadius: R.card,
-      borderWidth: 1,
-      overflow: "hidden",
-      marginBottom: S.x6,
-    },
-    summaryHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: S.x2,
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x3,
-      borderBottomWidth: 1,
-    },
-    summaryTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "700",
-    },
-    quickStatsGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-    },
-    quickStatCellWrapper: {
-      width: r.grid.quickStatCols === 1 ? "100%" : "50%",
-    },
-    quickStatTouchable: {
-      flex: 1,
-    },
-    quickStripCard: {
-      flex: 1,
-      minHeight: 64,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: S.x2,
-      padding: S.x3,
-    },
-    quickStripIcon: {
-      width: S.x8,
-      height: S.x8,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    quickStripBody: {
-      minWidth: 0,
-      flex: 1,
-    },
-    quickStripLabel: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-    },
-    quickStripValue: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
-    },
-
-    // CARD 2: Modul Akses System Container Card (concentric 24 = 16 + 8)
-    moduleSectionCard: {
-      marginBottom: S.x6,
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    cardSectionHeader: {
-      flexWrap: "wrap",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: S.x2,
-      paddingBottom: S.x2,
-      marginBottom: S.x2,
-      borderBottomWidth: 1,
-    },
-    sectionTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      letterSpacing: 0.6,
-    },
-    seeAllText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-    },
-    moduleGrid: {
-      gap: S.x2,
-    },
-    moduleRow: {
-      flexDirection: "row",
-      gap: S.x2,
-    },
-    moduleTileCard: {
-      flex: 1,
-      minWidth: 0,
-      minHeight: 64,
-      alignItems: "center",
-      paddingVertical: S.x2,
-      paddingHorizontal: S.x1,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      position: "relative",
-    },
-    moduleIconBadge: {
-      width: S.x8,
-      height: S.x8,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: S.x1,
-    },
-    moduleNewDot: {
-      position: "absolute",
-      top: S.x1,
-      right: S.x1,
-      width: S.x2,
-      height: S.x2,
-      borderRadius: R.pill,
-    },
-    moduleTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      textAlign: "center",
-    },
-
-    // CARD 3: Active duty featured card
-    moduleAuthorizedBadge: {
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    moduleAuthorizedBadgeText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
-    },
-    activeDutyCard: {
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    activeDutyHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: S.x2,
-      marginBottom: S.x2,
-    },
-    activeDutyBadge: {
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    activeDutyBadgeText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-    activeDutyNumber: {
-      flex: 1,
-      textAlign: "right",
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      fontVariant: ["tabular-nums"],
-    },
-    activeDutyTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "600",
-      marginBottom: S.x2,
-    },
-    activeDutyMetaStack: {
-      gap: S.x1,
-    },
-    metaItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: S.x2,
-    },
-    metaItemText: {
-      flex: 1,
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "400",
-      fontVariant: ["tabular-nums"],
-    },
-    activeDutyFooterDivider: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: S.x2,
-      borderTopWidth: 1,
-      paddingTop: S.x2,
-      marginTop: S.x2,
-    },
-    activeDutyFooterCaption: {
-      flex: 1,
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "400",
-      fontVariant: ["tabular-nums"],
-    },
-    activeDutyFooterAction: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: S.x1,
-    },
-
-    // Helpdesk TU Strip
-    helpdeskStrip: {
-      flexDirection: "row",
-      alignItems: "center",
-      borderWidth: 1,
-      borderRadius: R.card,
-      padding: S.x4,
-      marginBottom: S.x4,
-    },
-    stripIcon: {
-      marginRight: S.x3,
-    },
-    layananHelpdeskSpacing: {
-      marginTop: S.x6,
-      marginBottom: S.x4,
-    },
-    helpdeskIconCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: R.pill,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    helpdeskTitle: {
-      fontSize: T.sm,
-      fontWeight: "800",
-    },
-    helpdeskSub: {
-      fontSize: T.xs,
-      marginTop: S.x1,
-      lineHeight: r.lineHeight.body,
-    },
-
-    // Subpage headers
-    pageHeaderCol: {
-      marginBottom: S.x4,
-    },
-    pageMainTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xl,
-      fontWeight: "700",
-      letterSpacing: -0.2,
-    },
-    pageMainSubtitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      marginTop: S.x1,
-    },
-
-    // Filter segments (12 outer = 8 inner + 4 padding)
-    filterSegmentContainer: {
-      flexDirection: "row",
-      borderRadius: R.segment,
-      borderWidth: 1,
-      padding: S.x1,
-      marginBottom: S.x4,
-    },
-    filterSegmentBtn: {
-      flex: 1,
-      paddingVertical: S.x2,
-      alignItems: "center",
-      borderRadius: R.inner,
-    },
-    filterSegmentText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      fontVariant: ["tabular-nums"],
-    },
-    filterSegmentTextActive: {
-      fontWeight: "700",
-    },
-
-    listStack: {
-      gap: S.x6,
-    },
-
-    quickPromptStrip: {
-      flexDirection: "row",
-      alignItems: "center",
-      borderWidth: 1,
-      borderRadius: R.card,
-      padding: S.x4,
-      marginTop: S.x4,
-    },
-    quickPromptTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "600",
-    },
-    quickPromptSub: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      marginTop: S.x1,
-    },
-
-    // Layanan Service Cards
-    serviceStack: {
-      gap: Math.min(16, S.x4),
-    },
-    serviceCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    serviceIconBg: {
-      width: 44,
-      height: 44,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: S.x3,
-    },
-    serviceMain: {
-      flex: 1,
-    },
-    serviceTitle: {
-      fontSize: T.sm,
-      fontWeight: "800",
-    },
-    serviceSubtitle: {
-      fontSize: T.xs,
-      marginTop: S.x1,
-      marginBottom: S.x2,
-    },
-    serviceBadge: {
-      alignSelf: "flex-start",
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.inner,
-      borderWidth: 1,
-    },
-    serviceBadgeText: {
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-
-    // Profile Screen
-    profileHeroCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-      marginBottom: S.x3,
-    },
-    profileAvatarBig: {
-      width: r.size.profileAvatar,
-      height: r.size.profileAvatar,
-      borderRadius: R.pill,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: S.x4,
-    },
-    profileAvatarText: {
-      fontSize: T.xl,
-      fontWeight: "800",
-    },
-    profilePhoto: {width:"100%",height:"100%",borderRadius:R.pill},
-    profileCamera: {position:"absolute",bottom:0,right:0,width:26,height:26,borderRadius:13,borderWidth:1,alignItems:"center",justifyContent:"center"},
-    profileContactCard: {padding:S.x4,borderWidth:1,borderRadius:R.card,marginBottom:S.x4,gap:S.x3},
-    profileContactHeading: {flexDirection:"row",alignItems:"center",gap:S.x2},
-    profileContactTitle: {fontSize:T.sm,fontWeight:"700",flex:1},
-    profileEditButton: {width:44,height:44,alignItems:"center",justifyContent:"center"},
-    profileContactRow: {gap:4},profileContactLabel: {fontSize:T.xs},profileContactValue: {fontSize:T.sm,lineHeight:20},
-    profileHeroMain: {
-      flex: 1,
-    },
-    profileHeroName: {
-      fontSize: T.sm,
-      fontWeight: "800",
-    },
-    profileHeroNip: {
-      fontSize: T.xs,
-      fontVariant: ["tabular-nums"],
-      marginTop: S.x1,
-    },
-    profileHeroJabatan: {
-      fontSize: T.xs,
-      fontWeight: "700",
-      marginTop: S.x1,
-    },
-    profileHeroUnit: {
-      fontSize: T.xs,
-      marginTop: S.x1,
-    },
-    profileMetricsRow: {
-      flexDirection: "row",
-      gap: S.x3,
-      marginBottom: Math.min(20, S.x6),
-    },
-    profileMetricBox: {
-      flex: 1,
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    profileMetricLabel: {
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-    profileMetricValue: {
-      fontSize: T.sm,
-      fontWeight: "800",
-      fontVariant: ["tabular-nums"],
-      marginTop: S.x1,
-    },
-    profileMenuStack: {
-      gap: Math.min(12, S.x3),
-    },
-    profileMenuItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    profileMenuItemLabel: {
-      fontSize: T.sm,
-      fontWeight: "600",
-      flex: 1,
-    },
-    logoutBtn: {
-      marginTop: 24,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderRadius: R.card,
-      padding: S.x4,
-    },
-    logoutBtnText: {
-      fontSize: T.sm,
-      fontWeight: "700",
-    },
-
-    // Bottom Navigation Bar
-    bottomNavContainer: {
-      position: "absolute",
-      bottom: r.size.bottomNavBottom,
-      left: S.x4,
-      right: S.x4,
-      height: r.size.bottomNavHeight,
-      borderRadius: R.pill,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: S.x2,
-      borderWidth: 1,
-    },
-    navItem: {
-      alignItems: "center",
-      justifyContent: "center",
-      height: "100%",
-      flex: 1,
-    },
-    navText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      marginTop: S.x1,
-    },
-    navIconWrapper: {
-      position: "relative",
-    },
-    navBadge: {
-      position: "absolute",
-      top: -S.x1,
-      right: -S.x1,
-      width: S.x2,
-      height: S.x2,
-      borderRadius: R.pill,
-    },
-    fabWrapper: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    fabButton: {
-      width: r.size.fab,
-      height: r.size.fab,
-      borderRadius: R.pill,
-      alignItems: "center",
-      justifyContent: "center",
-      marginTop: -28,
-      borderWidth: 4,
-    },
-
-    // Bottom Sheet Modal
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(15, 23, 42, 0.4)",
-      justifyContent: "flex-end",
-    },
-    menuModalContent: {
-      width: "100%",
-      maxWidth: r.size.maxContentWidth,
-      alignSelf: "center",
-      padding: S.x4,
-      borderTopLeftRadius: R.card,
-      borderTopRightRadius: R.card,
-      borderWidth: 1,
-      borderBottomWidth: 0,
-    },
-    sheetHandle: {
-      width: 44,
-      height: S.x1,
-      borderRadius: R.bar,
-      alignSelf: "center",
-      marginBottom: S.x4,
-    },
-    menuModalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      gap: S.x3,
-      marginBottom: S.x4,
-    },
-    menuModalTitle: {
-      fontSize: T.xl,
-      fontWeight: "800",
-    },
-    menuModalSubtitle: {
-      fontSize: T.xs,
-      marginTop: S.x1,
-    },
-    modalCloseBtn: {
-      width: 48,
-      height: 48,
-      borderRadius: R.pill,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    modalOptionCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-      marginBottom: S.x3,
-    },
-    modalOptionIconBg: {
-      width: 44,
-      height: 44,
-      borderRadius: R.inner,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: S.x3,
-    },
-    modalOptionTitle: {
-      fontSize: T.sm,
-      fontWeight: "800",
-      marginBottom: S.x1,
-    },
-    modalOptionDesc: {
-      fontSize: T.xs,
-      lineHeight: r.lineHeight.body,
-    },
-    cancelModalBtn: {
-      borderWidth: 1,
-      borderRadius: R.inner,
-      paddingVertical: S.x3,
-      alignItems: "center",
-      marginTop: S.x1,
-    },
-    cancelModalBtnText: {
-      fontSize: T.sm,
-      fontWeight: "700",
-    },
-
-    // SBM Modal Styles
-    sbmStack: {
-      gap: S.x3,
-      marginVertical: S.x2,
-    },
-    sbmRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    sbmLabel: {
-      fontSize: T.xs,
-      fontWeight: "500",
-    },
-    sbmVal: {
-      fontSize: T.xs,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-    },
-    sbmDivider: {
-      height: 1,
-      marginVertical: S.x1,
-    },
-    sbmTotalLabel: {
-      fontSize: T.sm,
-      fontWeight: "800",
-    },
-    sbmTotalVal: {
-      fontSize: T.sm,
-      fontWeight: "800",
-      fontVariant: ["tabular-nums"],
-    },
-
-    // Service Modal Styles (Loans, Assets, Leave History)
-    emptyServiceContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: S.x8,
-      paddingHorizontal: S.x4,
-    },
-    emptyServiceTitle: {
-      fontSize: T.sm,
-      fontWeight: "800",
-      marginTop: S.x3,
-      marginBottom: S.x1,
-    },
-    emptyServiceSub: {
-      fontSize: T.xs,
-      textAlign: "center",
-      lineHeight: r.lineHeight.body,
-    },
-    modalListStack: {
-      gap: S.x3,
-      marginVertical: S.x2,
-    },
-    loanItemCard: {
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    loanItemHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      gap: S.x2,
-    },
-    loanItemTitle: {
-      fontSize: T.sm,
-      fontWeight: "800",
-      lineHeight: r.lineHeight.body,
-    },
-    loanItemMeta: {
-      fontSize: T.xs,
-      fontVariant: ["tabular-nums"],
-      marginTop: S.x1,
-      fontWeight: "500",
-    },
-    loanStatusBadge: {
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.inner,
-      borderWidth: 1,
-    },
-    loanStatusText: {
-      fontSize: T.xs,
-      fontWeight: "800",
-    },
-    loanDatesRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: S.x3,
-      paddingTop: S.x2,
-      borderTopWidth: 1,
-      gap: S.x2,
-    },
-    loanDateCol: {
-      flex: 1,
-    },
-    loanDateLabel: {
-      fontSize: T.xs,
-      fontWeight: "700",
-      textTransform: "uppercase",
-    },
-    loanDateVal: {
-      fontSize: T.xs,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-      marginTop: S.x1,
-    },
-    ajukanCutiQuickBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: S.x3,
-      borderRadius: R.inner,
-      marginTop: S.x2,
-    },
-    ajukanCutiQuickText: {
-      fontSize: T.sm,
-      fontWeight: "700",
-    },
-    leaveAlasanText: {
-      fontSize: T.xs,
-      fontStyle: "italic",
-      marginTop: S.x2,
-      lineHeight: r.lineHeight.body,
-    },
-
-    // Dedicated Sub-Screens Styles (BMN & Cuti)
-    subScreenHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: S.x4,
-      gap: S.x3,
-    },
-    subScreenBackBtn: {
-      width: 48,
-      height: 48,
-      borderRadius: R.pill,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    subScreenTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xl,
-      fontWeight: "700",
-      letterSpacing: -0.2,
-    },
-    subScreenSubtitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      marginTop: S.x1,
-    },
-    bmnSegmentedWrapper: {
-      flexDirection: "row",
-      borderRadius: R.segment,
-      borderWidth: 1,
-      padding: S.x1,
-      marginBottom: S.x3,
-    },
-    bmnSegmentBtn: {
-      flex: 1,
-      paddingVertical: S.x2,
-      alignItems: "center",
-      borderRadius: R.inner,
-    },
-    bmnSegmentText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
-    },
-    bmnSegmentTextActive: {
-      fontWeight: "700",
-    },
-    searchBarWrapper: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x2,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      marginBottom: S.x3,
-    },
-    searchIcon: {
-      marginRight: S.x2,
-    },
-    searchInput: {
-      flex: 1,
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      padding: 0,
-    },
-    catPillScrollView: {
-      marginBottom: S.x2,
-    },
-    catPillContent: {
-      gap: S.x2,
-      paddingHorizontal: S.x1,
-    },
-    catPillBtn: {
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x2,
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    catPillText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      fontVariant: ["tabular-nums"],
-    },
-    catPillTextActive: {
-      fontWeight: "700",
-    },
-    bmnViewToolbar: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: S.x2,
-      marginTop: S.x1,
-    },
-    bmnViewToggleBox: {
-      flexDirection: "row",
-      alignItems: "center",
-      padding: S.x1,
-      borderRadius: R.segment,
-      borderWidth: 1,
-      gap: S.x1,
-    },
-    bmnViewToggleBtn: {
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.inner,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    bmnGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      alignItems: "stretch",
-      marginHorizontal: -S.x1,
-      marginTop: S.x3,
-    },
-    bmnGridCol: {
-      width: `${100 / r.grid.bmnCols}%`,
-      paddingHorizontal: S.x1,
-      marginBottom: S.x2,
-    },
-    bmnGridCard: {
-      flex: 1,
-      borderRadius: R.segment,
-      borderWidth: 1,
-      overflow: "hidden",
-    },
-    bmnGridPhotoWrap: {
-      height: r.size.bmnPhotoHeight,
-      width: "100%",
-      borderBottomWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      position: "relative",
-      overflow: "hidden",
-    },
-    bmnGridPhoto: {
-      width: "100%",
-      height: "100%",
-    },
-    bmnGridNoPhoto: {
-      alignItems: "center",
-      justifyContent: "center",
-      gap: S.x1,
-      padding: S.x2,
-    },
-    bmnGridNoPhotoText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-    },
-    bmnGridPlateBadge: {
-      position: "absolute",
-      top: S.x1,
-      right: S.x1,
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    bmnGridPlateText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-    },
-    bmnGridHeroBadge: {
-      position: "absolute",
-      bottom: S.x1,
-      left: S.x1,
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    bmnGridHeroBadgeText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-    bmnGridBody: {
-      flex: 1,
-      justifyContent: "space-between",
-      padding: S.x2,
-      gap: S.x2,
-    },
-    bmnGridTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-      lineHeight: r.lineHeight.tight,
-    },
-    bmnGridSub: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "400",
-      lineHeight: r.lineHeight.tight,
-      marginTop: S.x1,
-    },
-    bmnGridBottom: {
-      gap: S.x2,
-    },
-    bmnGridMetaBox: {
-      padding: S.x2,
-      borderRadius: R.bar,
-      borderWidth: 1,
-      gap: S.x1,
-    },
-    bmnGridMetaRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: S.x1,
-    },
-    bmnGridMetaKey: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-    },
-    bmnGridMetaVal: {
-      flex: 1,
-      textAlign: "right",
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
-    },
-    bmnGridFooter: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: S.x1,
-      paddingTop: S.x2,
-      borderTopWidth: 1,
-    },
-    bmnGridFooterIdCol: {
-      flex: 1,
-    },
-    bmnGridCode: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "400",
-      fontVariant: ["tabular-nums"],
-    },
-    bmnGridNup: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-    },
-    bmnGridCondPill: {
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    bmnGridCondText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-    },
-    bmnListStack: {
-      gap: S.x3,
-      marginTop: S.x3,
-    },
-    bmnThumbImg: {
-      width: "100%",
-      height: "100%",
-      borderRadius: R.inner,
-    },
-    bmnDetailCard: {
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    bmnDetailHeader: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: S.x3,
-    },
-    bmnIconBox: {
-      width: 44,
-      height: 44,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    bmnItemTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "600",
-      lineHeight: r.lineHeight.body,
-    },
-    bmnItemCode: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontVariant: ["tabular-nums"],
-      marginTop: S.x1,
-    },
-    bmnItemSub: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      marginTop: S.x1,
-    },
-    bmnConditionBadge: {
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x1,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      alignSelf: "flex-start",
-    },
-    bmnConditionText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-    bmnLocationRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: S.x2,
-      paddingTop: S.x2,
-      borderTopWidth: 1,
-    },
-    inlineIcon: {
-      marginRight: S.x1,
-    },
-    btnIcon: {
-      marginRight: S.x2,
-    },
-    bmnLocationText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-    },
-    loanMetaGrid: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginTop: S.x3,
-      paddingTop: S.x2,
-      borderTopWidth: 1,
-      gap: S.x2,
-    },
-    loanMetaCol: {
-      flex: 1,
-    },
-    loanMetaLabel: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      textTransform: "uppercase",
-    },
-    loanMetaVal: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
-      marginTop: S.x1,
-    },
-    cutiHeroCard: {
-      borderWidth: 1,
-      borderRadius: R.card,
-      padding: S.x4,
-      marginBottom: S.x3,
-      gap: S.x3,
-    },
-    cutiHeroTopRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      gap: S.x3,
-      paddingBottom: S.x3,
-      borderBottomWidth: 1,
-    },
-    cutiHeroLabel: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      letterSpacing: 0.4,
-    },
-    cutiHeroValue: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xxl,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-      marginTop: S.x1,
-    },
-    cutiHeroPendingNote: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      marginTop: S.x1,
-    },
-    cutiHeroActionBtn: {
-      borderWidth: 1,
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x2,
-      borderRadius: R.inner,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    cutiHeroActionText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-    cutiQuotaStrip: {
-      flexDirection: "row",
-      gap: S.x2,
-    },
-    cutiQuotaCell: {
-      flex: 1,
-      borderRightWidth: 1,
-      paddingHorizontal: S.x2,
-      paddingVertical: S.x2,
-      gap: S.x1,
-    },
-    cutiQuotaLabel: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-    },
-    cutiQuotaVal: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-    },
-    yearPillsContainer: {
-      gap: S.x2,
-      paddingHorizontal: S.x1,
-    },
-    yearPillBtn: {
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x2,
-      alignItems: "center",
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    yearPillText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "500",
-      fontVariant: ["tabular-nums"],
-    },
-    yearPillTextActive: {
-      fontWeight: "700",
-    },
-    leaveListGap: {
-      marginTop: S.x3,
-    },
-    leaveDetailCard: {
-      padding: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-      gap: S.x2,
-    },
-    leaveCardHeader: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      gap: S.x2,
-    },
-    leaveTitleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: S.x2,
-    },
-    leaveItemTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.sm,
-      fontWeight: "700",
-    },
-    leaveNomorText: {
-      marginTop: S.x2,
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
-    },
-    leaveNomorEmpty: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontStyle: "italic",
-      marginTop: S.x1,
-    },
-    leaveDaysPill: {
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x1,
-      borderRadius: R.pill,
-      borderWidth: 1,
-    },
-    leaveDaysPillText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-      fontVariant: ["tabular-nums"],
-    },
-    leavePeriodBox: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x2,
-      borderRadius: R.inner,
-      borderWidth: 1,
-    },
-    leaveDateText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "600",
-      fontVariant: ["tabular-nums"],
-    },
-    leaveAlasanFullText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      lineHeight: r.lineHeight.body,
-    },
-    leaveAlasanLabel: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontWeight: "600",
-    },
-    leaveApprovalNote: {
-      padding: S.x2,
-      borderRadius: R.inner,
-      borderWidth: 1,
-    },
-    leaveApprovalNoteText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      lineHeight: r.lineHeight.body,
-    },
-    leaveApprovalNoteStrong: {
-      fontWeight: "700",
-    },
-    leaveCardFooter: {
-      paddingTop: S.x2,
-      borderTopWidth: 1,
-      gap: S.x2,
-    },
-    leaveAppliedDate: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontVariant: ["tabular-nums"],
-    },
-    leaveCardActions: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "flex-end",
-      gap: S.x2,
-    },
-    leavePrintOfficialBtn: {
-      minHeight: 44,
-      justifyContent: "center",
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: S.x3,
-      paddingVertical: S.x2,
-      borderRadius: R.inner,
-      borderWidth: 1,
-    },
-    leavePrintOfficialText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-    modalOverlayCenter: {
-      flex: 1,
-      backgroundColor: "rgba(15, 23, 42, 0.55)",
-      justifyContent: "center",
-      alignItems: "center",
-      padding: S.x4,
-    },
-    confirmModalCard: {
-      width: "100%",
-      maxWidth: 400,
-      borderRadius: R.card,
-      borderWidth: 1,
-      padding: S.x4,
-      gap: S.x3,
-    },
-    confirmIconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    confirmModalTitle: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xl,
-      fontWeight: "700",
-    },
-    confirmModalDesc: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      lineHeight: r.lineHeight.body,
-    },
-    confirmModalActions: {
-      flexDirection: "row",
-      gap: S.x2,
-      marginTop: S.x1,
-    },
-    confirmModalBtn: {
-      flex: 1,
-      paddingVertical: S.x2,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    confirmModalBtnText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-      fontWeight: "700",
-    },
-    scanModalSheet: {
-      width: "100%",
-      maxWidth: r.size.maxContentWidth,
-      alignSelf: "center",
-      borderTopLeftRadius: R.card,
-      borderTopRightRadius: R.card,
-      borderWidth: 1,
-      padding: S.x4,
-      maxHeight: "88%",
-      gap: S.x3,
-    },
-    scanModalBody: {
-      height: r.size.scanBodyHeight,
-      borderRadius: R.inner,
-      borderWidth: 1,
-      overflow: "hidden",
-      padding: S.x2,
-    },
-    scanModalCenter: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: S.x4,
-      gap: S.x2,
-    },
-    scanStatusText: {
-      fontFamily: PORTAL_FONT_FAMILY,
-      fontSize: T.xs,
-    },
-    scanPreviewImg: {
-      width: "100%",
-      height: "100%",
-    },
-    scanOpenNativeBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: S.x4,
-      paddingVertical: S.x2,
-      borderRadius: R.inner,
-      marginTop: S.x2,
-    },
-    emptySubStateCard: {
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: S.x8,
-      paddingHorizontal: S.x4,
-      borderRadius: R.card,
-      borderWidth: 1,
-    },
-    emptySubTitle: {
-      fontSize: T.sm,
-      fontWeight: "700",
-      marginTop: S.x2,
-    },
-    emptySubDesc: {
-      fontSize: T.xs,
-      textAlign: "center",
-      marginTop: S.x1,
-      lineHeight: r.lineHeight.body,
-    },
-  });
-}

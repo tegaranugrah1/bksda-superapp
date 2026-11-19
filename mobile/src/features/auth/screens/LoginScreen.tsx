@@ -17,14 +17,18 @@ import { RADIUS, SHADOWS } from "../../../theme";
 import { GlassCard } from "../../../components/ui/GlassCard";
 import { EmeraldButton } from "../../../components/ui/EmeraldButton";
 import { NotificationModal } from "../../../components/ui/NotificationModal";
+import { ProfileSheet, ProfileSaveButton, profileStyles as otpStyles } from "@/features/profile/ProfileSheet";
 import { useAuth } from "../AuthProvider";
 import { useTheme, type ThemeColors } from "../../../theme/ThemeContext";
 
 export default function LoginScreen() {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, twoFactorChallenge, verifyTwoFactor, cancelTwoFactor } = useAuth();
   const { isDark, toggleTheme, colors } = useTheme();
   const { width } = useWindowDimensions();
   const styles = React.useMemo(() => createLoginStyles(isDark, colors, width), [isDark, colors, width]);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const otpLock = useRef(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -73,6 +77,7 @@ export default function LoginScreen() {
 
     try {
       await login(username.trim(), password);
+      setPassword("");
     } catch (err: any) {
       const rawMsg = err?.message || "";
       const displayMsg =
@@ -86,6 +91,17 @@ export default function LoginScreen() {
     }
   };
 
+  const submitOtp = async () => {
+    if (otpLock.current) return;
+    if (!otp.trim()) {setOtpError("Masukkan kode authenticator atau kode pemulihan.");return;}
+    otpLock.current = true; setIsSubmitting(true); setOtpError("");
+    try {await verifyTwoFactor(otp.trim());setOtp("");}
+    catch (failure: any) {
+      if (failure?.fieldErrors?.challenge_token) {cancelTwoFactor();setOtp("");setErrorMessage(failure.fieldErrors.challenge_token.join(" "));}
+      else setOtpError(Object.values(failure?.fieldErrors || {}).flat().join(" ") || failure?.message || "Kode belum dapat diverifikasi.");
+    } finally {otpLock.current = false;setIsSubmitting(false);}
+  };
+
   const isBusy = isSubmitting || isLoading;
 
   return (
@@ -94,6 +110,12 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
+      <ProfileSheet visible={!!twoFactorChallenge} title="Verifikasi dua langkah" busy={isBusy} onClose={() => {cancelTwoFactor();setOtp("");setOtpError("");}}>
+        <Text style={[otpStyles.text,{color:colors.textMuted}]}>Masukkan kode dari authenticator atau salah satu kode pemulihan akun Anda.</Text>
+        {!!otpError && <Text accessibilityRole="alert" style={[otpStyles.text,{color:colors.dangerFg}]}>{otpError}</Text>}
+        <TextInput accessibilityLabel="Kode verifikasi 2FA" value={otp} onChangeText={setOtp} autoCapitalize="none" autoCorrect={false} maxLength={32} editable={!isBusy} onSubmitEditing={() => void submitOtp()} style={[otpStyles.input,{color:colors.textDark,borderColor:colors.borderControl}]} />
+        <ProfileSaveButton label="Verifikasi dan masuk" busy={isBusy} onPress={() => void submitOtp()} />
+      </ProfileSheet>
       <BlurTargetView ref={backgroundRef} style={StyleSheet.absoluteFill} pointerEvents="none">
         <Image
           source={require("../../../../assets/sangalaki.png")}

@@ -9657,3 +9657,16 @@ ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advi
     - **Verifikasi & Runnable Self-Check (`frontend/tests/diktum-capitalization-check.cjs`)**:
       - 5/5 assertions lulus (100% PASS) memvalidasi kapitalisasi huruf depan, akronim BMN/SKW, preposisi tengah, teks miring markdown, serta pemformatan diktum baik dari kolom terpisah maupun dari kalimat mentah utuh.
       - Kompilasi TypeScript Next.js (`npx tsc --noEmit`): 0 error.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 174 Perbaikan Temuan dan Refactor Portal Mobile Tahap 1
+
+- Atas persetujuan pengguna, menangani autentikasi 2FA, kewajiban keamanan akun, cleanup sesi pada 401/nonaktif, token browser di memori + pemulihan cookie HttpOnly, konfigurasi HTTPS/WSS dan pembatasan origin request. Native tetap SecureStore; logout gagal di server tetap mengakhiri sesi lokal dan tidak memulihkannya otomatis pada reload. Token realtime dipakai ulang dari sesi server terenkripsi selama masih valid agar reload tidak memenuhi batas sesi perangkat.
+- Mengarahkan rute profil lama ke profil portal, menghapus implementasi profil duplikat, modal aset/riwayat tak terjangkau dan data tugas/cuti contoh. Saldo cuti yang belum tersedia tidak diganti 12 hari. Memindahkan stylesheet portal verbatim; fungsi styles sama persis terhadap checkpoint b9a2aa59. Desain, warna, bentuk kartu dan spacing dipertahankan; komponen utama dari 4.906 menjadi sekitar 2.900 baris.
+- Menghubungkan lonceng notifikasi dengan daftar/status baca/API milik pengguna. Memperbaiki penerima Reverb agar mencakup admin module_roles sesuai pemeriksaan otorisasi/token aktif. Metadata notifikasi tidak lagi hilang pada normalisasi.
+- Memperbaiki preview/cetak browser dan native, escaping data dokumen, CSP/navigasi WebView, URL gambar, PDF dengan MIME sesuai dan error terlihat. Tombol laporan menjalankan cetak/simpan seperti alur web yang tersedia; tidak mengklaim pengiriman laporan ke server.
+- Membatasi hasil konflik anonim ke ketersediaan + pesan umum tanpa rentang tanggal/nama/jenis cuti tersimpan; anonim tidak dapat mengecualikan surat dari pemeriksaan. Banner web mempertahankan gaya dan mendukung pesan umum. Detail login mengikuti kebijakan operasional sebelumnya.
+- Analisis statis TypeScript mobile/frontend 0 diagnostik, sintaks PHP valid, dan perbandingan stylesheet identik. Regression test auth/storage/API/files/profile/Reverb/backend dan fixture browser diperbarui. Hasil akhir belum menjalani Jest/PHPUnit/browser/perangkat; sandbox OS yang diwajibkan security-audit belum tersedia, sehingga tidak mengklaim tes runtime lulus. Rincian dan rencana verifikasi: docs/mobile-portal-refactor.md.
+- Pengguna menyetujui checkpoint Bagian 174. Perubahan disimpan sebagai commit lokal perbaikan keamanan dan refactor portal mobile tahap 1, dengan basis b9a2aa59; belum di-push. Desain tetap dipertahankan. Pemisahan render tab/hook data berikutnya menunggu regresi runtime tahap ini.
+
+- Graph kode Graphify diperbarui setelah perubahan akhir: 15.737 node, 29.567 edge, 1.032 komunitas; pembaruan AST tanpa LLM. Normalisasi akhir baris report mengikuti repository.

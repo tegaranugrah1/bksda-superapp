@@ -1,23 +1,10 @@
 import React from 'react';
-import { ProfileScreen as RichProfileScreen } from '../ProfileScreen';
+import { useFocusEffect } from '@react-navigation/native';
 
+// Keep the registered route compatible while using the portal's single profile UI.
 export default function ProfileScreen({ navigation }: any) {
-  return (
-    <RichProfileScreen
-      onBack={() => {
-        if (navigation) {
-          navigation.navigate('Dashboard');
-        }
-      }}
-      onNavigateToModule={(moduleKey) => {
-        if (navigation) {
-          if (moduleKey === 'home') navigation.navigate('Dashboard');
-          else if (moduleKey === 'bmn') navigation.navigate('BmnMain');
-          else if (moduleKey === 'surat') navigation.navigate('Surat');
-          else if (moduleKey === 'inventory') navigation.navigate('Inventory');
-          else if (moduleKey === 'profile') navigation.navigate('Profile');
-        }
-      }}
-    />
-  );
+  useFocusEffect(React.useCallback(() => {
+    navigation?.navigate('Dashboard', { portalTab: 'profile' });
+  }, [navigation]));
+  return null;
 }

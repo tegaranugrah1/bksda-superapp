@@ -110,4 +110,8 @@ describe('normalizeResponse', () => {
       message: 'Login success',
     });
   });
+  it('retains the unread notification count while normalizing pagination', () => {
+    expect(normalizeResponse({ data: [], meta: { unread_count: 4 } }).meta).toMatchObject({ unread_count: 4 });
+  });
+
 });

@@ -3,18 +3,18 @@ import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, S
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme/ThemeContext';
 
-export function ProfileSheet({ visible, title, busy, onClose, children }: {
-  visible: boolean; title: string; busy: boolean; onClose: () => void; children: React.ReactNode;
+export function ProfileSheet({ visible, title, busy, onClose, children, closable = true }: {
+  visible: boolean; title: string; busy: boolean; closable?: boolean; onClose: () => void; children: React.ReactNode;
 }) {
   const { colors: c } = useTheme();
-  return <Modal visible={visible} transparent animationType="fade" onRequestClose={() => { if (!busy) onClose(); }}>
+  return <Modal visible={visible} transparent animationType="fade" onRequestClose={() => { if (!busy && closable) onClose(); }}>
     <KeyboardAvoidingView style={profileStyles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[profileStyles.sheet, { backgroundColor: c.cardBg, borderColor: c.glassBorder }]}>
         <View style={profileStyles.heading}>
           <Text accessibilityRole="header" style={[profileStyles.title, { color: c.textDark }]}>{title}</Text>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Tutup ${title}`} disabled={busy} onPress={onClose} style={profileStyles.iconButton}>
+          {closable && <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Tutup ${title}`} disabled={busy} onPress={onClose} style={profileStyles.iconButton}>
             <Ionicons name="close" size={22} color={c.textMuted} />
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </View>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={profileStyles.content}>{children}</ScrollView>
       </View>

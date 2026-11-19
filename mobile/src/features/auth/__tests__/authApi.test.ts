@@ -1,4 +1,6 @@
-import { login, getMe, logout } from '../authApi';
+import { login, verifyTwoFactor, getMe, logout } from '../authApi';
+import { Platform } from 'react-native';
+import { setToken } from '@/lib/auth/tokenStorage';
 import { apiClient } from '@/lib/api/client';
 
 jest.mock('@/lib/api/client', () => ({
@@ -7,6 +9,9 @@ jest.mock('@/lib/api/client', () => ({
     get: jest.fn(),
   },
 }));
+
+jest.mock('@/lib/api/config', () => ({ config: { apiUrl: 'https://api.test/api' } }));
+jest.mock('@/lib/auth/tokenStorage', () => ({ getSessionVersion: () => 1, setToken: jest.fn() }));
 
 describe('authApi', () => {
   beforeEach(() => {
@@ -58,4 +63,31 @@ describe('authApi', () => {
       expect(apiClient.post).toHaveBeenCalledWith('/logout');
     });
   });
+  it('returns normalized first-factor challenges and submits OTP separately', async () => {
+    (apiClient.post as jest.Mock).mockResolvedValueOnce({ data: { data: { requires_2fa: true, challenge_token: 'dummy-challenge' } } });
+    await expect(login({ username: 'dummy', password: 'dummy-password' })).resolves.toMatchObject({ requires_2fa: true });
+    (apiClient.post as jest.Mock).mockResolvedValueOnce({ data: { data: { id: 1 }, token: '42|dummy-token' } });
+    await expect(verifyTwoFactor('dummy-challenge', '123456')).resolves.toMatchObject({ token: '42|dummy-token' });
+    expect(apiClient.post).toHaveBeenLastCalledWith('/login/2fa', { challenge_token: 'dummy-challenge', code: '123456' });
+  });
+
+  it('rejects malformed login responses instead of storing an undefined token', async () => {
+    (apiClient.post as jest.Mock).mockResolvedValue({ data: { data: { id: 1 } } });
+    await expect(login({ username: 'dummy', password: 'dummy-password' })).rejects.toThrow('autentikasi');
+  });
+
+  it('bootstraps browser CSRF and restores a memory-only realtime bearer from the cookie session', async () => {
+    jest.replaceProperty(Platform, 'OS', 'web');
+    try {
+      (apiClient.get as jest.Mock).mockResolvedValueOnce({ data: {} });
+      (apiClient.post as jest.Mock).mockResolvedValueOnce({ data: { data: { id: 1 }, token: '42|dummy-token' } });
+      await login({ username: 'dummy', password: 'dummy-password' });
+      expect(apiClient.get).toHaveBeenCalledWith('https://api.test/sanctum/csrf-cookie');
+      (apiClient.get as jest.Mock).mockResolvedValueOnce({ data: { data: { id: 1 }, realtime_token: '43|dummy-realtime' } });
+      await getMe();
+      expect(apiClient.get).toHaveBeenLastCalledWith('/me', { params: { sync_realtime_token: 1 }, headers: { 'X-Establish-Mobile-Session': '1' } });
+      expect(setToken).toHaveBeenCalledWith('43|dummy-realtime');
+    } finally { jest.restoreAllMocks(); }
+  });
+
 });

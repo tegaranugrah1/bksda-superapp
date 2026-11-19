@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '../AuthProvider';
 import * as tokenStorage from '@/lib/auth/tokenStorage';
 import * as authApi from '../authApi';
 import { isReverbSubscribed, subscribeReverbChannel } from '@/lib/reverb';
+import { notifySession } from '@/lib/auth/sessionEvents';
 import { AppState } from 'react-native';
 
 jest.mock('@/lib/reverb', () => ({
@@ -17,10 +18,12 @@ jest.mock('@/lib/auth/tokenStorage', () => ({
   getToken: jest.fn(),
   setToken: jest.fn(),
   clearToken: jest.fn(),
+  shouldRestoreWebSession: jest.fn(() => false),
 }));
 
 jest.mock('../authApi', () => ({
   login: jest.fn(),
+  verifyTwoFactor: jest.fn(),
   getMe: jest.fn(),
   logout: jest.fn(),
 }));
@@ -300,4 +303,37 @@ describe('AuthProvider', () => {
     expect(capturedAuth.token).toBeNull();
     act(() => tree.unmount());
   });
+  it('does not establish a session until the 2FA challenge succeeds', async () => {
+    (tokenStorage.getToken as jest.Mock).mockResolvedValue(null);
+    (authApi.login as jest.Mock).mockResolvedValue({ requires_2fa: true, challenge_token: 'dummy-challenge' });
+    (authApi.verifyTwoFactor as jest.Mock).mockRejectedValueOnce({ status: 422, message: 'Kode tidak valid' })
+      .mockResolvedValueOnce({ data: mockUser, token: '42|dummy-token' });
+    let tree!: renderer.ReactTestRenderer;
+    await act(async () => { tree = renderer.create(<AuthProvider><TestConsumer /></AuthProvider>); await flushPromises(); });
+    await act(async () => { await capturedAuth.login('admin', 'dummy-password'); });
+    expect(capturedAuth.user).toBeNull(); expect(capturedAuth.token).toBeNull();
+    expect(capturedAuth.twoFactorChallenge).toBe('dummy-challenge');
+    expect(tokenStorage.setToken).not.toHaveBeenCalled();
+    await act(async () => { await expect(capturedAuth.verifyTwoFactor('000000')).rejects.toMatchObject({ status: 422 }); });
+    expect(capturedAuth.user).toBeNull();
+    await act(async () => { await capturedAuth.verifyTwoFactor('123456'); });
+    expect(capturedAuth.user).toEqual(mockUser);
+    expect(capturedAuth.twoFactorChallenge).toBeNull();
+    expect(tokenStorage.setToken).toHaveBeenCalledWith('42|dummy-token');
+    act(() => tree.unmount());
+  });
+
+  it('immediately clears portal state for a terminal error from any API caller', async () => {
+    (tokenStorage.getToken as jest.Mock).mockResolvedValue('42|dummy-token');
+    (authApi.getMe as jest.Mock).mockResolvedValue(mockUser);
+    let tree!: renderer.ReactTestRenderer;
+    await act(async () => { tree = renderer.create(<AuthProvider><TestConsumer /></AuthProvider>); await flushPromises(); });
+    await act(async () => { notifySession({ type: 'blocked', reason: 'must_setup_2fa' }); });
+    expect(capturedAuth.securityRequirement).toBe('must_setup_2fa');
+    await act(async () => { notifySession({ type: 'expired' }); });
+    expect(capturedAuth.user).toBeNull(); expect(capturedAuth.token).toBeNull();
+    expect(capturedAuth.securityRequirement).toBeNull();
+    act(() => tree.unmount());
+  });
+
 });

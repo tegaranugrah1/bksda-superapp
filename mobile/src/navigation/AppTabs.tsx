@@ -26,7 +26,7 @@ import KepegawaianTabs from "./KepegawaianTabs";
 import BmnTabs from "./BmnTabs";
 
 export type AppTabParamList = {
-  Dashboard: undefined;
+  Dashboard: { portalTab?: "profile" } | undefined;
   Bmn: undefined;
   BmnMain: undefined;
   BmnDetail: { id: string | number };

@@ -23,7 +23,8 @@ class AssignmentLetterConflictService
         ?string $defaultTanggalMulai,
         ?string $defaultTanggalSelesai,
         ?string $excludeLetterId = null,
-        bool $canViewDetails = false
+        bool $canViewDetails = false,
+        bool $canViewSchedule = true
     ): array {
         if ($defaultTanggalMulai && $defaultTanggalSelesai) {
             Validator::make(['tanggal_mulai' => $defaultTanggalMulai, 'tanggal_selesai' => $defaultTanggalSelesai], [
@@ -205,7 +206,9 @@ class AssignmentLetterConflictService
 
         return [
             'has_conflict' => !empty($conflicts),
-            'conflicts' => $conflicts,
+            'conflicts' => $canViewSchedule ? $conflicts : (empty($conflicts) ? [] : [[
+                'message' => 'Satu atau beberapa pegawai tidak tersedia pada periode yang dipilih. Silakan ubah jadwal atau personel.',
+            ]]),
         ];
     }
 

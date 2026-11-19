@@ -268,9 +268,10 @@ export default function GeneralReportFormScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.8,
+      base64: true,
     });
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      setCustomCoverImageUrl(result.assets[0].uri);
+      setCustomCoverImageUrl(result.assets[0].base64 ? `data:image/jpeg;base64,${result.assets[0].base64}` : result.assets[0].uri);
     }
   };
 
@@ -279,10 +280,11 @@ export default function GeneralReportFormScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       quality: 0.8,
+      base64: true,
     });
     if (!result.canceled && result.assets) {
       const newPhotos = result.assets.map(asset => ({
-        url: asset.uri,
+        url: asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri,
         caption: "Dokumentasi Kegiatan"
       }));
       setDokumentasiFoto(prev => [...prev, ...newPhotos]);

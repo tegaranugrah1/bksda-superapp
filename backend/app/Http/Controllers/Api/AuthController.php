@@ -125,6 +125,17 @@ class AuthController extends Controller
             'data' => new UserResource($user),
         ];
 
+        $isMobileSession = $request->header('X-Establish-Mobile-Session') === '1';
+        // Exchange a valid legacy mobile bearer for the first-party HttpOnly session.
+        if ($isMobileSession
+            && $request->hasSession()
+            && $user->currentAccessToken() instanceof PersonalAccessToken
+            && ! Auth::guard('web')->check()) {
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
+            $request->session()->put('mobile_realtime_credential', encrypt($request->bearerToken()));
+        }
+
         $needs2faSetup = config('auth.two_factor_enforce', false)
             && (in_array($user->role, ['admin', 'super_admin'], true)
                 || in_array('admin', array_values($user->module_roles ?? []), true))
@@ -141,14 +152,31 @@ class AuthController extends Controller
             && ! $needs2faSetup
         ) {
             $bearer = $request->bearerToken();
-            $tokenModel = $bearer ? PersonalAccessToken::findToken($bearer) : null;
-            $hasValidBearer = $tokenModel !== null
-                && $tokenModel->tokenable_type === $user->getMorphClass()
-                && (string) $tokenModel->tokenable_id === (string) $user->getKey()
-                && in_array((string) $tokenModel->getKey(), $user->broadcastTokenIds(), true);
-
+            $tokenIds = $user->broadcastTokenIds();
+            $validCredential = static function (?string $credential) use ($user, $tokenIds): bool {
+                $model = $credential ? PersonalAccessToken::findToken($credential) : null;
+                return $model !== null
+                    && $model->tokenable_type === $user->getMorphClass()
+                    && (string) $model->tokenable_id === (string) $user->getKey()
+                    && in_array((string) $model->getKey(), $tokenIds, true);
+            };
+            $hasValidBearer = $validCredential($bearer);
             if (! $hasValidBearer) {
-                $payload['realtime_token'] = $this->createBoundedAuthToken($user);
+                // Reuse the encrypted server-session credential on browser reloads;
+                // do not consume another device slot for every page refresh.
+                $cached = null;
+                if ($isMobileSession && $request->session()->has('mobile_realtime_credential')) {
+                    try {
+                        $value = decrypt($request->session()->get('mobile_realtime_credential'));
+                        $cached = is_string($value) ? $value : null;
+                    } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+                        $request->session()->forget('mobile_realtime_credential');
+                    }
+                }
+                $payload['realtime_token'] = $validCredential($cached) ? $cached : $this->createBoundedAuthToken($user);
+            }
+            if ($isMobileSession) {
+                $request->session()->put('mobile_realtime_credential', encrypt($hasValidBearer ? $bearer : $payload['realtime_token']));
             }
         }
 

@@ -75,6 +75,7 @@ export function getReverbWsUrl(
   if (envScheme === 'https' || envScheme === 'wss') wsScheme = 'wss';
   if (envScheme === 'http' || envScheme === 'ws') wsScheme = 'ws';
   if (envPort && /^\d+$/.test(envPort)) wsPort = envPort;
+  if (config.isProd || config.apiUrl.startsWith('https:')) wsScheme = 'wss';
 
   const hidePort =
     (wsScheme === 'wss' && wsPort === '443') ||

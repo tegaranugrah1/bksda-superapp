@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 
 export type FileShareErrorKind = 'missing' | 'share_unavailable' | 'open_unavailable' | 'unknown';
 
@@ -19,6 +19,7 @@ export type ShareFileOptions = {
   mimeType?: string | null;
   dialogTitle?: string;
   uti?: string;
+  filename?: string;
 };
 
 async function ensureLocalFile(localUri: string) {
@@ -49,7 +50,16 @@ export async function shareFile({
   mimeType,
   dialogTitle = 'Bagikan File',
   uti,
+  filename,
 }: ShareFileOptions): Promise<void> {
+  if (Platform.OS === 'web') {
+    if (!localUri.startsWith('blob:')) throw new FileShareError('missing', 'File unduhan tidak valid.');
+    const anchor = document.createElement('a');
+    anchor.href = localUri; anchor.download = filename || 'surat-tugas.pdf'; anchor.rel = 'noopener';
+    document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(localUri), 1000);
+    return;
+  }
   await ensureLocalFile(localUri);
   const shareUri = await copyToShareableFile(localUri);
 
@@ -66,6 +76,7 @@ export async function shareFile({
 }
 
 export async function openFile(options: ShareFileOptions): Promise<void> {
+  if (Platform.OS === 'web') return shareFile(options);
   await ensureLocalFile(options.localUri);
 
   try {

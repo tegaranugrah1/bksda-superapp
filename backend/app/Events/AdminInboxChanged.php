@@ -30,7 +30,14 @@ class AdminInboxChanged implements ShouldBroadcast, ShouldDispatchAfterCommit, S
         }
 
         $channels = [];
-        $users = User::where('is_active', true)->whereIn('role', ['admin', 'super_admin'])->cursor();
+        $aliases = $this->module === 'surat_tugas' ? ['surat_tugas', 'kepegawaian', 'surat-tugas'] : [$this->module];
+        $users = User::where('is_active', true)
+            ->where(function ($query) use ($aliases) {
+                $query->whereIn('role', ['admin', 'super_admin']);
+                foreach ($aliases as $alias) {
+                    $query->orWhere('module_roles->'.$alias, 'admin');
+                }
+            })->cursor();
         foreach ($users as $user) {
             if (! $user->canAccessAdminInbox($this->module)) {
                 continue;

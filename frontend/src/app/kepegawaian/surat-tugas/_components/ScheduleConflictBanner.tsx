@@ -4,16 +4,16 @@ import React from "react";
 import { AlertTriangle } from "lucide-react";
 
 export interface ScheduleConflict {
-  employee_id: number;
-  employee_name: string;
-  type: "surat_tugas" | "cuti";
-  reference_id: string | number;
+  employee_id?: number;
+  employee_name?: string;
+  type?: "surat_tugas" | "cuti";
+  reference_id?: string | number;
   nomor?: string;
   keterangan?: string;
   status?: string;
-  tanggal_mulai: string;
-  tanggal_selesai: string;
-  range_formatted: string;
+  tanggal_mulai?: string;
+  tanggal_selesai?: string;
+  range_formatted?: string;
   message: string;
 }
 
@@ -37,8 +37,10 @@ export function ScheduleConflictBanner({ conflicts }: ScheduleConflictBannerProp
               <li key={`${c.employee_id}-${c.reference_id}-${idx}`} className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[var(--ds-status-warning-fg)] shrink-0" />
                 <span>
-                  <strong>{c.employee_name}</strong>: Ada {c.type === "cuti" ? "Cuti Aktif" : "Surat Tugas"} pada tanggal{" "}
-                  <span className="font-semibold underline decoration-amber-400">{c.range_formatted}</span>
+                  {c.employee_name && c.range_formatted ? <>
+                    <strong>{c.employee_name}</strong>: Ada {c.type === "cuti" ? "Cuti Aktif" : "Surat Tugas"} pada tanggal{" "}
+                    <span className="font-semibold underline decoration-amber-400">{c.range_formatted}</span>
+                  </> : c.message}
                 </span>
               </li>
             ))}

@@ -21,6 +21,7 @@ export function normalizeResponse<T>(payload: any): ApiSuccess<T> {
 
     if (payload.meta && typeof payload.meta === 'object') {
       meta = {
+        ...Object.fromEntries(Object.entries(payload.meta).filter(([key]) => !['currentPage', 'lastPage', 'perPage'].includes(key))),
         current_page: payload.meta.current_page ?? payload.meta.currentPage,
         last_page: payload.meta.last_page ?? payload.meta.lastPage,
         per_page: payload.meta.per_page ?? payload.meta.perPage,

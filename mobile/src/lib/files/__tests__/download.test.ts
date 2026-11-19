@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import { notifySession } from '@/lib/auth/sessionEvents';
 import { getToken } from '@/lib/auth/tokenStorage';
 import { downloadAssignmentFile, FileDownloadError } from '../download';
 
@@ -10,9 +11,15 @@ jest.mock('expo-file-system/legacy', () => ({
   deleteAsync: jest.fn(),
 }));
 
+jest.mock('@/lib/auth/sessionEvents', () => ({ notifySession: jest.fn() }));
+
 jest.mock('@/lib/auth/tokenStorage', () => ({
   getToken: jest.fn(),
+  getSessionVersion: () => 1,
+  clearToken: jest.fn(),
 }));
+
+jest.mock('@/lib/api/client', () => ({ apiClient: { get: jest.fn() } }));
 
 jest.mock('@/lib/api/config', () => ({
   config: {
@@ -114,4 +121,11 @@ describe('downloadAssignmentFile', () => {
       message: 'Koneksi internet terganggu. Silakan periksa koneksi Anda dan coba lagi.',
     });
   });
+  it('expires the session on 401 even when deleting the partial file fails', async () => {
+    (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({ status: 401 });
+    (FileSystem.deleteAsync as jest.Mock).mockRejectedValue(new Error('Dummy cache failure'));
+    await expect(downloadAssignmentFile({ assignmentId: 'dummy-expired' })).rejects.toMatchObject({ status: 401, kind: 'auth' });
+    expect(notifySession).toHaveBeenCalledWith({ type: 'expired' });
+  });
+
 });

@@ -951,4 +951,15 @@ class PortalPersonalSecurityTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.summary.assigned_assets_count', 0);
     }
+    public function test_inbox_broadcast_includes_module_admins_and_excludes_revoked_roles(): void
+    {
+        [$moduleAdmin] = $this->actor('Dummy Module Administrator', 'user', ['kepegawaian']);
+        $moduleAdmin->update(['module_roles' => ['kepegawaian' => 'admin']]);
+        $token = $moduleAdmin->createToken('dummy-module-admin')->accessToken;
+        $channels = fn () => array_map(fn ($channel) => $channel->name, (new AdminInboxChanged('surat_tugas'))->broadcastOn());
+        $this->assertContains('private-admin.inbox.surat_tugas.'.$token->id, $channels());
+        $moduleAdmin->update(['module_roles' => ['kepegawaian' => 'user']]);
+        $this->assertNotContains('private-admin.inbox.surat_tugas.'.$token->id, $channels());
+    }
+
 }

@@ -5,6 +5,9 @@ import { FileShareError, openFile, shareFile } from '../share';
 
 jest.mock('expo-file-system/legacy', () => ({
   getInfoAsync: jest.fn(),
+  cacheDirectory: 'file:///cache/',
+  makeDirectoryAsync: jest.fn(),
+  copyAsync: jest.fn(),
 }));
 
 jest.mock('expo-sharing', () => ({
@@ -37,7 +40,7 @@ describe('file share helpers', () => {
     });
 
     expect(FileSystem.getInfoAsync).toHaveBeenCalledWith('file:///cache/surat-tugas.pdf');
-    expect(Sharing.shareAsync).toHaveBeenCalledWith('file:///cache/surat-tugas.pdf', {
+    expect(Sharing.shareAsync).toHaveBeenCalledWith(expect.stringMatching(/^file:\/\/\/cache\/share\/surat-tugas-\d+\.pdf$/), {
       dialogTitle: 'Bagikan Surat Tugas',
       mimeType: 'application/pdf',
       UTI: 'com.adobe.pdf',
@@ -79,7 +82,7 @@ describe('file share helpers', () => {
 
     await openFile({ localUri: 'file:///cache/surat-tugas.pdf' });
 
-    expect(Sharing.shareAsync).toHaveBeenCalledWith('file:///cache/surat-tugas.pdf', {
+    expect(Sharing.shareAsync).toHaveBeenCalledWith(expect.stringMatching(/^file:\/\/\/cache\/share\/surat-tugas-\d+\.pdf$/), {
       dialogTitle: 'Bagikan File',
       mimeType: undefined,
       UTI: undefined,

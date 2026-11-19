@@ -7,6 +7,7 @@ const { chromium } = require('playwright');
 async function main() {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
+    let fixtureSignedIn = false;
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const user = {
       id: 999999, name: 'Pegawai Uji Aset', username: 'ui-assets', role: 'pegawai',
@@ -23,7 +24,8 @@ async function main() {
     let assetsRequests = 0;
     let loansRequests = 0;
     const errors = [];
-    await context.routeWebSocket('ws://localhost:8080/**', ws => {
+    await context.routeWebSocket('**/*', ws => {
+      if (!new URL(ws.url()).pathname.startsWith('/app/')) { ws.close(); return; }
       socket = ws;
       ws.onMessage(message => {
         const frame = JSON.parse(message);
@@ -34,11 +36,13 @@ async function main() {
       ws.send(JSON.stringify({ event: 'pusher:connection_established',
         data: JSON.stringify({ socket_id: '123.456', activity_timeout: 120 }) }));
     });
+    await context.route('**/sanctum/csrf-cookie', route => route.fulfill({status:204}));
     await context.route('**/api/**', async route => {
       const pathname = new URL(route.request().url()).pathname;
       let body = { data: [] };
-      if (pathname.endsWith('/login')) body = { data: user, token: '42|local-assets-fixture' };
-      else if (pathname.endsWith('/me')) body = { data: user };
+      if (new URL(route.request().url()).pathname.endsWith('/me') && !fixtureSignedIn) {await route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({message:'Unauthenticated'})});return;}
+      if (pathname.endsWith('/login')) body = { data: (fixtureSignedIn = true, user), token: '42|local-assets-fixture' };
+      else if (pathname.endsWith('/me')) body = { data: user, realtime_token: '42|local-cookie-fixture' };
       else if (pathname.endsWith('/broadcasting/auth')) body = { auth: 'fixture:signature' };
       else if (pathname.endsWith('/mobile/dashboard')) body = { data: {
         profile: user,

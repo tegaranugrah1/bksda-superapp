@@ -19,6 +19,7 @@ import { AppDatePickerModal } from "../../components/AppDatePickerModal";
 interface FormulirCutiModalProps {
   visible: boolean;
   sisaCuti?: number;
+  balanceAvailable?: boolean;
   pendingCutiHari?: number;
   onClose: () => void;
   onSuccess: () => void;
@@ -74,7 +75,8 @@ export function calcLeaveDurationDays(
 
 export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   visible,
-  sisaCuti = 12,
+  sisaCuti = 0,
+  balanceAvailable = true,
   pendingCutiHari = 0,
   onClose,
   onSuccess,
@@ -107,6 +109,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (isHariKerja && !balanceAvailable) {setErrorMsg("Saldo cuti belum tersedia. Perbarui data lalu coba lagi.");return;}
     if (calculatedDays <= 0) {
       setErrorMsg("Tanggal selesai tidak boleh sebelum tanggal mulai.");
       return;
@@ -223,7 +226,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 </View>
                 <View style={styles.infoBannerRight}>
                   <Text style={[styles.infoBannerValue, { color: colors.accentFg }]}>
-                    {`${sisaCuti} Hari`}
+                    {balanceAvailable ? `${sisaCuti} Hari` : "Belum tersedia"}
                   </Text>
                   {pendingCutiHari > 0 && (
                     <Text style={[styles.infoBannerPending, { color: colors.warningFg }]}>

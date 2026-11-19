@@ -104,6 +104,12 @@ describe('reverb client & useReverbRefresh', () => {
     );
   });
 
+  it('does not downgrade a secure API connection when ws is configured', () => {
+    mockConfig.apiUrl = 'https://api.example.test/api';
+    process.env.EXPO_PUBLIC_REVERB_SCHEME = 'ws';
+    expect(getReverbWsUrl('dummy-key')).toMatch(/^wss:/);
+  });
+
   it('authorizes private channel, dispatches events, and respects 403 rejection', async () => {
     (apiClient.post as jest.Mock)
       .mockResolvedValueOnce({ data: { data: { auth: 'key:sig123' } } })
@@ -185,6 +191,7 @@ describe('reverb client & useReverbRefresh', () => {
       employee: null,
       token: '77|tokenvalue',
       isLoading: false,
+      twoFactorChallenge: null, securityRequirement: null, verifyTwoFactor: jest.fn(), cancelTwoFactor: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
       refreshUser: jest.fn(),
@@ -273,6 +280,7 @@ describe('reverb client & useReverbRefresh', () => {
       employee: null,
       token: '88|admintoken',
       isLoading: false,
+      twoFactorChallenge: null, securityRequirement: null, verifyTwoFactor: jest.fn(), cancelTwoFactor: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
       refreshUser: jest.fn(),

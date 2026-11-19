@@ -8,6 +8,7 @@ const { chromium } = require('playwright');
 async function main() {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
+    let fixtureSignedIn = false;
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const person = { id: 999999, name: 'Pegawai Uji Profil', nip: '000000000000000001', position: 'Pengelola Data', department: 'Balai KSDA Kalimantan Timur', rank: 'Penata Muda (III/a)', email: 'profile@example.test', phone: '081100000001', photo: null, is_active: true };
     const user = { id: 999999, username: person.nip, name: 'Nama Akun Berbeda', email: person.email, role: 'pegawai', access_modules: ['kepegawaian'], permissions: [], employee: person };
@@ -15,20 +16,23 @@ async function main() {
     const contactPosts = [], photoPosts = [], passwordPosts = [], errors = [];
     let rejectContact = true, rejectPassword = true, meCalls = 0;
     let logoutCalls = 0, failLogout = false;
-    await context.routeWebSocket('ws://localhost:8080/**', ws => {
+    await context.routeWebSocket('**/*', ws => {
+      if (!new URL(ws.url()).pathname.startsWith('/app/')) { ws.close(); return; }
       ws.onMessage(raw => { const f = JSON.parse(raw); if (f.event === 'pusher:subscribe') ws.send(JSON.stringify({ event: 'pusher_internal:subscription_succeeded', channel: f.data.channel, data: '{}' })); });
       ws.send(JSON.stringify({ event: 'pusher:connection_established', data: JSON.stringify({ socket_id: '123.456', activity_timeout: 120 }) }));
     });
     await context.route('**/storage/fixture-profile.png', route => route.fulfill({ contentType: 'image/png', body: png }));
+    await context.route('**/sanctum/csrf-cookie', route => route.fulfill({status:204}));
     await context.route('**/api/**', async route => {
       const request = route.request(), endpoint = new URL(request.url()).pathname;
       let body = { data: [] };
-      if (endpoint.endsWith('/login')) body = { data: user, token: '42|local-profile-fixture' };
-      else if (endpoint.endsWith('/me')) { meCalls++; body = { data: user }; }
+      if (new URL(route.request().url()).pathname.endsWith('/me') && !fixtureSignedIn) {await route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({message:'Unauthenticated'})});return;}
+      if (endpoint.endsWith('/login')) body = { data: (fixtureSignedIn = true, user), token: '42|local-profile-fixture' };
+      else if (endpoint.endsWith('/me')) { meCalls++; body = { data: user, realtime_token: '42|local-cookie-fixture' }; }
       else if (endpoint.endsWith('/logout')) {
         logoutCalls++;
         if (failLogout) { await route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({message:'Fixture logout unavailable'})}); return; }
-        body = {message:'Logged out'};
+        fixtureSignedIn = false; body = {message:'Logged out'};
       }
       else if (endpoint.endsWith('/broadcasting/auth')) body = { auth: 'fixture:signature' };
       else if (endpoint.endsWith('/mobile/dashboard')) body = { data: { profile: user, summary: {}, notifications: [], urgent_tax_vehicles: [] } };
@@ -139,7 +143,7 @@ async function main() {
       await page.getByRole('dialog').waitFor();
       await button('Batal').click(); await page.waitForTimeout(300);
       assert.equal(logoutCalls, previousCalls, 'Cancel does not send logout');
-      assert.equal(await page.evaluate(() => !!localStorage.getItem('auth_token')), true);
+      assert.equal(await page.evaluate(() => localStorage.getItem('auth_token')), null, 'Bearer tokens stay in memory while cancelling logout preserves the active UI');
       await logoutButton.click(); await page.getByRole('dialog').waitFor();
       await page.keyboard.press('Escape'); await page.waitForTimeout(300);
       assert.equal(await text('Konfirmasi Logout').count(), 0);

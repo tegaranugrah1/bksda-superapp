@@ -510,7 +510,8 @@ class AssignmentLetterController extends Controller
                 $validated['tanggal_mulai'] ?? null,
                 $validated['tanggal_selesai'] ?? null,
                 null,
-                $canViewDetails
+                $canViewDetails,
+                $authUser !== null && $authUser->is_active
             );
 
             if ($conflictCheck['has_conflict']) {
@@ -1455,7 +1456,7 @@ $count = 0;
 
     private function canViewConflictDetails(?\App\Models\User $user): bool
     {
-        if (! $user) {
+        if (! $user || ! $user->is_active) {
             return false;
         }
 
@@ -1493,8 +1494,9 @@ $count = 0;
             $employees,
             $request->input('tanggal_mulai'),
             $request->input('tanggal_selesai'),
-            $request->input('exclude_id'),
-            $canViewDetails
+            $authUser?->is_active ? $request->input('exclude_id') : null,
+            $canViewDetails,
+            $authUser !== null && $authUser->is_active
         );
 
         return response()->json($result);

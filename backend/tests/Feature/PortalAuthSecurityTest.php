@@ -61,7 +61,7 @@ class PortalAuthSecurityTest extends TestCase
     }
 
     /** Replay actual encrypted response cookies; do not inject an actingAs user. */
-    private function requestAsBrowser(string $method, string $uri, array $body = [], array $cookies = [], ?string $bearer = null, bool $stateful = true): TestResponse
+    private function requestAsBrowser(string $method, string $uri, array $body = [], array $cookies = [], ?string $bearer = null, bool $stateful = true, string $origin = 'http://localhost:3000'): TestResponse
     {
         // A PHPUnit process serves many requests; forget per-request auth/session
         // objects so a prior principal cannot impersonate a fresh browser request.
@@ -73,8 +73,8 @@ class PortalAuthSecurityTest extends TestCase
         $this->unencryptedCookies = [];
         $this->withUnencryptedCookies($cookies);
         $headers = $stateful ? [
-            'Origin' => 'http://localhost:3000',
-            'Referer' => 'http://localhost:3000/portal',
+            'Origin' => $origin,
+            'Referer' => $origin.'/portal',
         ] : [];
         if ($bearer !== null) {
             $headers['Authorization'] = 'Bearer '.$bearer;
@@ -570,4 +570,30 @@ class PortalAuthSecurityTest extends TestCase
         $this->requestAsBrowser('GET', '/api/me/assets', bearer: $login->json('token'), stateful: false)
             ->assertOk();
     }
+    public function test_mobile_legacy_bearer_can_migrate_to_an_httponly_cookie_and_restore_realtime(): void
+    {
+        config(['sanctum.stateful' => ['localhost:3000', 'localhost:8081']]);
+        $user = $this->principal('mobile-cookie-migration');
+        $token = $user->createToken('dummy-legacy-mobile')->plainTextToken;
+        $this->withHeader('X-Establish-Mobile-Session', '1');
+        $exchange = $this->requestAsBrowser('GET', '/api/me', bearer: $token, origin: 'http://localhost:8081');
+        $exchange->assertOk()->assertJsonPath('data.id', $user->id);
+        $cookies = $this->responseCookies($exchange);
+        $this->assertArrayHasKey(config('session.cookie'), $cookies);
+        foreach ($exchange->headers->getCookies() as $cookie) {
+            if ($cookie->getName() === config('session.cookie')) $this->assertTrue($cookie->isHttpOnly());
+        }
+        $before = $user->tokens()->count();
+        $restored = $this->requestAsBrowser('GET', '/api/me?sync_realtime_token=1', cookies: $cookies, origin: 'http://localhost:8081');
+        $restored->assertOk()->assertJsonPath('data.id', $user->id)->assertJsonPath('realtime_token', $token);
+        $cookies = $this->responseCookies($restored, $cookies);
+        for ($reload = 0; $reload < 6; $reload++) {
+            $response = $this->requestAsBrowser('GET', '/api/me?sync_realtime_token=1', cookies: $cookies, origin: 'http://localhost:8081');
+            $response->assertOk()->assertJsonPath('realtime_token', $token);
+            $cookies = $this->responseCookies($response, $cookies);
+        }
+        $this->assertSame($before, $user->tokens()->count());
+        $this->assertNotNull(PersonalAccessToken::findToken($token));
+    }
+
 }

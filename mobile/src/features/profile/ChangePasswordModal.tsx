@@ -6,8 +6,8 @@ import { apiClient } from '@/lib/api/client';
 import type { ApiError } from '@/types/api';
 import { ProfileSaveButton, ProfileSheet, profileStyles as s } from './ProfileSheet';
 
-export function ChangePasswordModal({ visible, onClose, onSuccessLogout }: {
-  visible: boolean; onClose: () => void; onSuccessLogout: () => void;
+export function ChangePasswordModal({ visible, onClose, onSuccessLogout, mandatory = false }: {
+  visible: boolean; mandatory?: boolean; onClose: () => void; onSuccessLogout: () => void;
 }) {
   const { colors: c } = useTheme();
   const [values, setValues] = useState(['', '', '']);
@@ -38,7 +38,7 @@ export function ChangePasswordModal({ visible, onClose, onSuccessLogout }: {
       setError(Object.values(e.fieldErrors || {}).flat().join('\n') || e.message || 'Kata sandi belum dapat diperbarui. Coba lagi.');
     } finally { lock.current = false; setBusy(false); }
   };
-  return <ProfileSheet visible={visible} title="Ubah kata sandi" busy={busy} onClose={close}>
+  return <ProfileSheet visible={visible} title="Ubah kata sandi" closable={!mandatory || success} busy={busy} onClose={close}>
     {success ? <>
       <Text style={[s.label, { color: c.textDark }]}>Kata sandi berhasil diperbarui</Text>
       <Text style={[s.text, { color: c.textMuted }]}>Silakan masuk kembali menggunakan kata sandi baru. Seluruh sesi sebelumnya telah diakhiri.</Text>
@@ -58,6 +58,7 @@ export function ChangePasswordModal({ visible, onClose, onSuccessLogout }: {
       </View>)}
       <Text style={[s.text, { color: c.textMuted }]}>Minimal 8 karakter. Setelah disimpan, Anda perlu login kembali.</Text>
       <ProfileSaveButton label="Simpan kata sandi" busy={busy} onPress={() => void save()} />
+      {mandatory && <ProfileSaveButton label="Keluar akun" busy={busy} onPress={() => { setValues(['', '', '']); onSuccessLogout(); }} />}
     </>}
   </ProfileSheet>;
 }

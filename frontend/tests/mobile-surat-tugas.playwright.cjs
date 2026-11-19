@@ -9,6 +9,7 @@ const { chromium } = require('playwright');
 async function main() {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
+    let fixtureSignedIn = false;
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const people = [
       { id: 101, name: 'Budi Uji', nip: '000000000000000001', department: 'SKW III Balikpapan', position: 'Kepala Seksi Wilayah III', seksi_wilayah: 'III', is_seksi: true },
@@ -28,16 +29,19 @@ async function main() {
     let conflictCalls = 0;
     const submissions = [];
     const errors = [];
-    await context.routeWebSocket('ws://localhost:8080/**', ws => {
+    await context.routeWebSocket('**/*', ws => {
+      if (!new URL(ws.url()).pathname.startsWith('/app/')) { ws.close(); return; }
       ws.onMessage(message => { const frame = JSON.parse(message); if (frame.event === 'pusher:subscribe') ws.send(JSON.stringify({ event: 'pusher_internal:subscription_succeeded', channel: frame.data.channel, data: '{}' })); });
       ws.send(JSON.stringify({ event: 'pusher:connection_established', data: JSON.stringify({ socket_id: '123.456', activity_timeout: 120 }) }));
     });
+    await context.route('**/sanctum/csrf-cookie', route => route.fulfill({status:204}));
     await context.route('**/api/**', async route => {
       const request = route.request();
       const endpoint = new URL(request.url()).pathname;
       let body = { data: [] };
-      if (endpoint.endsWith('/login')) body = { data: user, token: '42|local-spt-fixture' };
-      else if (endpoint.endsWith('/me')) body = { data: user };
+      if (new URL(route.request().url()).pathname.endsWith('/me') && !fixtureSignedIn) {await route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({message:'Unauthenticated'})});return;}
+      if (endpoint.endsWith('/login')) body = { data: (fixtureSignedIn = true, user), token: '42|local-spt-fixture' };
+      else if (endpoint.endsWith('/me')) body = { data: user, realtime_token: '42|local-cookie-fixture' };
       else if (endpoint.endsWith('/broadcasting/auth')) body = { auth: 'fixture:signature' };
       else if (endpoint.endsWith('/employees/select')) body = { data: people };
       else if (endpoint.endsWith('/st-task-types/public')) { setupCalls++; body = { data: types }; }
