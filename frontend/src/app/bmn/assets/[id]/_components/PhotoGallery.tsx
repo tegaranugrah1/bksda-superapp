@@ -23,6 +23,7 @@ export interface PhotoGalleryProps {
   nup: string;
   fotoGeotagUrl: string | null;
   fotoGeotagPath: string | null;
+  geotagAvailable?: boolean | null;
   fotoDepanUrl: string | null;
   fotoBelakangUrl: string | null;
   fotoKiriUrl: string | null;
@@ -98,6 +99,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     nup,
     fotoGeotagUrl,
     fotoGeotagPath,
+    geotagAvailable,
     fotoDepanUrl,
     fotoBelakangUrl,
     fotoKiriUrl,
@@ -183,6 +185,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
 
   // Get all available photos for navigation
   const availablePhotos = PHOTO_SLOTS.map((slot) => {
+    if (slot.key === "geotag" && geotagAvailable === false) return null;
     const url = photos[slot.key];
     if (!url) return null;
     const isExternalOnly = slot.type === "hybrid" && !fotoGeotagPath && !!fotoGeotagUrl;
@@ -191,6 +194,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
   }).filter(Boolean) as { key: string; label: string; url: string }[];
 
   const openLightbox = (key: string) => {
+    if (key === "geotag" && geotagAvailable === false) return;
     previewTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const idx = availablePhotos.findIndex((p) => p.key === key);
     if (idx >= 0) {
@@ -498,6 +502,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
             canWrite={canUpdate}
             fotoGeotagPath={fotoGeotagPath}
             fotoGeotagUrl={fotoGeotagUrl}
+            knownMissing={slot.key === "geotag" && geotagAvailable === false}
           />
         ))}
       </div>
@@ -604,6 +609,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
 });
 
 interface PhotoCardSlotProps {
+  knownMissing?: boolean;
   slot: { key: string; label: string; shortLabel: string; type: string };
   url: string | null;
   frontLocationDraft?: string;
@@ -622,6 +628,7 @@ interface PhotoCardSlotProps {
 }
 
 function PhotoCardSlot({
+  knownMissing = false,
   slot,
   url,
   frontLocationDraft,
@@ -643,22 +650,25 @@ function PhotoCardSlot({
   const isFrontView = slot.key === "depan";
 
   const displayThumb = isExternalOnly && url ? driveToThumbnail(url) : url;
+  const [result, setResult] = useState<{ url: string; loaded: boolean } | null>(null);
+  const loaded = !knownMissing && result?.url === (displayThumb || url) && result?.loaded === true;
+  const failed = knownMissing || (result?.url === (displayThumb || url) && result?.loaded === false);
 
   return (
     <div className="flex flex-col gap-2">
       {/* Box Image / Upload Trigger */}
-      {url ? (
+      {url && !failed ? (
         <div>
-          <button type="button" aria-label={`Lihat ${slot.label}`} onClick={() => openLightbox(slot.key)} className="relative block w-full rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 aspect-4/3 bg-[var(--ds-surface-muted)] cursor-zoom-in">
+          <button type="button" disabled={!loaded} aria-label={`Lihat ${slot.label}`} onClick={() => openLightbox(slot.key)} className="relative block w-full rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 aspect-4/3 bg-[var(--ds-surface-muted)] cursor-zoom-in">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <BmnMediaImage src={displayThumb || url} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <BmnMediaImage src={displayThumb || url} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" onLoad={() => setResult({ url: displayThumb || url, loaded: true })} onError={() => setResult({ url: displayThumb || url, loaded: false })} />
             <span className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs">{slot.shortLabel}</span>
           </button>
           <div className="flex flex-wrap justify-center gap-1 mt-2">
-            <button type="button" onClick={() => openLightbox(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Perbesar ${slot.label}`}><Eye className="w-4 h-4" /></button>
-            <button type="button" onClick={() => handleDownload(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Unduh ${slot.label}`}><Download className="w-4 h-4" /></button>
+            <button type="button" disabled={!loaded} onClick={() => openLightbox(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Perbesar ${slot.label}`}><Eye className="w-4 h-4" /></button>
+            <button type="button" disabled={!loaded} onClick={() => handleDownload(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Unduh ${slot.label}`}><Download className="w-4 h-4" /></button>
             <button type="button" onClick={() => copyLink(url)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Salin tautan ${slot.label}`}><Link2 className="w-4 h-4" /></button>
-            {canWrite && <button type="button" onClick={() => handleDelete(slot.key)} className="bmn-button bmn-danger rounded-lg p-2" aria-label={`Hapus ${slot.label}`}><Trash2 className="w-4 h-4" /></button>}
+            {canWrite && loaded && <button type="button" onClick={() => handleDelete(slot.key)} className="bmn-button bmn-danger rounded-lg p-2" aria-label={`Hapus ${slot.label}`}><Trash2 className="w-4 h-4" /></button>}
           </div>
         </div>
       ) : (
@@ -676,9 +686,9 @@ function PhotoCardSlot({
       <div className="text-center">
         <div className="text-xs font-semibold text-[var(--ds-fg)]">{slot.label}</div>
         {url ? (
-          <div className="text-xs text-[var(--ds-accent-fg)] flex items-center justify-center gap-1 mt-1 font-medium">
-            <CheckCircle2 className="w-3 h-3" />
-            Tersedia
+          <div className={loaded ? "text-xs text-[var(--ds-accent-fg)] flex items-center justify-center gap-1 mt-1 font-medium" : "text-xs text-[var(--ds-fg-muted)] flex items-center justify-center gap-1 mt-1 font-medium"}>
+            {loaded && <CheckCircle2 className="w-3 h-3" />}
+            {knownMissing ? "Berkas belum tersedia" : loaded ? "Tersedia" : failed ? "Belum dapat dimuat" : "Memuat foto..."}
           </div>
         ) : (
           <div className="text-xs text-[var(--ds-fg-muted)] mt-1">Menunggu Unggahan</div>

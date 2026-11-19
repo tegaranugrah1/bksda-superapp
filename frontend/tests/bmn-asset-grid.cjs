@@ -99,4 +99,11 @@ const renderFallback = () => {cursor=0;return flatten(preview.AssetPhotoPreview(
 nodes = renderFallback(); nodes.find(node => node.type === 'img' && node.props.loading).props.onError();
 assert.equal(renderFallback().find(node => node.type === 'img' && node.props.loading).props.src, photo.url, 'A missing geotag must fall back to the front photo');
 assert.equal(photos.getPrimaryPhoto(fallbackAsset, [fallbackAsset.foto_geotag_url]).url, photo.url);
-console.log('PASS: missing-geotag fallback, photo priority/URLs and document exclusion, responsive defaults, independent saved preferences, blocked storage/SSR/cleanup, preview loading/error states.');
+const known = { ...fallbackAsset, photo_availability:{geotag:false,depan:true} };
+assert.equal(photos.getPrimaryPhoto(known).url,photo.url,'Known missing geotags must be skipped before any image request');
+assert.equal(photos.getPrimaryPhoto({...known,photo_availability:{geotag:false,depan:false}}),null);
+state=[];cursor=0;
+nodes=flatten(preview.AssetPhotoPreview({asset:{...known,photo_availability:{geotag:false,depan:false}},name:'Dummy missing',nup:'1'}));
+assert(!nodes.some(n=>n.type==='img'),'Known missing files must render a placeholder without mounting an image loader');
+assert(nodes.some(n=>n.props.children==='Foto tidak dapat dimuat'));
+console.log('PASS: server-known missing photos never mount image loaders, missing-geotag fallback, photo priority/URLs and document exclusion, responsive defaults, independent saved preferences, blocked storage/SSR/cleanup, preview loading/error states.');

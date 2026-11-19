@@ -1118,4 +1118,65 @@ class PortalPersonalSecurityTest extends TestCase
         }
     }
 
+    public function test_asset_detail_checks_geotag_storage_without_erasing_missing_references(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Geotag Availability Admin', 'admin', ['bmn']);
+        $path = 'audit-fixtures/geotag-availability.png';
+        $asset = $this->asset($employee, ['foto_geotag_path' => $path]);
+        Sanctum::actingAs($user);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', false);
+        $this->assertSame($path, $asset->fresh()->foto_geotag_path);
+        Storage::disk('local')->put($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6l5sAAAAASUVORK5CYII='));
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', true);
+        Storage::disk('local')->delete($path);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', false);
+        $this->assertSame($path, $asset->fresh()->foto_geotag_path);
+        $asset->update(['foto_geotag_url' => 'https://drive.google.com/file/d/dummy-fallback/view']);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', null);
+    }
+
+    public function test_asset_detail_keeps_availability_unknown_when_storage_cannot_be_checked(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Storage Unreachable Admin', 'admin', ['bmn']);
+        $asset = $this->asset($employee, ['foto_geotag_path' => 'audit-fixtures/unreachable.png']);
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('exists')->once()->andThrow(new \RuntimeException('Dummy storage unavailable'));
+        Storage::shouldReceive('disk')->andReturn($disk);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', null);
+    }
+
+    public function test_asset_list_checks_photo_inventory_once_for_a_hundred_assets(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Batch Photo Admin', 'admin', ['bmn']);
+        $present = null;
+        for ($i = 0; $i < 100; $i++) {
+            $asset = $this->asset($employee, [
+                'foto_geotag_path' => 'bmn-photos/dummy-'.$i.'/geotag.jpg',
+                'foto_geotag_url' => $i === 1 ? 'https://drive.google.com/file/d/dummy-external/view' : null,
+            ]);
+            if ($i === 0) $present = $asset->id;
+        }
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('allFiles')->once()->with('bmn-photos')->andReturn(['bmn-photos/dummy-0/geotag.jpg']);
+        $disk->shouldNotReceive('exists');
+        Storage::shouldReceive('disk')->andReturn($disk);
+        $rows = $this->getJson('/api/bmn/assets?per_page=100')->assertOk()->assertJsonCount(100, 'data')->json('data');
+        $this->assertTrue(collect($rows)->firstWhere('id', $present)['photo_availability']['geotag']);
+        $this->assertCount(98, array_filter($rows, fn ($row) => ($row['photo_availability']['geotag'] ?? null) === false));
+        $this->assertCount(1, array_filter($rows, fn ($row) => ! isset($row['photo_availability']['geotag'])));
+    }
+
+    public function test_asset_list_does_not_claim_files_missing_when_inventory_is_unreachable(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Unknown Inventory Admin', 'admin', ['bmn']);
+        $this->asset($employee, ['foto_geotag_path' => 'bmn-photos/dummy/geotag.jpg']);
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('allFiles')->once()->andThrow(new \RuntimeException('Dummy inventory unavailable'));
+        Storage::shouldReceive('disk')->andReturn($disk);
+        $this->getJson('/api/bmn/assets')->assertOk()->assertJsonMissingPath('data.0.photo_availability');
+    }
+
 }

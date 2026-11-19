@@ -20,7 +20,7 @@ export function AssetPhotoPreview({ asset, name, nup }: {
     return (
       <div className="bmn-asset-photo bmn-photo-placeholder">
         <Camera className="w-7 h-7" aria-hidden="true" />
-        <span>{failedThumbnails.length ? "Foto tidak dapat dimuat" : "Belum ada foto"}</span>
+        <span>{failedThumbnails.length || Object.values(asset.photo_availability || {}).includes(false) ? "Foto tidak dapat dimuat" : "Belum ada foto"}</span>
       </div>
     );
   }

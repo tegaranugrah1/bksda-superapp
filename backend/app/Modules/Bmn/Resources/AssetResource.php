@@ -35,6 +35,7 @@ class AssetResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'photo_availability' => $this->whenHas('photo_availability'),
             'jenis_bmn' => $this->jenis_bmn,
             'kode_satker' => $this->kode_satker,
             'nama_satker' => $this->nama_satker,

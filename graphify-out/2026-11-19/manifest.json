@@ -75,8 +75,8 @@
     "semantic_hash": "e911315a1d8be9e2b66b7ce045aaed35"
   },
   "backend/app/Modules/Bmn/Controllers/AssetController.php": {
-    "mtime": 1794792590.2380595,
-    "ast_hash": "44ac38054369000b8aa1e8d35e177cd1",
+    "mtime": 1795082356.8467863,
+    "ast_hash": "8837cf7e26a1b8753224956656ed0601",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetDocumentController.php": {
@@ -1655,13 +1655,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx": {
-    "mtime": 1795075925.8015895,
-    "ast_hash": "b7c62dad927a91321159aa61a6785254",
+    "mtime": 1795082406.5365503,
+    "ast_hash": "026f57c8255569bb6768ebb474c79cb9",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1795076942.0770621,
-    "ast_hash": "fb1905f25ca1c5a8ee1affe25d93f5e9",
+    "mtime": 1795082756.5180986,
+    "ast_hash": "ed61eac44220e70d2d0c16d22ef93f61",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -2495,8 +2495,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/api.ts": {
-    "mtime": 1795075925.8045907,
-    "ast_hash": "6defbb4b23772365a86947811e7d5f69",
+    "mtime": 1795080891.775431,
+    "ast_hash": "d223f66e870f18c04a80e5279738cba8",
     "semantic_hash": ""
   },
   "frontend/src/lib/auth-store.ts": {
@@ -3410,7 +3410,7 @@
     "semantic_hash": ""
   },
   "docker-compose.prod.yml": {
-    "mtime": 1795079674.8224852,
+    "mtime": 1795079856.1535523,
     "ast_hash": "f55ce3ebe1bea4744146dec4867d0900",
     "semantic_hash": ""
   },
@@ -3420,8 +3420,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1795077312.2010891,
-    "ast_hash": "705b9b5e069aae00878a53f4f26ec920",
+    "mtime": 1795081322.535543,
+    "ast_hash": "42427f172a90a4b1274b6e1425aedf30",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4085,8 +4085,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1795077312.2050917,
-    "ast_hash": "bfe6ddc9251fdca961509ff0cd4b8fdd",
+    "mtime": 1795081322.538545,
+    "ast_hash": "0e70902b9e683571e91f1b785ddecf81",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5840,8 +5840,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1795077312.2030923,
-    "ast_hash": "7b9e3e4d9d5e9f02d6378d39f0d89485",
+    "mtime": 1795081322.5375438,
+    "ast_hash": "ad52b04f62a8aa44c3d07c64b0bf5a81",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -7085,8 +7085,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalPersonalSecurityTest.php": {
-    "mtime": 1795078820.5995286,
-    "ast_hash": "2d8d25153033c5255e28094c64a5ccda",
+    "mtime": 1795082595.5706513,
+    "ast_hash": "432b6a6bd15eef6c2674b1c1db64ed83",
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalUploadSecurityTest.php": {
@@ -8775,8 +8775,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/bmn-detail-ui.cjs": {
-    "mtime": 1795076942.077584,
-    "ast_hash": "bc0fbece5aa5be40f6dde16bab9ed393",
+    "mtime": 1795082500.030616,
+    "ast_hash": "7631dcb340b0898696881a2e68371573",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-sidebar-ui.cjs": {
@@ -9180,8 +9180,8 @@
     "semantic_hash": ""
   },
   "docs/mobile-portal-refactor.md": {
-    "mtime": 1795077312.207096,
-    "ast_hash": "094c58045668abfbffa1fd5193ce8ba1",
+    "mtime": 1795081322.5395436,
+    "ast_hash": "725e41f3d92eb23263a0a3b2fcfa08fc",
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalTasksTab.tsx": {
@@ -9300,18 +9300,18 @@
     "semantic_hash": ""
   },
   "frontend/src/components/BmnMediaImage.tsx": {
-    "mtime": 1795077024.1259117,
-    "ast_hash": "34294405eea1ac2f87e96962725dcf4f",
+    "mtime": 1795080891.7744298,
+    "ast_hash": "a193c71b5c90e3d5206be8120b564e36",
     "semantic_hash": ""
   },
   "frontend/src/lib/bmn-media.ts": {
-    "mtime": 1795075925.7875912,
-    "ast_hash": "b32c72b3842005e52723816359ef5fcc",
+    "mtime": 1795080891.775431,
+    "ast_hash": "20a53df84d81a5a73fb28978d7298a1c",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-media.cjs": {
-    "mtime": 1795076560.6065576,
-    "ast_hash": "1950e749d4af9da17129bfad16195c19",
+    "mtime": 1795080978.789305,
+    "ast_hash": "97a65bc3795f7d2a444cb59d4ae75fde",
     "semantic_hash": ""
   },
   "mobile/src/lib/files/bmnMedia.ts": {

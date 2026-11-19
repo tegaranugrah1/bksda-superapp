@@ -1,6 +1,7 @@
 import { resolveApiUrl } from "@/lib/api";
 
 export interface AssetPhotoSource {
+  photo_availability?: Partial<Record<"geotag" | "depan" | "belakang" | "kiri" | "kanan" | "lokasi", boolean>>;
   foto_geotag_url?: string | null;
   foto_geotag_path?: string | null;
   foto_depan_url?: string | null;
@@ -28,15 +29,16 @@ export function resolvePhotoUrl(rawUrl?: string | null): string | null {
  */
 export function getPrimaryPhoto(asset: AssetPhotoSource, failedUrls: readonly string[] = []): { url: string; label: string } | null {
   const candidates = [
-    [asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null), "Geotag"],
-    [asset.foto_depan_url, "Tampak Depan"],
-    [asset.foto_belakang_url, "Tampak Belakang"],
-    [asset.foto_kiri_url, "Tampak Kiri"],
-    [asset.foto_kanan_url, "Tampak Kanan"],
-    [asset.foto_lokasi_url, "Lokasi"],
-    [asset.foto_url, "Dokumentasi"],
+    [asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null), "Geotag", "geotag"],
+    [asset.foto_depan_url, "Tampak Depan", "depan"],
+    [asset.foto_belakang_url, "Tampak Belakang", "belakang"],
+    [asset.foto_kiri_url, "Tampak Kiri", "kiri"],
+    [asset.foto_kanan_url, "Tampak Kanan", "kanan"],
+    [asset.foto_lokasi_url, "Lokasi", "lokasi"],
+    [asset.foto_url, "Dokumentasi", null],
   ] as const;
-  for (const [raw, label] of candidates) {
+  for (const [raw, label, type] of candidates) {
+    if (type && asset.photo_availability?.[type] === false) continue;
     const url = resolvePhotoUrl(raw);
     if (url && !failedUrls.includes(url)) return {url, label};
   }
