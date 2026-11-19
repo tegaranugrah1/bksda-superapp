@@ -259,6 +259,7 @@ class AssetDocumentController extends Controller
                 'Content-Type' => $mime,
                 'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
                 'X-Content-Type-Options' => 'nosniff',
+                'Referrer-Policy' => 'no-referrer',
             ]);
         }
 
@@ -266,6 +267,7 @@ class AssetDocumentController extends Controller
             ->header('Content-Type', $mime)
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Referrer-Policy', 'no-referrer')
             ->header('Content-Disposition', 'inline; filename="'.$cleanFilename.'"');
     }
 }

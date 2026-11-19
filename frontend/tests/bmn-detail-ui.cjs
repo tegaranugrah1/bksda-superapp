@@ -23,6 +23,8 @@ class Trigger { isConnected = true; focus() { focused = 'trigger'; } }
 let asset = { nama_barang: 'Fixture', kode_barang: '123', nup: '1', kondisi: 'Baik', status_bmn: 'Aktif', updates: [] };
 let query = { isLoading: false, isError: false };
 const imports = {
+  '@/components/BmnMediaImage': { BmnMediaImage: 'img' },
+  '@/lib/bmn-media': { openBmnMedia: async () => {} },
   react, 'react/jsx-runtime': element,
   'lucide-react': new Proxy({}, { get: (_, key) => `icon:${String(key)}` }),
   '@/lib/utils': { cn: (...args) => args.filter(Boolean).join(' ') },
@@ -31,14 +33,15 @@ const imports = {
   '@/components/ui/button': { Button: 'button' },
   '@/components/ui/dialog': Object.fromEntries(['Dialog', 'DialogContent', 'DialogHeader', 'DialogTitle', 'DialogDescription', 'DialogClose'].map(k => [k, k])),
   sonner: { toast: { info() {}, success() {}, error() {} } },
-  '@/lib/api': { api: new Proxy({}, { get: () => () => { throw Error('Fixture must not access API'); } }) },
+  '@/lib/api': { resolveApiUrl: url => url, api: new Proxy({}, { get: () => () => { throw Error('Fixture must not access API'); } }) },
   '@tanstack/react-query': { useQuery: opts => opts.queryKey[0] === 'bmn-asset' ? { data: asset, ...query } : { data: [] }, useQueryClient: () => ({}) },
   'next/navigation': { useRouter: () => ({}), redirect(url) { throw new Error(`Redirect ${url}`); } },
   'next/link': { default: 'a' },
   'framer-motion': { motion: { span: 'motion.span', div: 'motion.div' }, AnimatePresence: 'presence', useReducedMotion: () => reducedMotion },
   '@/app/bmn/_components/TagBadge': { TagBadge: 'tag' },
   '@/app/bmn/_components/TagAssignmentDialog': { TagAssignmentDialog: 'tag-dialog' },
-  '@/app/bmn/_lib/location-options': { ALL_LOKASI_RUANG_OPTIONS: [] },
+  '@/app/bmn/_lib/location-options': { SIMAN_LOKASI_RUANG_OPTIONS: [], STRUKTUR_LOKASI_OPTIONS: [], mergeLokasiOptions: () => [] },
+  '@/lib/locations': { useMasterLocations: () => ({data:[]}) },
   '../assets.css': {}, './detail.css': {},
 };
 function load(file, extra = '') {
@@ -169,6 +172,13 @@ nodes = render(gallery.PhotoGallery, galleryProps);
 nodes.find(n => n.type === 'DialogContent').props.onKeyDown({ key: 'ArrowLeft', preventDefault() {} });
 nodes = render(gallery.PhotoGallery, galleryProps);
 assert(nodes.some(n => n.type === 'img' && n.props.src === '/p2.jpg'));
+// A stale geotag must not hide another valid photo on the detail hero.
+reset(); asset={...asset,foto_geotag_path:'/api/bmn/assets/fixture/photo/geotag/view',foto_depan_url:'/front.jpg'};
+nodes=render(page.default,{});
+let hero=nodes.find(n=>n.type==='img' && n.props.src===asset.foto_geotag_path);
+assert(hero); hero.props.onError();
+nodes=render(page.default,{});
+assert(nodes.some(n=>n.type==='img' && n.props.src==='/front.jpg'), 'Detail hero falls back to front photo after geotag failure');
 // Failed image has a stable fallback; a different URL can still load.
 reset();
 const preview = { url: '/bad.jpg', label: 'Fixture photo', total: 1, index: 0, onClose() {}, onPrev() { throw Error('Single photo'); }, onNext() { throw Error('Single photo'); }, onReturnFocus() {} };

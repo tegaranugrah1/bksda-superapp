@@ -14,37 +14,19 @@ class AssetResource extends JsonResource
         if (is_array($value)) {
             return array_map([self::class, 'stripQueryTokens'], $value);
         }
-
-        if (! is_string($value) || stripos($value, 'token=') === false) {
+        if (! is_string($value) || ! str_contains($value, '?')) {
             return $value;
         }
-
-        $stripped = preg_replace('/([?&])token=[^&#]*/i', '$1', $value);
-        $stripped = str_replace('?&', '?', (string) $stripped);
-        $stripped = preg_replace('/&&+/', '&', $stripped);
-
-        return rtrim((string) $stripped, '?&');
-    }
-
-    public static function attachViewerQueryToken(mixed $value, ?string $token): mixed
-    {
-        $clean = self::stripQueryTokens($value);
-        if (! $token) {
-            return $clean;
+        [$url, $fragment] = array_pad(explode('#', $value, 2), 2, null);
+        if (! str_contains($url, '?')) {
+            return $value;
         }
-
-        if (is_array($clean)) {
-            return array_map(fn ($item) => self::attachViewerQueryToken($item, $token), $clean);
-        }
-
-        if (! is_string($clean) || ! str_starts_with($clean, '/api/bmn/')
-            || preg_match('~^/api/bmn/assets/[^/]+/photo/~', $clean)) {
-            return $clean;
-        }
-
-        $sep = str_contains($clean, '?') ? '&' : '?';
-
-        return $clean . $sep . 'token=' . urlencode($token);
+        [$path, $query] = explode('?', $url, 2);
+        $parts = array_filter(explode('&', $query), static function (string $part): bool {
+            $name = strtolower(rawurldecode(explode('=', $part, 2)[0]));
+            return $name !== 'token' && ! str_starts_with($name, 'token[');
+        });
+        return $path.($parts ? '?'.implode('&', $parts) : '').($fragment !== null ? '#'.$fragment : '');
     }
 
     public function toArray(Request $request): array
@@ -210,13 +192,10 @@ class AssetResource extends JsonResource
             return null;
         }
 
-        $token = request()->bearerToken() ?: request()->query('token');
-        $tokenParam = $token ? "&token=" . urlencode($token) : "";
-
         $version = $this->documentVersion($type);
-        $documentUrl = "/api/bmn/assets/{$this->id}/document/{$type}/view?v={$version}{$tokenParam}";
+        $documentUrl = "/api/bmn/assets/{$this->id}/document/{$type}/view?v={$version}";
         $previewUrl = $this->$previewColumn
-            ? "/api/bmn/assets/{$this->id}/document/{$type}/preview?v={$version}{$tokenParam}"
+            ? "/api/bmn/assets/{$this->id}/document/{$type}/preview?v={$version}"
             : ($this->isImageDocument($this->$mimeColumn) ? $documentUrl : null);
 
         return [
@@ -225,13 +204,13 @@ class AssetResource extends JsonResource
             'original_name' => $this->$originalNameColumn,
             'preview_path' => $this->$previewColumn,
             'url' => $documentUrl,
-            'download_url' => "/api/bmn/assets/{$this->id}/document/{$type}/download?v={$version}{$tokenParam}",
+            'download_url' => "/api/bmn/assets/{$this->id}/document/{$type}/download?v={$version}",
             'preview_url' => $previewUrl,
-            'preview_urls' => $this->vehicleDocumentPreviewUrls($type, $this->$previewColumn, $previewUrl, $version, $tokenParam),
+            'preview_urls' => $this->vehicleDocumentPreviewUrls($type, $this->$previewColumn, $previewUrl, $version),
         ];
     }
 
-    private function vehicleDocumentPreviewUrls(string $type, ?string $previewPath, ?string $previewUrl, string $version, string $tokenParam): array
+    private function vehicleDocumentPreviewUrls(string $type, ?string $previewPath, ?string $previewUrl, string $version): array
     {
         if (! $previewPath || ! $previewUrl) {
             return [];
@@ -247,7 +226,7 @@ class AssetResource extends JsonResource
 
         foreach ($pagePaths as $path) {
             if (preg_match('/-page-(\d+)\.jpg$/', basename($path), $matches)) {
-                $urls[] = "/api/bmn/assets/{$this->id}/document/{$type}/preview/{$matches[1]}?v={$version}{$tokenParam}";
+                $urls[] = "/api/bmn/assets/{$this->id}/document/{$type}/preview/{$matches[1]}?v={$version}";
             }
         }
 

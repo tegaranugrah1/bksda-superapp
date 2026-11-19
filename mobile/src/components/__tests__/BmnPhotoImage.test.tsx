@@ -92,3 +92,10 @@ it('does not create a blob or report errors for a request completed after unmoun
  await act(async()=>finish({data:{type:'image/png'}}));
  expect(create).not.toHaveBeenCalled();expect(failed).not.toHaveBeenCalled();
 });
+
+it.each(['/api/bmn/assets/17/document/stnk/preview/2?v=9','/api/bmn/power-of-attorneys/17/ktp'])('authenticates protected previews and KTP: %s', async uri => {
+ (apiClient.get as jest.Mock).mockResolvedValue({data:{type:'image/jpeg'}});
+ await act(async()=>{tree=renderer.create(view(uri+(uri.includes('?')?'&':'?')+'%74oken=legacy'));});
+ expect(apiClient.get).toHaveBeenCalledWith('https://api.example.test'+uri,{responseType:'blob'});
+ expect(source()).toEqual({uri:'blob:dummy-photo'});
+});

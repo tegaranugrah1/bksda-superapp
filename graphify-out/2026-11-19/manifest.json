@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/AuthController.php": {
-    "mtime": 1795060297.9216125,
-    "ast_hash": "b18e82f5af72d8664ff163b021a0c63d",
+    "mtime": 1795073981.3751864,
+    "ast_hash": "05e7971b96db377aacc7c737f778ba87",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/MobileDashboardController.php": {
@@ -80,13 +80,13 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetDocumentController.php": {
-    "mtime": 1794121569.6683936,
-    "ast_hash": "fea62e036d2fb9f5f6090178e1029396",
+    "mtime": 1795075789.976372,
+    "ast_hash": "d8cd1c29d44427e4f209e45921b02163",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetPhotoController.php": {
-    "mtime": 1794850852.9207876,
-    "ast_hash": "3ade93109b29f9f764162c9a139b18aa",
+    "mtime": 1795074062.4245455,
+    "ast_hash": "b8b450f16e4f88f215fadb0233c5c68c",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php": {
@@ -130,8 +130,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/PowerOfAttorneyController.php": {
-    "mtime": 1794868960.8258255,
-    "ast_hash": "9860db434358d9e8a00b4d5ea5130aa7",
+    "mtime": 1795075789.976372,
+    "ast_hash": "055589cfc2052d0fd2d80c3d43506f8a",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/UsageAgreementController.php": {
@@ -430,8 +430,8 @@
     "semantic_hash": "0faa4990c6dd5618c3a5ea5e3c374494"
   },
   "backend/app/Modules/Bmn/Resources/AssetResource.php": {
-    "mtime": 1794849565.5660782,
-    "ast_hash": "8e4d735608185001175f35eb84be895f",
+    "mtime": 1795075789.9623625,
+    "ast_hash": "3edeea6708ca794ad145350139eed283",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Resources/AuctionBatchAssetResource.php": {
@@ -455,13 +455,13 @@
     "semantic_hash": "f1442b638ba878804b1670b7a4b0b839"
   },
   "backend/app/Modules/Bmn/Resources/HandoverAgreementResource.php": {
-    "mtime": 1794849542.9978905,
-    "ast_hash": "70892b5a10696fbaaa273274cc7859a5",
+    "mtime": 1795075789.9623625,
+    "ast_hash": "4bf6ee4f5729bcf8489eedc9c87412b9",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Resources/PowerOfAttorneyResource.php": {
-    "mtime": 1794849547.3810337,
-    "ast_hash": "53ff6bb272291c888b53be3034525264",
+    "mtime": 1795075789.9753716,
+    "ast_hash": "ec1aa0ca3b347c64877a422a15f49cc6",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Resources/UsageAgreementResource.php": {
@@ -1205,8 +1205,8 @@
     "semantic_hash": "e66bb13691f6184c762c196427d8e685"
   },
   "backend/bootstrap/app.php": {
-    "mtime": 1794849506.9884944,
-    "ast_hash": "b5b3a0e96cd54edfe22f78a172956b4f",
+    "mtime": 1795075789.9753716,
+    "ast_hash": "1e8df9a3f30a0a3bcfe3b93fc9e82b2f",
     "semantic_hash": ""
   },
   "backend/bootstrap/providers.php": {
@@ -1655,13 +1655,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/_components/PhotoGallery.tsx": {
-    "mtime": 1794836613.0225272,
-    "ast_hash": "a7bbb906832db55f7e9794fb4506e353",
+    "mtime": 1795075925.8015895,
+    "ast_hash": "b7c62dad927a91321159aa61a6785254",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1794837163.5860214,
-    "ast_hash": "c5b1e40eb8dfb8d3a40fb814842c7ce9",
+    "mtime": 1795075925.803591,
+    "ast_hash": "6fcd61003da9e88c75e0bd12094ca1e6",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -1670,8 +1670,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/page.tsx": {
-    "mtime": 1794837005.5120444,
-    "ast_hash": "6f0b82308cbf7e3d66147395eede7e4a",
+    "mtime": 1795076662.6414027,
+    "ast_hash": "575945bc790965c1f5d92680a1b79c62",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/auction-batches/[id]/_components/AssetsLotTab.tsx": {
@@ -1855,8 +1855,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/create/page.tsx": {
-    "mtime": 1794836838.250904,
-    "ast_hash": "5e5d7812d6d7bb71062e567e70da8fd9",
+    "mtime": 1795076281.1215491,
+    "ast_hash": "c171163d00098f09bb9d120ec7147fe9",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/page.tsx": {
@@ -1880,8 +1880,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/PowerOfAttorneyDocument.tsx": {
-    "mtime": 1794836225.031009,
-    "ast_hash": "4ab9402f686009b450225f9a0c8d1196",
+    "mtime": 1795076488.710181,
+    "ast_hash": "0a04cabe59f29d60659ac927974d56a1",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/UsageAgreementDocument.tsx": {
@@ -2495,8 +2495,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/api.ts": {
-    "mtime": 1794850391.9248705,
-    "ast_hash": "34fcb0c49b9dc73b0634ab2b501c3df0",
+    "mtime": 1795075925.8045907,
+    "ast_hash": "6defbb4b23772365a86947811e7d5f69",
     "semantic_hash": ""
   },
   "frontend/src/lib/auth-store.ts": {
@@ -2785,9 +2785,9 @@
     "semantic_hash": "938d76b7047ae105943e23393f0c04d5"
   },
   "mobile/src/features/bmn/components/detail/AssetPhotoSlotsSection.tsx": {
-    "mtime": 1781833466.5794568,
-    "ast_hash": "00c89a054a0de6b0ca9180587dd3f8aa",
-    "semantic_hash": "00c89a054a0de6b0ca9180587dd3f8aa"
+    "mtime": 1795073784.127111,
+    "ast_hash": "28c19bfd5a8816438a2d3ad50de14ad2",
+    "semantic_hash": ""
   },
   "mobile/src/features/bmn/components/detail/AssetSummarySection.tsx": {
     "mtime": 1781832400.8346045,
@@ -2815,8 +2815,8 @@
     "semantic_hash": "9407fcd3da2681c20ecf70a67bd433b7"
   },
   "mobile/src/features/bmn/screens/BmnDetailScreen.tsx": {
-    "mtime": 1788919976.6051228,
-    "ast_hash": "f3718a6e062a33662c9a117ae89909d9",
+    "mtime": 1795076281.1075478,
+    "ast_hash": "09306d5edf1e67b27c5c73793df8c46d",
     "semantic_hash": ""
   },
   "mobile/src/features/bmn/screens/BmnFormScreen.tsx": {
@@ -3235,8 +3235,8 @@
     "semantic_hash": "b51b42708a75b320363cf44f3d87fe60"
   },
   "mobile/src/lib/files/__tests__/download.test.ts": {
-    "mtime": 1795059969.4732559,
-    "ast_hash": "e8a6860cee258254f0a647584c0bd57b",
+    "mtime": 1795076281.1225483,
+    "ast_hash": "f442b60732e8a8a34f89b41097cc2bab",
     "semantic_hash": ""
   },
   "mobile/src/lib/files/__tests__/share.test.ts": {
@@ -3245,8 +3245,8 @@
     "semantic_hash": ""
   },
   "mobile/src/lib/files/download.ts": {
-    "mtime": 1795059863.5768845,
-    "ast_hash": "a30d27c2be35a781f297f9d1159a16b8",
+    "mtime": 1795076023.8795216,
+    "ast_hash": "9ace349149c67d0a04b4bbffa2c92567",
     "semantic_hash": ""
   },
   "mobile/src/lib/files/share.ts": {
@@ -3420,8 +3420,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1795073206.8411825,
-    "ast_hash": "597a4989f04c1e5b82a4c7fdfa2a437a",
+    "mtime": 1795074904.915445,
+    "ast_hash": "bbcdc4cf907a4af30e882036dbf402e1",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4085,8 +4085,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1795073206.843729,
-    "ast_hash": "332edee172de5ef403e7d462ae993ea6",
+    "mtime": 1795074904.9184167,
+    "ast_hash": "eb8cd5a7d0e3493a547c29e76901850d",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5054,11 +5054,6 @@
     "ast_hash": "c872a4c704cbfc04826fac5bc8cb1b2d",
     "semantic_hash": ""
   },
-  "backend/app/Http/Middleware/AuthenticateQueryToken.php": {
-    "mtime": 1794849514.9470859,
-    "ast_hash": "278ca46b519b3d4f3139aee6b396527c",
-    "semantic_hash": ""
-  },
   "backend/app/Modules/Bmn/Requests/UpdateAuctionBatchDraftMetadataRequest.php": {
     "mtime": 1794850044.1584678,
     "ast_hash": "0ce9cdcf0103396f6b8e289b36eb89c3",
@@ -5205,8 +5200,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyAssetsTab.tsx": {
-    "mtime": 1794843706.7848701,
-    "ast_hash": "8a38bfc72cdbb2315fccbadcccb5e1c7",
+    "mtime": 1795076728.3629043,
+    "ast_hash": "907991eec4ade1bf8eedf0a3261b401b",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/MyLeaveTab.tsx": {
@@ -5845,8 +5840,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1795073206.8421836,
-    "ast_hash": "6968fcaee255f62a09b7f50338586181",
+    "mtime": 1795074904.9174402,
+    "ast_hash": "5c06c3afe0696b520716cac76ec222bb",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -7090,8 +7085,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalPersonalSecurityTest.php": {
-    "mtime": 1795059561.8354456,
-    "ast_hash": "422fe37c4bd5d28dd9bdac8aed73a379",
+    "mtime": 1795076365.772583,
+    "ast_hash": "49778ad608fb6bdf9120623262037b7c",
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalUploadSecurityTest.php": {
@@ -7665,8 +7660,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/loans/create/_components/AssetCatalogModal.tsx": {
-    "mtime": 1794837001.7451732,
-    "ast_hash": "4e9d838246d388799abc8daab068a82a",
+    "mtime": 1795076698.295934,
+    "ast_hash": "e63d0f33ddceb8418b84994d538954ed",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Migrations/2026_11_05_075000_fix_bmn_asset_loans_status_check_constraint.php": {
@@ -8725,13 +8720,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_lib/asset-photos.ts": {
-    "mtime": 1794306020.839138,
-    "ast_hash": "b7ca6f94afdcf5e049786332a0fb94e0",
+    "mtime": 1795076698.2838702,
+    "ast_hash": "3aa3a71b4dbcdd0b111c8dab5f4cc3ab",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/_components/AssetPhotoPreview.tsx": {
-    "mtime": 1794836551.199369,
-    "ast_hash": "c7cba2de8c8e32d35159a1262b710199",
+    "mtime": 1795076662.6404176,
+    "ast_hash": "39b15cb1c58ba7c95a7b553bc5533b62",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/use-asset-view.ts": {
@@ -8765,13 +8760,13 @@
     "semantic_hash": ""
   },
   "frontend/tests/bmn-asset-grid.cjs": {
-    "mtime": 1794303058.479998,
-    "ast_hash": "9cb779ec93692a5ace0b0d78eed69370",
+    "mtime": 1795076662.6423993,
+    "ast_hash": "9947d9e1cd5f1c1c866850b87a1baa16",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-assets-ui.cjs": {
-    "mtime": 1794367861.1241283,
-    "ast_hash": "46c7d9728f05d2c1996da73d4eee1c5e",
+    "mtime": 1795076560.6065576,
+    "ast_hash": "50d52abd175bee649780049f4df426e0",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-dashboard-motion.cjs": {
@@ -8780,8 +8775,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/bmn-detail-ui.cjs": {
-    "mtime": 1794321991.9388082,
-    "ast_hash": "dd617b209d7754684dd8144a86f69b33",
+    "mtime": 1795076526.0034094,
+    "ast_hash": "b56f8e47b7d26cb994f97f2413de80ba",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-sidebar-ui.cjs": {
@@ -8985,8 +8980,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/reports/_components/PhotoLampiranPages.tsx": {
-    "mtime": 1794868052.9395027,
-    "ast_hash": "121d85a1649e28338d796f5406c22363",
+    "mtime": 1795076488.7186868,
+    "ast_hash": "75353c466878bfd10b11c436d556fa90",
     "semantic_hash": ""
   },
   "frontend/src/app/portal/_components/ReportFormShared.tsx": {
@@ -9185,8 +9180,8 @@
     "semantic_hash": ""
   },
   "docs/mobile-portal-refactor.md": {
-    "mtime": 1795073206.843729,
-    "ast_hash": "ad3e79779373f8e424c959cb62e63261",
+    "mtime": 1795074904.9285357,
+    "ast_hash": "d952f9dc83930a64cdcfff54e064cf1c",
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalTasksTab.tsx": {
@@ -9210,8 +9205,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalAssetsView.tsx": {
-    "mtime": 1795067427.4782033,
-    "ast_hash": "71320ab697104b94a27d7dda4d17089a",
+    "mtime": 1795073784.1162467,
+    "ast_hash": "201df5d67edddffce446704b3168db8b",
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalLeaveView.tsx": {
@@ -9292,6 +9287,36 @@
   "mobile/src/features/dashboard/__tests__/FormulirCutiModal.catalog.test.tsx": {
     "mtime": 1795072846.3115606,
     "ast_hash": "0b70bf9ec5574ddbedcc2e45c571910d",
+    "semantic_hash": ""
+  },
+  "mobile/src/components/BmnPhotoImage.tsx": {
+    "mtime": 1795076023.8795216,
+    "ast_hash": "4eeb2a4bcafe4e03e1870c012317a8cc",
+    "semantic_hash": ""
+  },
+  "mobile/src/components/__tests__/BmnPhotoImage.test.tsx": {
+    "mtime": 1795076281.1225483,
+    "ast_hash": "dd8a3e630b7ea6809203af3fc2ef66ff",
+    "semantic_hash": ""
+  },
+  "frontend/src/components/BmnMediaImage.tsx": {
+    "mtime": 1795075925.7885916,
+    "ast_hash": "7788e03bdfbb73f675e681ed4bfb4282",
+    "semantic_hash": ""
+  },
+  "frontend/src/lib/bmn-media.ts": {
+    "mtime": 1795075925.7875912,
+    "ast_hash": "b32c72b3842005e52723816359ef5fcc",
+    "semantic_hash": ""
+  },
+  "frontend/tests/bmn-media.cjs": {
+    "mtime": 1795076560.6065576,
+    "ast_hash": "1950e749d4af9da17129bfad16195c19",
+    "semantic_hash": ""
+  },
+  "mobile/src/lib/files/bmnMedia.ts": {
+    "mtime": 1795076023.8785214,
+    "ast_hash": "ce4ffbea6267f1c8c125b38dbc6f519c",
     "semantic_hash": ""
   }
 }

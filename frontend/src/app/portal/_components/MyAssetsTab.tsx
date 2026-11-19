@@ -1,5 +1,7 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { Loader2, Briefcase, List, LayoutGrid, Package, Camera, X, ChevronLeft, ChevronRight, ExternalLink, ZoomIn, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -203,7 +205,7 @@ export function AssetPhotoLightbox({
         )}
 
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <BmnMediaImage
           src={currentPhoto.url}
           alt={currentPhoto.label}
           className="max-h-[72vh] max-w-full object-contain rounded-3xl shadow-lg border border-white/10 select-none animate-in zoom-in-95 duration-150"
@@ -362,7 +364,7 @@ export function MyAssetsTab({
                   <div className="w-12 h-12 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center shrink-0 overflow-hidden relative border border-slate-200/80 dark:border-zinc-800 group-hover:border-[var(--ds-accent-fg)] transition-colors">
                     {hasThumb ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <BmnMediaImage
                         src={thumbUrl!}
                         alt={asset.nama_barang}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
@@ -455,7 +457,7 @@ export function MyAssetsTab({
                 <div className="h-28 w-full relative bg-[var(--ds-surface-muted)] border-b border-slate-200/70 dark:border-zinc-800 flex items-center justify-center overflow-hidden shrink-0">
                   {hasValidThumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <BmnMediaImage
                       src={thumbUrl!}
                       alt={asset.nama_barang}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

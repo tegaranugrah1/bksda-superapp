@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   Modal,
   RefreshControl,
-  Linking,
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +28,8 @@ import { NotificationModal } from '../../../components/ui/NotificationModal';
 import { usePermissions } from '../../../lib/permissions';
 
 import { config } from '../../../lib/api/config';
+import { downloadBmnMediaFile } from '@/lib/files/download';
+import { openFile } from '@/lib/files/share';
 
 function driveToThumbnail(url: string): string | null {
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -227,6 +228,18 @@ export default function BmnDetailScreen() {
     );
   };
 
+  const documentOpening = React.useRef(false);
+  const openVehicleDocument = async (document?: { url?: string | null; original_name?: string | null } | null) => {
+    if (!document?.url || documentOpening.current) return;
+    documentOpening.current = true;
+    try {
+      const file = await downloadBmnMediaFile(document.url, document.original_name);
+      await openFile({ localUri: file.localUri, filename: file.filename, mimeType: file.mimeType });
+    } catch {
+      setNotificationState({ visible: true, title: 'Dokumen belum dapat dibuka', message: 'Periksa akses atau koneksi, lalu coba lagi.', variant: 'danger', iconName: 'alert-circle-outline' });
+    } finally { documentOpening.current = false; }
+  };
+
   const handleViewStnk = () => {
     const pages = data?.stnk_document?.preview_urls?.length
       ? data.stnk_document.preview_urls
@@ -242,6 +255,8 @@ export default function BmnDetailScreen() {
         index: 0,
         title: 'Dokumen STNK',
       });
+    } else {
+      void openVehicleDocument(data?.stnk_document);
     }
   };
 
@@ -260,6 +275,8 @@ export default function BmnDetailScreen() {
         index: 0,
         title: 'Dokumen BPKB',
       });
+    } else {
+      void openVehicleDocument(data?.bpkb_document);
     }
   };
 

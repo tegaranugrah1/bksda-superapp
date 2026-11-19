@@ -1,5 +1,7 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 import { resolveApiUrl } from "@/lib/api";
 import {
   formatIndonesianDate,
@@ -309,7 +311,7 @@ export function PowerOfAttorneyDocument({
           <div className="poa-ktp-page poa-page shadow-xl ring-1 ring-zinc-200">
             <div className="poa-ktp-container">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={finalKtpUrl} alt="KTP Pemberi Kuasa" />
+              <BmnMediaImage src={finalKtpUrl} alt="KTP Pemberi Kuasa" />
             </div>
           </div>
         )}
@@ -338,7 +340,7 @@ export function PowerOfAttorneyDocument({
               <div className="poa-stnk-page shadow-xl ring-1 ring-zinc-200" key={`${asset.id}-stnk-${idx}`}>
                 <div className="poa-stnk-container">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={resolvedUrl} alt={`STNK ${asset.nama_barang} Page ${idx + 1}`} />
+                  <BmnMediaImage src={resolvedUrl} alt={`STNK ${asset.nama_barang} Page ${idx + 1}`} />
                 </div>
               </div>
             );

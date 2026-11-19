@@ -1,5 +1,7 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -192,7 +194,7 @@ export default function LoanCreatePage() {
                                                             <div className="w-16 h-16 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] flex items-center justify-center shrink-0 overflow-hidden relative border border-slate-200/80 dark:border-zinc-800">
                                                                 {photo?.url ? (
                                                                     // eslint-disable-next-line @next/next/no-img-element
-                                                                    <img
+                                                                    <BmnMediaImage
                                                                         src={photo.url}
                                                                         alt={asset.nama_barang}
                                                                         className="w-full h-full object-cover"

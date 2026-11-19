@@ -1023,10 +1023,59 @@ class PortalPersonalSecurityTest extends TestCase
             'photo' => '/api/bmn/assets/17/photo/depan/view?ToKeN=old-secret&v=9',
             'download' => '/api/bmn/assets/17/photo/depan/download/?token=old-secret&v=9',
         ]]];
-        $result = \App\Modules\Bmn\Resources\AssetResource::attachViewerQueryToken($payload, '42|dummy-current-token');
+        $result = \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens($payload);
         $this->assertSame('/api/bmn/assets/17/photo/depan/view?v=9', $result['items'][0]['photo']);
         $this->assertSame('/api/bmn/assets/17/photo/depan/download/?v=9', $result['items'][0]['download']);
         $this->assertStringNotContainsString('dummy-current-token', json_encode($result));
+    }
+
+    public function test_bmn_documents_and_ktp_require_header_auth_without_query_credentials(): void
+    {
+        [$admin, $employee] = $this->actor('Dummy BMN Admin', 'admin', ['bmn']);
+        [$other] = $this->actor('Dummy BMN Outsider');
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6l5sAAAAASUVORK5CYII=');
+        Storage::disk('local')->put('audit-fixtures/document-preview.jpg', $png);
+        Storage::disk('local')->put('audit-fixtures/document-preview-page-2.jpg', $png);
+        $asset = $this->asset($employee, ['bpkb_preview_path' => 'audit-fixtures/document-preview.jpg']);
+        $agreement = \App\Modules\Bmn\Models\PowerOfAttorney::create([
+            'employee_id' => $employee->id, 'generated_by' => $admin->id, 'number' => 'DUMMY/2026/001',
+            'document_date' => '2026-11-19', 'first_party_snapshot' => [], 'second_party_snapshot' => [],
+            'assets_snapshot' => [['document' => '/api/bmn/assets/17/document/bpkb/view?%74oken=old&v=9', 'ktp' => '/api/bmn/power-of-attorneys/17/ktp?token%5B%5D=old']],
+            'asset_ids' => [$asset->id], 'ktp_path' => 'audit-fixtures/ktp.png',
+        ]);
+        Storage::disk('local')->put($agreement->ktp_path, $png);
+        $token = $admin->createToken('dummy-document-header')->plainTextToken;
+        $otherToken = $other->createToken('dummy-no-bmn')->plainTextToken;
+        $headers = ['Authorization' => 'Bearer '.$token];
+        $this->app['auth']->forgetGuards();
+        $document = $this->getJson('/api/bmn/assets/'.$asset->id, $headers)->assertOk()->json('data.bpkb_document');
+        $this->app['auth']->forgetGuards();
+        $poa = $this->getJson('/api/bmn/power-of-attorneys/'.$agreement->id, $headers)->assertOk()->json('data');
+        $this->assertSame('/api/bmn/power-of-attorneys/'.$agreement->id.'/ktp', $poa['ktp_url']);
+        $this->assertStringNotContainsString('token', json_encode([$document, $poa['assets_snapshot'], $poa['ktp_url']]));
+        $this->assertStringNotContainsString($token, json_encode([$document, $poa]));
+        $urls = [$document['url'], $document['download_url'], ...$document['preview_urls'], $poa['ktp_url']];
+        $this->assertCount(5, $urls);
+        foreach ($urls as $url) {
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url.(str_contains($url, '?') ? '&' : '?').'token='.urlencode($token))->assertUnauthorized();
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url, $headers)->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff')->assertHeader('Referrer-Policy', 'no-referrer');
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url, ['Authorization' => 'Bearer '.$otherToken])->assertForbidden();
+        }
+        $admin->tokens()->delete();
+        foreach ($urls as $url) {
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url, $headers)->assertUnauthorized();
+        }
+    }
+
+    public function test_cached_document_snapshots_remove_encoded_tokens_without_losing_version_or_fragment(): void
+    {
+        $url = '/api/bmn/assets/17/document/stnk/preview/2?%74oken=old&ToKeN%5Bx%5D=old&v=9&v=10#page=2';
+        $this->assertSame('/api/bmn/assets/17/document/stnk/preview/2?v=9&v=10#page=2', \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens($url));
+        $this->assertSame('plain text', \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens('plain text'));
     }
 
 }

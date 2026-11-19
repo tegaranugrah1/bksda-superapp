@@ -2,21 +2,12 @@ import React from "react";
 import { Image, Platform, type ImageProps, type ImageURISource } from "react-native";
 import { useOptionalAuth } from "@/features/auth/AuthProvider";
 import { apiClient } from "@/lib/api/client";
+import { resolveBmnMediaUrl } from "@/lib/files/bmnMedia";
 
 /** Photo credentials belong in headers, never in URLs or image DOM attributes. */
 export function BmnPhotoImage({ source, onError, ...props }: Omit<ImageProps, "source"> & { source: ImageURISource }) {
   const token = useOptionalAuth()?.token ?? null;
-  let photoUri: string | null = null;
-  try {
-    const api = new URL(String(apiClient.defaults.baseURL));
-    const url = new URL(source.uri || "", api.origin);
-    const prefix = api.pathname.replace(/\/$/, "");
-    if (url.origin === api.origin && !url.username && !url.password && url.pathname.startsWith(`${prefix}/`)
-      && /^\/bmn\/assets\/[^/]+\/photo\/[^/]+\/(view|download)\/?$/.test(url.pathname.slice(prefix.length))) {
-      for (const key of [...url.searchParams.keys()]) if (key.toLowerCase() === "token") url.searchParams.delete(key);
-      photoUri = url.href;
-    }
-  } catch { /* Public, local and external images keep their original source. */ }
+  const photoUri = resolveBmnMediaUrl(source.uri);
 
   const [preview, setPreview] = React.useState<{ uri: string; photoUri: string; token: string | null } | null>(null);
   const errorHandler = React.useRef(onError);
@@ -27,7 +18,7 @@ export function BmnPhotoImage({ source, onError, ...props }: Omit<ImageProps, "s
     let blobUri: string | null = null;
     void apiClient.get<Blob>(photoUri, { responseType: "blob" }).then(response => {
       if (!current) return;
-      if (!/^image\/(jpeg|png|webp|gif)$/i.test(response.data.type)) throw new Error("Format foto tidak didukung.");
+      if (!/^image\/(jpeg|png|webp|gif)$/i.test(response.data.type.split(";")[0].trim())) throw new Error("Format foto tidak didukung.");
       blobUri = URL.createObjectURL(response.data);
       setPreview({ uri: blobUri, photoUri, token });
     }).catch(() => {

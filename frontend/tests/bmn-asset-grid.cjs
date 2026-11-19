@@ -16,7 +16,7 @@ function load(file, imports = {}, globals = {}) {
   return mod.exports;
 }
 
-const photos = load('_lib/asset-photos.ts');
+const photos = load('_lib/asset-photos.ts', { '@/lib/api': { resolveApiUrl: url => url } });
 const { getAssetUser } = load('_lib/asset-utils.ts');
 assert.equal(getAssetUser({ pengguna: 'User', nama_pengguna: 'Name', penanggung_jawab: { nama_lengkap: 'PIC' } }), 'User');
 assert.equal(getAssetUser({ nama_pengguna: 'Name', penanggung_jawab: { nama_lengkap: 'PIC' } }), 'Name');
@@ -34,7 +34,7 @@ assert.equal(photos.getPrimaryPhoto({ foto_bpkb_1_url: '/private/bpkb.jpg', foto
 assert.equal(photos.resolvePhotoUrl('https://drive.google.com/file/d/fixture_photo/view'), 'https://lh3.googleusercontent.com/d/fixture_photo');
 assert.equal(photos.resolvePhotoUrl('/api/bmn/assets/fixture/photo/depan/view?v=7'), '/api/bmn/assets/fixture/photo/depan/view?v=7');
 assert.equal(photos.resolvePhotoUrl('https://images.example.test/asset.jpg'), 'https://images.example.test/asset.jpg');
-const absolutePhotos = load('_lib/asset-photos.ts', {}, { process: { env: { NEXT_PUBLIC_API_URL: 'https://api.example.test/api' } } });
+const absolutePhotos = load('_lib/asset-photos.ts', { '@/lib/api': { resolveApiUrl: url => 'https://api.example.test' + url } });
 assert.equal(absolutePhotos.resolvePhotoUrl('/api/bmn/assets/fixture/photo/depan/view?v=7'), 'https://api.example.test/api/bmn/assets/fixture/photo/depan/view?v=7');
 
 let width = 390, blocked = false, client = true, subscription;
@@ -69,7 +69,9 @@ const cleanup = subscription(() => {}); assert.equal(mediaListeners.size, 1); cl
 let state = [], cursor = 0;
 const element = (type, props) => ({ type, props: props || {} });
 const preview = load('assets/_components/AssetPhotoPreview.tsx', {
-  react: { useState: initial => { const i = cursor++; if (!(i in state)) state[i] = initial; return [state[i], value => { state[i] = value; }]; } },
+  '@/components/BmnMediaImage': { BmnMediaImage: 'img' },
+  '@/app/bmn/_lib/asset-photos': photos,
+  react: { useState: initial => { const i = cursor++; if (!(i in state)) state[i] = initial; return [state[i], value => { state[i] = typeof value === 'function' ? value(state[i]) : value; }]; } },
   'react/jsx-runtime': { jsx: element, jsxs: element },
   'lucide-react': new Proxy({}, { get: (_, key) => `icon:${String(key)}` }),
   '@/components/ui/dialog': Object.fromEntries(['Dialog', 'DialogTrigger', 'DialogContent', 'DialogHeader', 'DialogTitle', 'DialogDescription', 'DialogClose'].map(key => [key, key])),
@@ -79,7 +81,7 @@ function flatten(node) {
   if (!node || typeof node !== 'object') return [];
   return [node, ...flatten(node.props.children)];
 }
-const render = photo => { cursor = 0; return flatten(preview.AssetPhotoPreview({ photo, name: 'Fixture Photo', nup: '123' })); };
+const render = photo => { cursor = 0; return flatten(preview.AssetPhotoPreview({ asset: photo ? {foto_depan_url: photo.url} : {}, name: 'Fixture Photo', nup: '123' })); };
 assert(render(null).some(node => node.props.children === 'Belum ada foto'));
 const photo = { url: '/api/bmn/assets/fixture/photo/depan/view?v=1', label: 'Tampak Depan' };
 let nodes = render(photo);
@@ -91,4 +93,10 @@ assert(render(photo).some(node => node.props.role === 'status' && node.props.chi
 nodes = render(photo); nodes.find(node => node.type === 'img' && node.props.loading).props.onError();
 assert(!render(photo).some(node => node.type === 'DialogTrigger'), 'Failed thumbnail must not offer an unusable preview');
 assert(render({ ...photo, url: `${photo.url}2` }).some(node => node.type === 'DialogTrigger'), 'A changed photo URL may load again');
-console.log('PASS: photo priority/URLs and document exclusion, responsive defaults, independent saved preferences, blocked storage/SSR/cleanup, preview loading/error states.');
+state = [];
+const fallbackAsset = { foto_geotag_url: '/api/bmn/assets/fixture/photo/geotag/view?v=9', foto_depan_url: photo.url };
+const renderFallback = () => {cursor=0;return flatten(preview.AssetPhotoPreview({asset:fallbackAsset,name:'Fixture',nup:'1'}));};
+nodes = renderFallback(); nodes.find(node => node.type === 'img' && node.props.loading).props.onError();
+assert.equal(renderFallback().find(node => node.type === 'img' && node.props.loading).props.src, photo.url, 'A missing geotag must fall back to the front photo');
+assert.equal(photos.getPrimaryPhoto(fallbackAsset, [fallbackAsset.foto_geotag_url]).url, photo.url);
+console.log('PASS: missing-geotag fallback, photo priority/URLs and document exclusion, responsive defaults, independent saved preferences, blocked storage/SSR/cleanup, preview loading/error states.');

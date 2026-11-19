@@ -279,7 +279,7 @@ export function resolveApiUrl(url?: string | null): string | null {
   if (/^https?:\/\//i.test(url)) return url;
   if (!url.startsWith("/")) return url;
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  const apiBase = api.defaults.baseURL;
   if (!apiBase || apiBase === "/api" || !apiBase.startsWith("http")) {
     return url;
   }

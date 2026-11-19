@@ -4,6 +4,7 @@ import { apiClient } from '@/lib/api/client';
 import { notifySession } from '@/lib/auth/sessionEvents';
 import { getToken, clearToken, getSessionVersion } from '@/lib/auth/tokenStorage';
 import { config } from '@/lib/api/config';
+import { resolveBmnMediaUrl } from './bmnMedia';
 import { AssignmentListMode } from '@/features/surat-tugas/types';
 
 export type DownloadStorage = 'cache' | 'document';
@@ -99,7 +100,18 @@ export async function downloadAssignmentFile({
   filename,
   storage = 'cache',
 }: DownloadFileOptions): Promise<DownloadedFile> {
-  const endpoint = getAssignmentDownloadEndpoint(assignmentId, mode);
+  return downloadApiFile(getAssignmentDownloadEndpoint(assignmentId, mode), filename, storage, 'surat-tugas');
+}
+
+export async function downloadBmnMediaFile(url: string, filename?: string | null): Promise<DownloadedFile> {
+  const resolved = resolveBmnMediaUrl(url);
+  if (!resolved) throw new FileDownloadError('forbidden', 'Alamat berkas BMN tidak diizinkan.');
+  const target = new URL(resolved);
+  const prefix = new URL(config.apiUrl).pathname.replace(/\/$/, '');
+  return downloadApiFile(target.pathname.slice(prefix.length) + target.search, filename || 'Dokumen_BMN.pdf', 'cache', 'bmn');
+}
+
+async function downloadApiFile(endpoint: string, filename: string | null | undefined, storage: DownloadStorage, folder: string): Promise<DownloadedFile> {
   const safeFilename = sanitizeFilename(filename);
   if (Platform.OS === 'web') {
     const response = await apiClient.get<Blob>(endpoint, { responseType: 'blob' });
@@ -112,7 +124,7 @@ export async function downloadAssignmentFile({
     throw new FileDownloadError('auth', 'Sesi Anda telah berakhir. Silakan login kembali.', 401);
   }
 
-  const directory = `${getBaseDirectory(storage)}surat-tugas/`;
+  const directory = `${getBaseDirectory(storage)}${folder}/`;
   const localUri = `${directory}${safeFilename}`;
   const downloadUrl = buildApiUrl(endpoint);
 

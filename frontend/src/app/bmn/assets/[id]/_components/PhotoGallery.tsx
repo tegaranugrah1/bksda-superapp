@@ -1,8 +1,11 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 import React, { useState, useRef, forwardRef, useImperativeHandle } from "react";
 import { Camera, Download, Eye, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck, FileText, CheckCircle2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, resolveApiUrl } from "@/lib/api";
+import { openBmnMedia } from "@/lib/bmn-media";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
@@ -81,19 +84,6 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
   return firstError || response?.data?.message || fallback;
 }
 
-function resolveApiUrl(url?: string | null): string | null {
-  if (!url) return null;
-  if (/^https?:\/\//i.test(url)) return url;
-  if (!url.startsWith("/")) return url;
-
-  const apiBase = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiBase || apiBase === "/api" || !apiBase.startsWith("http")) {
-    return url;
-  }
-
-  const origin = new URL(apiBase).origin;
-  return `${origin}${url}`;
-}
 
 function getDocumentPreviewPages(document?: VehicleDocument | null): string[] {
   const urls = document?.preview_urls?.length ? document.preview_urls : (document?.preview_url ? [document.preview_url] : []);
@@ -215,7 +205,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     openLightbox,
   }));
 
-  const openDocumentLightbox = (document: VehicleDocument | null | undefined, label: string) => {
+  const openDocumentLightbox = async (document: VehicleDocument | null | undefined, label: string) => {
     previewTrigger.current = window.document.activeElement instanceof HTMLElement ? window.document.activeElement : null;
     const pages = getDocumentPreviewPages(document);
     if (pages.length > 0) {
@@ -224,7 +214,10 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     }
 
     const viewUrl = resolveApiUrl(document?.url);
-    if (viewUrl) window.open(viewUrl, "_blank", "noopener,noreferrer");
+    if (viewUrl) {
+      try { await openBmnMedia(viewUrl); }
+      catch (error) { toast.error(getApiErrorMessage(error, "Dokumen belum dapat dibuka.")); }
+    }
   };
 
   const navigateLightbox = (dir: 1 | -1) => {
@@ -339,7 +332,8 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
       const document = documents[type];
       const downloadUrl = resolveApiUrl(document?.download_url);
       if (downloadUrl) {
-        window.open(downloadUrl, "_blank", "noopener,noreferrer");
+        try { await openBmnMedia(downloadUrl, document?.original_name || `${type.toUpperCase()}.pdf`); }
+        catch (error) { toast.error(getApiErrorMessage(error, "Dokumen belum dapat diunduh.")); }
       }
       return;
     }
@@ -657,7 +651,7 @@ function PhotoCardSlot({
         <div>
           <button type="button" aria-label={`Lihat ${slot.label}`} onClick={() => openLightbox(slot.key)} className="relative block w-full rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 aspect-4/3 bg-[var(--ds-surface-muted)] cursor-zoom-in">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={displayThumb || url} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <BmnMediaImage src={displayThumb || url} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             <span className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs">{slot.shortLabel}</span>
           </button>
           <div className="flex flex-wrap justify-center gap-1 mt-2">
@@ -754,7 +748,7 @@ function VehicleDocumentCard({
       >
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt={slot.label} className="h-full w-full object-contain" />
+          <BmnMediaImage src={previewUrl} alt={slot.label} className="h-full w-full object-contain" />
         ) : document ? (
           <div className="flex flex-col items-center gap-2 text-center">
             <FileText className="h-10 w-10 text-[var(--ds-status-info-fg)]" />
@@ -857,7 +851,7 @@ function Lightbox({ url, label, index, total, onClose, onPrev, onNext, onReturnF
         </DialogClose>
         {failedUrl === url ? <p role="status" className="bmn-photo-placeholder min-h-48">Foto tidak dapat dimuat</p> : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={label} className="bmn-photo-full" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} />
+          <BmnMediaImage src={url} alt={label} className="bmn-photo-full" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} />
         )}
         {total > 1 && <div className="flex items-center justify-between gap-2">
           <button type="button" className="bmn-button bmn-secondary inline-flex items-center gap-1 rounded-lg px-3 text-xs" onClick={onPrev}><ChevronLeft className="w-4 h-4" />Sebelumnya</button>

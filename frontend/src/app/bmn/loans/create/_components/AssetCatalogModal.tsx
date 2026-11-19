@@ -1,5 +1,7 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
@@ -362,12 +364,12 @@ export function AssetCatalogModal({
             /* ================= GRID VIEW ================= */
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {assets.map((asset) => {
-                const photo = getPrimaryPhoto(asset);
+                const photo = getPrimaryPhoto(asset, Object.keys(failedImgMap));
                 const isSelected = Boolean(tempSelectedMap[asset.id]);
                 const isDamaged = asset.kondisi === "Rusak Berat";
                 const isLoaned = Boolean(asset.active_loan);
                 const isUnavailable = (asset.status_bmn && asset.status_bmn !== "Aktif") || isDamaged || isLoaned;
-                const hasValidThumb = Boolean(photo?.url && !failedImgMap[`${asset.id}-${photo.label}`]);
+                const hasValidThumb = Boolean(photo?.url);
                 const userInCharge = getAssetUser(asset);
 
                 return (
@@ -393,12 +395,12 @@ export function AssetCatalogModal({
                     <div className="aspect-[16/10] bg-[var(--ds-surface-muted)] relative flex items-center justify-center overflow-hidden border-b border-slate-200/70 dark:border-zinc-800">
                       {hasValidThumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <BmnMediaImage
                           src={photo!.url}
                           alt={asset.nama_barang}
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
-                          onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${photo!.label}`]: true }))}
+                          onError={() => setFailedImgMap((prev) => ({ ...prev, [photo!.url]: true }))}
                         />
                       ) : (
                         <div className="flex flex-col items-center gap-2 text-[var(--ds-fg-muted)]">
@@ -536,12 +538,12 @@ export function AssetCatalogModal({
             /* ================= LIST VIEW ================= */
             <div className="divide-y divide-slate-200/70 dark:divide-zinc-800 bg-[var(--ds-surface)] rounded-lg border border-slate-200/80 dark:border-zinc-800 overflow-hidden">
               {assets.map((asset) => {
-                const photo = getPrimaryPhoto(asset);
+                const photo = getPrimaryPhoto(asset, Object.keys(failedImgMap));
                 const isSelected = Boolean(tempSelectedMap[asset.id]);
                 const isDamaged = asset.kondisi === "Rusak Berat";
                 const isLoaned = Boolean(asset.active_loan);
                 const isUnavailable = (asset.status_bmn && asset.status_bmn !== "Aktif") || isDamaged || isLoaned;
-                const hasValidThumb = Boolean(photo?.url && !failedImgMap[`${asset.id}-${photo.label}`]);
+                const hasValidThumb = Boolean(photo?.url);
                 const userInCharge = getAssetUser(asset);
 
                 return (
@@ -582,12 +584,12 @@ export function AssetCatalogModal({
                     <div className="w-16 h-16 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg-muted)] flex items-center justify-center shrink-0 overflow-hidden relative border border-slate-200/80 dark:border-zinc-800 shadow-xs">
                       {hasValidThumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <BmnMediaImage
                           src={photo!.url}
                           alt={asset.nama_barang}
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
-                          onError={() => setFailedImgMap((prev) => ({ ...prev, [`${asset.id}-${photo!.label}`]: true }))}
+                          onError={() => setFailedImgMap((prev) => ({ ...prev, [photo!.url]: true }))}
                         />
                       ) : (
                         <Camera className="w-6 h-6 text-[var(--ds-fg-muted)] stroke-[1.5]" />
