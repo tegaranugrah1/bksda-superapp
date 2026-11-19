@@ -22,8 +22,13 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let pingTimer: ReturnType<typeof setInterval> | null = null;
 
 const channels = new Map<string, Set<ListenerEntry>>();
+const subscribedChannels = new Set<string>();
 const rejectedChannels = new Set<string>();
 const authorizingChannels = new Set<string>();
+
+export function isReverbSubscribed(channelName: string): boolean {
+  return !!ws && ws.readyState === WebSocket.OPEN && !!socketId && subscribedChannels.has(channelName);
+}
 
 export function getTokenId(token?: string | null): string | null {
   return token?.match(/^([1-9]\d*)\|[^|\s]+$/)?.[1] ?? null;
@@ -70,6 +75,7 @@ export function getReverbWsUrl(
   if (envScheme === 'https' || envScheme === 'wss') wsScheme = 'wss';
   if (envScheme === 'http' || envScheme === 'ws') wsScheme = 'ws';
   if (envPort && /^\d+$/.test(envPort)) wsPort = envPort;
+  if (config.isProd || config.apiUrl.startsWith('https:')) wsScheme = 'wss';
 
   const hidePort =
     (wsScheme === 'wss' && wsPort === '443') ||
@@ -196,6 +202,11 @@ function handleMessage(rawData: unknown): void {
     return;
   }
 
+  if (msg.event === 'pusher_internal:subscription_succeeded' && msg.channel) {
+    if (channels.has(msg.channel)) subscribedChannels.add(msg.channel);
+    return;
+  }
+
   if (msg.event.startsWith('pusher:') || msg.event.startsWith('pusher_internal:')) {
     return;
   }
@@ -216,6 +227,7 @@ function handleMessage(rawData: unknown): void {
 function teardownSocket(): void {
   clearTimers();
   socketId = null;
+  subscribedChannels.clear();
   if (ws) {
     ws.onopen = null;
     ws.onmessage = null;
@@ -271,6 +283,7 @@ function ensureConnected(token: string): void {
     if (ws !== socket) return;
     clearTimers();
     socketId = null;
+    subscribedChannels.clear();
     ws = null;
 
     if (channels.size > 0 && activeToken && activeUrl) {
@@ -314,6 +327,7 @@ export function subscribeReverbChannel(
     current.delete(entry);
     if (current.size === 0) {
       channels.delete(channelName);
+      subscribedChannels.delete(channelName);
       rejectedChannels.delete(channelName);
       sendFrame('pusher:unsubscribe', { channel: channelName });
     }

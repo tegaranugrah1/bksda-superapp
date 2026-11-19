@@ -24,8 +24,17 @@ describe('config', () => {
 
   it('uses fallback apiUrl when EXPO_PUBLIC_API_URL is missing', () => {
     delete process.env.EXPO_PUBLIC_API_URL;
+    process.env.EXPO_PUBLIC_APP_ENV = 'development';
 
     const { config } = require('../config');
-    expect(config.apiUrl).toBe('http://192.168.100.176:8000/api');
+    expect(config.apiUrl).toMatch(/^http:\/\/[^/]+:8000\/api$/);
   });
+  it('rejects production HTTP and missing native production configuration', () => {
+    process.env.EXPO_PUBLIC_APP_ENV = 'production';
+    process.env.EXPO_PUBLIC_API_URL = 'http://api.test/api';
+    expect(() => require('../config')).toThrow('HTTPS');
+    jest.resetModules(); delete process.env.EXPO_PUBLIC_API_URL;
+    expect(() => require('../config')).toThrow('HTTPS');
+  });
+
 });

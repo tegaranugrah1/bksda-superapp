@@ -14,46 +14,28 @@ class AssetResource extends JsonResource
         if (is_array($value)) {
             return array_map([self::class, 'stripQueryTokens'], $value);
         }
-
-        if (! is_string($value) || ! str_contains($value, 'token=')) {
+        if (! is_string($value) || ! str_contains($value, '?')) {
             return $value;
         }
-
-        $stripped = preg_replace('/([?&])token=[^&#]*/i', '$1', $value);
-        $stripped = str_replace('?&', '?', (string) $stripped);
-        $stripped = preg_replace('/&&+/', '&', $stripped);
-
-        return rtrim((string) $stripped, '?&');
-    }
-
-    public static function attachViewerQueryToken(mixed $value, ?string $token): mixed
-    {
-        $clean = self::stripQueryTokens($value);
-        if (! $token) {
-            return $clean;
+        [$url, $fragment] = array_pad(explode('#', $value, 2), 2, null);
+        if (! str_contains($url, '?')) {
+            return $value;
         }
-
-        if (is_array($clean)) {
-            return array_map(fn ($item) => self::attachViewerQueryToken($item, $token), $clean);
-        }
-
-        if (! is_string($clean) || ! str_starts_with($clean, '/api/bmn/')) {
-            return $clean;
-        }
-
-        $sep = str_contains($clean, '?') ? '&' : '?';
-
-        return $clean . $sep . 'token=' . urlencode($token);
+        [$path, $query] = explode('?', $url, 2);
+        $parts = array_filter(explode('&', $query), static function (string $part): bool {
+            $name = strtolower(rawurldecode(explode('=', $part, 2)[0]));
+            return $name !== 'token' && ! str_starts_with($name, 'token[');
+        });
+        return $path.($parts ? '?'.implode('&', $parts) : '').($fragment !== null ? '#'.$fragment : '');
     }
 
     public function toArray(Request $request): array
     {
-        $token = $request->bearerToken() ?: $request->query('token');
-        $tokenParam = $token ? "&token=" . urlencode($token) : "";
         $v = $this->updated_at?->timestamp ?: time();
 
         return [
             'id' => $this->id,
+            'photo_availability' => $this->whenHas('photo_availability'),
             'jenis_bmn' => $this->jenis_bmn,
             'kode_satker' => $this->kode_satker,
             'nama_satker' => $this->nama_satker,
@@ -139,29 +121,29 @@ class AssetResource extends JsonResource
             'employee_id' => $this->employee_id,
             'status_pmk' => $this->status_pmk,
             'status_foto_geotag' => $this->status_foto_geotag,
-            'foto_geotag_url' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}{$tokenParam}" : $this->foto_geotag_url,
-            'foto_geotag_path' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}{$tokenParam}" : null,
+            'foto_geotag_url' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}" : self::stripQueryTokens($this->foto_geotag_url),
+            'foto_geotag_path' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}" : null,
             'foto_geotag_latitude' => $this->foto_geotag_latitude !== null ? (float) $this->foto_geotag_latitude : null,
             'foto_geotag_longitude' => $this->foto_geotag_longitude !== null ? (float) $this->foto_geotag_longitude : null,
             'foto_geotag_location_note' => $this->foto_geotag_location_note,
-            'foto_depan_url' => $this->foto_depan_path ? "/api/bmn/assets/{$this->id}/photo/depan/view?v={$v}{$tokenParam}" : null,
-            'foto_belakang_url' => $this->foto_belakang_path ? "/api/bmn/assets/{$this->id}/photo/belakang/view?v={$v}{$tokenParam}" : null,
-            'foto_kiri_url' => $this->foto_kiri_path ? "/api/bmn/assets/{$this->id}/photo/kiri/view?v={$v}{$tokenParam}" : null,
-            'foto_kanan_url' => $this->foto_kanan_path ? "/api/bmn/assets/{$this->id}/photo/kanan/view?v={$v}{$tokenParam}" : null,
-            'foto_lokasi_url' => $this->foto_lokasi_path ? "/api/bmn/assets/{$this->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_1_url' => $this->foto_bpkb_1_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_1/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_2_url' => $this->foto_bpkb_2_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_2/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_3_url' => $this->foto_bpkb_3_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_3/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_4_url' => $this->foto_bpkb_4_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_4/view?v={$v}{$tokenParam}" : null,
-            'foto_stnk_1_url' => $this->foto_stnk_1_path ? "/api/bmn/assets/{$this->id}/photo/stnk_1/view?v={$v}{$tokenParam}" : null,
-            'foto_stnk_2_url' => $this->foto_stnk_2_path ? "/api/bmn/assets/{$this->id}/photo/stnk_2/view?v={$v}{$tokenParam}" : null,
+            'foto_depan_url' => $this->foto_depan_path ? "/api/bmn/assets/{$this->id}/photo/depan/view?v={$v}" : null,
+            'foto_belakang_url' => $this->foto_belakang_path ? "/api/bmn/assets/{$this->id}/photo/belakang/view?v={$v}" : null,
+            'foto_kiri_url' => $this->foto_kiri_path ? "/api/bmn/assets/{$this->id}/photo/kiri/view?v={$v}" : null,
+            'foto_kanan_url' => $this->foto_kanan_path ? "/api/bmn/assets/{$this->id}/photo/kanan/view?v={$v}" : null,
+            'foto_lokasi_url' => $this->foto_lokasi_path ? "/api/bmn/assets/{$this->id}/photo/lokasi/view?v={$v}" : null,
+            'foto_bpkb_1_url' => $this->foto_bpkb_1_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_1/view?v={$v}" : null,
+            'foto_bpkb_2_url' => $this->foto_bpkb_2_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_2/view?v={$v}" : null,
+            'foto_bpkb_3_url' => $this->foto_bpkb_3_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_3/view?v={$v}" : null,
+            'foto_bpkb_4_url' => $this->foto_bpkb_4_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_4/view?v={$v}" : null,
+            'foto_stnk_1_url' => $this->foto_stnk_1_path ? "/api/bmn/assets/{$this->id}/photo/stnk_1/view?v={$v}" : null,
+            'foto_stnk_2_url' => $this->foto_stnk_2_path ? "/api/bmn/assets/{$this->id}/photo/stnk_2/view?v={$v}" : null,
             'bpkb_document' => $this->vehicleDocumentPayload('bpkb'),
             'stnk_document' => $this->vehicleDocumentPayload('stnk'),
             'verified_at' => $this->verified_at?->toIso8601String(),
             'verified_by_name' => $this->verified_by ? User::find($this->verified_by)?->name : null,
             'tahun_perolehan' => $this->tahun_perolehan,
             'lokasi_spesifik' => $this->lokasi_spesifik,
-            'foto_url' => $this->foto_url,
+            'foto_url' => self::stripQueryTokens($this->foto_url),
             'keterangan' => $this->keterangan,
             'penanggung_jawab' => $this->whenLoaded('penanggungJawab', fn () => [
                 'id' => $this->penanggungJawab->id,
@@ -211,13 +193,10 @@ class AssetResource extends JsonResource
             return null;
         }
 
-        $token = request()->bearerToken() ?: request()->query('token');
-        $tokenParam = $token ? "&token=" . urlencode($token) : "";
-
         $version = $this->documentVersion($type);
-        $documentUrl = "/api/bmn/assets/{$this->id}/document/{$type}/view?v={$version}{$tokenParam}";
+        $documentUrl = "/api/bmn/assets/{$this->id}/document/{$type}/view?v={$version}";
         $previewUrl = $this->$previewColumn
-            ? "/api/bmn/assets/{$this->id}/document/{$type}/preview?v={$version}{$tokenParam}"
+            ? "/api/bmn/assets/{$this->id}/document/{$type}/preview?v={$version}"
             : ($this->isImageDocument($this->$mimeColumn) ? $documentUrl : null);
 
         return [
@@ -226,13 +205,13 @@ class AssetResource extends JsonResource
             'original_name' => $this->$originalNameColumn,
             'preview_path' => $this->$previewColumn,
             'url' => $documentUrl,
-            'download_url' => "/api/bmn/assets/{$this->id}/document/{$type}/download?v={$version}{$tokenParam}",
+            'download_url' => "/api/bmn/assets/{$this->id}/document/{$type}/download?v={$version}",
             'preview_url' => $previewUrl,
-            'preview_urls' => $this->vehicleDocumentPreviewUrls($type, $this->$previewColumn, $previewUrl, $version, $tokenParam),
+            'preview_urls' => $this->vehicleDocumentPreviewUrls($type, $this->$previewColumn, $previewUrl, $version),
         ];
     }
 
-    private function vehicleDocumentPreviewUrls(string $type, ?string $previewPath, ?string $previewUrl, string $version, string $tokenParam): array
+    private function vehicleDocumentPreviewUrls(string $type, ?string $previewPath, ?string $previewUrl, string $version): array
     {
         if (! $previewPath || ! $previewUrl) {
             return [];
@@ -248,7 +227,7 @@ class AssetResource extends JsonResource
 
         foreach ($pagePaths as $path) {
             if (preg_match('/-page-(\d+)\.jpg$/', basename($path), $matches)) {
-                $urls[] = "/api/bmn/assets/{$this->id}/document/{$type}/preview/{$matches[1]}?v={$version}{$tokenParam}";
+                $urls[] = "/api/bmn/assets/{$this->id}/document/{$type}/preview/{$matches[1]}?v={$version}";
             }
         }
 

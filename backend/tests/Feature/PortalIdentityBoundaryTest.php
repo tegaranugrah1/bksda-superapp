@@ -24,6 +24,7 @@ class PortalIdentityBoundaryTest extends TestCase
     use RefreshDatabase;
 
     private const CURRENT_PASSWORD = 'DummyCurrentPassword42!';
+
     private const NEW_PASSWORD = 'DummyReplacementPassword42!';
 
     protected function setUp(): void
@@ -95,6 +96,7 @@ class PortalIdentityBoundaryTest extends TestCase
     private function channelAuth(string $token, string $channel, string $socket = '123.456')
     {
         $this->bearer($token);
+
         return $this->postJson('/api/broadcasting/auth', ['channel_name' => $channel, 'socket_id' => $socket]);
     }
 
@@ -124,9 +126,11 @@ class PortalIdentityBoundaryTest extends TestCase
         $this->postJson('/api/forgot-password', ['email' => $user->email])->assertOk();
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use (&$token) {
             $token = $notification->token;
+
             return true;
         });
         $this->assertIsString($token);
+
         return $token;
     }
 
@@ -407,7 +411,9 @@ class PortalIdentityBoundaryTest extends TestCase
         ] as [$name, $role, $modules, $active, $deleted]) {
             $user = $this->dummy($name, ['role' => $role, 'access_modules' => $modules, 'is_active' => $active]);
             $user->createToken('dummy-ineligible-admin');
-            if ($deleted) $user->delete();
+            if ($deleted) {
+                $user->delete();
+            }
         }
         $admin->createToken('dummy-admin-expired', ['*'], now()->subMinute());
         $aged = $admin->createToken('dummy-admin-aged');
@@ -474,21 +480,16 @@ class PortalIdentityBoundaryTest extends TestCase
             'role' => 'admin', 'access_modules' => [], 'permissions' => ['kepegawaian.view'],
         ])->assertOk()->assertJsonPath('data.access_modules', [])
             ->assertJsonPath('data.permissions', ['kepegawaian.view']);
-        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $credential->accessToken->id]);
+        // IAM edits retain the credential; authorization uses the latest module access.
+        $this->assertDatabaseHas('personal_access_tokens', ['id' => $credential->accessToken->id]);
         $this->bearer($credential->plainTextToken);
-        $this->getJson('/api/portal/notifications')->assertUnauthorized();
-        $this->anonymous();
-        $this->flushHeaders();
-        $login = $this->postJson('/api/login', [
-            'username' => $admin->username, 'password' => self::CURRENT_PASSWORD,
-        ])->assertOk()->assertJsonPath('data.id', $admin->id);
-        $newToken = $login->json('token');
-        $this->assertIsString($newToken);
+        $this->getJson('/api/portal/notifications')->assertOk();
+        $newToken = $credential->plainTextToken;
         $this->bearer($newToken);
         $this->getJson('/api/kepegawaian/leave-requests')->assertForbidden();
         $recipientCount = $service->notifyAdmins('kepegawaian', 'Dummy withdrawn admin notice', 'Dummy private withdrawn body');
         if ($recipientCount === 3) {
-            // On a red baseline, establish disclosure after real IAM withdrawal, token revocation, and legitimate re-login.
+            // On a red baseline, establish disclosure after real IAM withdrawal with the retained session.
             $this->assertDatabaseHas('portal_notifications', [
                 'user_id' => $admin->id,
                 'title' => 'Dummy withdrawn admin notice',

@@ -1,5 +1,6 @@
+import { BmnPhotoImage } from "@/components/BmnPhotoImage";
 import React from 'react';
-import { StyleSheet, View, Text, Image } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { SectionCard } from '@/components/SectionCard';
 import { AppButton } from '@/components/AppButton';
@@ -76,7 +77,7 @@ export function AssetPhotoSlotsSection({
                 ]}
               >
                 {hasPhoto && imageUrl ? (
-                  <Image
+                  <BmnPhotoImage
                     source={{ uri: imageUrl }}
                     style={styles.image}
                     resizeMode="cover"

@@ -1,3 +1,4 @@
+import { AnimateUiScreen } from "../components/motion/AnimateUi";
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,8 +50,12 @@ export default function KepegawaianTabs({ navigation }: any) {
 
   return (
     <Tab.Navigator
+      screenLayout={({ children }) => (
+        <AnimateUiScreen style={{ flex: 1 }}>{children}</AnimateUiScreen>
+      )}
       screenOptions={{
         headerShown: false,
+        sceneStyle: { backgroundColor: colors.bgDark },
         tabBarStyle: {
           position: 'absolute',
           bottom: 24,

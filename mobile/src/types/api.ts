@@ -11,6 +11,7 @@ export interface ApiSuccess<T> {
 }
 
 export interface ApiError {
+  reason?: 'account_inactive' | 'must_change_password' | 'must_setup_2fa';
   status?: number;
   message: string;
   fieldErrors?: Record<string, string[]>;

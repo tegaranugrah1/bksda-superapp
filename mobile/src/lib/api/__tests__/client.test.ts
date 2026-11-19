@@ -7,6 +7,7 @@ const { apiClient } = require('../client');
 jest.mock('@/lib/auth/tokenStorage', () => ({
   getToken: jest.fn(),
   clearToken: jest.fn(),
+  getSessionVersion: jest.fn(() => 1),
 }));
 
 describe('apiClient', () => {
@@ -112,7 +113,7 @@ describe('apiClient', () => {
         config: {},
       },
     };
-    mockAdapter.mockRejectedValue(errorResponse);
+    mockAdapter.mockImplementation((requestConfig: unknown) => Promise.reject({ ...errorResponse, config: requestConfig }));
 
     await expect(apiClient.get('/unauth-endpoint')).rejects.toEqual({
       status: 401,
@@ -133,7 +134,7 @@ describe('apiClient', () => {
         config: {},
       },
     };
-    mockAdapter.mockRejectedValue(errorResponse);
+    mockAdapter.mockImplementation((requestConfig: unknown) => Promise.reject({ ...errorResponse, config: requestConfig }));
 
     await expect(apiClient.get('/server-error-endpoint')).rejects.toEqual({
       status: 500,
@@ -144,4 +145,19 @@ describe('apiClient', () => {
     // Token should NOT be cleared for non-401 errors
     expect(tokenStorage.clearToken).not.toHaveBeenCalled();
   });
+  it('does not send bearer credentials to a different origin', async () => {
+    (tokenStorage.getToken as jest.Mock).mockResolvedValue('42|dummy-token');
+    await expect(apiClient.get('https://other.test/private')).rejects.toMatchObject({ message: 'Permintaan di luar origin API tidak diizinkan.' });
+    expect(mockAdapter).not.toHaveBeenCalled();
+  });
+
+  it('ignores terminal errors issued by an earlier session', async () => {
+    mockAdapter.mockImplementation((requestConfig: unknown) => {
+      (tokenStorage.getSessionVersion as jest.Mock).mockReturnValueOnce(2);
+      return Promise.reject({ config: requestConfig, response: { status: 401, data: { message: 'Expired' } } });
+    });
+    await expect(apiClient.get('/delayed')).rejects.toMatchObject({ status: 401 });
+    expect(tokenStorage.clearToken).not.toHaveBeenCalled();
+  });
+
 });

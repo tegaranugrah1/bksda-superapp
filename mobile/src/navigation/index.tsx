@@ -1,4 +1,6 @@
 import React from 'react';
+import { ChangePasswordModal } from '@/features/profile/ChangePasswordModal';
+import { TwoFactorSetup } from '@/features/auth/TwoFactorSetup';
 import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -19,7 +21,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  * Matrix rule: Do not show app tabs before auth resolves (shows loading spinner).
  */
 export default function RootNavigation() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, securityRequirement, logout, refreshUser } = useAuth();
   const { colors } = useAppTheme();
 
   if (isLoading) {
@@ -29,6 +31,12 @@ export default function RootNavigation() {
       </View>
     );
   }
+
+  if (user && securityRequirement) return <View style={{flex:1,backgroundColor:colors.background}}>
+    {securityRequirement === 'must_change_password'
+      ? <ChangePasswordModal visible mandatory onClose={() => {}} onSuccessLogout={() => {void logout();}} />
+      : <TwoFactorSetup onDone={refreshUser} onLogout={logout} />}
+  </View>;
 
   return (
     <Stack.Navigator

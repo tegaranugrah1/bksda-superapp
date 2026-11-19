@@ -3,8 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Events\UserAccessChanged;
 use App\Modules\DeReporting\Models\Bidang;
+use App\Modules\Kepegawaian\Models\Employee;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -22,11 +25,15 @@ class User extends Authenticatable
         static::creating(function (User $user) {
             if (empty($user->email)) {
                 $base = strtolower(preg_replace('/[^a-zA-Z0-9._-]/', '', (string) $user->username));
-                $user->email = ($base !== '' ? $base : Str::uuid()->toString()) . '@bksda.local';
+                $user->email = ($base !== '' ? $base : Str::uuid()->toString()).'@bksda.local';
             }
         });
 
         static::updated(function (User $user) {
+            if ($user->wasChanged(['role', 'access_modules', 'module_roles', 'permissions', 'is_active'])) {
+                event(new UserAccessChanged((int) $user->getKey()));
+            }
+
             if ($user->wasChanged('email')) {
                 $previous = clone $user;
                 $previous->email = $user->getRawOriginal('email');
@@ -235,6 +242,7 @@ class User extends Authenticatable
                 if ($permission === 'bmn.view') {
                     return in_array('bmn', $this->access_modules ?? []);
                 }
+
                 return $this->isAdminFor('bmn') && in_array('bmn', $this->access_modules ?? []);
             }
 
@@ -243,6 +251,7 @@ class User extends Authenticatable
                 if ($isReadPermission) {
                     return in_array('kepegawaian', $this->access_modules ?? []);
                 }
+
                 return $this->isAdminFor('kepegawaian') && in_array('kepegawaian', $this->access_modules ?? []);
             }
 
@@ -253,6 +262,7 @@ class User extends Authenticatable
                 if ($isReadPermission) {
                     return $hasModuleAccess;
                 }
+
                 return $this->isAdminFor('surat_tugas') && $hasModuleAccess;
             }
 
@@ -263,6 +273,7 @@ class User extends Authenticatable
                 if ($this->isAdminFor('surat')) {
                     return true;
                 }
+
                 return ! str_starts_with($permission, 'surat.masuk.') && $permission !== 'surat.export';
             }
 
@@ -293,8 +304,8 @@ class User extends Authenticatable
             && ! str_ends_with(strtolower((string) $this->email), '.local');
     }
 
-    public function employee(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function employee(): HasOne
     {
-        return $this->hasOne(\App\Modules\Kepegawaian\Models\Employee::class, 'nip', 'username');
+        return $this->hasOne(Employee::class, 'nip', 'username');
     }
 }

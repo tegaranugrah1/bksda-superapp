@@ -23,6 +23,8 @@ class Trigger { isConnected = true; focus() { focused = 'trigger'; } }
 let asset = { nama_barang: 'Fixture', kode_barang: '123', nup: '1', kondisi: 'Baik', status_bmn: 'Aktif', updates: [] };
 let query = { isLoading: false, isError: false };
 const imports = {
+  '@/components/BmnMediaImage': { BmnMediaImage: 'img' },
+  '@/lib/bmn-media': { openBmnMedia: async () => {} },
   react, 'react/jsx-runtime': element,
   'lucide-react': new Proxy({}, { get: (_, key) => `icon:${String(key)}` }),
   '@/lib/utils': { cn: (...args) => args.filter(Boolean).join(' ') },
@@ -31,14 +33,15 @@ const imports = {
   '@/components/ui/button': { Button: 'button' },
   '@/components/ui/dialog': Object.fromEntries(['Dialog', 'DialogContent', 'DialogHeader', 'DialogTitle', 'DialogDescription', 'DialogClose'].map(k => [k, k])),
   sonner: { toast: { info() {}, success() {}, error() {} } },
-  '@/lib/api': { api: new Proxy({}, { get: () => () => { throw Error('Fixture must not access API'); } }) },
+  '@/lib/api': { resolveApiUrl: url => url, api: new Proxy({}, { get: () => () => { throw Error('Fixture must not access API'); } }) },
   '@tanstack/react-query': { useQuery: opts => opts.queryKey[0] === 'bmn-asset' ? { data: asset, ...query } : { data: [] }, useQueryClient: () => ({}) },
   'next/navigation': { useRouter: () => ({}), redirect(url) { throw new Error(`Redirect ${url}`); } },
   'next/link': { default: 'a' },
   'framer-motion': { motion: { span: 'motion.span', div: 'motion.div' }, AnimatePresence: 'presence', useReducedMotion: () => reducedMotion },
   '@/app/bmn/_components/TagBadge': { TagBadge: 'tag' },
   '@/app/bmn/_components/TagAssignmentDialog': { TagAssignmentDialog: 'tag-dialog' },
-  '@/app/bmn/_lib/location-options': { ALL_LOKASI_RUANG_OPTIONS: [] },
+  '@/app/bmn/_lib/location-options': { SIMAN_LOKASI_RUANG_OPTIONS: [], STRUKTUR_LOKASI_OPTIONS: [], mergeLokasiOptions: () => [] },
+  '@/lib/locations': { useMasterLocations: () => ({data:[]}) },
   '../assets.css': {}, './detail.css': {},
 };
 function load(file, extra = '') {
@@ -169,6 +172,13 @@ nodes = render(gallery.PhotoGallery, galleryProps);
 nodes.find(n => n.type === 'DialogContent').props.onKeyDown({ key: 'ArrowLeft', preventDefault() {} });
 nodes = render(gallery.PhotoGallery, galleryProps);
 assert(nodes.some(n => n.type === 'img' && n.props.src === '/p2.jpg'));
+// A stale geotag must not hide another valid photo on the detail hero.
+reset(); asset={...asset,foto_geotag_path:'/api/bmn/assets/fixture/photo/geotag/view',foto_depan_url:'/front.jpg'};
+nodes=render(page.default,{});
+let hero=nodes.find(n=>n.type==='img' && n.props.src===asset.foto_geotag_path);
+assert(hero); hero.props.onError();
+nodes=render(page.default,{});
+assert(nodes.some(n=>n.type==='img' && n.props.src==='/front.jpg'), 'Detail hero falls back to front photo after geotag failure');
 // Failed image has a stable fallback; a different URL can still load.
 reset();
 const preview = { url: '/bad.jpg', label: 'Fixture photo', total: 1, index: 0, onClose() {}, onPrev() { throw Error('Single photo'); }, onNext() { throw Error('Single photo'); }, onReturnFocus() {} };
@@ -179,4 +189,52 @@ assert(!nodes.some(n => n.type === 'img'));
 assert(nodes.some(n => n.props.role === 'status' && text(n) === 'Foto tidak dapat dimuat'));
 nodes.find(n => n.type === 'DialogContent').props.onKeyDown({ key: 'ArrowRight' });
 assert(render(gallery.Lightbox, { ...preview, url: '/good.jpg' }).some(n => n.type === 'img'));
-console.log('BMN detail: forms, statuses, tabs, edit/cancel, read-only/loading/error, photo/document navigation, focus return and image fallback PASS');
+// A stored path is not proof that a photo can actually be opened.
+reset();
+const slotProps = { slot:{key:'geotag',label:'Foto Geotag',shortLabel:'Geotag',type:'hybrid'},url:'/missing.jpg',fotoGeotagPath:'/missing.jpg',fotoGeotagUrl:null,canWrite:true,openLightbox(){},handleDownload(){},copyLink(){},handleDelete(){},openUploadPicker(){},setShowGeotagInput(){} };
+nodes=render(gallery.PhotoCardSlot,slotProps);
+assert(text(nodes[0]).includes('Memuat foto...'));
+assert(!text(nodes[0]).includes('Tersedia'));
+const frameClass=find(nodes,'button','Lihat Foto Geotag').props.className;
+nodes.find(n=>n.type==='img').props.onLoad();
+nodes=render(gallery.PhotoCardSlot,slotProps);
+assert(text(nodes[0]).includes('Tersedia'));
+assert.equal(find(nodes,'button','Lihat Foto Geotag').props.className,frameClass);
+nodes.find(n=>n.type==='img').props.onError();
+nodes=render(gallery.PhotoCardSlot,slotProps);
+assert(text(nodes[0]).includes('Belum dapat dimuat'));
+assert(!text(nodes[0]).includes('Tersedia'));
+assert(!nodes.some(n=>n.type==='img'));
+assert(!find(nodes,'button','Lihat Foto Geotag'));
+assert(!find(nodes,'button','Unduh Foto Geotag'));
+assert(!find(nodes,'button','Hapus Foto Geotag'));
+assert.equal(find(nodes,'button','Unggah Foto Geotag').props.disabled,false);
+nodes=render(gallery.PhotoCardSlot,{...slotProps,url:'/restored.jpg'});
+assert(nodes.some(n=>n.type==='img'));
+assert(text(nodes[0]).includes('Memuat foto...'));
+nodes.find(n=>n.type==='img').props.onLoad();
+assert(text(render(gallery.PhotoCardSlot,{...slotProps,url:'/restored.jpg'})[0]).includes('Tersedia'));
+reset(); asset={...asset,foto_geotag_path:'/geo.jpg',foto_depan_url:'/front.jpg'};
+nodes=render(page.default,{});
+assert(nodes.some(n=>text(n)==='Memuat foto...'));
+assert(!nodes.some(n=>text(n).includes('Tersedia (Terverifikasi)')));
+nodes.find(n=>n.type==='img' && n.props.src==='/geo.jpg').props.onLoad();
+nodes=render(page.default,{}); assert(nodes.some(n=>text(n)==='Tersedia'));
+nodes.find(n=>n.type==='img' && n.props.src==='/geo.jpg').props.onError();
+nodes=render(page.default,{});
+assert(nodes.some(n=>text(n)==='Belum dapat dimuat'));
+assert(!nodes.some(n=>text(n)==='Tersedia'));
+assert(nodes.some(n=>text(n)==='Foto tercatat'));
+reset();
+nodes=render(gallery.PhotoCardSlot,{...slotProps,knownMissing:true});
+assert(!nodes.some(n=>n.type==='img'));
+assert(!find(nodes,'button','Hapus Foto Geotag'));
+assert(find(nodes,'button','Unggah Foto Geotag'));
+assert(text(nodes[0]).includes('Berkas belum tersedia'));
+reset();
+render(gallery.PhotoGallery,{...galleryProps,geotagAvailable:false}); handle.openLightbox('geotag');
+assert(!render(gallery.PhotoGallery,{...galleryProps,geotagAvailable:false}).some(n=>n.type==='DialogContent'));
+reset(); asset={...asset,geotag_available:false};nodes=render(page.default,{});
+assert(!nodes.some(n=>n.type==='img' && n.props.src==='/geo.jpg'));
+assert(nodes.some(n=>text(n)==='Berkas belum tersedia'));
+console.log('BMN detail: forms, statuses, tabs, edit/cancel, read-only/loading/error, photo/document navigation, focus return, image fallback and decoded-photo availability states PASS');

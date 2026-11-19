@@ -131,9 +131,13 @@ class AssignmentLetterRequest extends FormRequest
                     $emp = \App\Modules\Kepegawaian\Models\Employee::find($value);
                     if (! $emp) return;
 
+                    $authUser = auth('sanctum')->user() ?: $this->user();
+                    $canViewEmployeeDetails = $authUser?->is_active ?? false;
                     $tglSelesai = $this->input('tanggal_selesai', $this->input('tanggal_mulai'));
                     if (! $emp->is_active) {
-                        $fail("Pegawai '{$emp->nama_lengkap}' tidak dapat ditugaskan karena berstatus nonaktif.");
+                        $fail($canViewEmployeeDetails
+                            ? "Pegawai '{$emp->nama_lengkap}' tidak dapat ditugaskan karena berstatus nonaktif."
+                            : 'Pegawai yang dipilih tidak tersedia untuk penugasan.');
                         return;
                     }
 
@@ -141,7 +145,9 @@ class AssignmentLetterRequest extends FormRequest
                         $tmt = $emp->inactive_effective_date->toDateString();
                         $endStr = \Illuminate\Support\Carbon::parse($tglSelesai)->toDateString();
                         if ($endStr >= $tmt) {
-                            $fail("Pegawai '{$emp->nama_lengkap}' tidak dapat ditugaskan karena memiliki TMT nonaktif ({$tmt}) di dalam atau sebelum periode dinas.");
+                            $fail($canViewEmployeeDetails
+                                ? "Pegawai '{$emp->nama_lengkap}' tidak dapat ditugaskan karena memiliki TMT nonaktif ({$tmt}) di dalam atau sebelum periode dinas."
+                                : 'Pegawai yang dipilih tidak tersedia pada periode penugasan.');
                         }
                     }
                 },

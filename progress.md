@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (18 November 2026):** Pembaruan aplikasi **Mobile Portal** mencakup migrasi polling ke **Laravel Reverb WebSocket** + guard 404 `/me/leave-balance` ([`996d9ba8`](file:///e:/bksda-superapp/mobile/src/lib/reverb.ts)) serta penerapan **5 Design Tokens** & redesign Beranda 1-layar selaras Web Portal ([`f8b1e903`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx)) pada [`ThemeContext.tsx`](file:///e:/bksda-superapp/mobile/src/theme/ThemeContext.tsx) dan [`PortalDashboardScreen.tsx`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx) (Hero Forest Green tanggal + pill `NIP` + narasi resmi, grid `2×2` Quick Stats, card `MODUL AKSES SYSTEM` `4×2`, card `TUGAS DINAS BERJALAN`, card kondisional `Aset Dipinjam`, & tipografi halus bergaya `Inter` Web; Node 5-token audit, `tsc --noEmit` `0`, ESLint `0`, & `6` suite Jest target lulus `17/17`), serta pemulihan `nginx-backend` DNS cache pasca-PR #604 ([`deploy/nginx-backend.conf`](file:///e:/bksda-superapp/deploy/nginx-backend.conf)). Melengkapi fitur **Blok Rincian / Jadwal** modul Persuratan ([`3fabe7ff`](file:///e:/bksda-superapp/frontend/src/app/surat/keluar/dinas/page.tsx)), [`PortalQuickStats.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalQuickStats.tsx), upgrade **Next.js** (`16.4.2` → `16.4.6`), audit 6 modul (`/security-audit` `SEC-01`–`SEC-11`, `/ponytail-audit` `P-01`–`P-07`), serta penerapan penuh **5 Design Tokens** ([`DESIGN_SYSTEM_5_TOKENS.md`](file:///e:/bksda-superapp/docs/DESIGN_SYSTEM_5_TOKENS.md)). Knowledge Graph (`graphify-out/`): `15541` nodes, `29078` edges, `1045` communities. (Bagian 115–144).
+**Status terbaru (19 November 2026):** Bagian 173 disimpan sebagai checkpoint lokal perbaikan logout portal mobile yang telah dikonfirmasi pengguna. Konfirmasi memakai dialog aplikasi; Batal/Escape mempertahankan sesi; konfirmasi menghapus token dan kembali ke login termasuk ketika API gagal. Typecheck/lint, regresi profil/logout, 11 tes auth/API dan bundle Android lulus. Checkpoint sebelumnya 7bd2db30; checkpoint ini belum di-push.
 
 ## Status Update: 2 November 2026
 
@@ -3178,3 +3178,434 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
   - Backend (pasca-edit `AuthController.php`): `php -l` bersih; `PortalPersonalSecurityTest` (`personal_asset_list` & `asset_list_cannot_overwrite`) lulus (`2/2` tests, `8` assertions).
   - Knowledge Graph: `graphify update .` exit `0` (`15551` nodes, `29106` edges, `1051` communities).
 - **Status**: ✅ Ter-commit lokal di branch `codex/portal-security-pentest` (`2b7a2263`, `3c80c7d9`, `3b135c91`).
+
+---
+
+## 146. Pemulihan Produksi Realtime & Sesi (`d0cdc666`, `9c3e7b19`) serta Penyempurnaan Portal Web & Mobile (`81321f24`, `d0f7e082`, `cb70ecf8`) (18 November 2026)
+
+- **Auth, Realtime Portal & Konfigurasi Produksi (`d0cdc666`, `9c3e7b19`)**:
+  - [`backend/app/Http/Controllers/Api/AuthController.php`](file:///e:/bksda-superapp/backend/app/Http/Controllers/Api/AuthController.php), [`frontend/src/lib/echo.ts`](file:///e:/bksda-superapp/frontend/src/lib/echo.ts), [`frontend/src/components/AuthSync.tsx`](file:///e:/bksda-superapp/frontend/src/components/AuthSync.tsx), [`frontend/src/lib/auth-store.ts`](file:///e:/bksda-superapp/frontend/src/lib/auth-store.ts), [`frontend/src/app/portal/page.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/page.tsx): Pemulihan broadcast token `/api/broadcasting/auth`, sinkronisasi live modul portal (`GET /api/user?sync_realtime_token=1`), serta update CSP Cloudflare Insights pada [`frontend/next.config.ts`](file:///e:/bksda-superapp/frontend/next.config.ts) dan `loading="eager"` avatar [`PortalProfileSidebar.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/PortalProfileSidebar.tsx) (+ [`PortalIdentityBoundaryTest.php`](file:///e:/bksda-superapp/backend/tests/Feature/PortalIdentityBoundaryTest.php)).
+  - [`backend/config/cors.php`](file:///e:/bksda-superapp/backend/config/cors.php), [`backend/config/sanctum.php`](file:///e:/bksda-superapp/backend/config/sanctum.php), [`deploy/nginx-backend.conf`](file:///e:/bksda-superapp/deploy/nginx-backend.conf), [`docker-compose.dokploy.yml`](file:///e:/bksda-superapp/docker-compose.dokploy.yml): Default `SESSION_DOMAIN=.bksdakaltim.web.id` serta penyesuaian CORS/Sanctum/DNS resolver nginx produksi.
+- **Ringkasan Surat Tugas, Lokasi, Sumber Dana & Toast Pegawai (`d0f7e082`)**:
+  - [`frontend/src/lib/letter-utils.ts`](file:///e:/bksda-superapp/frontend/src/lib/letter-utils.ts), [`frontend/src/app/portal/_components/SuratTugasTab.tsx`](file:///e:/bksda-superapp/frontend/src/app/portal/_components/SuratTugasTab.tsx), [`mobile/src/features/dashboard/PortalDashboardScreen.tsx`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx): Ekstraksi frasa inti `dalam rangka` (memangkas narasi panjang, durasi, dan lokasi buntut), menampilkan lokasi `Di {tempat_tujuan}` & sumber dana terpilih di Portal Web dan Mobile, disertai test [`frontend/tests/surat-tugas-summary.cjs`](file:///e:/bksda-superapp/frontend/tests/surat-tugas-summary.cjs).
+  - [`backend/app/Http/Controllers/AssignmentLetterController.php`](file:///e:/bksda-superapp/backend/app/Http/Controllers/AssignmentLetterController.php): Mempersingkat isi toast/notifikasi Surat Tugas ke pegawai menjadi ringkasan inti kegiatan.
+- **Penyelarasan Spacing, Merk/Tipe Pinjaman Aktif & Penghapusan Dot Status Pill (`81321f24`, `cb70ecf8`)**:
+  - [`mobile/src/features/dashboard/PortalDashboardScreen.tsx`](file:///e:/bksda-superapp/mobile/src/features/dashboard/PortalDashboardScreen.tsx): Menyamakan jarak antar-card Beranda & Profil dengan tab Surat Tugas, memindahkan **Merk / Tipe** tepat di bawah **Nama Barang** pada kartu Beranda & modal `Detail Pinjaman`, serta menghapus prefix titik (`"● "`) pada label status pill (`SEDANG DINAS`, `PENUGASAN`, `TERLAMBAT`, `DIPINJAM`, `SELESAI & LAPOR`) — lolos `npm run typecheck` & `npx eslint` (`MOBILE_ESLINT_EXIT:0`).
+- **Status**: ✅ Ter-commit di branch `codex/portal-security-pentest` (`d0cdc666`, `9c3e7b19`, `81321f24`, `d0f7e082`, `cb70ecf8`).
+
+---
+
+## 147. Mobile Portal Responsif & Pemulihan Bundel Expo HTTP 500 (18 November 2026) — Selesai di Working Tree
+
+- **Akar masalah**: Metro mengembalikan JSON `TransformError` karena `View` pembungkus konten di `PortalDashboardScreen.tsx` belum ditutup. Setelah parser diperbaiki, pemanggilan `buildResponsivePortalStyles()` yang belum tersedia juga perlu diselesaikan.
+- **Implementasi**:
+  - Helper `getResponsivePortalMetrics()`, `chunkGridRows()`, dan `usePortalResponsive()` di `mobile/src/theme/ThemeContext.tsx` mengikuti perubahan ukuran window.
+  - Satu factory `createPortalStyles()` memakai token responsif untuk seluruh tab dan sheet; factory `createLeaveStyles()` menerapkannya ke `FormulirCutiModal.tsx`. Tidak ada lapisan override style duplikat.
+  - Grid modul menggunakan baris fleksibel, `flex: 1` dan `minWidth: 0`, sehingga baris parsial tetap memenuhi lebar container. Grid BMN dan quick stats menyesuaikan kolom; tablet membatasi lebar konten.
+  - Tanggal dan NIP ditata vertikal pada layar compact agar tanggal utuh. Ukuran ikon, padding, radius, preview dokumen, dan ruang bawah navigasi ikut menyesuaikan window; tombol header/tutup minimum 48.
+- **Verifikasi**:
+  - Bundle Web di URL yang dilaporkan: HTTP 200, `application/javascript; charset=UTF-8`.
+  - `npm run typecheck` lulus; tes terkait: 4 suite, 14 tes lulus. Tes navigasi lama diperbarui agar sesuai rute `KepegawaianMain` yang sudah dipakai aplikasi.
+  - Browser Playwright/Edge, data API uji terisolasi: Beranda pada 360×800, 440×956, landscape 800×360; baris grid 1/3/5 modul mengisi container; Tugas, BMN, Profil dan Formulir Cuti terbuka tanpa error JavaScript.
+  - Screenshot dan skrip pemeriksaan tersimpan di `scratch/mobile-responsive/` serta `scratch/check-mobile-responsive.cjs` (diabaikan Git). Pemeriksaan browser tidak menggantikan uji perangkat Android fisik.
+- **Status**: Selesai di working tree, belum commit/push; typecheck, ESLint tanpa warning dan tes terkait lulus; sinkronisasi graph selesai.
+
+
+## 148. Sinkronisasi IAM Mobile Tanpa Refresh dan Pemulihan Sesi `/me` (18 November 2026)
+
+- **Akar masalah**: `EmployeeAccessController` mencabut seluruh bearer token ketika modul/role/permission berubah, sehingga reload mobile memanggil `/me` dengan token yang sudah dicabut (401). Portal Web mempunyai cookie sesi dan mekanisme sync sendiri. Mobile belum menyegarkan profil `AuthProvider` saat IAM berubah.
+- **Backend**: perubahan IAM biasa kini mempertahankan token Sanctum; middleware tetap membaca hak akses terbaru pada setiap request. Password reset dan deaktivasi tetap mencabut token. `UserAccessChanged` dipancarkan setelah commit pada perubahan atribut IAM melalui hook `User::updated`, menuju channel privat pemilik dan token aktif saja, dengan payload ID pengguna untuk refetch REST terautentikasi.
+- **Mobile**: `AuthProvider` berlangganan `access.updated`, menyegarkan `/me` saat event/reconnect/foreground, dan memakai fallback 30 detik hanya ketika app aktif. Refresh dideduplikasi dan respons sesi lama tidak boleh memulihkan profil setelah logout. Sesi yang ditolak 401 mengosongkan state auth.
+- **Verifikasi**: simulasi browser Edge dengan REST/WebSocket fixture mengubah 3→2 modul tanpa reload, lalu reload tetap masuk dan tetap 2 modul; permintaan API divalidasi memakai bearer yang sama. Tes auth/Reverb/API mobile: 3 suite, 16 tes lulus, termasuk remount, fallback saat event terlewat, 401 dan respons refresh setelah logout. Tes lifecycle IAM backend: 5 tes/34 assertion lulus, termasuk modul tercabut langsung 403 dengan token yang tetap valid serta password reset tetap mencabut token. Regresi lifecycle + identity boundary: 32 tes/258 assertion lulus. Typecheck dan ESLint mobile tanpa warning; Pint backend lulus; diff kode/dokumentasi bersih.
+- **Catatan sesi lama**: token yang sudah dicabut sebelum perbaikan tidak diaktifkan kembali; pengguna yang sudah keluar perlu login sekali untuk mendapatkan sesi baru. Tidak ada perubahan data atau hak akses akun pengguna nyata selama pengujian.
+
+
+## 149. Penyelarasan Login Web dan Mobile (18 November 2026)
+
+- Header login memakai satu logo Kemenhut, berukuran 48 px seperti login web semula, di samping `Kementerian Kehutanan` dan `Balai KSDA Kalimantan Timur`. Teks `BKSDA KALTIM` / `SuperApp Portal` dihapus dari kedua halaman login sesuai arahan terbaru.
+- Ukuran teks identitas web diperbesar menjadi 16/14 px pada desktop (14/14 px pada layar kecil); footer menjadi 12 px agar lebih terbaca.
+- Mobile memakai salinan aset logo resmi yang sama (`mobile/assets/kemenhutlogo.png`) dan susunan horizontal yang serupa. Border hijau, radius dan komponen `GlassCard` login tetap dipertahankan; judul dan tombol mengikuti copy login web.
+- Footer web dan mobile: `© {tahun berjalan} Balai KSDA Kalimantan Timur`, diikuti `Kementerian Kehutanan Republik Indonesia`.
+- Bukti browser Edge, sebelum/sesudah pada web 1440×1000 & 360×800 serta mobile preview 360×800 & 440×956: `scratch/login-branding/`; skrip `scratch/check-login-branding.cjs`. Tidak ada error JavaScript pada pemeriksaan render.
+- Typecheck dan ESLint web/mobile telah lulus pada penyesuaian login; lima tes login mobile lulus. Alur autentikasi tidak diubah oleh perapian halaman login.
+
+
+## 150. Login Web/Mobile Berlatar Foto, Glassmorphism dan Dark Mode (18 November 2026)
+
+- Komposisi mengikuti referensi pengguna: foto Sangalaki yang sudah ada pada login web memenuhi latar. Web desktop menempatkan narasi konservasi di kiri dan kartu login di kanan; viewport kecil menampilkan kartu dalam satu kolom.
+- Glassmorphism web menggunakan latar transparan, backdrop blur dan border ringan. Mobile menambah dependency resmi `expo-blur` SDK 56 (`BlurView` + `BlurTargetView`, Android memakai metode SDK 31+ dengan fallback library pada versi lama). Aset foto native disalin dari gambar web ke `mobile/assets/sangalaki.png`.
+- Identitas/logo dan footer berada di dalam kartu login pada kedua aplikasi. Logo mobile memakai PNG yang identik dengan web; gambar 48×48 berada di bingkai 66×66 dengan padding, tidak diberi radius pada gambar agar tidak terpotong.
+- Dark mode login mobile memakai `ThemeContext` yang sama dengan Portal, melalui tombol 48×48. Warna form, blur, ikon dan border mengikuti tema. Pergantian tema tidak menghapus NIP/password yang sedang diisi; pilihan tema terbawa saat beralih ke Portal dalam sesi aplikasi.
+- Teks `Balai KSDA Kalimantan Timur` di mobile diperbesar ke 13 px pada layar compact dan 14 px pada layar lebih lebar. Besarnya disesuaikan dengan judul kementerian agar tidak melewati ujung judul; diperiksa lewat geometri teks pada preview 360/440 px.
+- Pemisah footer web yang menempel pada bagian bawah tombol dihapus untuk menghilangkan garis putih. Footer tetap `© {tahun} Balai KSDA Kalimantan Timur` dan `Kementerian Kehutanan Republik Indonesia`.
+- Verifikasi: typecheck/ESLint web/mobile lulus; enam tes login mobile lulus, termasuk toggle tema tanpa kehilangan isian. Browser Edge memeriksa web 1440×1000/360×800, mobile preview 360×800/440×956, light/dark, lupa sandi dan transisi 2FA menggunakan fixture REST; tanpa error JavaScript. Bukti `scratch/login-branding/final-checked-*` dan skrip `scratch/check-login-branding.cjs` (ignored). Android fisik belum diuji.
+
+
+## 151. Motion Mobile Mengikuti Kepegawaian Web dan Transisi Tema (18 November 2026)
+
+- Bottom nav Portal: hapus empat titik aktif beserta style `navActiveDot`. Ikon tetap outline dan bobot label tetap sama; hanya warna yang berubah saat aktif. Badge notifikasi tetap dipertahankan.
+- Acuan source web: `frontend/src/app/kepegawaian/layout.tsx` (entrance 160 ms, y=6 px, ease-out) dan `page.tsx` (grafik 600 ms). Istilah Animate UI mengikuti pedoman repo: pola gerak, bukan pemasangan komponen DOM `@animate-ui/react` di React Native.
+- Primitive native `mobile/src/components/motion/AnimateUi.tsx` menggunakan Animated bawaan. Konten tetap terlihat pada nilai default dan entrance memakai opacity 0.85→1, translateY 6→0. Dipakai pada tab internal Portal dan scene navigasi modul, Kepegawaian serta BMN tanpa entrance ganda pada navigator bersarang. Grafik satker Kepegawaian memakai scaleX 600 ms dari kiri; label dan nilai data tetap langsung tampil.
+- `ThemeContext` memakai View Transitions radial 650 ms pada preview web (`themeTransition.web.ts`, flushSync + clip-path) dan fallback fade 240 ms pada native/browser tanpa dukungan API. Berlaku pada login dan Portal, dengan pusat lingkaran mengikuti tombol tema. Isian form dan state navigasi dipertahankan; animasi dihentikan/restart saat toggling ulang.
+- Warning dari log pengguna (`useNativeDriver`/`RCTAnimation`) diperbaiki: native driver hanya dipakai Android/iOS, preview web memakai JS driver. Tidak memerlukan pod install untuk preview Windows/web.
+- Reduce Motion: entrance/reveal dilewati dan nilai akhir langsung ditampilkan; transisi tema juga dilewati/dihentikan saat preferensi berubah. Callback async setelah unmount tidak memulai animasi.
+- Verifikasi: typecheck dan lint mobile bersih; tiga uji motion lulus. Regresi login/navigasi/dashboard yang relevan juga lulus. Browser Edge dengan REST fixture: mode normal mencatat frame entrance dan tema, mode reduced tidak mencatat frame animasi; tidak ada error JavaScript atau warning native-driver. Bottom nav diuji tanpa titik bawah. Native Kepegawaian dapat dibuka dan dinavigasi. Bukti `scratch/mobile-motion/`, skrip `scratch/check-mobile-motion.cjs`. Perangkat Android fisik belum diuji.
+
+- **Verifikasi khusus preview web `http://localhost:8081/`**: kedua arah tema menghasilkan dua radial View Transitions dengan clip-path, cuplikan tengah animasi diperiksa (`scratch/mobile-motion/theme-to-dark-mid.png`, `theme-to-light-mid.png`). Pada Reduce Motion jumlah transisi nol. `@types/react-dom` ditambahkan sebagai dev dependency untuk `flushSync` yang berasal dari dependency react-dom yang sudah ada. Berkas platform native tidak mengimpor React DOM.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 152 Reverb dan Request Berulang
+
+- Reverb lokal port 8080 membalas handshake `pusher:connection_established`. Log REST bukan bukti realtime tidak dipakai: event memicu refetch snapshot API.
+- Client mobile melacak konfirmasi subscription personal. Polling `/me` 30 detik hanya berjalan saat aktif dan subscription belum tersedia/terputus; event akses, reconnect dan foreground tetap menyegarkan profil.
+- `useReverbRefresh` bergantung pada nama channel efektif, bukan referensi objek user. Hak admin yang dicabut tetap menghapus subscription terkait. Eligibility cuti memakai boolean stabil agar refresh profil tidak mengulang focus effect dan lima request Portal.
+- Verifikasi: typecheck/ESLint bersih, 13 tes auth/Reverb lulus. Browser Edge preview 8081 dengan fixture REST/WebSocket: idle >60 detik tanpa request ulang, akses 3→2 cukup satu `/me`, notifikasi refetch data Portal sekali, subscription tidak tersedia mengaktifkan fallback. Handshake server lokal diuji terpisah tanpa kredensial. Skrip ignored `scratch/check-mobile-reverb.cjs`.
+- Belum commit/push; sesi akun pengguna nyata dan perangkat Android fisik tidak dioperasikan.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 153 Lima Token dan Hierarki Portal (Dibatalkan pada Bagian 154)
+
+- Fondasi dark web/mobile memakai arang bernuansa hijau, foreground/secondary/muted yang terpisah dan aksen brand yang lebih lembut. Forest Green, logo resmi serta foto Sangalaki dipertahankan. Glass hanya pada login.
+- Portal mempertahankan panel berbingkai untuk Ringkasan Pegawai, Modul Akses System, serta tugas/pinjaman. Heading dan divider memperjelas batas bagian; sapaan diperkecil agar tidak mendominasi. Navigasi modul memakai surface bertingkat dan ikon soft yang tetap berwarna, bukan bingkai dekoratif bertumpuk.
+- Web memakai satu workspace dan rail profil/menu; bantuan/pengumuman mengikuti konten dalam workspace. Pada layar sempit workspace muncul dahulu. Identitas kementerian di header desktop tidak lagi terpotong karena alokasi kolom logo diperlebar.
+- Sumber warna/type/spacing mobile dipusatkan di `theme/tokens.ts`; ThemeContext dan useAppTheme memakai sumber yang sama. Spacing responsif kelipatan 4, skala 12/14/20/24 tetap, radius mengikuti padding aktual; auto-fit yang mengecilkan teks Portal dihapus. Alias lama masih tersedia agar modul lain tetap bekerja.
+- Login kedua platform mempertahankan logo, foto, footer, border mobile, 2FA dan form recovery. Warna dan skala login web memakai role token; ukuran minimum footer mobile 12px.
+- Verifikasi fondasi: tes khusus kontras teks/tombol/control, responsif dan regresi terkait 49 tes lulus. Suite mobile penuh: 62 suite/317 tes lulus; 10 assertion gagal pada lima suite lama (label/filter BMN, konfigurasi API dan mock file sharing), tidak berkaitan dengan perubahan susunan panel. Typecheck/lint web/mobile bersih, termasuk pemeriksaan ulang setelah koreksi panel. Android bundle HTTP 200 JavaScript; perangkat fisik belum diuji.
+- Browser Edge dengan fixture: light/dark web 360/768/1440/1920, mobile 360/440/landscape 800, modul 1/3/5, form cuti, login/2FA/recovery; tidak ada error JS. Reverb idle >60 detik, akses 3→2 dan fallback tetap lulus. Bukti ignored `scratch/five-tokens/`, `scratch/mobile-responsive/`, `scratch/login-branding/`.
+- Panduan `DESIGN.md`, `docs/DESIGN_SYSTEM_5_TOKENS.md` dan `docs/DESIGN_SYSTEM_COLORS.md` diselaraskan. Belum commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 154 Pembatalan Redesign
+
+- Atas permintaan pengguna, redesign Bagian 153 dibatalkan. Palet light/dark, tipografi/spacing responsif, kartu statistik terpisah, grid modul, susunan tiga kolom Portal web, serta style kartu mobile dikembalikan ke sebelum redesign.
+- Login kembali ke glassmorphism Sangalaki sebelumnya, dengan logo Kemenhut dan footer di dalam kartu. Animasi entrance/tema, bottom nav aktif hanya warna, perbaikan bundel/responsif sebelumnya tetap dipertahankan.
+- Perbaikan token/sesi IAM dan Reverb Bagian 148/152 tidak dibatalkan. Langganan privat, pembaruan akses dan polling hanya sebagai fallback tetap aktif.
+- Pedoman lima token/warna dikembalikan ke versi sebelum redesign; dokumen desain mobile mempertahankan spesifikasi login yang telah disepakati sebelumnya. Tidak mereset seluruh working tree atau pekerjaan lain.
+- Typecheck web/mobile, lint login web, dan 30 tes auth/Reverb/login/motion/responsif lulus. Pemeriksaan visual browser diulang untuk login/2FA/recovery, Portal mobile light/dark dan grid modul. Belum commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 155 Penyesuaian Layout Mobile Terbatas
+
+- Pengguna memperjelas bahwa hanya mobile yang mengambil penyesuaian jarak, ukuran kartu, margin/padding serta penggabungan empat statistik dari redesign sebelumnya. Web tetap pada tampilan sebelum redesign.
+- Pangkat/Golongan, Sisa Cuti, Surat Tugas dan Aset Saya kini berada dalam satu panel dengan divider horizontal/vertikal. Tinggi minimum sel 64 px, padding memakai spacing responsif yang sudah ada, dan jarak antarbagian diperlonggar. Font, warna, ikon, modul, banner dan urutan utama tetap versi sebelum redesign.
+- Callback navigasi statistik serta perbaikan login/sesi/Reverb/animasi tetap dipertahankan. Checkpoint mencakup Bagian 147–155 dan disimpan lokal; belum di-push.
+- Verifikasi akhir: typecheck/lint mobile bersih; browser fixture memeriksa satu panel empat sel, dua baris, tinggi minimum 64 px, layar 360/440/landscape 800 serta navigasi/form cuti tanpa error JS. Diff layout/warna Portal web kosong; 30 tes auth/Reverb/login/motion/responsif dari checkpoint sebelumnya tetap lulus.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 156 Sapaan Referensi dan Judul Ringkasan Mobile
+
+- Menambahkan heading Ringkasan Pegawai ke panel empat statistik yang sudah disepakati. Warna, angka, ikon dan callback navigasi tetap memakai data/komponen yang sama.
+- Sapaan mobile mengikuti komposisi referensi pengguna: area Forest Green untuk sapaan/nama/tanggal, dengan kartu identitas inset untuk NIP/username dan jabatan. Kartu identitas membuka tab Profil; tidak menambahkan grafik atau angka ilustratif.
+- Ritme jarak dashboard bervariasi melalui token responsif yang sudah ada: setelah sapaan x4, ringkasan x6, modul x4, tugas x3. Tab lain tetap memakai spacing sebelumnya; web tidak diubah.
+- Typecheck/ESLint mobile lulus. Browser Edge dengan fixture memeriksa judul, empat sel dalam satu panel, batas identitas inset, navigasi Profil→Beranda, modul 1/3/5, layar 360/440/landscape 800, light/dark serta formulir cuti tanpa error JS. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya tetap 22f96daa; perubahan Bagian 156 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 157 Background Dashboard Mobile BKSDA
+
+- Sesuai persetujuan pengguna, background dashboard mobile kini bernuansa BKSDA pada kedua tema: light memakai kanvas hijau sangat muda dengan kartu putih; dark memakai arang kehijauan dengan kartu satu tingkat lebih terang dan border hijau netral.
+- Role warna dashboard terpusat pada `DASHBOARD_SURFACES` dan dipilih melalui memo tema/tab. Tema bersama, tab lain, login dan source web tidak diubah. Teks, aksen/status, judul Ringkasan Pegawai dan callback navigasi tetap memakai sumber yang sudah ada.
+- Bidang sapaan Forest Green melebar hingga tepi layar pada ponsel dengan sudut bawah membulat; viewport besar tetap memakai kartu terpusat. Variasi jarak antarbagian dari Bagian 156 dipertahankan.
+- Kontras numerik pada canvas/card/muted baru: minimum teks light 6,58:1 dan dark 4,99:1; minimum batas kontrol light 3,52:1 dan dark 3,96:1. Bukan sertifikasi aksesibilitas seluruh aplikasi.
+- Browser Edge dengan fixture memeriksa nilai warna kedua mode, sapaan full-width pada 360 px, panel empat statistik, navigasi Profil→Beranda, modul 1/3/5 dan form cuti pada 360/440/landscape 800 tanpa error JS. Typecheck/lint mobile dan 14 tes responsif/motion/dashboard/navigasi lulus. E2E tema mencatat 2 transisi radial normal dan 0 saat Reduce Motion, tanpa warning/error; interupsi transisi hanya mengganti tema sekali. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya tetap 22f96daa; Bagian 156–157 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 158 Toolbar dan Ritme Dashboard Mobile
+
+- Baris logo/ikon dashboard kini menyatu dengan bidang Forest Green sapaan, tanpa garis pembatas atau celah. Logo resmi ada di kiri; tema/notifikasi/profil di kanan memakai kontrol 48px. Judul aplikasi pada toolbar tetap ada di tab lain.
+- Latar area NIP/jabatan memakai canvas dashboard yang sama pada light/dark, bukan permukaan kartu putih/terangkat. Aksi membuka profil dipertahankan. Ikon dekoratif siang/malam pada sapaan dihapus sehingga tombol tema hanya satu, di samping notifikasi.
+- Jarak antarpanel utama diselaraskan pada x6; elemen setara dalam grid modul memakai x2, kegiatan terkait x3, dan sapaan→ringkasan x4. Bidang hijau full-width tetap koheren pada landscape/tablet, dengan isi/panel maksimum terpusat.
+- Expo StatusBar mengikuti dashboard/tema hanya saat screen fokus, agar ikon sistem terbaca di atas bidang hijau dan tidak menimpa screen modul lain.
+- Typecheck/lint mobile bersih. Browser fixture light/dark 360/440/landscape 800 memeriksa sambungan toolbar–sapaan tanpa celah, satu tombol tema, latar NIP sama dengan canvas, ringkasan 4 sel, akses modul realtime, navigasi profil dan formulir cuti tanpa error JS. 14 tes responsif/motion/dashboard/navigasi lulus. E2E normal/reduced mencatat 2/0 transisi radial tanpa error/warning; interupsi transisi mengganti tema tepat sekali. Android bundle HTTP 200 JavaScript; perangkat fisik belum diuji.
+- Source web dan palet bersama tetap. Checkpoint lokal sebelumnya 22f96daa; Bagian 156–158 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 159 Bidang Utama Hanya di Atas
+
+- Mengikuti klarifikasi referensi terakhir, warna Forest Green kuat dibatasi pada toolbar logo/ikon. Sapaan tidak lagi menjadi bidang hijau besar; sapaan, NIP/jabatan dan seluruh panel kerja berada di lembar konten lembut dengan sudut atas membulat.
+- Light/dark tetap memakai role dashboard Bagian 157. Teks sapaan/tanggal kini memakai foreground biasa agar terbaca pada latar lembut. Panel NIP tetap menyamai canvas, ringkasan berjudul tetap empat sel, dan fungsi/navigasi dipertahankan.
+- Scroll content memakai flexGrow agar latar lembut memenuhi layar saat data sedikit; hijau hanya terlihat di toolbar dan belakang sudut atas sheet. Layout layar besar tetap terpusat.
+- Typecheck/lint mobile lulus. Browser fixture 360/440/landscape 800 dan light/dark memeriksa toolbar hijau, sheet lembut membulat tepat di bawahnya, warna/posisi konten, satu tombol tema, modul realtime 3→2, grid 1/3/5, navigasi Profil dan form cuti tanpa error JS. Perangkat fisik belum diuji.
+- Source web dan tema bersama tidak diubah. Checkpoint sebelumnya 22f96daa; Bagian 156–159 belum di-commit/push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 160 Identitas Kemenhut dan Kartu NIP Mobile
+
+- Kartu NIP/Username dan jabatan kini memakai surface yang sama dengan ringkasan/panel lain: putih pada light mode dan #1b2820 pada dark mode.
+- Header dashboard memakai aset kemenhutlogo.png yang sama dengan login, resizeMode contain, dengan identitas Kementerian Kehutanan dan Balai KSDA Kalimantan Timur. Sesuai tindak lanjut, judul kementerian diperbesar menjadi 14px bold; subtitle 12px dan keduanya sejajar kiri. Pada 360px teks tampil dua baris tanpa terpotong atau menimpa kontrol.
+- Tema dan notifikasi tetap di kanan dengan target 48px. Avatar header dashboard yang berulang dihilangkan untuk memberi ruang identitas; profil tetap dapat dibuka melalui kartu NIP dan bottom navigation. Tab lain tetap seperti sebelumnya.
+- Typecheck/lint mobile dan 14 tes responsif/motion/dashboard/navigasi lulus. Browser fixture light/dark pada 360/440/landscape 800 memeriksa identitas, tidak ada overlap, warna kartu, modul realtime 3→2, reload tanpa login ulang, navigasi profil dan formulir cuti tanpa error JS. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya 22f96daa. Bagian 156–160 disimpan dalam commit lokal penyempurnaan dashboard mobile; belum di-push.
+
+
+## Pembaruan Sesi 18 November 2026 — Bagian 161 Header dan Background Seragam pada Tab Portal Mobile
+
+- Header Tugas, Layanan dan Profil kini sama dengan Beranda: bidang Forest Green, logo Kemenhut dari login, judul Kementerian Kehutanan 14px dan Balai KSDA Kalimantan Timur 12px. Tema/notifikasi tetap di kanan dengan target sentuh 48px; profil tersedia melalui bottom navigation.
+- Keempat tab memakai role PORTAL_SURFACES bersama: canvas light #f1f6f0 dan dark #101813, kartu putih/light dan #1b2820/dark. Sheet konten membulat tepat di bawah header dan memenuhi tinggi layar. Konten, fungsi dan susunan kartu masing-masing tab dipertahankan.
+- Pengondisian header/palet khusus Beranda dihapus dari shared shell. Status bar memakai teks terang selama screen portal fokus. Login, tema global dan source web tidak diubah.
+- Typecheck, ESLint mobile dan 14 tes responsif/motion/dashboard/navigasi lulus. Browser fixture memeriksa keempat tab pada 360/440/landscape 800, light/dark: identitas penuh tanpa overlap, header hijau, canvas yang sama dan sheet membulat tanpa celah. Navigasi, pembaruan modul realtime 3→2, reload tanpa login ulang dan form cuti berjalan tanpa error JS. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya fb945f03; Bagian 161 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 162 Garis Terang pada Sambungan Header Mobile
+
+- Screenshot pengguna menunjukkan garis lurus terang tepat di bawah toolbar hijau, di atas sudut sheet. Sudut membulat tetap dipertahankan sesuai klarifikasi terakhir.
+- Penyebab berhasil direproduksi dengan browser deviceScaleFactor 1,25 dan zoom pecahan: background root yang terang terlihat di antara tepi header/scroll yang diraster pada pecahan piksel. Root backing kini memakai Forest Green yang sama dengan header dan viewport scroll; canvas yang terlihat tetap memakai sheet light/dark sebelumnya.
+- Perubahan source hanya satu role background dan komentar penjelas; berlaku bersama untuk Beranda, Tugas, Layanan dan Profil. Logo, teks, ukuran, border kartu, padding, animasi dan fungsi tidak diubah.
+- Typecheck dan ESLint mobile lulus. Pemeriksaan piksel sebelum/sesudah pada zoom 90%, 100%, 110%, 125% menunjukkan warna di celah kembali #1e5433; sebelumnya warna menyimpang pada zoom 110%/125%. Browser fixture keempat tab pada 360/440/landscape 800 light/dark juga lulus tanpa error JS, dengan sudut sheet tetap membulat dan canvas mengikuti tema.
+- Checkpoint sebelumnya fb945f03; Bagian 161–162 disimpan sebagai checkpoint lokal penyamaan header dan perbaikan garis terang; belum di-push. Perangkat fisik belum diuji.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 163 Riwayat Cuti Web dan Mobile
+
+- Redesign terbatas halaman cuti pribadi: nomor surat tampil sebagai teks biasa, catatan persetujuan memakai surface netral, dan tombol dokumen memakai gaya outline yang sama. Label status tetap jelas; warna peringatan/penolakan dipertahankan, sedangkan aksen BKSDA kuat dipusatkan pada aksi pengajuan.
+- Web: kartu putih/charcoal dengan border tipis dan tinggi mengikuti isi, header lebih terbaca, jumlah data netral, serta periode bertanggal dalam satu baris kalender. Efek kartu terangkat saat hover dihapus karena kartu bukan tombol.
+- Mobile: ringkasan kuota kini berupa satu panel netral dengan tiga nilai dipisahkan divider dan satu tombol Ajukan Cuti beraksen BKSDA. Layout tanggal yang disukai pengguna tetap. Teks Sebagian berkas scan menunggu unggahan admin kepegawaian dihapus; berkas yang belum tersedia tetap disabled. Target tombol dokumen minimum 44px.
+- Prefix presentasi SI: dihapus di kedua platform; nomor resmi asli, termasuk kode yang memang merupakan bagian nomornya, tidak dimodifikasi. Handler/filter/status/endpoint tetap.
+- Typecheck dan ESLint kedua proyek lulus. Browser fixture memeriksa web 1440/390 dan mobile 360/440 pada light/dark tanpa error JS, label/nomor, filter tahun, form pengajuan, preview scan dan pembatalan. Cetak serta empty state web juga lulus. Seluruh mutasi hanya pada fixture lokal; tidak mengubah data akun nyata. Pasangan teks/aksi yang diperiksa memenuhi 4,5:1. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya ed781f16; Bagian 163 disimpan sebagai checkpoint lokal redesign riwayat cuti web/mobile; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 164 Lengkungan Portal Tetap di Luar Scroll
+
+- Pengguna melaporkan garis putih masih tampak pada sesi Chrome akun Tegar setelah Ctrl+Shift+R, sedangkan superadmin bersih. Tidak diasumsikan sebagai masalah cache atau hak akses; source header/palet tidak memiliki cabang per-role.
+- Penguatan shared shell: latar dan clipping lengkung kini ditangani View portal-body yang tetap di luar ScrollView transparan. Sudut tidak ikut bergeser ketika isi di-scroll. Pada web, overlap 1px dengan header dan padding kompensasi 1px menutup celah raster tanpa menggeser posisi isi; native tidak memakai overlap.
+- Warna light/dark, header Kemenhut, kartu, hak akses, urutan halaman dan fungsi tetap. Fresh fixture Chrome memuat bundle terbaru dengan Cache-Control no-store/no-cache dan tanpa service worker.
+- Typecheck/ESLint mobile lulus. Fixture Chrome role super_admin dan pegawai memeriksa 2 tema × 4 tab × 4 zoom (90/100/110/125%) sebelum/sesudah scroll. Pemeriksaan piksel 128 potongan memastikan sisi sambungan tetap Forest Green; warna canvas, posisi lengkung tetap dan overlap juga diperiksa.
+- Browser responsif 360/440/landscape 800 light/dark lulus tanpa error JS, termasuk akses modul realtime 3→2, reload sesi, navigasi profil dan formulir cuti. Pemeriksaan header setelah resize menunggu layout responsif selesai agar tidak membandingkan dua frame berbeda.
+- Pengguna mengonfirmasi garis putih sudah hilang pada sesi Chrome akun Tegar. Pengujian otomatis memakai fixture terisolasi tanpa mengubah akun/data nyata. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya c2e23883; Bagian 164 disimpan sebagai checkpoint lokal perbaikan sambungan lengkung portal mobile; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 165 Pemisahan Aset Tetap dan Pinjaman Mobile
+
+- Menangani laporan akun Tegar: satu aset tetap dan satu pinjaman sebelumnya sama-sama masuk Aset Tetap sehingga berjumlah dua. Endpoint /me/assets memang dapat menyertakan aset yang sedang dipinjam; web sudah mengecualikan ID dari /me/dashboard.my_assets, tetapi mobile belum.
+- Mobile kini memisahkan raw assignedAssetsList dan myAssetsList terfilter dengan Set ID aset pinjaman aktif, menormalkan ID number/string. loan_id tidak dipakai sebagai identitas aset. Semua konsumen tetap memakai daftar terfilter yang sama: Ringkasan Pegawai, Layanan, tab Aset Tetap, kategori/pencarian, Profil dan modal daftar aset.
+- Menghapus data contoh BMN (aset/pinjaman) pada daftar kosong dan fallback angka ringkasan nonzero. Nol dari data live tetap nol; pinjaman tidak muncul kembali sebagai aset contoh atau kartu Pinjaman Aktif. Fallback surat tugas/cuti di luar scope tidak diubah.
+- Regresi browser tersimpan di frontend/tests/mobile-personal-assets.playwright.cjs. Jalankan node frontend/tests/mobile-personal-assets.playwright.cjs dengan Expo web port 8081; seluruh API/realtime diisolasi tanpa mengubah data nyata.
+- Verifikasi lulus: kasus 1 tetap + 1 pinjam pada Beranda/Layanan/BMN/Profil; ID number/string dan loan_id yang sengaja berbenturan; kasus 0 tetap + 1 pinjam; pengembalian pinjaman melalui refresh Reverb tanpa login ulang; kedua daftar kosong dengan summary lama nonzero; serta reload sesi. Tidak ada error JS. Typecheck/lint mobile dan lint skrip regresi lulus.
+- Backend dan source aplikasi web tidak diubah. Pengujian memakai fixture setara kasus pengguna, bukan perubahan data akun Tegar nyata. Perangkat fisik belum diuji. Checkpoint sebelumnya eddf8003; Bagian 165 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 166 Ikon Jenis dan Lokasi Aset Tetap Mobile
+
+- Pada kartu grid Aset Tetap, label Jenis dan Lokasi diganti ikon cube-outline dan location-outline dari Ionicons yang sudah dipakai aplikasi. Nilai jenis/lokasi tetap ditampilkan langsung dan diratakan kiri agar dekat dengan ikon.
+- Deskripsi aksesibilitas tetap menyebut Jenis aset/Lokasi aset dengan nilai lengkap. Tampilan pinjaman, mode list, warna, data dan perhitungan Bagian 165 tidak diubah.
+- Typecheck/ESLint mobile lulus. Browser fixture 360/440 light/dark memeriksa label visual hilang, nilai tetap ada, deskripsi aksesibel dan tanpa error JS; hasil render diperiksa. Kasus contoh tetap menunjukkan 1 aset tetap dan 1 pinjaman.
+- Checkpoint sebelumnya eddf8003; Bagian 165–166 belum di-commit/push. Perangkat fisik belum diuji.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 167 Spacing Layanan dan Profil Mobile
+
+- Sesuai persetujuan pengguna, hanya spacing Layanan dan Profil yang dirapikan. Tugas, warna, bentuk kartu, padding di dalam kartu dan ukuran target sentuh tetap.
+- Layanan memakai serviceStack dengan gap x4 maksimum 16px (terukur 14px pada 360 dan 16px pada 440). Kartu bantuan mempertahankan pemisah yang lebih besar, 21/25px.
+- Profil memakai profileMenuStack dengan gap x3 maksimum 12px (terukur 10/12px). Jarak ringkasan ke menu memakai x6 maksimum 20px (terukur 20px); logout dipisahkan dari kelompok menu dengan margin atas 24px. Hero/dua kartu ringkasan tidak diubah.
+- Browser fixture light/dark pada 360/440 membandingkan ukuran, posisi dan padding dengan baseline sebelum perubahan. Geometri seluruh kartu Tugas identik; lebar/tinggi/padding kartu Layanan/Profil juga tetap. Semua gap yang disepakati lulus pemeriksaan dan hasil render ditinjau, tanpa error JS. Typecheck/ESLint mobile lulus.
+- Pengguna mengonfirmasi hasil spacing sudah bagus dan menyetujui checkpoint.
+- Checkpoint sebelumnya eddf8003; Bagian 165–167 disimpan sebagai checkpoint lokal perbaikan BMN dan spacing mobile yang telah disetujui pengguna; belum di-push. Perangkat fisik belum diuji.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 168 Form SPT Mobile dan Penyelarasan Web
+
+- Form Buat SPT Baru mengikuti komposisi portal mobile: identitas Kemenhut, app bar tetap, bidang konten membulat, kartu terkelompok dan tema global. Aksen memakai role Surat Tugas web #0369a1 light / #38bdf8 dark; kanvas/kartu mengikuti surface netral modul web. Fokus/seleksi input bertema dan kontrol 44–48px.
+- Melengkapi master jenis tugas/sumber dana publik, mode lokasi dan pola kalimat kustom, tanggal tunggal/jadwal per pegawai, PM, PLH, persetujuan Kepala Seksi, aturan laporan per jenis, pratinjau serta payload seperti form pribadi web. Kota asal mendahulukan flag wilayah dan mengenali III sebelum II/I, termasuk asal gabungan.
+- Unggahan sekarang mendukung PDF/JPG/PNG/WebP 10 MB. Web mengirim berkas/Blob asli dengan boundary multipart, native tetap URI. Validasi file/tanggal/jadwal/jumlah dilakukan sebelum mengirim. Pesan ApiError.fieldErrors dan data konflik ter-normalisasi ditangani dengan benar; isian tidak hilang saat retry.
+- Endpoint tetap /surat-tugas/submit; backend/otorisasi/nomor/status penerbitan tidak diubah. Lock pengiriman mencegah duplikasi. Pengajuan berhasil dapat kembali ke portal dan memulai form kosong, walaupun tab navigation mempertahankan screen.
+- Rincian sebelum/sesudah dan perintah uji ada di docs/mobile-surat-tugas-parity.md. Typecheck/lint bersih, 30 tes form/schema/API lulus, delapan kasus kalimat cocok dengan helper web aktual. E2E fixture menguji alur lengkap, custom master, jadwal, PLH/Seksi, PM, berkas, retry, konflik dan reset; input tidak overflow pada 360/440/landscape 800. Warna dibandingkan dengan halaman web aktual. Bundle Android HTTP 200 JavaScript. Perangkat fisik belum diuji; tidak ada SPT nyata dibuat.
+- Checkpoint sebelumnya b4f505c4; Bagian 168 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 169 Penyempurnaan Form SPT Mobile
+
+- Indikator Pilih pegawai / Detail tugas / Terkirim ditengahkan dalam tiga kolom seimbang. Pratinjau kalimat surat dipindah ke bagian bawah kartu Detail Surat Tugas, sebelum Jadwal penugasan.
+- Memisahkan jenis isi picker dari status visibilitasnya. Menutup Jenis Tugas kini mempertahankan konten tugas selama animasi keluar; tidak berubah menjadi Sumber Dana di tengah transisi.
+- Mereproduksi fokus tertinggal di portal tersembunyi ketika pengguna menunggu modal aksi cepat terbuka penuh sebelum memilih SPT. Pada web, navigasi kini berjalan setelah modal selesai ditutup dan fokus dipulihkan/dilepas. Kembali ke portal juga melepas fokus tombol sebelum tab form disembunyikan. Alur native tetap memakai navigasi semula.
+- Pengaturan jenis tugas dan pembebanan biaya berasal dari endpoint publik Kepegawaian yang sama dengan web. Loader kini berjalan setiap form memperoleh fokus, sehingga penambahan dari pengaturan muncul ketika form dibuka kembali; pilihan jenis yang masih tersedia dan draf dipertahankan. Tidak mengklaim push/realtime untuk master yang berubah saat form sedang terbuka.
+- Typecheck/lint lulus, 30 tes form/schema/API serta delapan kasus parity kalimat tetap lulus. Regresi Chrome memeriksa pusat tiap indikator, posisi pratinjau dalam kartu, tutup picker lewat tombol/Escape tanpa konten Sumber Dana, pemulihan fokus dan ketiadaan fokus pada tab tersembunyi, penambahan master pada form yang dipertahankan navigasi, dan draf tetap ada. Alur pengajuan sebelumnya tetap lulus; semua API/pengiriman browser diisolasi dan tidak membuat SPT nyata. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya b4f505c4; Bagian 168–169 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 170 Kartu Bentrok dan Batas Tanggal SPT Mobile
+
+- Pesan bentrok tugas/cuti kini berada pada kartu tersendiri sesudah Jadwal penugasan, dengan ikon, judul Jadwal Tugas / Cuti Bentrok, isi pesan server dan arahan memperbaiki tanggal/pegawai. Warna status warning mengikuti web: light #fffbeb/#92400e/#fde68a, dark #451a03/#fcd34d/#92400e. Kartu memiliki role alert/live region dan hilang ketika bentrok teratasi. Pesan status pegawai tanpa message menggunakan keterangan server.
+- Validasi submit sebelumnya sudah menolak jadwal per personel di luar periode utama, tetapi kalender belum membatasi pilihan. Kalender kini menonaktifkan tanggal sebelum/sesudah periode utama untuk jadwal per pegawai; tanggal selesai utama/per pegawai tidak boleh mendahului tanggal mulai yang sesuai. Pintasan Hari Ini/Besok/+3/+7 Hari memakai batas dan guard pemilihan yang sama.
+- Jadwal berbeda hari hanya dapat diaktifkan setelah periode utama lengkap. Memajukan tanggal mulai melewati tanggal selesai ikut menyesuaikan selesai; mengubah periode utama membatasi kembali jadwal personel yang sudah diisi. Memilih mulai personel sesudah selesai lamanya ikut menyesuaikan selesai agar tidak terbalik. Tanggal utama tidak dibatasi harus setelah hari ini karena tugas dengan tanggal lampau di luar scope permintaan.
+- Typecheck dan lint mobile/skrip browser lulus; 30 tes form/API/schema lulus. Regresi browser menguji periode hari ini–besok untuk kedua pegawai dan kedua field, tanggal sebelum/sesudah periode, pintasan, urutan mulai/selesai, penyempitan/pemindahan periode utama, kartu warning light/dark dan kartu hilang setelah bentrok selesai. Seluruh alur pengajuan sebelumnya tetap lulus dengan API/pengiriman fixture terisolasi; tidak membuat SPT nyata. Hasil render light/dark ditinjau. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya b4f505c4; Bagian 168–170 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 171 Penekanan Pesan Bentrok dan Garis Progres SPT
+
+- Kartu bentrok mempertahankan objek konflik dari API agar nama pegawai serta rentang tanggal dirender terpisah. Nama dan tanggal ditebalkan; tanggal diberi garis bawah amber seperti web. Konflik tugas/cuti memakai redaksi web, sementara pesan/status lain tetap memakai message/keterangan server.
+- Indikator tahap kini memiliki garis penghubung netral dengan bagian biru mengikuti progres: belum terisi pada tahap 1, setengah pada tahap 2 dan penuh pada tahap 3. Garis mengikuti aksen modul dalam light/dark, tetap tepat di tengah lingkaran dan menjaga label setiap kolom tetap di tengah.
+- Menangani log lampiran Unexpected text node dari kondisi kalender berbasis string kosong: kondisi kini boolean, sehingga tidak menghasilkan text node langsung dalam View saat kalender tidak memiliki batas tanggal.
+- Regresi browser memeriksa font-weight nama/tanggal, garis bawah tanggal, lebar/warna progres tahap 1/2/3, serta menangkap peringatan aria-hidden dan text node. Pemeriksaan tanggal termasuk memilih tanggal selesai utama sebelum mulai; periode diinisialisasi valid. Pemeriksaan sebelumnya dipertahankan. E2E browser lulus tanpa peringatan fokus/text node; hasil render light/dark ditinjau. Typecheck/lint serta 30 tes form/API/schema lulus. Bundle Android HTTP 200 JavaScript; perangkat fisik belum diuji.
+- Checkpoint sebelumnya b4f505c4; Bagian 168–171 disimpan sebagai checkpoint lokal penyelarasan dan penyempurnaan form SPT mobile yang telah disetujui pengguna; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 172 Fungsionalitas Profil Pegawai Portal Mobile
+
+- Menyempurnakan tab Profil Pegawai di PortalDashboardScreen, dengan header Kemenhut, warna, bentuk kartu dan spacing portal tetap. Identitas profil mendahulukan data pegawai; akun tanpa pegawai memakai username dan keterangan yang benar, bukan NIP/jabatan/unit contoh. Saldo cuti profil nol tetap nol; data gagal/belum tersedia tidak diganti angka 12 hari.
+- Menambah kartu kontak email/telepon/username, edit kontak via /me/update-profile, konfirmasi kata sandi saat email berubah dan pesan verifikasi dari server. Payload dibatasi email/phone/current_password; akun tanpa pegawai tidak diberi input telepon yang tidak dapat disimpan. Validasi email/domain .local/telepon mengikuti batas API; error ter-normalisasi ditampilkan tanpa membuang isian.
+- Foto profil aktual ditampilkan dengan fallback inisial saat gagal dimuat. Unggah foto JPG/PNG/WebP maksimal 10 MB memakai pratinjau dan konfirmasi, field foto sesuai web, berkas/Blob asli pada web dan URI pada native, kemudian refresh /me. Akun tanpa data pegawai tidak dapat mengunggah foto.
+- Menu pangkat/jabatan kini membuka data kepegawaian aktual yang dapat dibaca, bukan Alert. Tidak mengklaim riwayat pangkat historis karena /me hanya menyediakan data saat ini. Koreksi pangkat/jabatan/unit tetap dikelola admin Kepegawaian. Menu cuti membuka riwayat pada Layanan; menu tugas membuka Tugas. Akun login dengan daftar kosong tidak lagi mendapat surat tugas/cuti contoh.
+- Menghubungkan menu keamanan ke ChangePasswordModal yang dipakai bersama. Memakai token tema portal dan sheet responsif/scroll, validasi kata sandi saat ini/baru/konfirmasi/perbedaan, penanganan ApiError.fieldErrors, lock kirim ganda, penyembunyian nilai dan pembersihan rahasia saat tutup/sukses. Sukses mengakhiri sesi lokal saat dialog ditutup/dilanjutkan karena server mencabut seluruh token.
+- Menghapus kontak TU/nomor WhatsApp contoh pada tab Profil, menggantinya dengan aksi Perbarui Data Profil. Tidak membuat alamat kontak pengganti atau endpoint baru; backend/otorisasi tidak diubah.
+- Typecheck dan lint file berubah lulus. Regresi Chrome fixture frontend/tests/mobile-profile.playwright.cjs menguji identitas/angka nol/light-dark 360/440/landscape 800, data pangkat, daftar tugas/cuti kosong, validasi dan retry 422 kontak, konfirmasi email, pencegahan kirim ganda, unggahan multipart PNG dan penolakan SVG, akun tanpa pegawai, serta validasi/retry/sukses kata sandi dan logout lewat Escape. Uji BMN sebelumnya tetap lulus untuk pemisahan aset/pinjaman dan refresh realtime; E2E form SPT sebelumnya juga tetap lulus. Hasil render profil dan sheet light/dark ditinjau; bundle Android HTTP 200 JavaScript. Semua API/pengiriman browser terisolasi, tanpa mengubah akun, email, foto atau kata sandi nyata. Perangkat fisik belum diuji.
+- Pengguna mengonfirmasi hasil sudah bagus dan menyetujui checkpoint. Checkpoint sebelumnya d9318cd2; Bagian 172 disimpan sebagai checkpoint lokal penyempurnaan Profil Pegawai portal mobile; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 173 Logout Portal Mobile di Browser
+
+- Menangani laporan tombol Keluar Akun (Logout) tidak bereaksi. Root cause: PortalDashboardScreen memakai Alert.alert untuk konfirmasi; implementasi React Native Web Alert.alert kosong sehingga callback logout tidak pernah berjalan. Tes browser mereproduksi tombol yang tidak menampilkan konfirmasi sebelum perbaikan.
+- Konfirmasi kini memakai ConfirmModal aplikasi yang sudah tersedia, dengan Batal/Ya, Keluar dan handler logout AuthProvider yang sama. Tidak mengubah endpoint atau kebijakan pencabutan token. Tombol logout/konfirmasi/batal memiliki peran dan label aksesibel; Escape/tombol Back menutup konfirmasi tanpa mengakhiri sesi.
+- ConfirmModal memakai surface/token bahaya sesuai tema, lebar maksimal 420px, backdrop tidak menjadi target fokus, dan teks tombol bahaya memakai foreground yang memenuhi kontras pada light/dark.
+- Memperluas regresi frontend/tests/mobile-profile.playwright.cjs untuk alur logout dari tombol Profil: batal, Escape, konfirmasi, satu request, token localStorage terhapus, kembali ke login dan reload tetap login. Kasus respons logout 200 serta 500 lulus; unit AuthProvider juga menguji cleanup ketika jaringan gagal. Pemeriksaan kontras tombol minimal 4.5:1 mencakup kedua tema.
+- Typecheck/lint mobile dan skrip browser lulus. Dua suite auth/API berisi 11 tes lulus. Browser tetap meluluskan seluruh fitur profil sebelumnya. Bundle Android HTTP 200 JavaScript; perangkat fisik belum diuji. Semua request browser diisolasi memakai fixture, bukan mengubah sesi akun nyata.
+- Pengguna mengonfirmasi logout sudah berfungsi dan menyetujui checkpoint. Checkpoint sebelumnya 7bd2db30; Bagian 173 disimpan sebagai checkpoint lokal perbaikan logout portal mobile; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 174 Perbaikan Temuan dan Refactor Portal Mobile Tahap 1
+
+- Atas persetujuan pengguna, menangani autentikasi 2FA, kewajiban keamanan akun, cleanup sesi pada 401/nonaktif, token browser di memori + pemulihan cookie HttpOnly, konfigurasi HTTPS/WSS dan pembatasan origin request. Native tetap SecureStore; logout gagal di server tetap mengakhiri sesi lokal dan tidak memulihkannya otomatis pada reload. Token realtime dipakai ulang dari sesi server terenkripsi selama masih valid agar reload tidak memenuhi batas sesi perangkat.
+- Mengarahkan rute profil lama ke profil portal, menghapus implementasi profil duplikat, modal aset/riwayat tak terjangkau dan data tugas/cuti contoh. Saldo cuti yang belum tersedia tidak diganti 12 hari. Memindahkan stylesheet portal verbatim; fungsi styles sama persis terhadap checkpoint b9a2aa59. Desain, warna, bentuk kartu dan spacing dipertahankan; komponen utama dari 4.906 menjadi sekitar 2.900 baris.
+- Menghubungkan lonceng notifikasi dengan daftar/status baca/API milik pengguna. Memperbaiki penerima Reverb agar mencakup admin module_roles sesuai pemeriksaan otorisasi/token aktif. Metadata notifikasi tidak lagi hilang pada normalisasi.
+- Memperbaiki preview/cetak browser dan native, escaping data dokumen, CSP/navigasi WebView, URL gambar, PDF dengan MIME sesuai dan error terlihat. Tombol laporan menjalankan cetak/simpan seperti alur web yang tersedia; tidak mengklaim pengiriman laporan ke server.
+- Membatasi hasil konflik anonim ke ketersediaan + pesan umum tanpa rentang tanggal/nama/jenis cuti tersimpan; anonim tidak dapat mengecualikan surat dari pemeriksaan. Banner web mempertahankan gaya dan mendukung pesan umum. Detail login mengikuti kebijakan operasional sebelumnya.
+- Analisis statis TypeScript mobile/frontend 0 diagnostik, sintaks PHP valid, dan perbandingan stylesheet identik. Regression test auth/storage/API/files/profile/Reverb/backend dan fixture browser diperbarui. Hasil akhir belum menjalani Jest/PHPUnit/browser/perangkat; sandbox OS yang diwajibkan security-audit belum tersedia, sehingga tidak mengklaim tes runtime lulus. Rincian dan rencana verifikasi: docs/mobile-portal-refactor.md.
+- Pengguna menyetujui checkpoint Bagian 174. Perubahan disimpan sebagai commit lokal perbaikan keamanan dan refactor portal mobile tahap 1, dengan basis b9a2aa59; belum di-push. Desain tetap dipertahankan. Pemisahan render tab/hook data berikutnya menunggu regresi runtime tahap ini.
+
+- Graph kode Graphify diperbarui setelah perubahan akhir: 15.737 node, 29.567 edge, 1.032 komunitas; pembaruan AST tanpa LLM. Normalisasi akhir baris report mengikuti repository.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 175 Refactor Portal Mobile Tahap 2
+
+- Pengguna meminta tahap berikutnya dengan desain, warna, bentuk kartu dan spacing tetap. Memisahkan lima pemuat data personal ke usePortalData, tampilan/hitungan/filter Tugas ke PortalTasksTab, serta helper presentasi yang dipakai bersama ke portalHelpers. Hook dipasang di portal; filter tab tetap disimpan di induk agar bertahan saat berpindah tab.
+- Endpoint, aturan saldo, pengecualian aset pinjaman, fallback data, timestamp dan refresh fokus/foreground/Reverb sama. Tidak menambah request, mengubah autentikasi/backend atau menambah dependensi. Halaman utama dari 2,899 ke 2,595 baris; profil dan layanan belum dipisahkan pada tahap ini.
+- TypeScript mobile 0 diagnostik. Perbandingan AST memverifikasi seluruh JSX portal setelah ekspansi komponen Tugas, binding props, isi loader/helper/filter, registrasi refresh dan konstanta tampilan identik terhadap 105dca21; stylesheet tidak berubah. Regresi hook data disiapkan, belum dijalankan. Uji Jest/browser/perangkat tahap 1/2 tetap menunggu sandbox OS yang disyaratkan security-audit; tidak menganggap runtime sudah lulus.
+- Pengguna menyetujui checkpoint Bagian 175. Refactor pemuatan data dan tab Tugas disimpan sebagai commit lokal dengan basis 105dca21; belum di-push. Rincian: docs/mobile-portal-refactor.md. Status uji runtime tetap belum tervalidasi.
+
+- Graph kode diperbarui setelah refactor tahap 2: 15.753 node, 29.640 edge, 1.059 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 176 Refactor Profil dan Layanan Mobile
+
+- Memisahkan empat tampilan: PortalProfileTab, PortalServicesMenu, PortalAssetsView dan PortalLeaveView. Helper aset/foto dipindah ke portalAssetHelpers; status cuti ke helper bersama; tipe props/tujuan layanan memakai portalViewTypes. Halaman utama dari 2,595 ke 1,594 baris, tanpa tambahan dependensi.
+- Perhitungan yang hanya dipakai masing-masing tampilan ikut dipindah. State pencarian, kategori, grid/list, tahun cuti, foto, notifikasi profil dan modal tetap di induk agar bertahan saat navigasi. Alur kontak/foto/pangkat, kata sandi/logout, cuti/cetak serta pemisahan aset/pinjaman sama. Tidak mengubah backend, endpoint, session/auth atau hak akses.
+- Perbandingan AST memverifikasi seluruh struktur UI setelah ekspansi empat komponen, props, state/handler induk, perhitungan/helper, modal, header dan tema terhadap fc27961d. Stylesheet, hook data dan tab Tugas identik; desain, warna, bentuk kartu, spacing dan animasi dipertahankan.
+- TypeScript mobile 0 diagnostik dan sintaks dua fixture browser valid. Regresi diperluas untuk persistensi pencarian/kategori/grid-list BMN, notifikasi/foto profil dan filter tahun cuti saat berpindah tab. Browser/Jest/perangkat belum dijalankan karena batas sandbox security-audit tetap berlaku; tidak mengklaim hasil render/runtime lulus. Rincian: docs/mobile-portal-refactor.md.
+- Pengguna menyetujui checkpoint Bagian 176. Refactor Profil dan Layanan disimpan sebagai commit lokal dengan basis fc27961d; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi.
+
+- Graph kode tahap 3 diperbarui setelah perubahan akhir: 15.772 node, 29.740 edge dan 1.048 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 177 Refactor Beranda dan Modal Mobile
+
+- Memisahkan PortalHomeTab, PortalQuickActionsModal, PortalLoansModal, PortalSbmModal, serta PortalLeaveModals (pembatalan dan scan). Perhitungan/daftar modul yang hanya dipakai Beranda ikut dipindah. Halaman utama dari 1,594 ke 683 baris, tanpa dependency baru.
+- State/ref/handler serta pengambilan data tetap di portal. Hitungan tugas/aset yang juga dipakai bottom nav tetap di induk. Urutan tutup modal → pemulihan fokus → navigasi SPT web, pembersihan blob URL, validasi berkas, aksi native, refresh dan modal yang sudah berupa komponen dipertahankan.
+- Perbandingan AST memverifikasi keseluruhan JSX Beranda/lima Modal, props, state/ref, handler, urutan modal, perhitungan/modul/ACL dan state scan terhadap d03c2081. Stylesheet, data hook serta tampilan tahap 2/3 identik; desain, warna, bentuk kartu, spacing, header/nav dan animasi tetap.
+- TypeScript mobile 0 diagnostik; sintaks tiga fixture browser valid. Regresi diperluas untuk Beranda → Profil, pinjaman/SBM, tutup aksi cepat tombol/Escape, kembali dari konfirmasi cuti, dan pratinjau scan dengan pelepasan blob URL. Browser/Jest/perangkat belum dijalankan karena batas sandbox security-audit tetap berlaku; tidak mengklaim hasil runtime/piksel lulus. Rincian: docs/mobile-portal-refactor.md.
+- Pengguna menyetujui checkpoint Bagian 177. Refactor Beranda dan modal portal disimpan sebagai commit lokal dengan basis d03c2081; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi.
+
+- Graph kode tahap 4 diperbarui setelah perubahan akhir: 15.794 node, 29.807 edge dan 1.050 komunitas melalui AST tanpa LLM. Ponytail diterapkan dengan ekstraksi blok yang sudah ada, helper/dependency yang dipakai ulang, serta state/ref tetap di induk tanpa store atau lapisan baru.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 178 Refactor Header dan Bottom Nav Mobile
+
+- Memisahkan PortalHeader dan PortalBottomNav dari halaman utama; dari 683 menjadi 568 baris. Logo/nama instansi, kontrol tema/notifikasi, empat tab, FAB dan badge memakai JSX/style/handler yang sama. Konstanta hijau BKSDA dipakai bersama header dan backing portal agar perbaikan garis putih tetap terjaga. Tidak menambah dependency, store, wrapper layout atau pemuat data.
+- State tab/subhalaman/modal, model notifikasi, ref navigasi SPT, hitungan badge, hook data dan tema tetap dimiliki induk. Tombol Layanan tetap membuka menu utama; FAB dan alur tutup modal/fokus/navigasi tetap sama. Desain, warna, bentuk kartu, spacing, animasi dan StatusBar tidak diubah.
+- Verifikasi statis terhadap 989e2d8b: seluruh JSX setelah ekspansi dua komponen, props serta semua state/ref/effect/handler/perhitungan induk identik. Konstanta forest/surface sama, dua komponen baru tanpa hooks; stylesheet dan 34 file dashboard lama selain halaman utama tidak berubah. TypeScript mobile tanpa emit 0 diagnostik; sintaks fixture browser yang diperluas valid.
+- Regresi browser yang sudah ada diperluas untuk pergantian tema dan header hijau tetap, logo/instansi serta tema saat berpindah tab, warna tab aktif, refresh/tutup notifikasi, dan tombol Layanan kembali dari BMN ke menu. Browser/Jest/perangkat fisik serta pemeriksaan piksel belum dijalankan karena sandbox OS yang diwajibkan security-audit belum tersedia; tidak mengklaim runtime lulus.
+- Pengguna menyetujui checkpoint Bagian 178. Refactor header dan bottom nav portal mobile disimpan sebagai commit lokal dengan basis 989e2d8b; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi. Ponytail diterapkan dengan pemisahan blok yang sudah ada dan penggunaan ulang tipe/style; rincian dan rencana verifikasi: docs/mobile-portal-refactor.md.
+
+- Graph kode tahap 5 diperbarui setelah perubahan source/fixture akhir: 15.800 node, 29.824 edge dan 1.031 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 179 Refactor Aksi dan Pratinjau Berkas Cuti Mobile
+
+- Memisahkan usePortalLeaveActions (state cetak/konfirmasi/scan, pemuatan scan, pembatalan dan pembersihan blob URL) serta PortalLeaveCardActions (tombol cetak/scan/batal). Halaman utama berkurang dari 568 menjadi 374 baris. Hook dipasang sekali tanpa kondisi di portal; state tetap hidup saat berpindah tab dan tidak menambah pemuatan data.
+- Status tombol, label, ikon, disabled state, callback sebelum modal dibuka, format scan PDF/JPEG/PNG/WebP, endpoint berotorisasi, fallback nama/MIME, penanganan gagal, urutan modal dan refresh daftar/saldo setelah pembatalan dipertahankan. Desain, warna, bentuk kartu, spacing, tema dan animasi tetap; stylesheet serta modal yang ada tidak diubah. Tidak menambah dependency, store atau abstraksi generik.
+- Verifikasi statis terhadap bcceb026: JSX portal/urutan modal identik; seluruh isi tombol aksi, lima deklarasi state, tiga callback dan helper blob yang dipindah sama. Props memakai binding semula dan hook dipasang di tingkat portal. Sisa state/effect/handler induk serta 36 file dashboard lama selain halaman utama identik. TypeScript mobile tanpa emit 0 diagnostik; tiga berkas baru termasuk regresi valid secara sintaks dan bebas whitespace tambahan.
+- Empat kasus regresi hook ditambahkan untuk persistensi state tanpa request tambahan, endpoint scan/formulir dan penolakan HTML/gagal API, status sibuk serta refresh pembatalan sukses, dan kegagalan pembatalan yang mempertahankan target. Fixture browser tahap sebelumnya tetap mencakup scan gambar, pelepasan blob URL dan kembali dari konfirmasi. Jest/browser/perangkat dan pemeriksaan piksel belum dijalankan karena persyaratan sandbox OS security-audit belum terpenuhi; tidak mengklaim runtime lulus.
+- Pengguna menyetujui checkpoint Bagian 179. Refactor aksi dan pratinjau berkas cuti mobile disimpan sebagai commit lokal dengan basis bcceb026; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi. Ponytail diterapkan dengan memindahkan kode yang ada, menggunakan ulang tipe/komponen/style dan mempertahankan perilaku. Rincian: docs/mobile-portal-refactor.md.
+
+- Graph kode tahap 6 diperbarui setelah perubahan source/regresi akhir: 15.813 node, 29.855 edge dan 1.053 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 180 Perbaikan Respons Scan dan Formulir Cuti Mobile
+
+- Scan menggunakan penanda request terbaru; respons sukses/gagal yang datang setelah ditutup, diganti, atau portal dilepas diabaikan. Blob URL dibersihkan saat penggantian, penutupan dan unmount, tanpa efek samping di updater state. Endpoint dan validasi format scan tetap sama.
+- Formulir memuat /me/leave-types setiap dibuka dan saat retry. Opsi, hitungan hari kerja/kalender, pemotongan saldo tahunan serta batas durasi mengikuti metadata katalog API; bukan tebakan nama. Katalog memuat/gagal/kosong menahan pengiriman, dan respons katalog lama diabaikan. Pesan ApiError.message/fieldErrors ditampilkan; kunci submit mencegah pengiriman ganda dan perubahan/penutupan saat sedang mengirim.
+- Seluruh createLeaveStyles dan atribut style inline yang sudah ada identik terhadap e79f5efa; stylesheet portal, halaman utama, tombol aksi dan modal pratinjau tidak berubah. Dropdown memakai daftar bergulir terbatas tinggi agar tambahan jenis cuti tetap dapat dijangkau. Warna, bentuk kartu, font, padding/margin dan spacing dipertahankan; tanpa dependency/backend/konfigurasi produksi baru.
+- TypeScript mobile 0 diagnostik. Tiga suite Jest terfokus dijalankan di Docker sandbox lokal: 12/12 tes lolos, exit 0 (30,205 detik). Mencakup race scan, blob cleanup, pembatalan, katalog cuti, aturan hari/saldo/durasi, error validasi, retry dan submit ganda. Sandbox tanpa jaringan, root/source/toolchain read-only, env allowlist, user non-root, cap-drop serta batas CPU/RAM/PID/file/disk/waktu. Browser E2E, pemeriksaan piksel dan perangkat fisik belum dijalankan; hasil ini tidak memvalidasi seluruh suite tahap sebelumnya.
+- Pengguna meminta langsung commit. Basis e79f5efa; perbaikan disimpan sebagai checkpoint lokal, belum di-push. Rincian reproduksi dan batas validasi: docs/mobile-portal-refactor.md. Risiko token pada URL foto BMN serta penyederhanaan style/filter dari review tetap di luar tahap ini.
+
+- Graph kode tahap 7 diperbarui setelah perubahan source/tes akhir: 15.827 node, 29.894 edge dan 1.052 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 181 Token pada URL Foto BMN
+
+- Menghapus bearer dari URL foto API aset pribadi, pinjaman dan AssetResource, termasuk foto BPKB/STNK pada endpoint photo. Snapshot tidak memasang ulang token pada URL foto; query token lama dibersihkan. Middleware tidak lagi menerima token query untuk view/download foto. Izin/pemilik/peminjam dan penolakan token yang dicabut tetap diperiksa oleh middleware yang ada.
+- BmnPhotoImage menggunakan Authorization header pada native dan API client berautentikasi -> blob URL pada web. Hanya foto pada origin/path API yang dikenal menerima kredensial; foto eksternal/lokal memakai source semula. URL lama dibersihkan, blob dibuang saat foto/sesi berubah/unmount dan respons usang diabaikan. Handler gagal dan props Image diteruskan; foto API memakai private/no-store serta no-referrer.
+- Ketiga render tree konsumen identik setelah penggantian Image -> BmnPhotoImage; tidak ada View/wrapper layout tambahan. Stylesheet portal dan seluruh style/spacing/card/warna tetap. State/effect getToken yang tidak digunakan pada detail BMN dihapus; tanpa dependency atau mekanisme signed-token baru. Ponytail Review pada diff akhir: Lean already. Ship.
+- Pengujian final di Docker sandbox: 11/11 tes mobile (2 suite) dan 5/5 tes HTTP backend dengan 59 assertion lolos; TypeScript mobile 0 diagnostik. Mencakup URL tokenless, query-only 401, header/session guard sah, pembaca asing 403, token dicabut 401, borrower/private-photo/return boundary, snapshot lama, host eksternal, respons usang dan cleanup blob. Browser E2E/perangkat/piksel belum diuji. Reproduksi/limit sandbox: docs/mobile-portal-refactor.md.
+- Pengguna meminta langsung commit. Basis 378329db; perubahan disimpan sebagai checkpoint lokal, belum di-push. Tahap ini khusus endpoint foto; URL dokumen/preview PDF dan KTP masih memakai mekanisme lama dan perlu tindak lanjut terpisah. Tidak mengklaim kebocoran log produksi terbukti atau seluruh audit/deployment selesai.
+
+- Graph kode tahap 8 diperbarui setelah perubahan source/tes akhir: 15.841 node, 29.924 edge dan 1.037 komunitas melalui AST tanpa LLM.
+
+## Pembaruan Sesi 19 November 2026 — Bagian 182 Dokumen/PDF, KTP dan Foto BMN Web
+
+- Menghapus bearer dari URL view/download/pratinjau halaman dokumen BPKB/STNK dan KTP Surat Kuasa. Snapshot lama dibersihkan, termasuk parameter token yang dienkode, beda kapitalisasi dan berbentuk array. Middleware autentikasi query yang sudah tidak diperlukan dihapus; autentikasi Sanctum serta batas izin/pemilik/peminjam tetap berlaku. KTP selalu melalui endpoint terlindungi; tidak memakai fallback URL storage publik.
+- Memperbaiki migrasi pemuat web yang belum tercakup pada checkpoint 79f2d6b0: thumbnail, detail/lightbox, pemilih aset pinjaman, aset portal dan lampiran laporan kini memakai API berautentikasi -> blob URL. URL dibatasi ke origin/path BMN API yang dikenal; HTML dan format lain ditolak; blob lama dibersihkan saat URL/sesi berubah/unmount. Buka/unduh PDF memakai blob tanpa bearer di URL atau DOM. Mobile memakai helper pemuat yang sama untuk foto/pratinjau/KTP dan mengunduh PDF lewat helper unduhan yang sudah ada.
+- Log pengguna menunjukkan kasus tambahan 404 geotag. Daftar aset, pemilih pinjaman dan hero detail kini mencoba foto berikutnya ketika foto utama gagal. Prioritas foto serta label/placeholder tetap; tidak mengubah CSS, warna, bentuk kartu atau spacing. Pemeriksaan AST mengonfirmasi atribut style/className pada 12 TSX yang diedit identik terhadap basis; tidak menambah wrapper layout atau dependency.
+- Verifikasi: backend PortalPersonalSecurityTest 60/60 tes, 295 assertion; mobile 3 suite, 21/21 tes; tiga regresi frontend standalone serta fixture Chromium terisolasi lolos. Browser mereproduksi raw-image 403 tanpa header, kemudian foto/pratinjau/KTP berhasil lewat blob; mencakup perubahan sesi, penolakan HTML/403, pembatasan origin, PDF buka/unduh dan cleanup popup gagal. TypeScript frontend/mobile 0 diagnostik; ESLint tiga helper/komponen frontend baru/diubah 0 warning/error. Rincian perintah dan batas sandbox ada di docs/mobile-portal-refactor.md.
+- Atas permintaan eksplisit pengguna, melakukan SELECT dalam transaksi READ ONLY pada PostgreSQL lokal dan HEAD berautentikasi ke MinIO lokal dengan skrip inspeksi mandiri, tanpa menjalankan aplikasi. Dua ID yang ditunjuk memiliki referensi geotag di database; lima object key pada contoh daftar mengembalikan 404. Bucket/prefix sendiri dapat dibaca (200), sedangkan salinan path yang diperiksa tidak ada di storage lokal. Ini bukti referensi berkas tidak tersedia pada penyimpanan lokal aktif, bukan bukti pengguna belum pernah upload atau berkas produksi hilang. Tidak mengubah data, mengunduh isi foto/KTP, memulihkan berkas atau menyatakan sinkronisasi produksi selesai.
+- Basis 79f2d6b0, langsung commit lokal sesuai permintaan pengguna; belum di-push. Ponytail Review: Lean already. Ship. Security Review difokuskan pada URL credential, origin/MIME, lifecycle blob serta izin backend. Pengujian bukan audit menyeluruh, E2E aplikasi penuh/perangkat fisik/build Next.js atau validasi storage produksi.
+- Graph kode tahap 9 diperbarui setelah source/tes final: 15.861 node, 29.995 edge dan 1.026 komunitas melalui AST tanpa LLM.
+
+## Pembaruan Sesi 19 November 2026 — Bagian 183 RustFS Produksi dan Sinkronisasi BMN Lokal
+
+- Koreksi istilah Bagian 182/tahap 9: layanan yang dipakai adalah RustFS, dikonfirmasi dari image/container lokal serta produksi. Pemeriksaan sebelumnya memakai protokol S3, bukan bukti layanan MinIO. Tidak mengganti produk penyimpanan.
+- Backup database lokal dibuat dan katalog pg_restore tervalidasi sebelum perubahan. Sebanyak 14.762 baris dari 17 tabel BMN produksi digabungkan secara transaksional ke lokal melalui upsert, dengan seluruh FK tetap aktif. Simulasi ROLLBACK lolos sebelum COMMIT; tidak melakukan TRUNCATE/CASCADE atau menyalin akun/kredensial pengguna produksi. Identitas relasi cocok tanpa remap. Checksum kanonis setiap baris PostgreSQL sumber/lokal identik (0 perbedaan); 13 baris khusus lokal dipertahankan (1 peminjaman, 10 riwayat aset, 2 surat kuasa). Tidak ada aset dengan pinjaman aktif ganda. Checksum akun, pegawai dan folder Drive lokal tidak berubah.
+- Menyalin 77 objek BMN, 61.697.731 byte, dari RustFS produksi ke RustFS lokal melalui S3 di dalam tunnel SSH dengan host key yang diverifikasi. MIME dipertahankan, checksum/ukuran diverifikasi, dan objek khusus lokal dipertahankan. Manifest produksi setelah operasi identik; tidak mengubah/menghapus berkas BMN produksi. Folder rollback/manifest/backup hanya lokal, diabaikan Git, dengan ACL pengguna Windows saat ini dan SYSTEM: backups/bmn-sync-20261119-01/.
+- Foto P.C Unit NUP 31 ada di produksi dan kini HEAD lokal 200. Lap Top NUP 4 memiliki catatan unggah 29 Oktober 2026, tetapi object key tersebut 404 pada produksi/lokal, tidak ada pada folder produksi lain untuk laptop itu atau dua arsip RustFS yang tersedia. Riwayat unggah tidak dibantah; penyebab hilangnya objek historis belum terbukti. Tidak menggantinya dengan foto/tautan lama secara otomatis.
+- Kebijakan bucket wildcard public-read diganti pada RustFS lokal dan produksi dengan allowlist CMS/public serta foto profil yang dikenal. Seluruh namespace BMN/foto/dokumen/KTP/surat tugas tidak diizinkan untuk pembaca anonim. Kebijakan lama disimpan untuk rollback. Verifikasi: HEAD anonim foto BMN yang tersedia 403, HEAD berautentikasi 200; tiga foto profil publik produksi tetap HEAD 200.
+- Kredensial RustFS produksi terbukti sama dengan default repository lalu dirotasi ke nilai acak. Konfigurasi disimpan pada env aplikasi Dokploy dan file env Compose, dengan pemeriksaan perubahan bersamaan serta rollback. Empat layanan yang memakai pengaturan itu direkreasi menggunakan image yang sama tanpa build/pull; tidak ada migrasi tertunda atau job aktif sebelum operasi. Kredensial baru HEAD 200, kredensial lama 403, kebijakan bucket tetap sama, seluruh tiga konsumen berkas cocok, dan /api/health melalui jaringan layanan 200. Kredensial baru tidak dicetak atau dimasukkan ke Git. Pemeriksaan HEAD domain publik dari klien otomatis mendapat 403 dengan header Cloudflare; ini bukan bukti browser produksi atau seluruh rute publik telah tervalidasi.
+- Kode storage:setup kini memasang allowlist yang sama, mengembalikan status gagal pada audit drift/gagal PUT policy, serta tidak lagi menganggap bucket wildcard public-read sebagai kondisi aman. Compose Dokploy mewajibkan RUSTFS_PASSWORD, tanpa fallback password produksi. Compose prod alternatif sudah mewajibkannya. RustFS/API/console dan pgAdmin lokal dibatasi ke localhost; healthcheck RustFS memakai /health/ready, bukan endpoint lama /minio/health/ready. Container lokal sehat dan volume RustFS tetap sama.
+- Unggahan foto biasa/geotag menghasilkan URL API terlindungi. Penggantian memakai nama unik, memeriksa hasil penyimpanan sebelum mengubah referensi, dan baru menghapus foto lama sesudah referensi/riwayat berhasil disimpan. Ini menutup risiko penghapusan foto lama sebelum penulisan pengganti berhasil; tidak mengklaimnya sebagai penyebab pasti kasus historis. Tidak mengubah desain, warna, bentuk kartu atau spacing.
+- Pengujian sandbox final: 63 tes backend (337 assertion) lolos, mencakup policy publik/privat, batas akses/token, URL unggahan privat, penggantian berhasil serta penolakan penulisan yang mempertahankan foto lama untuk kedua endpoint. Ketiga konfigurasi Compose lolos render dummy; dua konfigurasi produksi menolak password storage yang kosong. Tidak ada dependency baru. Pengujian frontend/mobile sebelumnya tidak diulang karena source-nya tidak berubah pada tahap ini; bukan klaim audit penuh atau build aplikasi penuh.
+- Basis 8e0dbac1; kode disiapkan pada codex/portal-security-pentest untuk checkpoint/PR ke production-server. Tidak melakukan merge PR atau mengganti image aplikasi dengan kode branch kerja tanpa konfirmasi eksplisit. Pembatasan bucket, rotasi kredensial dan sinkronisasi lokal di atas sudah diterapkan terpisah sebagai operasi yang diminta pengguna.
+- Graph kode tahap 10 diperbarui setelah source/tes final: 15.871 node, 30.012 edge dan 1.038 komunitas, AST tanpa LLM.
+
+## Pembaruan Sesi 19 November 2026 — Bagian 184 Thumbnail Daftar BMN 100 Aset
+
+- Log pengguna membedakan dua kasus: sejumlah path foto memang 404, sedangkan foto P.C Unit NUP 23 tersedia di detail tetapi timeout 20 detik di daftar per_page=100. BmnMediaImage memulai fetch API seluruh gambar pada mount, sehingga loading=lazy pada img tidak membatasi pengambilan blob berautentikasi dan permintaan dapat mengantre pada server development.
+- Pemuat kini menghormati loading=lazy melalui IntersectionObserver bawaan dengan rootMargin 150px. Blob baru diambil saat gambar mendekati viewport; gambar eager/pratinjau/lampiran cetak tetap mengikuti mode semula. Tidak menambah dependency, antrean custom, wrapper atau perubahan stylesheet/card/spacing.
+- AbortController diteruskan ke Axios dan dibatalkan saat URL/sesi berubah atau komponen unmount. Respons usang diabaikan dan blob tetap dibersihkan. Permintaan yang dibatalkan sengaja tidak lagi menghasilkan warning development. Validasi origin/path/MIME serta autentikasi tetap sama; tidak mengembalikan token ke URL atau membuka bucket.
+- Saat foto terlindungi masih memuat, alt kosong sementara dan aria-busy mencegah teks/ikon gambar rusak muncul pada slot thumbnail. Alt semula kembali setelah selesai. Callback gagal tetap bekerja melalui React 19, sehingga foto 404 bisa mencoba kandidat berikutnya atau menampilkan placeholder. Error jaringan/404 nyata tidak disamarkan sebagai keberhasilan.
+- Empat fixture frontend (tiga Node dan satu Chromium terisolasi) lolos. Fixture browser memakai runtime React 19 dari Next yang terpasang: menguji 100 kartu, kartu luar viewport belum mengirim fetch, kartu terakhir mulai mengambil setelah scroll, serta abort request lambat saat view dilepas tanpa callback gagal palsu. Uji sebelumnya untuk session/blob, 403/HTML, KTP/PDF, origin, buka/unduh tetap lolos.
+- Delapan tes cache/sesi dengan modul API/auth-store asli dan adapter Axios dummy juga lolos. TypeScript frontend 0 diagnostik; ESLint helper/komponen terfokus 0 warning/error. Semua runtime tes berada di sandbox tahap 9, network none/loopback dummy, source/toolchain/root read-only dan batas CPU/RAM/PID/file/waktu. Tidak memakai login atau berkas pribadi nyata untuk tes browser. Source backend/mobile tidak berubah pada tahap ini; tes backend 63/337 tahap 10 tidak diulang.
+- Basis 7ecda7cb, langsung checkpoint pada branch kerja dan disertakan ke persiapan PR production-server. Pembatasan/rotasi RustFS serta import lokal tahap 10 tetap aktif; patch aplikasi ini belum disamakan dengan deployment produksi. Foto yang tidak tersedia pada sumber produksi tetap belum dipulihkan. Pengguna perlu memuat ulang tab dev untuk melepaskan request lama yang sudah berjalan sebelum perbaikan.
+- Graph kode tahap 11 diperbarui setelah source/tes final: 15.875 node, 30.016 edge dan 1.032 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 185 Ketersediaan Foto BMN pada Daftar dan Detail
+
+- Log lanjutan pada daftar per_page=100 berisi 404 geotag nyata, berbeda dari timeout yang diperbaiki pada tahap 11. Referensi di database bukan bukti objek masih ada. Detail kini memeriksa keberadaan geotag pada disk aktif dan mengirim metadata true/false/null; kegagalan storage atau fallback eksternal tetap unknown, tanpa menghapus referensi/riwayat.
+- Daftar memeriksa enam slot foto publik BMN melalui satu pemanggilan inventaris prefix bmn-photos per respons, bukan satu HEAD untuk setiap kartu. Resource hanya menyertakan flag boolean untuk path yang diperiksa pada aset yang sudah diotorisasi; tidak membocorkan daftar object key. Jika inventaris gagal, metadata tidak disertakan dan perilaku pemuatan semula tetap berlaku. Tidak menambah cache inventaris, kolom database, migrasi, dependency atau layanan.
+- Pemilih foto melewati kandidat dengan flag false sebelum memasang image loader, lalu mencoba foto berikutnya atau placeholder yang ada. Ini menghentikan permintaan yang sudah diketahui akan 404, bukan menyembunyikan error jaringan. Foto hilang tidak dipulihkan otomatis dan kondisi berubah setelah pemeriksaan masih dapat menghasilkan error pemuatan.
+- Detail tidak lagi menulis Tersedia/Terverifikasi hanya karena path terisi. Status tersedia, tombol lihat/unduh dan hapus foto menunggu gambar berhasil dimuat. Geotag yang diketahui hilang tidak dipasang sebagai hero/lightbox; slot hilang/gagal memakai kontrol unggah yang sudah ada dengan batas izin semula, tanpa tombol hapus. Jumlah referensi dilabeli Foto tercatat. Setelah unggah/penghapusan, cache GET dibersihkan serta query detail dan daftar dimuat ulang agar flag lama tidak menetap.
+- Warna, bentuk kartu, struktur layout, stylesheet dan spacing dipertahankan; status memuat/gagal memakai token teks yang ada. Ponytail Review pada diff: Lean already. Ship. Peninjauan keamanan terfokus memastikan metadata hanya pada rute berotorisasi, tidak menambahkan token ke URL, tidak membuka bucket dan tidak memutasi referensi saat pemeriksaan gagal.
+- Verifikasi sandbox: 67 tes backend, 360 assertion lolos. Mencakup geotag hilang/ada/hilang lagi tanpa penghapusan referensi, fallback eksternal dan storage gagal; daftar 100 aset memanggil inventaris tepat sekali tanpa exists per kartu, serta gagal inventaris tidak mengklaim semua foto hilang. Empat fixture frontend lolos, termasuk placeholder tanpa image loader untuk flag false, fallback foto, status decode, kontrol unggah/hapus dan regresi Chromium viewport/auth/blob/PDF. Chromium sempat crash saat newPage pada percobaan awal; pengulangan perintah yang sama berhasil. TypeScript frontend 0 diagnostik; ESLint source frontend yang berubah 0 warning/error. Mobile tidak berubah dan tes mobile tidak diulang; bukan validasi build Next.js penuh, E2E akun nyata atau perangkat fisik.
+- Basis 570dc782; langsung checkpoint dan persiapan draft PR branch codex/portal-security-pentest ke production-server. Branch juga membawa checkpoint portal mobile yang belum dirilis. Belum merge/deploy kode aplikasi; operasi RustFS dan sinkronisasi BMN tahap 10 tetap terpisah. Muat ulang halaman lokal untuk mengambil metadata yang baru.
+- Graph kode tahap 12 diperbarui setelah source/tes final: 15.885 node, 30.038 edge dan 1.055 komunitas, AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 186 Pembedaan Status Foto pada Daftar BMN
+
+- Placeholder daftar kini membedakan Belum ada foto (tanpa kandidat/referensi foto yang tersedia), Berkas foto tidak ditemukan (storage menyatakan berkas yang tercatat tidak ada), dan Foto tidak dapat dimuat (kandidat foto masih ada tetapi percobaan pemuatannya gagal). Tidak menyamakan berkas hilang dengan bukti pengguna belum pernah mengunggah.
+- Status gagal diperhitungkan terhadap kandidat pada data aset saat ini, sehingga riwayat kegagalan sebelumnya tidak memberi label error pada aset yang referensi fotonya sudah kosong. Pemilihan foto berikutnya, pemuatan lazy dan penghindaran request untuk path yang diketahui hilang tetap berlaku. Tidak mengubah warna, bentuk kartu, spacing, stylesheet, API, database atau izin.
+- Fixture bmn-asset-grid.cjs di sandbox jaringan none lolos, mencakup tiga label, perubahan referensi setelah gagal, kandidat berikutnya serta tidak memasang image loader untuk berkas hilang. ESLint terfokus 0 warning/error. Tidak menjalankan ulang backend/mobile/full build atau mengklaim validasi browser/piksel baru untuk perubahan teks ini. Basis 2bd4991b, checkpoint diteruskan ke draft PR #606; belum merge/deploy.
+
+- Graph kode tahap 13 diperbarui: 15.888 node, 30.041 edge dan 1.041 komunitas, AST tanpa LLM.

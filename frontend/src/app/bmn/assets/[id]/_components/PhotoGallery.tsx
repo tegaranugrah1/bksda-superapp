@@ -1,8 +1,11 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 import React, { useState, useRef, forwardRef, useImperativeHandle } from "react";
 import { Camera, Download, Eye, Link2, Trash2, Upload, ExternalLink, Package as ZipIcon, X, ChevronLeft, ChevronRight, ShieldCheck, FileText, CheckCircle2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, resolveApiUrl } from "@/lib/api";
+import { openBmnMedia } from "@/lib/bmn-media";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRole } from "@/hooks/useRole";
@@ -20,6 +23,7 @@ export interface PhotoGalleryProps {
   nup: string;
   fotoGeotagUrl: string | null;
   fotoGeotagPath: string | null;
+  geotagAvailable?: boolean | null;
   fotoDepanUrl: string | null;
   fotoBelakangUrl: string | null;
   fotoKiriUrl: string | null;
@@ -81,19 +85,6 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
   return firstError || response?.data?.message || fallback;
 }
 
-function resolveApiUrl(url?: string | null): string | null {
-  if (!url) return null;
-  if (/^https?:\/\//i.test(url)) return url;
-  if (!url.startsWith("/")) return url;
-
-  const apiBase = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiBase || apiBase === "/api" || !apiBase.startsWith("http")) {
-    return url;
-  }
-
-  const origin = new URL(apiBase).origin;
-  return `${origin}${url}`;
-}
 
 function getDocumentPreviewPages(document?: VehicleDocument | null): string[] {
   const urls = document?.preview_urls?.length ? document.preview_urls : (document?.preview_url ? [document.preview_url] : []);
@@ -108,6 +99,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     nup,
     fotoGeotagUrl,
     fotoGeotagPath,
+    geotagAvailable,
     fotoDepanUrl,
     fotoBelakangUrl,
     fotoKiriUrl,
@@ -193,6 +185,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
 
   // Get all available photos for navigation
   const availablePhotos = PHOTO_SLOTS.map((slot) => {
+    if (slot.key === "geotag" && geotagAvailable === false) return null;
     const url = photos[slot.key];
     if (!url) return null;
     const isExternalOnly = slot.type === "hybrid" && !fotoGeotagPath && !!fotoGeotagUrl;
@@ -201,6 +194,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
   }).filter(Boolean) as { key: string; label: string; url: string }[];
 
   const openLightbox = (key: string) => {
+    if (key === "geotag" && geotagAvailable === false) return;
     previewTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const idx = availablePhotos.findIndex((p) => p.key === key);
     if (idx >= 0) {
@@ -215,7 +209,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     openLightbox,
   }));
 
-  const openDocumentLightbox = (document: VehicleDocument | null | undefined, label: string) => {
+  const openDocumentLightbox = async (document: VehicleDocument | null | undefined, label: string) => {
     previewTrigger.current = window.document.activeElement instanceof HTMLElement ? window.document.activeElement : null;
     const pages = getDocumentPreviewPages(document);
     if (pages.length > 0) {
@@ -224,7 +218,10 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
     }
 
     const viewUrl = resolveApiUrl(document?.url);
-    if (viewUrl) window.open(viewUrl, "_blank", "noopener,noreferrer");
+    if (viewUrl) {
+      try { await openBmnMedia(viewUrl); }
+      catch (error) { toast.error(getApiErrorMessage(error, "Dokumen belum dapat dibuka.")); }
+    }
   };
 
   const navigateLightbox = (dir: 1 | -1) => {
@@ -339,7 +336,8 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
       const document = documents[type];
       const downloadUrl = resolveApiUrl(document?.download_url);
       if (downloadUrl) {
-        window.open(downloadUrl, "_blank", "noopener,noreferrer");
+        try { await openBmnMedia(downloadUrl, document?.original_name || `${type.toUpperCase()}.pdf`); }
+        catch (error) { toast.error(getApiErrorMessage(error, "Dokumen belum dapat diunduh.")); }
       }
       return;
     }
@@ -504,6 +502,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
             canWrite={canUpdate}
             fotoGeotagPath={fotoGeotagPath}
             fotoGeotagUrl={fotoGeotagUrl}
+            knownMissing={slot.key === "geotag" && geotagAvailable === false}
           />
         ))}
       </div>
@@ -610,6 +609,7 @@ export const PhotoGallery = forwardRef<PhotoGalleryRef, PhotoGalleryProps>(funct
 });
 
 interface PhotoCardSlotProps {
+  knownMissing?: boolean;
   slot: { key: string; label: string; shortLabel: string; type: string };
   url: string | null;
   frontLocationDraft?: string;
@@ -628,6 +628,7 @@ interface PhotoCardSlotProps {
 }
 
 function PhotoCardSlot({
+  knownMissing = false,
   slot,
   url,
   frontLocationDraft,
@@ -649,22 +650,25 @@ function PhotoCardSlot({
   const isFrontView = slot.key === "depan";
 
   const displayThumb = isExternalOnly && url ? driveToThumbnail(url) : url;
+  const [result, setResult] = useState<{ url: string; loaded: boolean } | null>(null);
+  const loaded = !knownMissing && result?.url === (displayThumb || url) && result?.loaded === true;
+  const failed = knownMissing || (result?.url === (displayThumb || url) && result?.loaded === false);
 
   return (
     <div className="flex flex-col gap-2">
       {/* Box Image / Upload Trigger */}
-      {url ? (
+      {url && !failed ? (
         <div>
-          <button type="button" aria-label={`Lihat ${slot.label}`} onClick={() => openLightbox(slot.key)} className="relative block w-full rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 aspect-4/3 bg-[var(--ds-surface-muted)] cursor-zoom-in">
+          <button type="button" disabled={!loaded} aria-label={`Lihat ${slot.label}`} onClick={() => openLightbox(slot.key)} className="relative block w-full rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 aspect-4/3 bg-[var(--ds-surface-muted)] cursor-zoom-in">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={displayThumb || url} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <BmnMediaImage src={displayThumb || url} alt={slot.label} className="w-full h-full object-cover" referrerPolicy="no-referrer" onLoad={() => setResult({ url: displayThumb || url, loaded: true })} onError={() => setResult({ url: displayThumb || url, loaded: false })} />
             <span className="absolute top-2 left-2 px-2 py-1 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] text-xs">{slot.shortLabel}</span>
           </button>
           <div className="flex flex-wrap justify-center gap-1 mt-2">
-            <button type="button" onClick={() => openLightbox(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Perbesar ${slot.label}`}><Eye className="w-4 h-4" /></button>
-            <button type="button" onClick={() => handleDownload(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Unduh ${slot.label}`}><Download className="w-4 h-4" /></button>
+            <button type="button" disabled={!loaded} onClick={() => openLightbox(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Perbesar ${slot.label}`}><Eye className="w-4 h-4" /></button>
+            <button type="button" disabled={!loaded} onClick={() => handleDownload(slot.key)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Unduh ${slot.label}`}><Download className="w-4 h-4" /></button>
             <button type="button" onClick={() => copyLink(url)} className="bmn-button bmn-secondary rounded-lg p-2" aria-label={`Salin tautan ${slot.label}`}><Link2 className="w-4 h-4" /></button>
-            {canWrite && <button type="button" onClick={() => handleDelete(slot.key)} className="bmn-button bmn-danger rounded-lg p-2" aria-label={`Hapus ${slot.label}`}><Trash2 className="w-4 h-4" /></button>}
+            {canWrite && loaded && <button type="button" onClick={() => handleDelete(slot.key)} className="bmn-button bmn-danger rounded-lg p-2" aria-label={`Hapus ${slot.label}`}><Trash2 className="w-4 h-4" /></button>}
           </div>
         </div>
       ) : (
@@ -682,9 +686,9 @@ function PhotoCardSlot({
       <div className="text-center">
         <div className="text-xs font-semibold text-[var(--ds-fg)]">{slot.label}</div>
         {url ? (
-          <div className="text-xs text-[var(--ds-accent-fg)] flex items-center justify-center gap-1 mt-1 font-medium">
-            <CheckCircle2 className="w-3 h-3" />
-            Tersedia
+          <div className={loaded ? "text-xs text-[var(--ds-accent-fg)] flex items-center justify-center gap-1 mt-1 font-medium" : "text-xs text-[var(--ds-fg-muted)] flex items-center justify-center gap-1 mt-1 font-medium"}>
+            {loaded && <CheckCircle2 className="w-3 h-3" />}
+            {knownMissing ? "Berkas belum tersedia" : loaded ? "Tersedia" : failed ? "Belum dapat dimuat" : "Memuat foto..."}
           </div>
         ) : (
           <div className="text-xs text-[var(--ds-fg-muted)] mt-1">Menunggu Unggahan</div>
@@ -754,7 +758,7 @@ function VehicleDocumentCard({
       >
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt={slot.label} className="h-full w-full object-contain" />
+          <BmnMediaImage src={previewUrl} alt={slot.label} className="h-full w-full object-contain" />
         ) : document ? (
           <div className="flex flex-col items-center gap-2 text-center">
             <FileText className="h-10 w-10 text-[var(--ds-status-info-fg)]" />
@@ -857,7 +861,7 @@ function Lightbox({ url, label, index, total, onClose, onPrev, onNext, onReturnF
         </DialogClose>
         {failedUrl === url ? <p role="status" className="bmn-photo-placeholder min-h-48">Foto tidak dapat dimuat</p> : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={label} className="bmn-photo-full" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} />
+          <BmnMediaImage src={url} alt={label} className="bmn-photo-full" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} />
         )}
         {total > 1 && <div className="flex items-center justify-between gap-2">
           <button type="button" className="bmn-button bmn-secondary inline-flex items-center gap-1 rounded-lg px-3 text-xs" onClick={onPrev}><ChevronLeft className="w-4 h-4" />Sebelumnya</button>

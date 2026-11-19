@@ -7,10 +7,10 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import { DocumentHtmlView } from "@/components/DocumentHtmlView";
+import { escapeDocumentData } from "@/lib/files/documentHtml";
 import { Ionicons } from "@expo/vector-icons";
-import * as FileSystem from "expo-file-system/legacy";
-import { shareFile } from "@/lib/files/share";
+import { printDocument } from "@/lib/files/documentHtml";
 
 export interface LeaveRequestPrintData {
   id?: number | string;
@@ -135,6 +135,7 @@ function getKotaAtasanFromSatuanKerja(satuanKerja?: string, resor?: string | nul
 }
 
 function buildFormulirCutiHtml(data: LeaveRequestPrintData): string {
+  data = escapeDocumentData(data);
   const emp: NonNullable<LeaveRequestPrintData["employee"]> = data.employee || {
     nama_lengkap: "TEGAR ANUGRAH, A.Md.Kom.",
     nip: "19990707 202506 1 006",
@@ -521,6 +522,8 @@ export const FormulirCutiPrintModal: React.FC<FormulirCutiPrintModalProps> = ({
   onClose,
 }) => {
   const [isPrinting, setIsPrinting] = React.useState(false);
+  const [printError, setPrintError] = React.useState('');
+  const printLock = React.useRef(false);
 
   if (!data) return null;
 
@@ -528,24 +531,14 @@ export const FormulirCutiPrintModal: React.FC<FormulirCutiPrintModalProps> = ({
   const htmlContent = buildFormulirCutiHtml(data);
 
   const handlePrint = async () => {
-    setIsPrinting(true);
+    if (printLock.current) return;
+    printLock.current = true; setIsPrinting(true); setPrintError('');
     try {
-      const filename = `Formulir-Cuti-${nomorPengajuan.replace(/[\/\\\\:*?"<>|]/g, "_")}.html`;
-      const localUri = `${FileSystem.cacheDirectory}${filename}`;
-
-      await FileSystem.writeAsStringAsync(localUri, htmlContent, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
-
-      await shareFile({
-        localUri,
-        mimeType: "text/html",
-        dialogTitle: "Cetak / Bagikan Formulir Cuti Ke WA",
-      });
-    } catch (err) {
-      console.warn("Cuti share error:", err);
+      await printDocument(htmlContent);
+    } catch (failure) {
+      setPrintError((failure as Error).message || "Formulir cuti belum dapat dicetak.");
     } finally {
-      setIsPrinting(false);
+      printLock.current = false; setIsPrinting(false);
     }
   };
 
@@ -583,16 +576,9 @@ export const FormulirCutiPrintModal: React.FC<FormulirCutiPrintModalProps> = ({
         </View>
 
         {/* WebView Form Content */}
+        {!!printError && <Text accessibilityRole="alert" style={{ color: "#ffffff", padding: 12 }}>{printError}</Text>}
         <View style={styles.webViewContainer}>
-          <WebView
-            originWhitelist={["*"]}
-            source={{ html: htmlContent }}
-            style={styles.webView}
-            scalesPageToFit={true}
-            showsVerticalScrollIndicator={true}
-            showsHorizontalScrollIndicator={true}
-            bounces={false}
-          />
+          <DocumentHtmlView html={htmlContent} style={styles.webView} />
         </View>
       </View>
     </Modal>

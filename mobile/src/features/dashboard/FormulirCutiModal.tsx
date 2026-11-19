@@ -13,29 +13,28 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { apiClient } from "../../lib/api/client";
-import { PORTAL_5_TOKENS, useTheme } from "../../theme/ThemeContext";
+import { PORTAL_5_TOKENS, useTheme, usePortalResponsive, type ResponsivePortalMetrics } from "../../theme/ThemeContext";
 import { AppDatePickerModal } from "../../components/AppDatePickerModal";
+import type { ApiError, ApiSuccess } from "@/types/api";
 
 interface FormulirCutiModalProps {
   visible: boolean;
   sisaCuti?: number;
+  balanceAvailable?: boolean;
   pendingCutiHari?: number;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const JENIS_CUTI_OPTIONS = [
-  "Cuti Tahunan",
-  "Cuti Besar",
-  "Cuti Sakit",
-  "Cuti Melahirkan",
-  "Cuti Karena Alasan Penting",
-  "Cuti di Luar Tanggungan Negara",
-];
+interface PortalLeaveType {
+  id: number | string;
+  nama: string;
+  kode: string;
+  hitung_hari: "hari_kerja" | "hari_kalender";
+  potong_kuota_tahunan: boolean;
+  maks_hari: number | null;
+}
 
-const T = PORTAL_5_TOKENS.type;
-const S = PORTAL_5_TOKENS.space;
-const R = PORTAL_5_TOKENS.radius;
 const FONT_FAMILY = Platform.select({
   web: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   default: undefined,
@@ -77,16 +76,23 @@ export function calcLeaveDurationDays(
 
 export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   visible,
-  sisaCuti = 12,
+  sisaCuti = 0,
+  balanceAvailable = true,
   pendingCutiHari = 0,
   onClose,
   onSuccess,
 }) => {
   const { isDark, colors } = useTheme();
+  const r = usePortalResponsive();
+  const styles = React.useMemo(() => createLeaveStyles(r), [r]);
   const shadowLg = PORTAL_5_TOKENS.shadow.lg(isDark);
   const currentYear = new Date().getFullYear();
 
-  const [jenisCuti, setJenisCuti] = useState("Cuti Tahunan");
+  const [jenisCuti, setJenisCuti] = useState("");
+  const [leaveTypes, setLeaveTypes] = useState<PortalLeaveType[]>([]);
+  const [typesStatus, setTypesStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [typesError, setTypesError] = useState<string | null>(null);
+  const [typesRevision, setTypesRevision] = useState(0);
   const [jenisDropdownOpen, setJenisDropdownOpen] = useState(false);
   const [alasanCuti, setAlasanCuti] = useState("");
   const [tanggalMulai, setTanggalMulai] = useState(formatTodayIso);
@@ -97,10 +103,39 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isHariKerja = jenisCuti.toLowerCase().includes("tahunan");
+  const submitLock = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!visible) return;
+    let current = true;
+    setTypesStatus("loading");
+    setTypesError(null);
+    setLeaveTypes([]);
+    setJenisDropdownOpen(false);
+    void apiClient.get<ApiSuccess<PortalLeaveType[]>>("/me/leave-types").then(response => {
+      if (!current) return;
+      if (!Array.isArray(response.data.data)) throw new Error("Daftar jenis cuti tidak valid. Silakan muat ulang.");
+      const options = response.data.data;
+      setLeaveTypes(options);
+      setJenisCuti(previous => options.some(option => option.nama === previous)
+        ? previous : (options.find(option => option.kode === "CT") || options[0])?.nama || "");
+      setTypesStatus("ready");
+      if (!options.length) setTypesError("Tidak ada jenis cuti yang tersedia untuk akun ini.");
+    }).catch((failure: ApiError) => {
+      if (!current) return;
+      setTypesStatus("error");
+      setTypesError(Object.values(failure.fieldErrors || {}).flat().join("\n") || failure.message || "Jenis cuti belum dapat dimuat. Ketuk pilihan jenis cuti untuk mencoba lagi.");
+    });
+    return () => { current = false; };
+  }, [visible, typesRevision]);
+
+  const selectedLeaveType = leaveTypes.find(option => option.nama === jenisCuti);
+  const isHariKerja = selectedLeaveType?.hitung_hari === "hari_kerja";
+  const usesAnnualQuota = selectedLeaveType?.potong_kuota_tahunan === true;
   const calculatedDays = calcLeaveDurationDays(tanggalMulai, tanggalSelesai, isHariKerja);
 
   const handleClose = () => {
+    if (submitLock.current) return;
     setJenisDropdownOpen(false);
     setActiveDateField(null);
     setErrorMsg(null);
@@ -108,6 +143,12 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (submitLock.current) return;
+    if (typesStatus !== "ready" || !selectedLeaveType) {
+      setErrorMsg("Pilih jenis cuti yang tersedia terlebih dahulu.");
+      return;
+    }
+    if (usesAnnualQuota && !balanceAvailable) {setErrorMsg("Saldo cuti belum tersedia. Perbarui data lalu coba lagi.");return;}
     if (calculatedDays <= 0) {
       setErrorMsg("Tanggal selesai tidak boleh sebelum tanggal mulai.");
       return;
@@ -116,10 +157,14 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
       setErrorMsg("Pengajuan cuti tidak boleh lintas tahun kalender. Silakan ajukan terpisah per tahun.");
       return;
     }
-    if (isHariKerja && calculatedDays > sisaCuti) {
+    if (usesAnnualQuota && calculatedDays > sisaCuti) {
       setErrorMsg(
         `Jumlah hari cuti (${calculatedDays} hari) melebihi sisa hak cuti tahunan yang dapat diajukan (${sisaCuti} hari).`
       );
+      return;
+    }
+    if (selectedLeaveType.maks_hari && calculatedDays > selectedLeaveType.maks_hari) {
+      setErrorMsg(`Jumlah hari cuti (${calculatedDays} hari) melebihi batas maksimal untuk jenis cuti ${selectedLeaveType.nama} (${selectedLeaveType.maks_hari} hari).`);
       return;
     }
     if (!alasanCuti.trim()) {
@@ -131,6 +176,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
       return;
     }
 
+    submitLock.current = true;
     setErrorMsg(null);
     setIsSubmitting(true);
     try {
@@ -153,14 +199,13 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
       setAlamat("");
       setTelepon("");
       onSuccess();
+      submitLock.current = false;
       handleClose();
-    } catch (err: any) {
-      setErrorMsg(
-        err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          "Gagal mengirim permohonan cuti."
-      );
+    } catch (failure) {
+      const error = failure as ApiError;
+      setErrorMsg(Object.values(error.fieldErrors || {}).flat().join("\n") || error.message || "Gagal mengirim permohonan cuti.");
     } finally {
+      submitLock.current = false;
       setIsSubmitting(false);
     }
   };
@@ -198,7 +243,9 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                   styles.closeBtn,
                   { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder },
                 ]}
+                disabled={isSubmitting}
                 onPress={handleClose}
+                accessibilityLabel="Tutup formulir cuti"
               >
                 <Ionicons name="close" size={18} color={colors.textMuted} />
               </TouchableOpacity>
@@ -223,7 +270,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 </View>
                 <View style={styles.infoBannerRight}>
                   <Text style={[styles.infoBannerValue, { color: colors.accentFg }]}>
-                    {`${sisaCuti} Hari`}
+                    {balanceAvailable ? `${sisaCuti} Hari` : "Belum tersedia"}
                   </Text>
                   {pendingCutiHari > 0 && (
                     <Text style={[styles.infoBannerPending, { color: colors.warningFg }]}>
@@ -233,7 +280,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 </View>
               </View>
 
-              {Boolean(errorMsg) && (
+              {Boolean(errorMsg || typesError) && (
                 <View
                   style={[
                     styles.errorBanner,
@@ -242,7 +289,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 >
                   <Ionicons name="alert-circle-outline" size={16} color={colors.dangerFg} />
                   <Text style={[styles.errorBannerText, { color: colors.dangerFg }]}>
-                    {errorMsg}
+                    {errorMsg || typesError}
                   </Text>
                 </View>
               )}
@@ -257,11 +304,16 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                     borderColor: jenisDropdownOpen ? colors.accentFg : colors.glassBorder,
                   },
                 ]}
-                onPress={() => setJenisDropdownOpen((open) => !open)}
+                accessibilityLabel="Jenis cuti"
+                disabled={typesStatus === "loading" || isSubmitting}
+                onPress={() => {
+                  if (typesStatus === "error" || !leaveTypes.length) { setTypesRevision(value => value + 1); return; }
+                  setJenisDropdownOpen((open) => !open);
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.pickerTriggerText, { color: colors.textDark }]} numberOfLines={1}>
-                  {jenisCuti}
+                  {typesStatus === "loading" ? "Memuat jenis cuti..." : selectedLeaveType?.nama || "Ketuk untuk memuat ulang jenis cuti"}
                 </Text>
                 <Ionicons
                   name={jenisDropdownOpen ? "chevron-up" : "chevron-down"}
@@ -279,6 +331,8 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                       styles.pickerTrigger,
                       { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
                     ]}
+                    accessibilityLabel="Tanggal mulai cuti"
+                    disabled={isSubmitting}
                     onPress={() => {
                       setJenisDropdownOpen(false);
                       setActiveDateField("mulai");
@@ -304,6 +358,8 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                       styles.pickerTrigger,
                       { backgroundColor: colors.cardBg, borderColor: colors.glassBorder },
                     ]}
+                    accessibilityLabel="Tanggal selesai cuti"
+                    disabled={isSubmitting}
                     onPress={() => {
                       setJenisDropdownOpen(false);
                       setActiveDateField("selesai");
@@ -351,6 +407,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
               {/* 4. Alasan Cuti */}
               <Text style={[styles.label, { color: colors.textDark }]}>4. Alasan Cuti</Text>
               <TextInput
+                editable={!isSubmitting}
                 style={[
                   styles.input,
                   styles.multilineInput,
@@ -376,6 +433,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 5. Alamat Menjalankan Cuti
               </Text>
               <TextInput
+                editable={!isSubmitting}
                 style={[
                   styles.input,
                   styles.multilineInput,
@@ -401,6 +459,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                 6. Nomor Telepon / HP
               </Text>
               <TextInput
+                editable={!isSubmitting}
                 style={[
                   styles.input,
                   {
@@ -431,6 +490,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                   styles.cancelBtn,
                   { backgroundColor: colors.surfaceMuted, borderColor: colors.glassBorder },
                 ]}
+                disabled={isSubmitting}
                 onPress={handleClose}
               >
                 <Text style={[styles.cancelBtnText, { color: colors.textSecondary }]}>Batal</Text>
@@ -443,7 +503,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                   isSubmitting && styles.btnDisabled,
                 ]}
                 onPress={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || typesStatus !== "ready" || !selectedLeaveType}
                 activeOpacity={0.85}
               >
                 {isSubmitting ? (
@@ -488,18 +548,20 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                     <Ionicons name="close" size={18} color={colors.textMuted} />
                   </TouchableOpacity>
                 </View>
-                {JENIS_CUTI_OPTIONS.map((option, idx) => {
-                  const selected = jenisCuti === option;
+                <ScrollView style={{ maxHeight: r.height * 0.55 }} keyboardShouldPersistTaps="handled">
+                {leaveTypes.map((option, idx) => {
+                  const selected = jenisCuti === option.nama;
                   return (
                     <TouchableOpacity
-                      key={option}
+                      key={option.id}
                       style={[
                         styles.dropdownItem,
                         idx > 0 && { borderTopWidth: 1, borderTopColor: colors.glassBorder },
                         selected && { backgroundColor: colors.accentSoft },
                       ]}
                       onPress={() => {
-                        setJenisCuti(option);
+                        setJenisCuti(option.nama);
+                        setErrorMsg(null);
                         setJenisDropdownOpen(false);
                       }}
                       activeOpacity={0.8}
@@ -511,7 +573,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                           selected && styles.dropdownItemTextSelected,
                         ]}
                       >
-                        {option}
+                        {option.nama}
                       </Text>
                       {selected && (
                         <Ionicons name="checkmark" size={16} color={colors.accentFg} />
@@ -519,6 +581,7 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
                     </TouchableOpacity>
                   );
                 })}
+                </ScrollView>
               </View>
             </View>
           )}
@@ -545,270 +608,286 @@ export const FormulirCutiModal: React.FC<FormulirCutiModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.55)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    borderTopLeftRadius: R.card,
-    borderTopRightRadius: R.card,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    maxHeight: "90%",
-  },
-  sheetHandle: {
-    width: 44,
-    height: S.x1,
-    borderRadius: R.bar,
-    alignSelf: "center",
-    marginTop: S.x3,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: S.x4,
-    paddingTop: S.x3,
-    paddingBottom: S.x3,
-    borderBottomWidth: 1,
-    gap: S.x2,
-  },
-  headerTitle: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xl,
-    fontWeight: "700",
-    letterSpacing: -0.2,
-  },
-  headerSubtitle: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    marginTop: S.x1,
-  },
-  closeBtn: {
-    width: S.x8,
-    height: S.x8,
-    borderRadius: R.pill,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  formScroll: {
-    paddingHorizontal: S.x4,
-    paddingTop: S.x4,
-  },
-  infoBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderRadius: R.inner,
-    padding: S.x3,
-    marginBottom: S.x2,
-    gap: S.x2,
-  },
-  infoBannerMain: {
-    flex: 1,
-  },
-  infoBannerTitle: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
-  infoBannerSub: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    marginTop: S.x1,
-  },
-  infoBannerRight: {
-    alignItems: "flex-end",
-  },
-  infoBannerValue: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xl,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
-  infoBannerPending: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "600",
-    fontVariant: ["tabular-nums"],
-  },
-  durationBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderRadius: R.inner,
-    paddingHorizontal: S.x3,
-    paddingVertical: S.x2,
-    marginTop: S.x2,
-    gap: S.x2,
-  },
-  durationLabel: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "500",
-  },
-  durationValue: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-  },
-  errorBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: R.inner,
-    padding: S.x3,
-    marginBottom: S.x2,
-    gap: S.x2,
-  },
-  errorBannerText: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "600",
-    flex: 1,
-  },
-  label: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.xs,
-    fontWeight: "700",
-    marginTop: S.x3,
-    marginBottom: S.x2,
-  },
-  pickerTrigger: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderRadius: R.inner,
-    paddingHorizontal: S.x3,
-    paddingVertical: S.x3,
-  },
-  pickerTriggerText: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.sm,
-    fontWeight: "500",
-    flex: 1,
-    marginRight: S.x2,
-  },
-  triggerIcon: {
-    marginRight: S.x2,
-  },
-  dropdownOverlay: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: "center",
-    paddingHorizontal: S.x4,
-    zIndex: 20,
-  },
-  dropdownBackdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(15, 23, 42, 0.35)",
-  },
-  dropdownCard: {
-    borderWidth: 1,
-    borderRadius: R.card,
-    overflow: "hidden",
-  },
-  dropdownHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: S.x4,
-    paddingVertical: S.x3,
-    borderBottomWidth: 1,
-  },
-  dropdownTitle: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.sm,
-    fontWeight: "700",
-  },
-  dropdownItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: S.x3,
-    paddingVertical: S.x3,
-  },
-  dropdownItemText: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.sm,
-    fontWeight: "500",
-    flex: 1,
-  },
-  dropdownItemTextSelected: {
-    fontWeight: "700",
-  },
-  dateRow: {
-    flexDirection: "row",
-    gap: S.x3,
-  },
-  dateCol: {
-    flex: 1,
-  },
-  dateText: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.sm,
-    fontWeight: "600",
-    fontVariant: ["tabular-nums"],
-    flex: 1,
-  },
-  input: {
-    fontFamily: FONT_FAMILY,
-    borderWidth: 1,
-    borderRadius: R.inner,
-    paddingHorizontal: S.x3,
-    paddingVertical: S.x3,
-    fontSize: T.sm,
-  },
-  multilineInput: {
-    textAlignVertical: "top",
-    minHeight: 72,
-  },
-  scrollBottomSpacer: {
-    height: S.x6,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: S.x3,
-    paddingHorizontal: S.x4,
-    paddingVertical: S.x3,
-    borderTopWidth: 1,
-  },
-  cancelBtn: {
-    paddingVertical: S.x3,
-    paddingHorizontal: S.x4,
-    borderRadius: R.inner,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cancelBtnText: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.sm,
-    fontWeight: "600",
-  },
-  submitBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: S.x3,
-    paddingHorizontal: S.x4,
-    borderRadius: R.inner,
-  },
-  submitBtnText: {
-    fontFamily: FONT_FAMILY,
-    fontSize: T.sm,
-    fontWeight: "700",
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-});
+function createLeaveStyles(r: ResponsivePortalMetrics) {
+  const T = r.type;
+  const S = r.space;
+  const R = r.radius;
+
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(15, 23, 42, 0.55)",
+      justifyContent: "flex-end",
+    },
+    sheet: {
+      width: "100%",
+      maxWidth: r.size.maxContentWidth,
+      alignSelf: "center",
+      borderTopLeftRadius: R.card,
+      borderTopRightRadius: R.card,
+      borderWidth: 1,
+      borderBottomWidth: 0,
+      maxHeight: "90%",
+    },
+    sheetHandle: {
+      width: 44,
+      height: S.x1,
+      borderRadius: R.bar,
+      alignSelf: "center",
+      marginTop: S.x3,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: S.x4,
+      paddingTop: S.x3,
+      paddingBottom: S.x3,
+      borderBottomWidth: 1,
+      gap: S.x2,
+    },
+    headerTitle: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xl,
+      fontWeight: "700",
+      letterSpacing: -0.2,
+    },
+    headerSubtitle: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      marginTop: S.x1,
+    },
+    closeBtn: {
+      width: 48,
+      height: 48,
+      borderRadius: R.pill,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    formScroll: {
+      paddingHorizontal: S.x4,
+      paddingTop: S.x4,
+    },
+    infoBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderRadius: R.inner,
+      padding: S.x3,
+      marginBottom: S.x2,
+      gap: S.x2,
+    },
+    infoBannerMain: {
+      flex: 1,
+    },
+    infoBannerTitle: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
+    infoBannerSub: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      marginTop: S.x1,
+    },
+    infoBannerRight: {
+      alignItems: "flex-end",
+    },
+    infoBannerValue: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xl,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
+    infoBannerPending: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      fontWeight: "600",
+      fontVariant: ["tabular-nums"],
+    },
+    durationBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderRadius: R.inner,
+      paddingHorizontal: S.x3,
+      paddingVertical: S.x2,
+      marginTop: S.x2,
+      gap: S.x2,
+    },
+    durationLabel: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      fontWeight: "500",
+    },
+    durationValue: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      fontWeight: "700",
+      fontVariant: ["tabular-nums"],
+    },
+    errorBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: 1,
+      borderRadius: R.inner,
+      padding: S.x3,
+      marginBottom: S.x2,
+      gap: S.x2,
+    },
+    errorBannerText: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      fontWeight: "600",
+      flex: 1,
+    },
+    label: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.xs,
+      fontWeight: "700",
+      marginTop: S.x3,
+      marginBottom: S.x2,
+    },
+    pickerTrigger: {
+      minHeight: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderWidth: 1,
+      borderRadius: R.inner,
+      paddingHorizontal: S.x3,
+      paddingVertical: S.x3,
+    },
+    pickerTriggerText: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.sm,
+      fontWeight: "500",
+      flex: 1,
+      marginRight: S.x2,
+    },
+    triggerIcon: {
+      marginRight: S.x2,
+    },
+    dropdownOverlay: {
+      ...StyleSheet.absoluteFill,
+      justifyContent: "center",
+      paddingHorizontal: S.x4,
+      zIndex: 20,
+    },
+    dropdownBackdrop: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: "rgba(15, 23, 42, 0.35)",
+    },
+    dropdownCard: {
+      width: "100%",
+      maxWidth: r.size.maxContentWidth,
+      alignSelf: "center",
+      borderWidth: 1,
+      borderRadius: R.card,
+      overflow: "hidden",
+    },
+    dropdownHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: S.x4,
+      paddingVertical: S.x3,
+      borderBottomWidth: 1,
+    },
+    dropdownTitle: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.sm,
+      fontWeight: "700",
+    },
+    dropdownItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: S.x3,
+      paddingVertical: S.x3,
+    },
+    dropdownItemText: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.sm,
+      fontWeight: "500",
+      flex: 1,
+    },
+    dropdownItemTextSelected: {
+      fontWeight: "700",
+    },
+    dateRow: {
+      flexDirection: r.isExtraNarrow ? "column" : "row",
+      gap: S.x3,
+    },
+    dateCol: {
+      flex: 1,
+    },
+    dateText: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.sm,
+      fontWeight: "600",
+      fontVariant: ["tabular-nums"],
+      flex: 1,
+    },
+    input: {
+      fontFamily: FONT_FAMILY,
+      borderWidth: 1,
+      borderRadius: R.inner,
+      paddingHorizontal: S.x3,
+      paddingVertical: S.x3,
+      fontSize: T.sm,
+    },
+    multilineInput: {
+      textAlignVertical: "top",
+      minHeight: 72,
+    },
+    scrollBottomSpacer: {
+      height: S.x6,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: S.x3,
+      paddingHorizontal: S.x4,
+      paddingVertical: S.x3,
+      borderTopWidth: 1,
+    },
+    cancelBtn: {
+      minHeight: 48,
+      paddingVertical: S.x3,
+      paddingHorizontal: S.x4,
+      borderRadius: R.inner,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelBtnText: {
+      fontFamily: FONT_FAMILY,
+      fontSize: T.sm,
+      fontWeight: "600",
+    },
+    submitBtn: {
+      minHeight: 48,
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: S.x3,
+      paddingHorizontal: S.x4,
+      borderRadius: R.inner,
+    },
+    submitBtnText: {
+      flexShrink: 1,
+      fontFamily: FONT_FAMILY,
+      fontSize: T.sm,
+      fontWeight: "700",
+    },
+    btnDisabled: {
+      opacity: 0.6,
+    },
+  });
+}

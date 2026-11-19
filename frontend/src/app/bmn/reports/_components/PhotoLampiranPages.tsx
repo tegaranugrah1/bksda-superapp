@@ -1,5 +1,7 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 export interface PhotoLampiranEntry {
   key: string | number;
   title: string;
@@ -23,7 +25,7 @@ export function PhotoLampiranPages({
         <article key={`photo-page-${pageIndex}`} className="photo-lampiran-page shadow-xl ring-1 ring-zinc-200 mt-6">
           <div className={headerClassName}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={headerSrc} alt="Kop Surat" />
+            <BmnMediaImage src={headerSrc} alt="Kop Surat" />
           </div>
 
           {pageIndex === 0 && (
@@ -39,7 +41,7 @@ export function PhotoLampiranPages({
                 {entry.photos.length > 0 ? (
                   entry.photos.map((photoUrl, idx) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <BmnMediaImage
                       key={idx}
                       src={photoUrl}
                       alt={`${entry.title} ${idx + 1}`}

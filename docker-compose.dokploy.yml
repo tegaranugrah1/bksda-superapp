@@ -20,7 +20,7 @@ services:
     command: server /data --address ":9000" --console-address ":9001"
     environment:
       RUSTFS_ROOT_USER: ${RUSTFS_USER:-bksda_admin}
-      RUSTFS_ROOT_PASSWORD: ${RUSTFS_PASSWORD:-BksdaStorage2026!}
+      RUSTFS_ROOT_PASSWORD: ${RUSTFS_PASSWORD:?RUSTFS_PASSWORD must be set for production}
     volumes:
       - rustfs-data:/data
 
@@ -55,7 +55,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-BksdaProd2026!}
       FILESYSTEM_DISK: s3
       AWS_ACCESS_KEY_ID: ${RUSTFS_USER:-bksda_admin}
-      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:-BksdaStorage2026!}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:?RUSTFS_PASSWORD must be set for production}
       AWS_DEFAULT_REGION: us-east-1
       AWS_BUCKET: bksda
       AWS_DRIVE_BUCKET: ${AWS_DRIVE_BUCKET:-bksda-drive}
@@ -107,7 +107,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-BksdaProd2026!}
       FILESYSTEM_DISK: s3
       AWS_ACCESS_KEY_ID: ${RUSTFS_USER:-bksda_admin}
-      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:-BksdaStorage2026!}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:?RUSTFS_PASSWORD must be set for production}
       AWS_DEFAULT_REGION: us-east-1
       AWS_BUCKET: bksda
       AWS_DRIVE_BUCKET: ${AWS_DRIVE_BUCKET:-bksda-drive}
@@ -188,7 +188,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-BksdaProd2026!}
       FILESYSTEM_DISK: s3
       AWS_ACCESS_KEY_ID: ${RUSTFS_USER:-bksda_admin}
-      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:-BksdaStorage2026!}
+      AWS_SECRET_ACCESS_KEY: ${RUSTFS_PASSWORD:?RUSTFS_PASSWORD must be set for production}
       AWS_DEFAULT_REGION: us-east-1
       AWS_BUCKET: bksda
       AWS_DRIVE_BUCKET: ${AWS_DRIVE_BUCKET:-bksda-drive}

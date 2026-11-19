@@ -19,6 +19,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -113,7 +114,38 @@ class AssetController extends Controller
         }
 
         $perPage = $this->resolvePerPage($request, default: 10, mobileMax: 100, webMax: 2000);
-        return AssetResource::collection($query->paginate($perPage));
+        $assets = $query->paginate($perPage);
+        $photoPaths = [];
+        foreach ($assets as $asset) {
+            foreach (['geotag', 'depan', 'belakang', 'kiri', 'kanan', 'lokasi'] as $type) {
+                $path = $asset->getAttribute("foto_{$type}_path");
+                if (is_string($path) && str_starts_with($path, 'bmn-photos/')) {
+                    $photoPaths[$asset->id][$type] = $path;
+                }
+            }
+        }
+        if ($photoPaths) {
+            try {
+                // ponytail: one prefix listing per response; cache with upload invalidation only if the inventory grows costly.
+                $stored = array_fill_keys(Storage::disk()->allFiles('bmn-photos'), true);
+                foreach ($assets as $asset) {
+                    $availability = [];
+                    foreach ($photoPaths[$asset->id] ?? [] as $type => $path) {
+                        if ($type === 'geotag' && ! isset($stored[$path]) && $asset->foto_geotag_url) {
+                            continue; // External links remain unknown until loaded by the viewer.
+                        }
+                        $availability[$type] = isset($stored[$path]);
+                    }
+                    if ($availability) {
+                        $asset->setAttribute('photo_availability', $availability);
+                    }
+                }
+            } catch (\Throwable) {
+                Log::warning('BMN photo inventory could not be checked.');
+            }
+        }
+
+        return AssetResource::collection($assets);
     }
 
     private function resolvePerPage(Request $request, int $default = 10, int $mobileMax = 100, int $webMax = 500): int
@@ -140,7 +172,19 @@ class AssetController extends Controller
         $asset = Asset::with(['penanggungJawab', 'tags', 'loans.borrower', 'maintenances', 'historyUpdates.author'])
             ->findOrFail($id);
 
-        return response()->json(['data' => new AssetResource($asset)]);
+        $geotagAvailable = null;
+        if ($asset->foto_geotag_path) {
+            try {
+                $geotagAvailable = Storage::disk()->exists($asset->foto_geotag_path);
+                if (! $geotagAvailable && $asset->foto_geotag_url) {
+                    $geotagAvailable = null; // An external fallback still needs to be loaded by the viewer.
+                }
+            } catch (\Throwable) {
+                Log::warning('BMN geotag availability could not be checked.', ['asset_id' => $asset->id]);
+            }
+        }
+
+        return response()->json(['data' => new AssetResource($asset), 'meta' => ['geotag_available' => $geotagAvailable]]);
     }
 
     public function update(UpdateAssetRequest $request, string $id): JsonResponse

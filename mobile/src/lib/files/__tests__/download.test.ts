@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
+import { notifySession } from '@/lib/auth/sessionEvents';
 import { getToken } from '@/lib/auth/tokenStorage';
-import { downloadAssignmentFile, FileDownloadError } from '../download';
+import { downloadAssignmentFile, downloadBmnMediaFile, FileDownloadError } from '../download';
 
 jest.mock('expo-file-system/legacy', () => ({
   cacheDirectory: 'file:///cache/',
@@ -10,9 +11,15 @@ jest.mock('expo-file-system/legacy', () => ({
   deleteAsync: jest.fn(),
 }));
 
+jest.mock('@/lib/auth/sessionEvents', () => ({ notifySession: jest.fn() }));
+
 jest.mock('@/lib/auth/tokenStorage', () => ({
   getToken: jest.fn(),
+  getSessionVersion: () => 1,
+  clearToken: jest.fn(),
 }));
+
+jest.mock('@/lib/api/client', () => ({ apiClient: { defaults: { baseURL: "https://api.test.com/api" }, get: jest.fn() } }));
 
 jest.mock('@/lib/api/config', () => ({
   config: {
@@ -113,5 +120,31 @@ describe('downloadAssignmentFile', () => {
       kind: 'network',
       message: 'Koneksi internet terganggu. Silakan periksa koneksi Anda dan coba lagi.',
     });
+  });
+  it('expires the session on 401 even when deleting the partial file fails', async () => {
+    (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({ status: 401 });
+    (FileSystem.deleteAsync as jest.Mock).mockRejectedValue(new Error('Dummy cache failure'));
+    await expect(downloadAssignmentFile({ assignmentId: 'dummy-expired' })).rejects.toMatchObject({ status: 401, kind: 'auth' });
+    expect(notifySession).toHaveBeenCalledWith({ type: 'expired' });
+  });
+
+});
+
+
+describe('downloadBmnMediaFile', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getToken as jest.Mock).mockResolvedValue('dummy-header-only');
+    (FileSystem.downloadAsync as jest.Mock).mockResolvedValue({ uri: 'file:///cache/bmn/document.pdf', status: 200, mimeType: 'application/pdf' });
+  });
+  it('strips legacy query credentials and downloads PDFs with an Authorization header', async () => {
+    await downloadBmnMediaFile('/api/bmn/assets/17/document/bpkb/view?%74oken=old&v=9', 'document.pdf');
+    expect(FileSystem.downloadAsync).toHaveBeenCalledWith('https://api.test.com/api/bmn/assets/17/document/bpkb/view?v=9', 'file:///cache/bmn/document.pdf', expect.objectContaining({headers: expect.objectContaining({Authorization:'Bearer dummy-header-only'})}));
+  });
+  it('rejects external and unrelated endpoints before reading credentials or downloading', async () => {
+    for (const url of ['https://external.test/api/bmn/assets/17/document/bpkb/view','https://api.test.com/api/me','//external.test/api/bmn/power-of-attorneys/17/ktp']) {
+      await expect(downloadBmnMediaFile(url)).rejects.toMatchObject({kind:'forbidden'});
+    }
+    expect(getToken).not.toHaveBeenCalled(); expect(FileSystem.downloadAsync).not.toHaveBeenCalled();
   });
 });

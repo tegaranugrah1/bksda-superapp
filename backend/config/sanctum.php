@@ -5,7 +5,7 @@ use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
 use Laravel\Sanctum\Sanctum;
 
-$defaultDomains = 'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,bksdakaltim.net,www.bksdakaltim.net,api.bksdakaltim.net,bksdakaltim.web.id,www.bksdakaltim.web.id,api.bksdakaltim.web.id';
+$defaultDomains = 'localhost,localhost:3000,localhost:8081,localhost:19006,127.0.0.1,127.0.0.1:8000,127.0.0.1:8081,127.0.0.1:19006,::1,bksdakaltim.net,www.bksdakaltim.net,api.bksdakaltim.net,bksdakaltim.web.id,www.bksdakaltim.web.id,api.bksdakaltim.web.id';
 
 return [
 

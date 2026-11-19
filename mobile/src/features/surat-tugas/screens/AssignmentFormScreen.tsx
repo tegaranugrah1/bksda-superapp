@@ -1,933 +1,460 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Modal,
+  ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, ScrollView,
+  StyleSheet, Switch, Text, TextInput, TouchableOpacity, View, useWindowDimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { apiClient } from "@/lib/api/client";
+import { useTheme } from "@/theme/ThemeContext";
+import {
+  buildKegiatanDiktumText, DEFAULT_FUNDING, DEFAULT_TASK_TYPES, detectDeparture,
+  formatPortalDate, isJenisKegiatanTask, isSectionEmployee, isStructuralEmployee,
+  isValidDate, normalizeTaskTypeName, personalAssignmentEntries, validateAssignmentFile,
+  validatePortalAssignment, type PersonDates, type PortalAssignmentDraft,
+  type PortalEmployee, type PortalTaskType,
+} from "../assignmentPortalForm";
 
-interface Employee {
-  id: string | number;
-  name: string;
-  nip: string;
-  department?: string;
-  position?: string;
-}
-
-const SUMBER_DANA_OPTIONS = [
-  { id: "dipa", label: "DIPA" },
-  { id: "kja", label: "Dana Kerjasama KJA" },
-  { id: "mja", label: "Dana Kerjasama MJA" },
-  { id: "cop", label: "Dana Kerjasama COP" },
-  { id: "tjiwi", label: "Dana Kerjasama PT. Tjiwi Kimia Tbk." },
-  { id: "bosf", label: "Dana Kerjasama BOSF" },
-  { id: "can", label: "Dana Kerjasama CAN" },
-  { id: "alert", label: "Dana Kerjasama ALeRT" },
-  { id: "folu", label: "Dana Kerjasama FOLU" },
-  { id: "dl1", label: "DL 1 / Tidak ada biaya" },
-  { id: "other", label: "Lainnya" },
-];
-
-const MONTH_NAMES = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-];
-
-function formatDateIndo(dateStr: string): string {
-  if (!dateStr || !dateStr.includes("-")) return "";
-  const parts = dateStr.split("-");
-  if (parts.length !== 3) return dateStr;
-  const year = parts[0];
-  const month = parseInt(parts[1], 10) - 1;
-  const day = parseInt(parts[2], 10);
-  if (month >= 0 && month < 12) {
-    return `${day} ${MONTH_NAMES[month]} ${year}`;
-  }
-  return dateStr;
-}
+type ScheduleConflict = { employee_name?: string; type?: string; range_formatted?: string; message?: string; keterangan?: string };
+type DateTarget = { part: "mulai" | "selesai" | "single"; personId?: string };
+const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+const dateValue = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const clampDate = (value: string, min: string, max: string) => min && value < min ? min : max && value > max ? max : value;
 
 export default function AssignmentFormScreen() {
   const navigation = useNavigation<any>();
-
-  // Wizard Step: 1 = Pilih Pegawai, 2 = Detail ST, 3 = Berhasil
+  const focused = useIsFocused();
+  const { isDark, toggleTheme, colors: base } = useTheme();
+  const { width } = useWindowDimensions();
+  const c = useMemo(() => ({
+    ...base, canvas: isDark ? "#09090b" : "#f8fafc", card: isDark ? "#18181b" : "#ffffff",
+    surface: isDark ? "#27272a" : "#f1f5f9", border: isDark ? "#3f3f46" : "#e2e8f0",
+    control: isDark ? "#71717a" : "#7c899a", text: isDark ? "#f8fafc" : "#0f172a",
+    muted: isDark ? "#a1a1aa" : "#475569", accent: isDark ? "#38bdf8" : "#0369a1",
+    accentFg: isDark ? "#7dd3fc" : "#0369a1", onAccent: isDark ? "#0f172a" : "#ffffff",
+    soft: isDark ? "#082f49" : "#f0f9ff", softBorder: isDark ? "#075985" : "#bae6fd",
+    header: isDark ? "#082f49" : "#0369a1", danger: isDark ? "#fda4af" : "#be123c",
+    warning: isDark ? "#fcd34d" : "#92400e",
+    warningBg: isDark ? "#451a03" : "#fffbeb", warningBorder: isDark ? "#92400e" : "#fde68a",
+  }), [base, isDark]);
+  const styles = useMemo(() => createStyles(c, width), [c, width]);
+  const scroll = useRef<ScrollView>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
-
-  // Employee Selection (Step 1)
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
-  const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
-
-  // Detail Form (Step 2)
-  const [jenisTugas, setJenisTugas] = useState<
-    "Perjalanan Dinas ( Lebih dari 1 Hari )" | "Melaksanakan Kegiatan ( 1 Hari )" | "Menugaskan Staf"
-  >("Perjalanan Dinas ( Lebih dari 1 Hari )");
+  const [employees, setEmployees] = useState<PortalEmployee[]>([]);
+  const [selected, setSelected] = useState<PortalEmployee[]>([]);
+  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [setupError, setSetupError] = useState("");
+  const [taskTypes, setTaskTypes] = useState<PortalTaskType[]>(DEFAULT_TASK_TYPES);
+  const [task, setTask] = useState<PortalTaskType>(DEFAULT_TASK_TYPES[0]);
+  const [fundingOptions, setFundingOptions] = useState(DEFAULT_FUNDING);
   const [kotaAsal, setKotaAsal] = useState("Samarinda");
   const [kotaTujuan, setKotaTujuan] = useState("");
-  const [namaKegiatanText, setNamaKegiatanText] = useState("");
-  const [tempatSpesifik, setTempatSpesifik] = useState("");
-  const [tanggalMulai, setTanggalMulai] = useState("");
-  const [tanggalSelesai, setTanggalSelesai] = useState("");
-  const [sumberDana, setSumberDana] = useState("dipa");
-  const [sumberDanaOther, setSumberDanaOther] = useState("");
-  const [keterangan, setKeterangan] = useState("");
-  const [selectedFile, setSelectedFile] = useState<any>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activity, setActivity] = useState("");
+  const [untuk, setUntuk] = useState("Pengawasan Pekerjaan Konstruksi");
+  const [place, setPlace] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [funding, setFunding] = useState("");
+  const [otherFunding, setOtherFunding] = useState("");
+  const [notes, setNotes] = useState("");
+  const [plh, setPlh] = useState("");
+  const [plhOpen, setPlhOpen] = useState(false);
+  const [agreement, setAgreement] = useState<"" | "sudah" | "belum">("");
+  const [bedaHari, setBedaHari] = useState(false);
+  const [personDates, setPersonDates] = useState<PersonDates>({});
+  const [hasWorkers, setHasWorkers] = useState(false);
+  const [workerCount, setWorkerCount] = useState(1);
+  const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const submitLock = useRef(false);
+  const [error, setError] = useState("");
+  const [picker, setPicker] = useState({ kind: "task" as "task" | "funding", visible: false });
+  const closePicker = () => setPicker(current => ({ ...current, visible: false }));
+  const [dateTarget, setDateTarget] = useState<DateTarget | null>(null);
+  const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const [calYear, setCalYear] = useState(new Date().getFullYear());
+  const [conflictResult, setConflictResult] = useState({ key: "", items: [] as ScheduleConflict[], checking: false, error: "" });
 
-  // Modal Pickers State
-  const [sumberDanaModalVisible, setSumberDanaModalVisible] = useState(false);
-  const [datePickerVisible, setDatePickerVisible] = useState(false);
-  const [datePickerTarget, setDatePickerTarget] = useState<"mulai" | "selesai" | "single" | null>(null);
-
-  const isSingleDayActivity = jenisTugas.includes("1 Hari") || jenisTugas.includes("Melaksanakan Kegiatan");
-
-  // Date picker internal state
-  const today = new Date();
-  const [calYear, setCalYear] = useState(today.getFullYear());
-  const [calMonth, setCalMonth] = useState(today.getMonth());
-
-  // Fetch employees for autocomplete search
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      setIsLoadingEmployees(true);
-      try {
-        const response = await apiClient.get("/kepegawaian/employees/select");
-        const list = response.data?.data || response.data || [];
-        setAllEmployees(
-          list.map((e: any) => ({
-            id: e.id,
-            name: e.name || e.nama_lengkap || e.nama || e.nip || "Pegawai",
-            nip: e.nip || "",
-            department: e.department || e.satuan_kerja || "",
-            position: e.position || e.jabatan || "",
-          }))
-        );
-      } catch (err) {
-        console.error("Error fetching employees:", err);
-      } finally {
-        setIsLoadingEmployees(false);
-      }
+  const loadSetup = useCallback(async () => {
+    setLoading(true); setSetupError("");
+    const results = await Promise.allSettled([
+      apiClient.get("/kepegawaian/employees/select", { params: { limit: 500 } }),
+      apiClient.get("/kepegawaian/st-task-types/public"),
+      apiClient.get("/kepegawaian/st-expense-templates/public", { params: { active_only: true } }),
+    ]);
+    const list = (r: PromiseSettledResult<any>) => {
+      if (r.status !== "fulfilled") return [];
+      const value = r.value.data?.data || r.value.data;
+      return Array.isArray(value) ? value : [];
     };
-    fetchEmployees();
+    setEmployees(list(results[0]).map((e: any) => ({ ...e, name: e.name || e.nama_lengkap || e.nip || "Pegawai", nip: e.nip || "", department: e.department || e.satuan_kerja || "", position: e.position || e.jabatan || "" })));
+    if (results[0].status === "rejected") setSetupError("Daftar pegawai belum dapat dimuat. Periksa koneksi lalu coba lagi.");
+    const types = list(results[1]).filter((t: any) => t.kode && t.nama && t.mode_lokasi);
+    if (types.length) { setTaskTypes(types); setTask(current => types.find((t: PortalTaskType) => t.kode === current.kode) || types.find((t: PortalTaskType) => t.kode === "luar_wilayah") || types[0]); }
+    const funds = list(results[2]).filter((v: any) => v.name).map((v: any) => ({ id: v.name, label: v.name }));
+    if (funds.length) setFundingOptions([...funds.filter((v: { id: string }) => v.id !== "other"), { id: "other", label: "Lainnya" }]);
+    if (results[1].status === "rejected" || results[2].status === "rejected") setSetupError(previous => previous || "Pengaturan belum dapat dimuat. Pilihan bawaan tersedia; coba lagi untuk mengambil pengaturan terbaru.");
+    setLoading(false);
   }, []);
+  // Tabs retain this screen; fetch current settings again on every visit.
+  useFocusEffect(useCallback(() => { void loadSetup(); }, [loadSetup]));
+  useEffect(() => { scroll.current?.scrollTo({ y: 0, animated: false }); }, [step]);
 
-  // Filter search results
-  const searchResults = allEmployees
-    .filter(
-      (emp) =>
-        (emp.name && emp.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (emp.nip && emp.nip.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
-    .slice(0, 30);
-
-  // Auto detect kota asal by satker
-  const detectDefaultKotaAsal = useCallback((employees: Employee[]) => {
-    if (!employees || employees.length === 0) return "Samarinda";
-    const depts = employees.map((e) => (e.department || "").toLowerCase());
-    if (depts.every((d) => d.includes("seksi i") || d.includes("seksi 1") || d.includes("berau"))) return "Berau";
-    if (depts.every((d) => d.includes("seksi ii") || d.includes("seksi 2") || d.includes("tenggarong"))) return "Tenggarong";
-    if (depts.every((d) => d.includes("seksi iii") || d.includes("seksi 3") || d.includes("balikpapan"))) return "Balikpapan";
-    return "Samarinda";
-  }, []);
-
-  const toggleEmployee = (emp: Employee) => {
-    const validName = emp.name || emp.nip || "Pegawai";
-    const isSelected = selectedEmployees.some((e) => String(e.id) === String(emp.id));
-    const next = isSelected
-      ? selectedEmployees.filter((e) => String(e.id) !== String(emp.id))
-      : [...selectedEmployees, { ...emp, name: validName }];
-    setSelectedEmployees(next);
-    setKotaAsal(detectDefaultKotaAsal(next));
-    if (!isSelected) {
-      setSearchQuery("");
-      setShowDropdown(false);
+  const oneDay = task.aturan_durasi === "wajib_1_hari";
+  const structural = selected.some(isStructuralEmployee);
+  const section = selected.some(isSectionEmployee);
+  const specialTask = isJenisKegiatanTask(task.nama, task.contoh_format);
+  const draft: PortalAssignmentDraft = {
+    employees: selected, taskType: task, kotaAsal, kotaTujuan, tempatSpesifik: place,
+    namaKegiatanText: activity, untukKegiatanText: untuk, tanggalMulai: start, tanggalSelesai: oneDay ? start : end,
+    sumberDana: funding, sumberDanaOther: otherFunding, keterangan: notes, namaPlh: plh,
+    tandaSetuju: agreement, bedaHari: selected.length > 1 && bedaHari, employeeDates: personDates,
+    jumlahBuruh: hasWorkers ? workerCount : 0,
+  };
+  const preview = buildKegiatanDiktumText({ ...draft, jenisTugas: task.nama, modeLokasi: task.mode_lokasi, contohFormat: task.contoh_format });
+  const conflictKey = JSON.stringify({
+    tanggal_mulai: start, tanggal_selesai: oneDay ? start : end || start,
+    employees: selected.map(emp => ({ id: Number(emp.id), tanggal_mulai: draft.bedaHari ? personDates[String(emp.id)]?.mulai : start, tanggal_selesai: draft.bedaHari ? personDates[String(emp.id)]?.selesai : oneDay ? start : end || start })),
+  });
+  const conflicts = conflictResult.key === conflictKey ? conflictResult.items : [];
+  const checking = conflictResult.key === conflictKey && conflictResult.checking;
+  const conflictError = conflictResult.key === conflictKey ? conflictResult.error : "";
+  useEffect(() => {
+    const payload = JSON.parse(conflictKey);
+    if (step !== 2 || !isValidDate(payload.tanggal_mulai) || !payload.employees.length || payload.employees.some((e: any) => !isValidDate(e.tanggal_mulai || "") || !isValidDate(e.tanggal_selesai || ""))) {
+      return;
     }
-  };
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setConflictResult({ key: conflictKey, items: [], checking: true, error: "" });
+      apiClient.post("/surat-tugas/check-conflicts", payload, { signal: controller.signal }).then(res => {
+        const result = res.data?.data || res.data;
+        if (!controller.signal.aborted) setConflictResult({ key: conflictKey, items: result?.conflicts || [], checking: false, error: "" });
+      }).catch(() => { if (!controller.signal.aborted) setConflictResult({ key: conflictKey, items: [], checking: false, error: "Pemeriksaan jadwal belum tersedia. Server tetap memvalidasi saat pengajuan dikirim." }); });
+    }, 400);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [conflictKey, step]);
 
-  const removeEmployee = (id: string | number) => {
-    const next = selectedEmployees.filter((e) => String(e.id) !== String(id));
-    setSelectedEmployees(next);
-    setKotaAsal(detectDefaultKotaAsal(next));
+  const chooseEmployee = (emp: PortalEmployee) => {
+    const next = selected.some(e => String(e.id) === String(emp.id)) ? selected.filter(e => String(e.id) !== String(emp.id)) : [...selected, emp];
+    setSelected(next); setKotaAsal(detectDeparture(next)); setSearch(""); setSearchOpen(false); setError("");
+    if (next.length < 2) setBedaHari(false);
   };
-
-  // Pick PDF file
-  const handlePickDocument = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "application/pdf",
-        copyToCacheDirectory: true,
+  const searchMatches = (value: string) => employees.filter(e => `${e.name} ${e.nip}`.toLowerCase().includes(value.toLowerCase().trim())).slice(0, 50);
+  const validPeriod = isValidDate(start) && isValidDate(end) && end >= start;
+  const dateBounds = (target: DateTarget | null) => ({
+    min: target?.personId
+      ? (target.part === "selesai" ? personDates[target.personId]?.mulai || start : start)
+      : target?.part === "selesai" ? start : "",
+    max: target?.personId ? (oneDay ? start : end) : "",
+  });
+  const bounds = dateBounds(dateTarget);
+  const dateAllowed = (value: string) => isValidDate(value) && (!bounds.min || value >= bounds.min) && (!bounds.max || value <= bounds.max);
+  const openDate = (part: DateTarget["part"], personId?: string) => {
+    const target = { part, personId };
+    const { min, max } = dateBounds(target);
+    const value = personId ? personDates[personId]?.[part === "selesai" ? "selesai" : "mulai"] : part === "selesai" ? end : start;
+    const date = new Date(`${clampDate(value || dateValue(new Date()), min, max)}T12:00:00`);
+    setCalYear(date.getFullYear()); setCalMonth(date.getMonth()); setDateTarget(target);
+  };
+  const applyDate = (date: Date) => {
+    const value = dateValue(date);
+    if (!dateTarget || !dateAllowed(value)) return;
+    if (dateTarget.personId) {
+      const id = dateTarget.personId;
+      setPersonDates(prev => {
+        const mulai = dateTarget.part === "selesai" ? prev[id]?.mulai || start : value;
+        const selesai = oneDay ? mulai : dateTarget.part === "selesai" ? value : clampDate(prev[id]?.selesai || end, mulai, end);
+        return { ...prev, [id]: { mulai, selesai } };
       });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const fileAsset = result.assets[0];
-        if (fileAsset.size && fileAsset.size > 10 * 1024 * 1024) {
-          Alert.alert("Ukuran File Terlalu Besar", "Ukuran maksimal file PDF adalah 10 MB.");
-          return;
-        }
-        setSelectedFile(fileAsset);
-      }
-    } catch (err) {
-      console.error("Document pick error:", err);
-    }
-  };
-
-  // Date Picker Open Handler
-  const openDatePicker = (target: "mulai" | "selesai" | "single") => {
-    setDatePickerTarget(target);
-    const currentDateStr = target === "selesai" ? tanggalSelesai : tanggalMulai;
-    if (currentDateStr && currentDateStr.includes("-")) {
-      const parts = currentDateStr.split("-");
-      if (parts.length === 3) {
-        setCalYear(parseInt(parts[0], 10));
-        setCalMonth(parseInt(parts[1], 10) - 1);
-      }
     } else {
-      setCalYear(today.getFullYear());
-      setCalMonth(today.getMonth());
+      const nextStart = dateTarget.part === "selesai" ? start || value : value;
+      const nextEnd = dateTarget.part === "selesai" ? value : oneDay || !end || end < nextStart ? nextStart : end;
+      setStart(nextStart); setEnd(nextEnd);
+      // Keep existing personal schedules inside the updated main period.
+      setPersonDates(prev => Object.fromEntries(Object.entries(prev).map(([id, range]) => {
+        const mulai = clampDate(range.mulai || nextStart, nextStart, nextEnd);
+        return [id, { mulai, selesai: clampDate(range.selesai || nextEnd, mulai, nextEnd) }];
+      })));
     }
-    setDatePickerVisible(true);
+    setDateTarget(null); setError("");
   };
-
-  const applySelectedDate = (dateObj: Date) => {
-    const yyyy = dateObj.getFullYear();
-    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const dd = String(dateObj.getDate()).padStart(2, "0");
-    const formattedStr = `${yyyy}-${mm}-${dd}`;
-
-    if (isSingleDayActivity || datePickerTarget === "single") {
-      setTanggalMulai(formattedStr);
-      setTanggalSelesai(formattedStr);
-    } else if (datePickerTarget === "mulai") {
-      setTanggalMulai(formattedStr);
-      if (!tanggalSelesai) setTanggalSelesai(formattedStr);
-    } else if (datePickerTarget === "selesai") {
-      setTanggalSelesai(formattedStr);
-    }
-    setDatePickerVisible(false);
-  };
-
-  // Handle Form Submission
-  const handleSubmit = async () => {
-    if (!kotaTujuan.trim()) {
-      Alert.alert("Form Belum Lengkap", "Mohon isi Kota / Kabupaten Tujuan.");
-      return;
-    }
-    if (!namaKegiatanText.trim()) {
-      Alert.alert("Form Belum Lengkap", "Mohon isi deskripsi / maksud kegiatan.");
-      return;
-    }
-    if (!tanggalMulai || !tanggalSelesai) {
-      Alert.alert("Form Belum Lengkap", "Mohon isi Tanggal Mulai dan Tanggal Selesai.");
-      return;
-    }
-
-    setIsSubmitting(true);
+  const pickFile = async () => {
     try {
-      let finalNamaKegiatan = `${jenisTugas}`;
-      if (jenisTugas.includes("Perjalanan Dinas")) {
-        finalNamaKegiatan = `Melaksanakan Perjalanan Dinas dari ${kotaAsal.trim() || "..."} ke ${kotaTujuan.trim() || "..."}${namaKegiatanText.trim() ? ` dalam rangka ${namaKegiatanText.trim()}` : ""}${tempatSpesifik.trim() ? ` di ${tempatSpesifik.trim()}` : ""}`;
-      } else if (jenisTugas.includes("Melaksanakan Kegiatan")) {
-        finalNamaKegiatan = `Melaksanakan Kegiatan ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
-      } else {
-        finalNamaKegiatan = `Menugaskan Staf untuk ${namaKegiatanText.trim() || "..."}${tempatSpesifik.trim() ? ` pada ${tempatSpesifik.trim()}` : ""}${kotaTujuan.trim() ? ` di ${kotaTujuan.trim()}` : ""}`;
+      const result = await DocumentPicker.getDocumentAsync({ type: ["application/pdf", "image/jpeg", "image/png", "image/webp"], copyToCacheDirectory: true });
+      if (!result.canceled && result.assets[0]) {
+        const issue = validateAssignmentFile(result.assets[0]);
+        if (issue) { setError(issue); scroll.current?.scrollTo({ y: 0, animated: true }); } else { setFile(result.assets[0]); setError(""); }
       }
-
-      const calculatedTempatTujuan = tempatSpesifik.trim() || kotaTujuan.trim() || (jenisTugas.includes("Perjalanan Dinas") ? kotaAsal.trim() : "");
-
-      const formData = new FormData();
-      formData.append("maksud_tujuan", finalNamaKegiatan);
-      formData.append("nama_kegiatan", finalNamaKegiatan);
-      formData.append("tempat_tujuan", calculatedTempatTujuan);
-      formData.append("tanggal_mulai", tanggalMulai);
-      formData.append("tanggal_selesai", tanggalSelesai);
-      formData.append("sumber_dana", sumberDana);
-
-      if (sumberDana === "other" && sumberDanaOther) {
-        formData.append("sumber_dana_other", sumberDanaOther);
+    } catch { setError("Berkas belum dapat dibuka. Silakan pilih kembali."); scroll.current?.scrollTo({ y: 0, animated: true }); }
+  };
+  const submit = async () => {
+    if (submitLock.current) return;
+    const issue = validatePortalAssignment(draft);
+    if (issue || conflicts.length) { setError(issue || "Ada bentrok jadwal. Sesuaikan tanggal sebelum mengirim."); scroll.current?.scrollTo({ y: 0, animated: true }); return; }
+    submitLock.current = true; setSubmitting(true); setError("");
+    try {
+      const body = new FormData();
+      personalAssignmentEntries(draft).forEach(([key, value]) => body.append(key, value));
+      if (file) {
+        const fileIssue = validateAssignmentFile(file); if (fileIssue) throw new Error(fileIssue);
+        if (Platform.OS === "web") {
+          const blob = file.file || await fetch(file.uri).then(res => res.blob());
+          if (!blob) throw new Error("Berkas tidak dapat dibaca. Silakan pilih kembali.");
+          const blobIssue = validateAssignmentFile({ name: file.name, mimeType: blob.type || file.mimeType, size: blob.size });
+          if (blobIssue) throw new Error(blobIssue);
+          body.append("file_surat", blob, file.name);
+        } else body.append("file_surat", { uri: file.uri, name: file.name, type: file.mimeType || "application/pdf" } as any);
       }
-      if (keterangan) {
-        formData.append("keterangan", keterangan);
-      }
-
-      selectedEmployees.forEach((emp, index) => {
-        formData.append(`employees[${index}][id]`, String(emp.id));
-      });
-
-      if (selectedFile) {
-        formData.append("file_surat", {
-          uri: selectedFile.uri,
-          name: selectedFile.name || "dasar-surat.pdf",
-          type: "application/pdf",
-        } as any);
-      }
-
-      await apiClient.post("/surat-tugas/submit", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
+      await apiClient.post("/surat-tugas/submit", body, { headers: { "Content-Type": "multipart/form-data" }, timeout: 60000 });
       setStep(3);
     } catch (err: any) {
-      console.error("Submit portal ST error:", err);
-      const msg = err?.response?.data?.message || err?.message || "Gagal mengirimkan pengajuan Surat Tugas.";
-      Alert.alert("Gagal Mengajukan Surat Tugas", msg);
-    } finally {
-      setIsSubmitting(false);
-    }
+      const data = err?.response?.data;
+      setError(data?.conflicts?.map((v: any) => v.message).filter(Boolean).join("\n") || Object.values(err?.fieldErrors || data?.errors || {}).flat().join("\n") || data?.message || err?.message || "Pengajuan belum terkirim. Silakan coba lagi.");
+      scroll.current?.scrollTo({ y: 0, animated: true });
+    } finally { submitLock.current = false; setSubmitting(false); }
   };
 
-  // Live generated preview text
-  const previewText = jenisTugas.includes("Perjalanan Dinas")
-    ? `Melaksanakan Perjalanan Dinas dari ${kotaAsal || "..."} ke ${kotaTujuan || "..."}${namaKegiatanText ? ` dalam rangka ${namaKegiatanText}` : ""}${tempatSpesifik ? ` di ${tempatSpesifik}` : ""}`
-    : jenisTugas.includes("Melaksanakan Kegiatan")
-    ? `Melaksanakan Kegiatan ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`
-    : `Menugaskan Staf untuk ${namaKegiatanText || "..."}${tempatSpesifik ? ` pada ${tempatSpesifik}` : ""}${kotaTujuan ? ` di ${kotaTujuan}` : ""}`;
+  const field = (label: string, value: string, onChange: (value: string) => void, placeholder = "", multiline = false) => (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput accessibilityLabel={label} style={[styles.input, multiline && styles.textarea]} value={value}
+        onChangeText={value => { onChange(value); setError(""); }} placeholder={placeholder} placeholderTextColor={c.muted} selectionColor={c.accent}
+        multiline={multiline} editable={!submitting} maxLength={multiline ? 5000 : 255} />
+    </View>
+  );
+  const dateField = (label: string, part: DateTarget["part"], personId?: string) => {
+    const value = personId ? personDates[personId]?.[part === "selesai" ? "selesai" : "mulai"] : part === "selesai" ? end : start;
+    const person = personId ? selected.find(emp => String(emp.id) === personId)?.name : "";
+    return <View style={{ flex: 1, minWidth: 0 }}>
+      <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel={`${label}${person ? ` — ${person}` : ""}`} disabled={submitting}
+        style={styles.dateButton} onPress={() => openDate(part, personId)}>
+        <Ionicons name="calendar-outline" size={18} color={c.accentFg} />
+        <Text style={styles.dateText}>{value ? formatPortalDate(value) : "Pilih tanggal"}</Text>
+      </TouchableOpacity>
+    </View>;
+  };
+  const activeDate = dateTarget?.personId ? personDates[dateTarget.personId]?.[dateTarget.part === "selesai" ? "selesai" : "mulai"] : dateTarget?.part === "selesai" ? end : start;
+  const returnToPortal = () => {
+    if (step === 3) {
+      setStep(1); setSelected([]); setSearch(""); setSearchOpen(false); setKotaAsal("Samarinda");
+      setTask(taskTypes.find(t => t.kode === "luar_wilayah") || taskTypes[0]);
+      setKotaTujuan(""); setActivity(""); setUntuk("Pengawasan Pekerjaan Konstruksi"); setPlace("");
+      setStart(""); setEnd(""); setFunding(""); setOtherFunding(""); setNotes(""); setPlh("");
+      setAgreement(""); setBedaHari(false); setPersonDates({}); setHasWorkers(false); setWorkerCount(1); setFile(null); setError("");
+    }
+    // The current tab becomes aria-hidden immediately after navigation.
+    if (Platform.OS === "web") (document.activeElement as HTMLElement | null)?.blur();
+    navigation.navigate("Dashboard");
+  };
+  const back = () => { if (step === 2) setStep(1); else returnToPortal(); };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: "#f8fafc" }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-      >
-        {/* Step 1: Pilih Pegawai */}
-        {step === 1 && (
-          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-            <View style={styles.headerBar}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={20} color="#0f172a" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Pengajuan Surat Tugas</Text>
+    <SafeAreaView testID="assignment-form" style={styles.root} edges={["top", "left", "right"]}>
+      {focused && <StatusBar style="light" />}
+      <View style={styles.appBar}>
+        <View style={styles.brand}>
+          <View style={styles.logoFrame}><Image source={require("../../../../assets/kemenhutlogo.png")} style={styles.logo} resizeMode="contain" accessibilityLabel="Logo Kementerian Kehutanan" /></View>
+          <View style={{ flex: 1 }}><Text style={styles.ministry}>Kementerian Kehutanan</Text><Text style={styles.institution}>Balai KSDA Kalimantan Timur</Text></View>
+        </View>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={isDark ? "Aktifkan tema terang" : "Aktifkan tema gelap"} onPress={toggleTheme} style={styles.themeButton}>
+          <Ionicons name={isDark ? "sunny" : "moon-outline"} size={20} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
+      <KeyboardAvoidingView style={styles.body} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView ref={scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.pageHeading}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={step === 2 ? "Kembali ke pemilihan pegawai" : "Kembali ke portal"} disabled={submitting} onPress={back} style={styles.backButton}><Ionicons name="arrow-back" size={22} color={c.text} /></TouchableOpacity>
+            <View style={{ flex: 1 }}><Text style={styles.title}>Pengajuan Surat Tugas</Text><Text style={styles.subtitle}>Buat SPT baru · Tahap {step} dari 3</Text></View>
+          </View>
+          <View style={styles.steps}>
+            <View testID="assignment-step-track" pointerEvents="none" style={styles.stepTrack}>
+              <View testID="assignment-step-progress" style={[styles.stepProgress, { width: `${(step - 1) * 50}%` }]} />
             </View>
+            {["Pilih pegawai", "Detail tugas", "Terkirim"].map((label, i) => <View key={label} style={styles.stepItem}>
+              <View style={[styles.stepCircle, i + 1 <= step && { backgroundColor: c.accent, borderColor: c.accent }]}>
+                <Text style={[styles.stepNumber, i + 1 <= step && { color: c.onAccent }]}>{i + 1}</Text>
+              </View><Text style={[styles.stepText, i + 1 === step && { color: c.accentFg, fontWeight: "700" }]}>{label}</Text>
+            </View>)}
+          </View>
+          {!!error && <View accessibilityRole="alert" style={styles.errorBox}><Ionicons name="alert-circle-outline" size={20} color={c.danger} /><Text style={styles.errorText}>{error}</Text></View>}
+          {step === 1 && <View style={styles.card}>
+            <Text style={styles.cardTitle}>Pilih Pegawai</Text>
+            <Text style={styles.subtitle}>Cari nama atau NIP, lalu tambahkan pegawai yang akan melaksanakan tugas.</Text>
+            {loading && <View style={styles.inline}><ActivityIndicator color={c.accentFg} /><Text style={styles.subtitle}>Memuat daftar pegawai…</Text></View>}
+            {!!setupError && <View style={styles.notice}><Text style={styles.subtitle}>{setupError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => void loadSetup()} style={styles.smallButton}><Text style={styles.link}>Coba lagi</Text></TouchableOpacity></View>}
+            <View style={styles.searchBox}><Ionicons name="search-outline" size={20} color={c.muted} /><TextInput
+              accessibilityLabel="Cari pegawai" placeholder="Cari nama atau NIP pegawai…" placeholderTextColor={c.muted} style={styles.searchInput}
+              value={search} onChangeText={value => { setSearch(value); setSearchOpen(value.trim().length >= 2); }}
+              onFocus={() => setSearchOpen(search.trim().length >= 2)} maxLength={150} /></View>
+            {searchOpen && <View style={styles.results}>
+              {!searchMatches(search).length && <Text style={styles.emptyText}>Pegawai tidak ditemukan.</Text>}
+              {searchMatches(search).map(emp => <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Pilih ${emp.name}`} key={String(emp.id)} onPress={() => chooseEmployee(emp)} style={styles.resultRow}>
+                <View style={{ flex: 1 }}><Text style={styles.itemName}>{emp.name}</Text><Text style={styles.subtitle}>{emp.department || emp.nip}</Text></View>
+                <Ionicons name={selected.some(v => String(v.id) === String(emp.id)) ? "checkmark-circle" : "add-circle-outline"} size={22} color={c.accentFg} />
+              </TouchableOpacity>)}
+            </View>}
+            <Text style={styles.sectionLabel}>Pegawai yang ditugaskan ({selected.length})</Text>
+            {!selected.length ? <Text style={styles.emptyText}>Belum ada pegawai dipilih</Text> : selected.map(emp => <View key={String(emp.id)} style={styles.personRow}>
+              <View style={{ flex: 1 }}><Text style={styles.itemName}>{emp.name}</Text><Text style={styles.subtitle}>{emp.department || emp.nip}</Text></View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Hapus ${emp.name}`} style={styles.iconButton} onPress={() => chooseEmployee(emp)}><Ionicons name="close" size={20} color={c.muted} /></TouchableOpacity>
+            </View>)}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Lanjutkan" style={[styles.primary, !selected.length && styles.disabled]} disabled={!selected.length} onPress={() => { setError(""); setStep(2); }}>
+              <Text style={styles.primaryText}>Lanjutkan</Text><Ionicons name="arrow-forward" size={18} color={c.onAccent} />
+            </TouchableOpacity>
+          </View>}
 
+          {step === 2 && <>
+            <View style={styles.summary}><View style={{ flex: 1 }}><Text style={styles.itemName}>Pegawai yang ditugaskan ({selected.length})</Text><Text style={styles.subtitle}>{selected.map(emp => emp.name).join(", ")}</Text></View><TouchableOpacity accessibilityRole="button" style={styles.smallButton} onPress={() => setStep(1)} disabled={submitting}><Text style={styles.link}>Ubah</Text></TouchableOpacity></View>
             <View style={styles.card}>
-              <View style={styles.iconHeaderBg}>
-                <Ionicons name="people" size={28} color="#2563eb" />
-              </View>
-              <Text style={styles.cardTitle}>Pilih Pegawai</Text>
-              <Text style={styles.cardSubtitle}>Cari dan tambahkan pegawai yang akan melaksanakan tugas.</Text>
-
-              {/* Selected List */}
-              <Text style={styles.sectionLabel}>DAFTAR PEGAWAI YANG DITUGASKAN</Text>
-              {selectedEmployees.length === 0 ? (
-                <View style={styles.emptySelectedBox}>
-                  <Ionicons name="person-add-outline" size={24} color="#94a3b8" />
-                  <Text style={styles.emptySelectedText}>Belum ada pegawai dipilih</Text>
-                </View>
-              ) : (
-                <View style={styles.chipContainer}>
-                  {selectedEmployees.map((emp) => (
-                    <View key={String(emp.id)} style={styles.chip}>
-                      <View style={{ flexShrink: 1, marginRight: 6 }}>
-                        <Text style={styles.chipName}>{emp.name || emp.nip || "Pegawai"}</Text>
-                        {(emp.department || emp.nip) ? (
-                          <Text style={styles.chipDept}>{emp.department || emp.nip}</Text>
-                        ) : null}
-                      </View>
-                      <TouchableOpacity onPress={() => removeEmployee(emp.id)} style={styles.chipRemoveBtn}>
-                        <Ionicons name="close" size={14} color="#2563eb" />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {/* Search Box */}
-              <View style={styles.searchBox}>
-                <Ionicons name="search-outline" size={18} color="#94a3b8" style={{ marginRight: 8 }} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Ketik nama atau NIP pegawai (min. 2 karakter)..."
-                  placeholderTextColor="#94a3b8"
-                  value={searchQuery}
-                  onChangeText={(val) => {
-                    setSearchQuery(val);
-                    setShowDropdown(val.length >= 2);
-                  }}
-                  onFocus={() => {
-                    if (searchQuery.length >= 2) setShowDropdown(true);
-                  }}
-                />
-                {isLoadingEmployees && <ActivityIndicator size="small" color="#2563eb" />}
-              </View>
-
-              {/* Dropdown Results */}
-              {showDropdown && searchResults.length > 0 && (
-                <View style={styles.dropdown}>
-                  {searchResults.map((emp) => {
-                    const isSelected = selectedEmployees.some((e) => String(e.id) === String(emp.id));
-                    return (
-                      <TouchableOpacity
-                        key={String(emp.id)}
-                        style={[styles.dropdownRow, isSelected && { backgroundColor: "#f1f5f9" }]}
-                        onPress={() => toggleEmployee(emp)}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <Text style={[styles.dropdownName, isSelected && { color: "#94a3b8" }]}>{emp.name}</Text>
-                          <Text style={styles.dropdownDept}>{emp.department || emp.nip}</Text>
-                        </View>
-                        {isSelected && <Ionicons name="checkmark-circle" size={18} color="#10b981" />}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )}
-
-              {/* Action Button */}
-              <TouchableOpacity
-                style={[
-                  styles.btnPrimary,
-                  selectedEmployees.length === 0 && { opacity: 0.5 },
-                  { marginTop: 24 },
-                ]}
-                disabled={selectedEmployees.length === 0}
-                onPress={() => setStep(2)}
-              >
-                <Text style={styles.btnPrimaryText}>Lanjutkan</Text>
-                <Ionicons name="chevron-forward" size={16} color="#ffffff" />
-              </TouchableOpacity>
+              <Text style={styles.cardTitle}>Detail Surat Tugas</Text><Text style={styles.subtitle}>Jenis tugas dan lokasi</Text>
+              <Text style={styles.label}>Jenis tugas *</Text>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Pilih jenis tugas" style={styles.selectButton} disabled={submitting} onPress={() => setPicker({ kind: "task", visible: true })}><Text style={styles.selectText}>{normalizeTaskTypeName(task.nama)}</Text><Ionicons name="chevron-down" size={18} color={c.muted} /></TouchableOpacity>
+              {(task.mode_lokasi === "luar_wilayah" || specialTask) && field("Kota / lokasi asal *", kotaAsal, setKotaAsal, "Contoh: Samarinda")}
+              {task.mode_lokasi !== "tempat_saja" && field(task.mode_lokasi === "dalam_kawasan" ? "Kota / kabupaten pelaksanaan *" : "Kota / kabupaten tujuan *", kotaTujuan, setKotaTujuan, "Contoh: Kabupaten Kutai Barat")}
+              {specialTask && field("Jenis pengawasan / pemeriksaan *", untuk, setUntuk, "Contoh: Pengawasan Pekerjaan Konstruksi")}
+              {field(specialTask ? "Paket / nama pekerjaan *" : "Nama kegiatan / maksud tugas *", activity, setActivity, "Uraikan kegiatan yang akan dilaksanakan…", true)}
+              <Text style={styles.hint}>Gunakan *kata* untuk istilah yang dicetak miring pada surat.</Text>
+              {field(task.mode_lokasi === "dalam_kawasan" ? "Kawasan / tempat spesifik" : "Tempat spesifik", place, setPlace, "Contoh: Suaka Margasatwa Kelian")}
+              {task.mode_lokasi === "tempat_saja" && field("Kota / kabupaten", kotaTujuan, setKotaTujuan, "Contoh: Samarinda")}
+              <View style={styles.previewBox}><View style={styles.inline}><Ionicons name="document-text-outline" size={20} color={c.accentFg} /><Text style={styles.itemName}>Pratinjau kalimat surat</Text></View><Text style={styles.previewText}>{preview.split(/(\*[^*]+\*)/g).map((part,i) => <Text key={i} style={part.startsWith("*") ? { fontStyle: "italic" } : undefined}>{part.startsWith("*") ? part.slice(1,-1) : part}</Text>)}</Text></View>
             </View>
-          </ScrollView>
-        )}
-
-        {/* Step 2: Detail ST */}
-        {step === 2 && (
-          <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-            <View style={styles.headerBar}>
-              <TouchableOpacity onPress={() => setStep(1)} style={styles.backBtn}>
-                <Ionicons name="arrow-back" size={20} color="#0f172a" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Detail Surat Tugas</Text>
-            </View>
-
             <View style={styles.card}>
-              {/* Selected Employees Banner */}
-              <View style={styles.bannerBox}>
-                <Ionicons name="alert-circle-outline" size={20} color="#047857" style={{ marginRight: 8 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.bannerTitle}>Daftar Pegawai ({selectedEmployees.length})</Text>
-                  <Text style={styles.bannerText}>
-                    {selectedEmployees.map((e) => e.name).join(", ")}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Jenis Tugas */}
-              <Text style={styles.fieldLabel}>JENIS TUGAS *</Text>
-              <View style={styles.jenisTugasContainer}>
-                {(
-                  [
-                    "Perjalanan Dinas ( Lebih dari 1 Hari )",
-                    "Melaksanakan Kegiatan ( 1 Hari )",
-                    "Menugaskan Staf",
-                  ] as const
-                ).map((opt) => (
-                  <TouchableOpacity
-                    key={opt}
-                    style={[
-                      styles.jenisTugasOption,
-                      jenisTugas === opt && styles.jenisTugasActive,
-                    ]}
-                    onPress={() => {
-                      setJenisTugas(opt);
-                      if (opt.includes("1 Hari") || opt.includes("Melaksanakan Kegiatan")) {
-                        if (tanggalMulai) setTanggalSelesai(tanggalMulai);
-                      }
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.jenisTugasText,
-                        jenisTugas === opt && styles.jenisTugasActiveText,
-                      ]}
-                    >
-                      {opt}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Dynamic Inputs based on Jenis Tugas */}
-              {jenisTugas.includes("Perjalanan Dinas") ? (
-                <>
-                  <Text style={styles.fieldLabel}>DARI ( KOTA / LOKASI ASAL ) *</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={kotaAsal}
-                    onChangeText={setKotaAsal}
-                    placeholder="Contoh: Samarinda"
-                    placeholderTextColor="#94a3b8"
-                  />
-
-                  <Text style={styles.fieldLabel}>KE ( KOTA / KABUPATEN TUJUAN ) *</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={kotaTujuan}
-                    onChangeText={setKotaTujuan}
-                    placeholder="Contoh: Kabupaten Kutai Barat"
-                    placeholderTextColor="#94a3b8"
-                  />
-
-                  <Text style={styles.fieldLabel}>DALAM RANGKA *</Text>
-                  <TextInput
-                    style={[styles.textInput, { height: 70, textAlignVertical: "top" }]}
-                    multiline
-                    value={namaKegiatanText}
-                    onChangeText={setNamaKegiatanText}
-                    placeholder="Contoh: Kegiatan Inventarisasi dan Verifikasi Keanekaragaman Hayati..."
-                    placeholderTextColor="#94a3b8"
-                  />
-
-                  <Text style={styles.fieldLabel}>DI ( TEMPAT SPESIFIK / OPSIONAL )</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={tempatSpesifik}
-                    onChangeText={setTempatSpesifik}
-                    placeholder="Contoh: Suaka Margasatwa Kelian"
-                    placeholderTextColor="#94a3b8"
-                  />
-                </>
-              ) : (
-                <>
-                  <Text style={styles.fieldLabel}>
-                    {jenisTugas.includes("Melaksanakan Kegiatan")
-                      ? "NAMA KEGIATAN ( 1 HARI ) *"
-                      : "TUGAS STAF *"}
-                  </Text>
-                  <TextInput
-                    style={[styles.textInput, { height: 70, textAlignVertical: "top" }]}
-                    multiline
-                    value={namaKegiatanText}
-                    onChangeText={setNamaKegiatanText}
-                    placeholder="Masukkan uraian kegiatan..."
-                    placeholderTextColor="#94a3b8"
-                  />
-
-                  <Text style={styles.fieldLabel}>PADA ( TEMPAT / UNIT LOKASI )</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={tempatSpesifik}
-                    onChangeText={setTempatSpesifik}
-                    placeholder="Contoh: Kantor Balai / tempat kegiatannya"
-                    placeholderTextColor="#94a3b8"
-                  />
-
-                  <Text style={styles.fieldLabel}>DI ( KOTA / KABUPATEN ) *</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={kotaTujuan}
-                    onChangeText={setKotaTujuan}
-                    placeholder="Contoh: Samarinda"
-                    placeholderTextColor="#94a3b8"
-                  />
-                </>
-              )}
-
-              {/* Live Preview Box */}
-              <View style={styles.previewBox}>
-                <Text style={styles.previewHeader}>📌 PRATINJAU TEKS HASIL RESMI</Text>
-                <Text style={styles.previewText}>{previewText}</Text>
-              </View>
-
-              {/* Date Pickers (Mulai & Sampai Tanggal or Single Date) */}
-              {isSingleDayActivity ? (
-                <View style={{ marginTop: 12 }}>
-                  <Text style={styles.fieldLabel}>TANGGAL KEGIATAN ( 1 HARI ) *</Text>
-                  <TouchableOpacity
-                    style={styles.datePickerBtn}
-                    onPress={() => openDatePicker("single")}
-                  >
-                    <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
-                    <Text style={[styles.datePickerBtnText, !tanggalMulai && { color: "#94a3b8" }]}>
-                      {tanggalMulai ? formatDateIndo(tanggalMulai) : "Pilih Tanggal"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.fieldLabel}>MULAI TANGGAL *</Text>
-                    <TouchableOpacity
-                      style={styles.datePickerBtn}
-                      onPress={() => openDatePicker("mulai")}
-                    >
-                      <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
-                      <Text style={[styles.datePickerBtnText, !tanggalMulai && { color: "#94a3b8" }]}>
-                        {tanggalMulai ? formatDateIndo(tanggalMulai) : "Pilih Tanggal"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.fieldLabel}>SAMPAI TANGGAL *</Text>
-                    <TouchableOpacity
-                      style={styles.datePickerBtn}
-                      onPress={() => openDatePicker("selesai")}
-                    >
-                      <Ionicons name="calendar-outline" size={18} color="#2563eb" style={{ marginRight: 6 }} />
-                      <Text style={[styles.datePickerBtnText, !tanggalSelesai && { color: "#94a3b8" }]}>
-                        {tanggalSelesai ? formatDateIndo(tanggalSelesai) : "Pilih Tanggal"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
-
-              {/* Sumber Dana Compact Dropdown Selector */}
-              <Text style={styles.fieldLabel}>SUMBER DANA *</Text>
-              <TouchableOpacity
-                style={styles.selectDropdownBtn}
-                onPress={() => setSumberDanaModalVisible(true)}
-              >
-                <Ionicons name="wallet-outline" size={18} color="#2563eb" style={{ marginRight: 8 }} />
-                <Text style={styles.selectDropdownValue}>
-                  {SUMBER_DANA_OPTIONS.find((o) => o.id === sumberDana)?.label || "Pilih Sumber Dana"}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color="#64748b" />
-              </TouchableOpacity>
-
-              {sumberDana === "other" && (
-                <TextInput
-                  style={[styles.textInput, { marginTop: 8 }]}
-                  value={sumberDanaOther}
-                  onChangeText={setSumberDanaOther}
-                  placeholder="Ketik sumber dana lainnya..."
-                  placeholderTextColor="#94a3b8"
-                />
-              )}
-
-              {/* Upload Dasar Surat */}
-              <Text style={styles.fieldLabel}>UPLOAD DASAR SURAT (OPSIONAL)</Text>
-              <TouchableOpacity style={styles.uploadBox} onPress={handlePickDocument}>
-                <Ionicons name="cloud-upload-outline" size={28} color="#2563eb" />
-                <Text style={styles.uploadTitle}>
-                  {selectedFile ? selectedFile.name : "Klik untuk upload file PDF"}
-                </Text>
-                <Text style={styles.uploadSubtitle}>Format PDF Max 10MB</Text>
-              </TouchableOpacity>
-
-              {/* Keterangan */}
-              <Text style={styles.fieldLabel}>KETERANGAN LAINNYA (OPSIONAL)</Text>
-              <TextInput
-                style={[styles.textInput, { height: 60, textAlignVertical: "top" }]}
-                multiline
-                value={keterangan}
-                onChangeText={setKeterangan}
-                placeholder="Catatan tambahan (opsional)"
-                placeholderTextColor="#94a3b8"
-              />
-
-              {/* Submit Button */}
-              <TouchableOpacity
-                style={[styles.btnSubmit, isSubmitting && { opacity: 0.7 }]}
-                disabled={isSubmitting}
-                onPress={handleSubmit}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <Text style={styles.btnSubmitText}>Submit Pengajuan</Text>
-                )}
-              </TouchableOpacity>
+              <Text style={styles.cardTitle}>Jadwal penugasan</Text>
+              <View style={styles.dateRow}>{dateField(oneDay ? "Tanggal kegiatan *" : "Mulai tanggal *", oneDay ? "single" : "mulai")}{!oneDay && dateField("Sampai tanggal *", "selesai")}</View>
+              {checking && <View style={styles.inline}><ActivityIndicator size="small" color={c.accentFg} /><Text style={styles.subtitle}>Memeriksa bentrok jadwal…</Text></View>}
+              {!!conflictError && <Text style={styles.hint}>{conflictError}</Text>}
+              {selected.length > 1 && <>
+                <View style={styles.switchRow}><View style={{ flex: 1 }}><Text style={styles.itemName}>Jadwal personel berbeda hari</Text><Text style={styles.subtitle}>{validPeriod ? "Atur periode masing-masing pegawai dalam jadwal utama." : "Tentukan tanggal mulai dan selesai terlebih dahulu."}</Text></View><Switch accessibilityLabel="Jadwal personel berbeda hari" value={bedaHari} disabled={submitting || !validPeriod} trackColor={{ false: c.control, true: c.accent }} onValueChange={value => {
+                  setBedaHari(value); if (value) setPersonDates(prev => Object.fromEntries(selected.map(emp => [String(emp.id), prev[String(emp.id)] || { mulai: start, selesai: oneDay ? start : end || start }])));
+                }} /></View>
+                {bedaHari && selected.map(emp => <View key={String(emp.id)} style={styles.scheduleRow}><Text style={styles.itemName}>{emp.name}</Text><View style={styles.dateRow}>{dateField("Mulai", "mulai", String(emp.id))}{dateField("Selesai", "selesai", String(emp.id))}</View></View>)}
+              </>}
+              <View style={styles.switchRow}><View style={{ flex: 1 }}><Text style={styles.itemName}>Buruh / tenaga lapangan (PM)</Text><Text style={styles.subtitle}>Tambahkan pendamping lapangan bila diperlukan.</Text></View><Switch accessibilityLabel="Sertakan tenaga lapangan" value={hasWorkers} disabled={submitting} trackColor={{ false: c.control, true: c.accent }} onValueChange={setHasWorkers} /></View>
+              {hasWorkers && <View style={styles.countRow}><Text style={[styles.subtitle, { flex: 1 }]}>Jumlah tenaga lapangan</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Kurangi tenaga lapangan" style={styles.iconButton} disabled={workerCount <= 1 || submitting} onPress={() => setWorkerCount(v => Math.max(1, v - 1))}><Ionicons name="remove" size={20} color={c.text} /></TouchableOpacity><TextInput accessibilityLabel="Jumlah tenaga lapangan" keyboardType="number-pad" style={styles.numberInput} value={String(workerCount)} onChangeText={v => setWorkerCount(Math.max(1, Math.min(100, Number(v) || 1)))} editable={!submitting} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Tambah tenaga lapangan" style={styles.iconButton} disabled={workerCount >= 100 || submitting} onPress={() => setWorkerCount(v => Math.min(100, v + 1))}><Ionicons name="add" size={20} color={c.text} /></TouchableOpacity></View>}
             </View>
-          </ScrollView>
-        )}
-
-        {/* Step 3: Success Screen */}
-        {step === 3 && (
-          <View style={styles.successContainer}>
-            <View style={styles.cardSuccess}>
-              <View style={styles.successIconBox}>
-                <Ionicons name="checkmark-circle" size={56} color="#10b981" />
-              </View>
-              <Text style={styles.successTitle}>Pengajuan Surat Tugas Berhasil!</Text>
-              <Text style={styles.successMessage}>
-                Pengajuan Surat Tugas telah berhasil dikirim dan menunggu proses verifikasi.
-              </Text>
-              <TouchableOpacity
-                style={styles.btnPrimary}
-                onPress={() => {
-                  if (navigation && typeof navigation.navigate === "function") {
-                    navigation.navigate("Dashboard");
-                  } else {
-                    navigation.goBack();
-                  }
-                }}
-              >
-                <Text style={styles.btnPrimaryText}>Oke, Saya Mengerti</Text>
-              </TouchableOpacity>
+            {!!conflicts.length && <View testID="assignment-conflicts" accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.conflictCard}>
+              <View style={styles.inline}><Ionicons name="warning-outline" size={20} color={c.warning} /><Text style={styles.conflictTitle}>Jadwal Tugas / Cuti Bentrok</Text></View>
+              {conflicts.map((item, i) => <Text key={i} style={styles.conflictText}>
+                {item.employee_name && item.range_formatted && (item.type === "surat_tugas" || item.type === "cuti") ? <>
+                  <Text style={styles.conflictEmphasis}>{item.employee_name}</Text>: Ada {item.type === "cuti" ? "Cuti Aktif" : "Surat Tugas"} pada tanggal <Text style={styles.conflictDate}>{item.range_formatted}</Text>
+                </> : item.message || item.keterangan || "Pegawai memiliki jadwal yang beririsan."}
+              </Text>)}
+              <Text style={styles.conflictText}>Sesuaikan tanggal atau pegawai sebelum mengirim pengajuan.</Text>
+            </View>}
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Pembiayaan dan persetujuan</Text>
+              <Text style={styles.label}>Sumber dana *</Text>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Pilih sumber dana" style={styles.selectButton} disabled={submitting} onPress={() => setPicker({ kind: "funding", visible: true })}><Text style={styles.selectText}>{fundingOptions.find(v => v.id === funding)?.label || "Pilih sumber dana"}</Text><Ionicons name="chevron-down" size={18} color={c.muted} /></TouchableOpacity>
+              {funding === "other" && field("Nama sumber dana lainnya *", otherFunding, setOtherFunding, "Ketik sumber dana lainnya…")}
+              {structural && <>
+                {field("Nama PLH *", plh, value => { setPlh(value); setPlhOpen(value.length >= 2); }, "Nama atau NIP PLH")}
+                <Text style={styles.hint}>Diperlukan karena pejabat struktural ikut ditugaskan.</Text>
+                {plhOpen && searchMatches(plh).map(emp => <TouchableOpacity accessibilityRole="button" key={String(emp.id)} style={styles.resultRow} onPress={() => { setPlh(emp.name); setPlhOpen(false); }}><Text style={styles.itemName}>{emp.name}</Text></TouchableOpacity>)}
+              </>}
+              {section && <View style={styles.field}><Text style={styles.label}>Persetujuan Kepala Seksi *</Text><Text style={styles.subtitle}>Pilih sesuai persetujuan yang telah Anda terima.</Text>{([['sudah','Sudah disetujui'],['belum','Belum disetujui']] as const).map(([value,label]) => <TouchableOpacity accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: agreement === value }} key={value} style={styles.radioRow} disabled={submitting} onPress={() => setAgreement(value)}><Ionicons name={agreement === value ? "radio-button-on" : "radio-button-off"} size={22} color={agreement === value ? c.accentFg : c.muted} /><Text style={styles.itemName}>{label}</Text></TouchableOpacity>)}</View>}
             </View>
-          </View>
-        )}
-
-        {/* Modal Picker: Sumber Dana */}
-        <Modal visible={sumberDanaModalVisible} animationType="slide" transparent>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Pilih Sumber Dana</Text>
-                <TouchableOpacity onPress={() => setSumberDanaModalVisible(false)} style={styles.modalCloseBtn}>
-                  <Ionicons name="close" size={20} color="#64748b" />
-                </TouchableOpacity>
-              </View>
-              <ScrollView style={{ maxHeight: 350 }}>
-                {SUMBER_DANA_OPTIONS.map((opt) => {
-                  const isSelected = opt.id === sumberDana;
-                  return (
-                    <TouchableOpacity
-                      key={opt.id}
-                      style={[styles.modalOptionRow, isSelected && styles.modalOptionActive]}
-                      onPress={() => {
-                        setSumberDana(opt.id);
-                        setSumberDanaModalVisible(false);
-                      }}
-                    >
-                      <Ionicons
-                        name={isSelected ? "radio-button-on" : "radio-button-off"}
-                        size={20}
-                        color={isSelected ? "#2563eb" : "#94a3b8"}
-                        style={{ marginRight: 12 }}
-                      />
-                      <Text style={[styles.modalOptionText, isSelected && { color: "#2563eb", fontWeight: "700" }]}>
-                        {opt.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Dasar surat dan catatan</Text>
+              <Text style={styles.subtitle}>Lampiran opsional · PDF, JPG, PNG atau WebP · Maks. 10 MB</Text>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Pilih berkas dasar surat" style={styles.uploadButton} onPress={() => void pickFile()} disabled={submitting}><Ionicons name="attach-outline" size={22} color={c.accentFg} /><Text style={styles.selectText}>{file ? file.name : "Pilih berkas dasar surat"}</Text></TouchableOpacity>
+              {file && <TouchableOpacity accessibilityRole="button" style={styles.smallButton} onPress={() => setFile(null)} disabled={submitting}><Text style={styles.link}>Hapus lampiran</Text></TouchableOpacity>}
+              {field("Keterangan lainnya (opsional)", notes, setNotes, "Catatan tambahan untuk verifikator…", true)}
             </View>
-          </View>
-        </Modal>
-
-        {/* Modal Picker: Visual Monthly Calendar Grid Modal */}
-        <Modal visible={datePickerVisible} animationType="fade" transparent>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  {datePickerTarget === "single" ? "Pilih Tanggal Kegiatan" : datePickerTarget === "mulai" ? "Pilih Tanggal Mulai" : "Pilih Tanggal Selesai"}
-                </Text>
-                <TouchableOpacity onPress={() => setDatePickerVisible(false)} style={styles.modalCloseBtn}>
-                  <Ionicons name="close" size={20} color="#64748b" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Date Presets */}
-              <View style={styles.presetRow}>
-                <TouchableOpacity
-                  style={styles.presetBtn}
-                  onPress={() => applySelectedDate(new Date())}
-                >
-                  <Text style={styles.presetText}>Hari Ini</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.presetBtn}
-                  onPress={() => {
-                    const d = new Date();
-                    d.setDate(d.getDate() + 1);
-                    applySelectedDate(d);
-                  }}
-                >
-                  <Text style={styles.presetText}>Besok</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.presetBtn}
-                  onPress={() => {
-                    const d = new Date();
-                    d.setDate(d.getDate() + 3);
-                    applySelectedDate(d);
-                  }}
-                >
-                  <Text style={styles.presetText}>+3 Hari</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.presetBtn}
-                  onPress={() => {
-                    const d = new Date();
-                    d.setDate(d.getDate() + 7);
-                    applySelectedDate(d);
-                  }}
-                >
-                  <Text style={styles.presetText}>+7 Hari</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Calendar Month & Year Header Navigation */}
-              <View style={styles.calHeader}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (calMonth === 0) {
-                      setCalMonth(11);
-                      setCalYear((y) => y - 1);
-                    } else {
-                      setCalMonth((m) => m - 1);
-                    }
-                  }}
-                  style={styles.calNavBtn}
-                >
-                  <Ionicons name="chevron-back" size={20} color="#1e293b" />
-                </TouchableOpacity>
-                <Text style={styles.calMonthText}>
-                  {MONTH_NAMES[calMonth]} {calYear}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (calMonth === 11) {
-                      setCalMonth(0);
-                      setCalYear((y) => y + 1);
-                    } else {
-                      setCalMonth((m) => m + 1);
-                    }
-                  }}
-                  style={styles.calNavBtn}
-                >
-                  <Ionicons name="chevron-forward" size={20} color="#1e293b" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Day Names Row */}
-              <View style={styles.calDaysRow}>
-                {["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"].map((dName) => (
-                  <Text key={dName} style={styles.calDayNameText}>{dName}</Text>
-                ))}
-              </View>
-
-              {/* Monthly Calendar Days Grid */}
-              <View style={styles.calGrid}>
-                {Array.from({ length: (new Date(calYear, calMonth, 1).getDay() + 6) % 7 }).map((_, idx) => (
-                  <View key={`empty-${idx}`} style={styles.calDayCell} />
-                ))}
-
-                {Array.from({ length: new Date(calYear, calMonth + 1, 0).getDate() }).map((_, idx) => {
-                  const dayNum = idx + 1;
-                  const dateObj = new Date(calYear, calMonth, dayNum);
-                  const yyyy = calYear;
-                  const mm = String(calMonth + 1).padStart(2, "0");
-                  const dd = String(dayNum).padStart(2, "0");
-                  const formattedStr = `${yyyy}-${mm}-${dd}`;
-
-                  const isSelected = datePickerTarget === "mulai" ? tanggalMulai === formattedStr : tanggalSelesai === formattedStr;
-                  const isToday =
-                    today.getFullYear() === calYear &&
-                    today.getMonth() === calMonth &&
-                    today.getDate() === dayNum;
-
-                  return (
-                    <TouchableOpacity
-                      key={`day-${dayNum}`}
-                      style={[
-                        styles.calDayCell,
-                        isToday && styles.calDayToday,
-                        isSelected && styles.calDaySelected,
-                      ]}
-                      onPress={() => applySelectedDate(dateObj)}
-                    >
-                      <Text
-                        style={[
-                          styles.calDayText,
-                          isToday && styles.calDayTodayText,
-                          isSelected && styles.calDaySelectedText,
-                        ]}
-                      >
-                        {dayNum}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          </View>
-        </Modal>
+            <TouchableOpacity accessibilityRole="button" style={styles.secondary} disabled={submitting} onPress={() => setStep(1)}><Text style={styles.itemName}>Kembali ke Personel</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={submitting ? "Mengirim pengajuan" : conflicts.length ? "Jadwal bentrok — perbaiki tanggal" : "Submit Pengajuan"} style={[styles.primary, (submitting || checking || !!conflicts.length) && styles.disabled]} disabled={submitting || checking || !!conflicts.length} onPress={() => void submit()}>{submitting ? <ActivityIndicator color={c.onAccent} /> : <Ionicons name="paper-plane-outline" size={20} color={c.onAccent} />}<Text style={styles.primaryText}>{submitting ? "Mengirim pengajuan…" : conflicts.length ? "Jadwal bentrok — perbaiki tanggal" : "Submit Pengajuan"}</Text></TouchableOpacity>
+          </>}
+          {step === 3 && <View style={styles.card}>
+            <View style={styles.successIcon}><Ionicons name="checkmark-circle-outline" size={52} color={c.accentFg} /></View>
+            <Text style={styles.cardTitle}>Pengajuan Surat Tugas Berhasil!</Text><Text style={styles.subtitle}>Pengajuan telah dikirim dan menunggu proses verifikasi. Statusnya dapat dipantau melalui portal.</Text>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Kembali ke Portal" style={styles.primary} onPress={returnToPortal}><Text style={styles.primaryText}>Kembali ke Portal</Text><Ionicons name="arrow-forward" size={18} color={c.onAccent} /></TouchableOpacity>
+          </View>}
+        </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={picker.visible} transparent animationType="slide" onRequestClose={closePicker}>
+        <View style={styles.overlay}><View style={styles.modalCard}>
+          <View style={styles.modalHeading}><Text style={styles.cardTitle}>{picker.kind === "task" ? "Pilih Jenis Tugas" : "Pilih Sumber Dana"}</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Tutup pilihan" style={styles.iconButton} onPress={closePicker}><Ionicons name="close" size={22} color={c.text} /></TouchableOpacity></View>
+          <ScrollView keyboardShouldPersistTaps="handled">
+            {(picker.kind === "task" ? taskTypes.map((t,i) => ({ id: String(i), label: normalizeTaskTypeName(t.nama), selected: t.kode === task.kode })) : fundingOptions.map(f => ({ ...f, selected: f.id === funding }))).map(option => <TouchableOpacity accessibilityRole="radio" accessibilityLabel={option.label} accessibilityState={{ checked: option.selected }} key={option.id} style={[styles.optionRow, option.selected && { backgroundColor: c.soft }]} onPress={() => {
+              if (picker.kind === "task") { const next = taskTypes[Number(option.id)]; setTask(next); if (next.aturan_durasi === "wajib_1_hari") { setEnd(start); setPersonDates(prev => Object.fromEntries(Object.entries(prev).map(([id,range]) => [id,{mulai:range.mulai,selesai:range.mulai}]))); } }
+              else setFunding(option.id);
+              closePicker(); setError("");
+            }}><Ionicons name={option.selected ? "radio-button-on" : "radio-button-off"} size={22} color={option.selected ? c.accentFg : c.muted} /><Text style={styles.selectText}>{option.label}</Text></TouchableOpacity>)}
+          </ScrollView>
+        </View></View>
+      </Modal>
+      <Modal visible={!!dateTarget} transparent animationType="fade" onRequestClose={() => setDateTarget(null)}>
+        <View style={styles.overlay}><View style={styles.modalCard}>
+          <View style={styles.modalHeading}><Text style={styles.cardTitle}>Pilih tanggal {dateTarget?.part === "selesai" ? "selesai" : dateTarget?.part === "single" ? "kegiatan" : "mulai"}</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Tutup kalender" style={styles.iconButton} onPress={() => setDateTarget(null)}><Ionicons name="close" size={22} color={c.text} /></TouchableOpacity></View>
+          <ScrollView>
+            {!!(bounds.min || bounds.max) && <Text style={styles.hint}>{bounds.min ? `Mulai ${formatPortalDate(bounds.min)}` : ""}{bounds.max ? ` sampai ${formatPortalDate(bounds.max)}` : ""}</Text>}
+            <View style={styles.presets}>{[[0,"Hari Ini"],[1,"Besok"],[3,"+3 Hari"],[7,"+7 Hari"]].map(([offset,label]) => {
+              const date = new Date(); date.setDate(date.getDate() + Number(offset));
+              const disabled = !dateAllowed(dateValue(date));
+              return <TouchableOpacity accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} key={String(label)} style={[styles.preset, disabled && styles.disabled]} onPress={() => applyDate(date)}><Text style={styles.link}>{label}</Text></TouchableOpacity>;
+            })}</View>
+            <View style={styles.calendarHeading}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Bulan sebelumnya" style={styles.iconButton} onPress={() => {if(calMonth===0){setCalMonth(11);setCalYear(v=>v-1);}else setCalMonth(v=>v-1);}}><Ionicons name="chevron-back" size={20} color={c.text} /></TouchableOpacity><Text style={styles.itemName}>{MONTHS[calMonth]} {calYear}</Text>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Bulan berikutnya" style={styles.iconButton} onPress={() => {if(calMonth===11){setCalMonth(0);setCalYear(v=>v+1);}else setCalMonth(v=>v+1);}}><Ionicons name="chevron-forward" size={20} color={c.text} /></TouchableOpacity>
+            </View>
+            <View style={styles.calendarGrid}>{["Sen","Sel","Rab","Kam","Jum","Sab","Min"].map(day=><Text key={day} style={styles.weekDay}>{day}</Text>)}</View>
+            <View style={styles.calendarGrid}>
+              {Array.from({length:(new Date(calYear,calMonth,1).getDay()+6)%7},(_,i)=><View key={`empty-${i}`} style={styles.day} />)}
+              {Array.from({length:new Date(calYear,calMonth+1,0).getDate()},(_,i)=>{
+                const value=`${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(i+1).padStart(2,"0")}`;
+                const disabled = !dateAllowed(value);
+                const active = !disabled && activeDate === value;
+                return <TouchableOpacity accessibilityRole="button" accessibilityLabel={formatPortalDate(value)} accessibilityState={{selected:active,disabled}} disabled={disabled} key={value} style={[styles.day,active&&{backgroundColor:c.accent},disabled&&styles.disabled]} onPress={()=>applyDate(new Date(calYear,calMonth,i+1))}><Text style={[styles.dayText,active&&{color:c.onAccent,fontWeight:"700"}]}>{i+1}</Text></TouchableOpacity>;
+              })}
+            </View>
+          </ScrollView>
+        </View></View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
-  container: { padding: 16 },
-  headerBar: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
-  backBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#ffffff", alignItems: "center", justifyContent: "center", marginRight: 12, borderWidth: 1, borderColor: "#e2e8f0" },
-  headerTitle: { fontSize: 18, fontWeight: "800", color: "#0f172a" },
-  card: { backgroundColor: "#ffffff", borderRadius: 20, padding: 20, borderWidth: 1, borderColor: "#e2e8f0", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  iconHeaderBg: { width: 56, height: 56, borderRadius: 16, backgroundColor: "#eff6ff", alignItems: "center", justifyContent: "center", alignSelf: "center", marginBottom: 12 },
-  cardTitle: { fontSize: 20, fontWeight: "800", color: "#0f172a", textAlign: "center" },
-  cardSubtitle: { fontSize: 13, color: "#64748b", textAlign: "center", marginTop: 4, marginBottom: 20 },
-  sectionLabel: { fontSize: 10, fontWeight: "800", color: "#94a3b8", letterSpacing: 0.8, marginBottom: 8 },
-  emptySelectedBox: { padding: 24, borderRadius: 16, borderWidth: 2, borderColor: "#cbd5e1", borderStyle: "dashed", backgroundColor: "#f8fafc", alignItems: "center", justifyContent: "center" },
-  emptySelectedText: { fontSize: 13, color: "#94a3b8", fontWeight: "600", marginTop: 6 },
-  chipContainer: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
-  chip: { flexDirection: "row", alignItems: "center", backgroundColor: "#eff6ff", borderColor: "#bfdbfe", borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, maxWidth: "100%" },
-  chipName: { fontSize: 13, fontWeight: "700", color: "#1e3a8a" },
-  chipDept: { fontSize: 11, color: "#2563eb", marginTop: 1 },
-  chipRemoveBtn: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#ffffff", alignItems: "center", justifyContent: "center", marginLeft: 8 },
-  searchBox: { flexDirection: "row", alignItems: "center", backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 14, paddingHorizontal: 12, height: 48, marginTop: 8 },
-  searchInput: { flex: 1, fontSize: 13, color: "#0f172a", fontWeight: "500" },
-  dropdown: { marginTop: 4, backgroundColor: "#ffffff", borderRadius: 14, borderWidth: 1, borderColor: "#e2e8f0", maxHeight: 200, elevation: 4, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 8 },
-  dropdownRow: { flexDirection: "row", alignItems: "center", padding: 12, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
-  dropdownName: { fontSize: 13, fontWeight: "700", color: "#0f172a" },
-  dropdownDept: { fontSize: 11, color: "#64748b", marginTop: 2 },
-  btnPrimary: { backgroundColor: "#0f172a", height: 48, borderRadius: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
-  btnPrimaryText: { color: "#ffffff", fontSize: 14, fontWeight: "700" },
-  bannerBox: { flexDirection: "row", alignItems: "flex-start", backgroundColor: "#ecfdf5", borderWidth: 1, borderColor: "#a7f3d0", borderRadius: 14, padding: 12, marginBottom: 16 },
-  bannerTitle: { fontSize: 13, fontWeight: "800", color: "#047857" },
-  bannerText: { fontSize: 12, color: "#065f46", marginTop: 2 },
-  fieldLabel: { fontSize: 11, fontWeight: "800", color: "#64748b", letterSpacing: 0.5, marginTop: 14, marginBottom: 6 },
-  jenisTugasContainer: { gap: 6, marginBottom: 4 },
-  jenisTugasOption: { padding: 12, borderRadius: 12, borderWidth: 1, borderColor: "#cbd5e1", backgroundColor: "#ffffff" },
-  jenisTugasActive: { borderColor: "#2563eb", backgroundColor: "#eff6ff" },
-  jenisTugasText: { fontSize: 12, fontWeight: "700", color: "#334155" },
-  jenisTugasActiveText: { color: "#1e40af" },
-  textInput: { backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 13, color: "#0f172a", fontWeight: "500" },
-  previewBox: { backgroundColor: "#eff6ff", borderColor: "#bfdbfe", borderWidth: 1, borderRadius: 12, padding: 12, marginTop: 12 },
-  previewHeader: { fontSize: 10, fontWeight: "800", color: "#2563eb", letterSpacing: 0.5, marginBottom: 4 },
-  previewText: { fontSize: 12, fontWeight: "700", color: "#1e3a8a", lineHeight: 18 },
-  datePickerBtn: { flexDirection: "row", alignItems: "center", backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 12, paddingHorizontal: 12, height: 44 },
-  datePickerBtnText: { fontSize: 12, fontWeight: "700", color: "#0f172a" },
-  selectDropdownBtn: { flexDirection: "row", alignItems: "center", backgroundColor: "#ffffff", borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 12, paddingHorizontal: 12, height: 46, justifyContent: "space-between" },
-  selectDropdownValue: { flex: 1, fontSize: 13, fontWeight: "700", color: "#0f172a" },
-  uploadBox: { borderRadius: 14, borderWidth: 2, borderColor: "#cbd5e1", borderStyle: "dashed", backgroundColor: "#f8fafc", padding: 16, alignItems: "center", justifyContent: "center" },
-  uploadTitle: { fontSize: 13, fontWeight: "700", color: "#0f172a", marginTop: 6 },
-  uploadSubtitle: { fontSize: 11, color: "#94a3b8", marginTop: 2 },
-  btnSubmit: { backgroundColor: "#10b981", height: 50, borderRadius: 14, alignItems: "center", justifyContent: "center", marginTop: 24 },
-  btnSubmitText: { color: "#ffffff", fontSize: 15, fontWeight: "800" },
-  successContainer: { flex: 1, justifyContent: "center", padding: 20 },
-  cardSuccess: { backgroundColor: "#ffffff", borderRadius: 24, padding: 24, alignItems: "center", borderWidth: 1, borderColor: "#e2e8f0" },
-  successIconBox: { width: 72, height: 72, borderRadius: 36, backgroundColor: "#ecfdf5", alignItems: "center", justifyContent: "center", marginBottom: 16 },
-  successTitle: { fontSize: 20, fontWeight: "800", color: "#0f172a", textAlign: "center" },
-  successMessage: { fontSize: 13, color: "#64748b", textAlign: "center", marginTop: 8, marginBottom: 24, lineHeight: 20 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(15, 23, 42, 0.6)", justifyContent: "flex-end" },
-  modalContent: { backgroundColor: "#ffffff", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20 },
-  modalHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
-  modalTitle: { fontSize: 16, fontWeight: "800", color: "#0f172a" },
-  modalCloseBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: "#f1f5f9", alignItems: "center", justifyContent: "center" },
-  modalOptionRow: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 12, borderRadius: 12, marginBottom: 4 },
-  modalOptionActive: { backgroundColor: "#eff6ff" },
-  modalOptionText: { fontSize: 13, color: "#334155", fontWeight: "600" },
-  presetRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
-  presetBtn: { flex: 1, backgroundColor: "#f1f5f9", paddingVertical: 10, borderRadius: 10, alignItems: "center" },
-  presetText: { fontSize: 12, fontWeight: "700", color: "#2563eb" },
-  calHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginVertical: 8, paddingHorizontal: 4 },
-  calNavBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#f1f5f9", alignItems: "center", justifyContent: "center" },
-  calMonthText: { fontSize: 15, fontWeight: "800", color: "#0f172a" },
-  calDaysRow: { flexDirection: "row", justifyContent: "space-between", marginVertical: 8 },
-  calDayNameText: { width: `${100 / 7}%`, textAlign: "center", fontSize: 11, fontWeight: "700", color: "#94a3b8" },
-  calGrid: { flexDirection: "row", flexWrap: "wrap" },
-  calDayCell: { width: `${100 / 7}%`, height: 40, alignItems: "center", justifyContent: "center", marginVertical: 2, borderRadius: 20 },
-  calDayText: { fontSize: 13, fontWeight: "600", color: "#1e293b" },
-  calDayToday: { borderWidth: 1, borderColor: "#2563eb" },
-  calDayTodayText: { color: "#2563eb", fontWeight: "800" },
-  calDaySelected: { backgroundColor: "#2563eb" },
-  calDaySelectedText: { color: "#ffffff", fontWeight: "800" },
-});
+function createStyles(c: Record<string,string>, width: number) {
+  const pad = width < 380 ? 14 : 16;
+  return StyleSheet.create({
+    root:{flex:1,backgroundColor:c.header},
+    appBar:{width:"100%",maxWidth:712,alignSelf:"center",paddingHorizontal:pad,paddingVertical:12,flexDirection:"row",alignItems:"center",gap:12},
+    brand:{flex:1,minWidth:0,flexDirection:"row",alignItems:"center",gap:8},
+    logoFrame:{padding:4,backgroundColor:"#ffffff",borderRadius:10},logo:{width:36,height:36},
+    ministry:{fontSize:14,lineHeight:18,fontWeight:"700",color:"#ffffff"},institution:{fontSize:12,lineHeight:16,color:"#ffffff",marginTop:2},
+    themeButton:{width:48,height:48,borderRadius:24,backgroundColor:"rgba(255,255,255,0.12)",borderWidth:1,borderColor:"rgba(255,255,255,0.24)",alignItems:"center",justifyContent:"center"},
+    body:{flex:1,minHeight:0,backgroundColor:c.canvas,borderTopLeftRadius:24,borderTopRightRadius:24,overflow:"hidden",marginTop:Platform.OS==="web"?-1:0,paddingTop:Platform.OS==="web"?1:0},
+    content:{width:"100%",maxWidth:712,alignSelf:"center",padding:pad,paddingBottom:44,gap:18},
+    pageHeading:{flexDirection:"row",alignItems:"center",gap:12},backButton:{width:44,height:44,borderRadius:14,borderWidth:1,borderColor:c.border,backgroundColor:c.card,alignItems:"center",justifyContent:"center"},
+    title:{fontSize:18,fontWeight:"700",color:c.text},subtitle:{fontSize:12,lineHeight:18,color:c.muted,flexShrink:1},
+    steps:{flexDirection:"row",justifyContent:"space-between",position:"relative"},stepTrack:{position:"absolute",left:"16.666667%",right:"16.666667%",top:12,height:2,borderRadius:1,backgroundColor:c.border},stepProgress:{height:2,borderRadius:1,backgroundColor:c.accent},stepItem:{flex:1,alignItems:"center",justifyContent:"center",gap:6},stepCircle:{width:26,height:26,borderRadius:13,backgroundColor:c.canvas,borderWidth:1,borderColor:c.control,alignItems:"center",justifyContent:"center"},stepNumber:{fontSize:12,fontWeight:"600",color:c.muted},stepText:{fontSize:11,color:c.muted,textAlign:"center"},
+    card:{padding:pad,borderWidth:1,borderColor:c.border,borderRadius:20,backgroundColor:c.card,gap:12},
+    cardTitle:{fontSize:16,fontWeight:"700",color:c.text,flexShrink:1},field:{gap:6,marginBottom:4},label:{fontSize:12,fontWeight:"600",color:c.muted},
+    input:{minHeight:48,paddingHorizontal:12,paddingVertical:12,borderWidth:1,borderColor:c.control,borderRadius:12,fontSize:14,color:c.text,backgroundColor:c.card,outlineColor:c.accent},textarea:{minHeight:92,textAlignVertical:"top",lineHeight:21},
+    inline:{flexDirection:"row",alignItems:"center",gap:8},notice:{padding:12,backgroundColor:c.surface,borderRadius:12,gap:6},
+    searchBox:{flexDirection:"row",alignItems:"center",gap:8,borderWidth:1,borderColor:c.control,borderRadius:12,paddingHorizontal:12},searchInput:{flex:1,minWidth:0,minHeight:48,fontSize:14,color:c.text,paddingVertical:12,outlineColor:c.accent},
+    results:{borderWidth:1,borderColor:c.border,borderRadius:12,overflow:"hidden"},resultRow:{minHeight:52,padding:12,flexDirection:"row",alignItems:"center",gap:8,borderBottomWidth:1,borderBottomColor:c.border},
+    sectionLabel:{fontSize:12,fontWeight:"600",color:c.muted,marginTop:6},emptyText:{fontSize:13,lineHeight:20,color:c.muted,paddingVertical:12},personRow:{minHeight:52,flexDirection:"row",alignItems:"center",gap:8,paddingBottom:8,borderBottomWidth:1,borderBottomColor:c.border},itemName:{fontSize:13,fontWeight:"600",color:c.text,flexShrink:1},
+    primary:{minHeight:48,paddingHorizontal:16,paddingVertical:13,borderRadius:14,backgroundColor:c.accent,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:8},primaryText:{fontSize:14,fontWeight:"700",color:c.onAccent},disabled:{opacity:0.5},
+    secondary:{minHeight:48,padding:12,borderWidth:1,borderColor:c.control,borderRadius:14,backgroundColor:c.card,alignItems:"center",justifyContent:"center"},
+    summary:{flexDirection:"row",alignItems:"center",gap:8,padding:pad,borderWidth:1,borderColor:c.border,borderRadius:16,backgroundColor:c.card},smallButton:{minHeight:44,paddingHorizontal:8,justifyContent:"center",alignSelf:"flex-start"},link:{fontSize:12,fontWeight:"600",color:c.accentFg},
+    selectButton:{minHeight:48,borderWidth:1,borderColor:c.control,borderRadius:12,padding:12,flexDirection:"row",alignItems:"center",gap:8},selectText:{fontSize:14,color:c.text,flex:1,lineHeight:20},hint:{fontSize:12,lineHeight:18,color:c.muted},
+    dateRow:{flexDirection:"row",gap:12},dateButton:{marginTop:6,minHeight:48,borderWidth:1,borderColor:c.control,borderRadius:12,padding:10,flexDirection:"row",alignItems:"center",gap:6},dateText:{fontSize:12,lineHeight:18,color:c.text,flex:1,fontVariant:["tabular-nums"]},
+    switchRow:{flexDirection:"row",alignItems:"center",gap:12,paddingTop:12,borderTopWidth:1,borderTopColor:c.border},scheduleRow:{gap:10,paddingTop:12,borderTopWidth:1,borderTopColor:c.border},
+    iconButton:{width:44,height:44,alignItems:"center",justifyContent:"center",borderRadius:12,backgroundColor:c.surface},countRow:{flexDirection:"row",alignItems:"center",gap:6},numberInput:{width:44,height:44,textAlign:"center",borderWidth:1,borderColor:c.control,borderRadius:8,fontSize:14,color:c.text,outlineColor:c.accent},
+    radioRow:{minHeight:48,flexDirection:"row",alignItems:"center",gap:8},uploadButton:{minHeight:60,flexDirection:"row",alignItems:"center",gap:8,padding:12,borderWidth:1,borderColor:c.control,borderRadius:12},
+    previewBox:{backgroundColor:c.soft,borderWidth:1,borderColor:c.softBorder,borderRadius:12,padding:12,gap:10,marginTop:8},previewText:{fontSize:13,lineHeight:21,color:c.text},
+    conflictEmphasis:{fontWeight:"700"},conflictDate:{fontWeight:"700",textDecorationLine:"underline",textDecorationColor:"#fbbf24"},
+    conflictCard:{backgroundColor:c.warningBg,borderWidth:1,borderColor:c.warningBorder,borderRadius:16,padding:pad,gap:10},conflictTitle:{fontSize:14,fontWeight:"700",color:c.warning,flexShrink:1},conflictText:{fontSize:13,lineHeight:20,color:c.warning},
+    errorBox:{backgroundColor:c.card,borderWidth:1,borderColor:c.danger,borderRadius:12,padding:12,flexDirection:"row",alignItems:"flex-start",gap:8},errorText:{fontSize:13,lineHeight:20,color:c.danger,flexShrink:1},successIcon:{alignSelf:"center",marginVertical:12},
+    overlay:{flex:1,backgroundColor:"rgba(0,0,0,0.5)",justifyContent:"flex-end"},modalCard:{width:"100%",maxWidth:600,maxHeight:"90%",alignSelf:"center",backgroundColor:c.card,borderTopLeftRadius:24,borderTopRightRadius:24,padding:16,gap:12},modalHeading:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:12},optionRow:{minHeight:52,padding:12,borderRadius:12,flexDirection:"row",alignItems:"center",gap:12},
+    presets:{flexDirection:"row",gap:6},preset:{flex:1,minHeight:44,alignItems:"center",justifyContent:"center",borderRadius:10,backgroundColor:c.surface},calendarHeading:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginVertical:8},calendarGrid:{flexDirection:"row",flexWrap:"wrap"},weekDay:{width:`${100/7}%`,textAlign:"center",fontSize:12,color:c.muted,paddingVertical:8},day:{width:`${100/7}%`,minHeight:44,alignItems:"center",justifyContent:"center",borderRadius:12},dayText:{fontSize:14,color:c.text},
+  });
+}

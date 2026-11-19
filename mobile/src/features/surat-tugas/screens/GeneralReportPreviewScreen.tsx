@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
-import { WebView } from "react-native-webview";
+import { DocumentHtmlView } from "@/components/DocumentHtmlView";
+import { escapeDocumentData, safeDocumentImage, printDocument } from "@/lib/files/documentHtml";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 import { logoBksdaBase64 } from "./logoBksdaBase64";
 
 function formatNameWithDegree(fullName: string): string {
@@ -30,6 +29,9 @@ export default function GeneralReportPreviewScreen() {
   const route = useRoute<any>();
   const reportData = route.params?.reportData;
   const [loading, setLoading] = useState(true);
+  const [printing, setPrinting] = useState(false);
+  const [printError, setPrintError] = useState('');
+  const printLock = React.useRef(false);
 
   if (!reportData) {
     return (
@@ -48,7 +50,10 @@ export default function GeneralReportPreviewScreen() {
       judul_laporan, kota_laporan, tanggal_laporan, agenda_pelaksanaan, dasar_pelaksanaan,
       maksud_tujuan, pelaksana, waktu_tempat_pelaksanaan, hasil_pelaksanaan, dokumentasi_foto,
       use_custom_cover, cover_mode, custom_cover_image_url, custom_cover_title, custom_cover_footer
-    } = reportData;
+    } = escapeDocumentData({ ...reportData,
+      custom_cover_image_url: safeDocumentImage(reportData.custom_cover_image_url),
+      dokumentasi_foto: reportData.dokumentasi_foto?.map((photo: any) => ({ ...photo, url: safeDocumentImage(photo.url) })),
+    });
 
     const isCustomImageCover = use_custom_cover && cover_mode === "image" && custom_cover_image_url;
 
@@ -240,12 +245,11 @@ export default function GeneralReportPreviewScreen() {
   const htmlContent = generateHTML();
 
   const handlePrint = async () => {
-    try {
-      const { uri } = await Print.printToFileAsync({ html: htmlContent });
-      await Sharing.shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
-    } catch (e) {
-      console.error(e);
-    }
+    if (printLock.current) return;
+    printLock.current = true; setPrinting(true); setPrintError('');
+    try { await printDocument(htmlContent); }
+    catch (failure) { setPrintError((failure as Error).message || 'Laporan belum dapat dicetak.'); }
+    finally { printLock.current = false; setPrinting(false); }
   };
 
   return (
@@ -255,17 +259,13 @@ export default function GeneralReportPreviewScreen() {
           <Ionicons name="arrow-back" size={24} color="#ffffff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Preview Laporan A4</Text>
-        <TouchableOpacity style={styles.printBtn} onPress={handlePrint}>
+        <TouchableOpacity style={styles.printBtn} onPress={handlePrint} disabled={printing}>
           <Ionicons name="share-outline" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
-      <WebView
-        originWhitelist={['*']}
-        source={{ html: htmlContent }}
-        style={{ flex: 1, backgroundColor: "#0f172a" }}
-        onLoadEnd={() => setLoading(false)}
-      />
+      {!!printError && <Text accessibilityRole="alert" style={{ color: "#b91c1c", padding: 12 }}>{printError}</Text>}
+      <DocumentHtmlView html={htmlContent} style={{ flex: 1, backgroundColor: "#0f172a" }} onLoadEnd={() => setLoading(false)} />
 
       {loading && (
         <View style={styles.loadingOverlay}>
@@ -274,9 +274,9 @@ export default function GeneralReportPreviewScreen() {
       )}
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.submitBtn}>
-          <Ionicons name="cloud-upload-outline" size={20} color="#ffffff" />
-          <Text style={styles.submitBtnText}>Kirim Laporan (Final)</Text>
+        <TouchableOpacity style={styles.submitBtn} onPress={handlePrint} disabled={printing}>
+          <Ionicons name="print-outline" size={20} color="#ffffff" />
+          <Text style={styles.submitBtnText}>{printing ? "Menyiapkan laporan…" : "Cetak / Simpan Laporan Final"}</Text>
         </TouchableOpacity>
       </View>
     </View>

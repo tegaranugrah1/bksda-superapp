@@ -48,12 +48,16 @@ export function useReverbRefresh(
     onRefreshRef.current = onRefresh;
   }, [onRefresh]);
 
-  const targetKey = targets.join('|');
+  const tokenId = getTokenId(token);
+  // Depend on effective channels, so refreshing /me does not resubscribe unchanged access.
+  const channelKey = !user?.id || !tokenId ? '' : targets.flatMap(target => {
+    if (target === 'user') return [`private-App.Models.User.${user.id}.${tokenId}`];
+    const mod = target.slice(6) as 'surat_tugas' | 'kepegawaian' | 'bmn';
+    return canAccessAdminChannel(user, mod) ? [`private-admin.inbox.${mod}.${tokenId}`] : [];
+  }).join('|');
 
   useEffect(() => {
-    if (!enabled || !user?.id || !token) return;
-    const tokenId = getTokenId(token);
-    if (!tokenId) return;
+    if (!enabled || !channelKey || !token) return;
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     const triggerRefresh = () => {
@@ -64,33 +68,15 @@ export function useReverbRefresh(
       }, 150);
     };
 
-    const unsubscribers: (() => void)[] = [];
-    for (const target of targetKey.split('|') as ReverbTarget[]) {
-      if (target === 'user') {
-        unsubscribers.push(
-          subscribeReverbChannel(
-            token,
-            `private-App.Models.User.${user.id}.${tokenId}`,
-            'notification.created',
-            triggerRefresh,
-            triggerRefresh
-          )
-        );
-      } else if (target.startsWith('admin:')) {
-        const mod = target.slice(6) as 'surat_tugas' | 'kepegawaian' | 'bmn';
-        if (canAccessAdminChannel(user, mod)) {
-          unsubscribers.push(
-            subscribeReverbChannel(
-              token,
-              `private-admin.inbox.${mod}.${tokenId}`,
-              'inbox.changed',
-              triggerRefresh,
-              triggerRefresh
-            )
-          );
-        }
-      }
-    }
+    const unsubscribers = channelKey.split('|').map(channelName =>
+      subscribeReverbChannel(
+        token,
+        channelName,
+        channelName.startsWith('private-App.Models.User.') ? 'notification.created' : 'inbox.changed',
+        triggerRefresh,
+        triggerRefresh
+      )
+    );
 
     return () => {
       if (debounceTimer) {
@@ -100,5 +86,5 @@ export function useReverbRefresh(
         unsub();
       }
     };
-  }, [enabled, targetKey, token, user]);
+  }, [enabled, channelKey, token]);
 }

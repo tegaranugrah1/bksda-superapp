@@ -31,27 +31,27 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   const isDanger = variant === "danger";
   const isWarning = variant === "warning";
-  const accentColor = isDanger ? "#ef4444" : isWarning ? "#d97706" : "#059669";
-  const badgeBg = isDanger ? "#fef2f2" : isWarning ? "#fffbe8" : "#ecfdf5";
+  const accentColor = isDanger ? colors.dangerSolid : isWarning ? "#d97706" : "#059669";
+  const badgeBg = isDanger ? colors.dangerBg : isWarning ? "#fffbe8" : "#ecfdf5";
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onCancel} />
+        <TouchableOpacity accessible={false} focusable={false} style={styles.backdrop} activeOpacity={1} onPress={onCancel} />
 
         <View
           style={[
             styles.card,
             SHADOWS.cardGlass,
             {
-              backgroundColor: isDark ? "#092318" : "#ffffff",
+              backgroundColor: colors.cardBg,
               borderColor: colors.glassBorder,
             },
           ]}
         >
           {/* Circular Badge Icon */}
           <View style={[styles.iconCircle, { backgroundColor: badgeBg }]}>
-            <Ionicons name={iconName} size={28} color={accentColor} />
+            <Ionicons name={iconName} size={28} color={isDanger ? colors.dangerFg : accentColor} />
           </View>
 
           {/* Title & Message */}
@@ -62,6 +62,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <View style={styles.btnRow}>
             <TouchableOpacity
               style={[styles.cancelBtn, { borderColor: isDark ? "rgba(255,255,255,0.15)" : "#cbd5e1" }]}
+              accessibilityRole="button"
+              accessibilityLabel={cancelText}
               onPress={onCancel}
               activeOpacity={0.7}
             >
@@ -70,10 +72,12 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
             <TouchableOpacity
               style={[styles.confirmBtn, { backgroundColor: accentColor }]}
+              accessibilityRole="button"
+              accessibilityLabel={confirmText}
               onPress={onConfirm}
               activeOpacity={0.8}
             >
-              <Text style={styles.confirmText}>{confirmText}</Text>
+              <Text style={[styles.confirmText, { color: isDanger && isDark ? colors.bgDark : "#ffffff" }]}>{confirmText}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -95,6 +99,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "100%",
+    maxWidth: 420,
     borderRadius: 22,
     borderWidth: 1,
     padding: 24,

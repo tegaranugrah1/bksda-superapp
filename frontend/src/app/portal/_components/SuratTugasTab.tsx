@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Plus, Loader2, ClipboardList, FileText, Eye, ChevronDown, FileSpreadsheet, Calculator } from "lucide-react";
+import { Plus, Loader2, ClipboardList, FileText, Eye, ChevronDown, FileSpreadsheet, Calculator, MapPin, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,12 +11,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { formatDateRangeIndonesian } from "@/lib/letter-utils";
+import { extractSuratTugasDalamRangka, formatDateRangeIndonesian, formatSumberDanaLabel } from "@/lib/letter-utils";
 
 interface SuratTugasItem {
   id: string;
   nomor_surat: string | null;
   maksud_tujuan: string;
+  tempat_tujuan?: string | null;
+  sumber_dana?: string | null;
+  sumber_dana_other?: string | null;
+  sumber_dana_label?: string | null;
   tanggal_mulai: string;
   tanggal_selesai: string;
   status: string;
@@ -115,7 +119,9 @@ export function SuratTugasTab({
         <div
           className="divide-y divide-slate-200/70 dark:divide-zinc-800"
         >
-          {suratTugas.map((st) => (
+          {suratTugas.map((st) => {
+            const fundingLabel = formatSumberDanaLabel(st.sumber_dana, st.sumber_dana_other, st.sumber_dana_label);
+            return (
             <div
               key={st.id}
               className="st-portal-row p-4 hover:bg-[var(--ds-surface-muted)] transition-colors flex items-center gap-4 group"
@@ -124,7 +130,9 @@ export function SuratTugasTab({
                 <FileText className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[var(--ds-fg)] truncate group-hover:text-[var(--ds-status-success-fg)] transition-colors">{st.maksud_tujuan}</p>
+                <p className="text-sm font-semibold text-[var(--ds-fg)] truncate group-hover:text-[var(--ds-status-success-fg)] transition-colors">
+                  {extractSuratTugasDalamRangka(st.maksud_tujuan, st.tempat_tujuan) || st.maksud_tujuan}
+                </p>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   {st.nomor_surat && <span className="text-xs font-bold text-[var(--ds-status-success-fg)] bg-[var(--ds-status-success-bg)] px-2 py-1 rounded-full tabular-nums">{st.nomor_surat}</span>}
                   {st.status && (
@@ -144,6 +152,18 @@ export function SuratTugasTab({
                   <span className="text-xs text-[var(--ds-fg-muted)] tabular-nums">
                     {formatDateRangeIndonesian(st.tanggal_mulai, st.tanggal_selesai)}
                   </span>
+                  {st.tempat_tujuan?.trim() && (
+                    <span className="inline-flex items-center gap-1 text-xs text-[var(--ds-fg-muted)]">
+                      <MapPin className="w-3.5 h-3.5 shrink-0" />
+                      Di {st.tempat_tujuan.trim().replace(/^di\s+/i, "")}
+                    </span>
+                  )}
+                  {fundingLabel && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-[var(--ds-accent-fg)] bg-[var(--ds-accent-soft)] px-2 py-1 rounded-full">
+                      <Wallet className="w-3.5 h-3.5 shrink-0" />
+                      {fundingLabel}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
@@ -175,7 +195,8 @@ export function SuratTugasTab({
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

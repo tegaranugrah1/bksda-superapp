@@ -10,6 +10,7 @@ use App\Models\EmailLog;
 use App\Models\NotificationSetting;
 use App\Models\User;
 use App\Modules\Bmn\Models\AssetLoan;
+use App\Modules\Bmn\Resources\AssetResource;
 use App\Modules\Kepegawaian\Models\Employee;
 use App\Support\Security\UploadValidationRules;
 use Illuminate\Http\JsonResponse;
@@ -125,6 +126,17 @@ class AuthController extends Controller
             'data' => new UserResource($user),
         ];
 
+        $isMobileSession = $request->header('X-Establish-Mobile-Session') === '1';
+        // Exchange a valid legacy mobile bearer for the first-party HttpOnly session.
+        if ($isMobileSession
+            && $request->hasSession()
+            && $user->currentAccessToken() instanceof PersonalAccessToken
+            && ! Auth::guard('web')->check()) {
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
+            $request->session()->put('mobile_realtime_credential', encrypt($request->bearerToken()));
+        }
+
         $needs2faSetup = config('auth.two_factor_enforce', false)
             && (in_array($user->role, ['admin', 'super_admin'], true)
                 || in_array('admin', array_values($user->module_roles ?? []), true))
@@ -141,14 +153,31 @@ class AuthController extends Controller
             && ! $needs2faSetup
         ) {
             $bearer = $request->bearerToken();
-            $tokenModel = $bearer ? PersonalAccessToken::findToken($bearer) : null;
-            $hasValidBearer = $tokenModel !== null
-                && $tokenModel->tokenable_type === $user->getMorphClass()
-                && (string) $tokenModel->tokenable_id === (string) $user->getKey()
-                && in_array((string) $tokenModel->getKey(), $user->broadcastTokenIds(), true);
-
+            $tokenIds = $user->broadcastTokenIds();
+            $validCredential = static function (?string $credential) use ($user, $tokenIds): bool {
+                $model = $credential ? PersonalAccessToken::findToken($credential) : null;
+                return $model !== null
+                    && $model->tokenable_type === $user->getMorphClass()
+                    && (string) $model->tokenable_id === (string) $user->getKey()
+                    && in_array((string) $model->getKey(), $tokenIds, true);
+            };
+            $hasValidBearer = $validCredential($bearer);
             if (! $hasValidBearer) {
-                $payload['realtime_token'] = $this->createBoundedAuthToken($user);
+                // Reuse the encrypted server-session credential on browser reloads;
+                // do not consume another device slot for every page refresh.
+                $cached = null;
+                if ($isMobileSession && $request->session()->has('mobile_realtime_credential')) {
+                    try {
+                        $value = decrypt($request->session()->get('mobile_realtime_credential'));
+                        $cached = is_string($value) ? $value : null;
+                    } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+                        $request->session()->forget('mobile_realtime_credential');
+                    }
+                }
+                $payload['realtime_token'] = $validCredential($cached) ? $cached : $this->createBoundedAuthToken($user);
+            }
+            if ($isMobileSession) {
+                $request->session()->put('mobile_realtime_credential', encrypt($hasValidBearer ? $bearer : $payload['realtime_token']));
             }
         }
 
@@ -212,9 +241,8 @@ class AuthController extends Controller
                 'rank_level' => 0,
                 'is_active' => $employee->is_active,
             ] : null,
-            'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) use ($request) {
+            'my_assets' => $loans->filter(fn($loan) => $loan->asset !== null)->map(function ($loan) {
                 $asset = $loan->asset;
-                $tokenParam = $this->assetQueryTokenParam($request);
                 $v = $asset->updated_at?->timestamp ?: time();
 
                 return [
@@ -234,14 +262,14 @@ class AuthController extends Controller
                     'jenis_bmn' => $asset->jenis_bmn,
                     'no_polisi' => $asset->no_polisi,
                     'lokasi_ruang' => $asset->lokasi_ruang,
-                    'foto_geotag_url' => $asset->foto_geotag_path ? "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}" : $asset->foto_geotag_url,
-                    'foto_geotag_path' => $asset->foto_geotag_path && str_starts_with($asset->foto_geotag_path, 'http') ? $asset->foto_geotag_path : null,
-                    'foto_depan_url' => $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}{$tokenParam}" : null,
-                    'foto_belakang_url' => $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}{$tokenParam}" : null,
-                    'foto_kiri_url' => $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}{$tokenParam}" : null,
-                    'foto_kanan_url' => $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}{$tokenParam}" : null,
-                    'foto_lokasi_url' => $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null,
-                    'foto_url' => $asset->foto_url,
+                    'foto_geotag_url' => $asset->foto_geotag_path ? "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}" : AssetResource::stripQueryTokens($asset->foto_geotag_url),
+                    'foto_geotag_path' => $asset->foto_geotag_path && str_starts_with($asset->foto_geotag_path, 'http') ? AssetResource::stripQueryTokens($asset->foto_geotag_path) : null,
+                    'foto_depan_url' => $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}" : null,
+                    'foto_belakang_url' => $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}" : null,
+                    'foto_kiri_url' => $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}" : null,
+                    'foto_kanan_url' => $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}" : null,
+                    'foto_lokasi_url' => $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}" : null,
+                    'foto_url' => AssetResource::stripQueryTokens($asset->foto_url),
                 ];
             })->values(),
         ];
@@ -426,25 +454,28 @@ class AuthController extends Controller
         ->latest()->limit(50)->get()
         ->filter(fn ($asset) => $asset->isOwnedByEmployee($employee))
         ->values()
-        ->map(function ($asset) use ($request) {
+        ->map(function ($asset) {
             unset($asset->pengguna, $asset->nama_pengguna);
 
-            $tokenParam = $this->assetQueryTokenParam($request);
             $v = $asset->updated_at?->timestamp ?: time();
 
             if ($asset->foto_geotag_path && ! $asset->foto_geotag_url) {
-                $asset->foto_geotag_url = "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}{$tokenParam}";
+                $asset->foto_geotag_url = "/api/bmn/assets/{$asset->id}/photo/geotag/view?v={$v}";
             }
             if ($asset->foto_geotag_path && ! str_starts_with($asset->foto_geotag_path, 'http')) {
                 $asset->foto_geotag_path = null;
             }
 
+            $asset->foto_geotag_url = AssetResource::stripQueryTokens($asset->foto_geotag_url);
+            $asset->foto_geotag_path = AssetResource::stripQueryTokens($asset->foto_geotag_path);
+            $asset->foto_url = AssetResource::stripQueryTokens($asset->foto_url);
+
             // Provide URLs for all 5-point audit photos
-            $asset->foto_depan_url = $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}{$tokenParam}" : null;
-            $asset->foto_belakang_url = $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}{$tokenParam}" : null;
-            $asset->foto_kiri_url = $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}{$tokenParam}" : null;
-            $asset->foto_kanan_url = $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}{$tokenParam}" : null;
-            $asset->foto_lokasi_url = $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null;
+            $asset->foto_depan_url = $asset->foto_depan_path ? "/api/bmn/assets/{$asset->id}/photo/depan/view?v={$v}" : null;
+            $asset->foto_belakang_url = $asset->foto_belakang_path ? "/api/bmn/assets/{$asset->id}/photo/belakang/view?v={$v}" : null;
+            $asset->foto_kiri_url = $asset->foto_kiri_path ? "/api/bmn/assets/{$asset->id}/photo/kiri/view?v={$v}" : null;
+            $asset->foto_kanan_url = $asset->foto_kanan_path ? "/api/bmn/assets/{$asset->id}/photo/kanan/view?v={$v}" : null;
+            $asset->foto_lokasi_url = $asset->foto_lokasi_path ? "/api/bmn/assets/{$asset->id}/photo/lokasi/view?v={$v}" : null;
 
             return $asset;
         });
@@ -1005,10 +1036,4 @@ class AuthController extends Controller
         ]);
     }
 
-    private function assetQueryTokenParam(Request $request): string
-    {
-        $token = $request->bearerToken() ?: $request->query('token');
-
-        return is_string($token) && $token !== '' ? '&token='.urlencode($token) : '';
-    }
 }

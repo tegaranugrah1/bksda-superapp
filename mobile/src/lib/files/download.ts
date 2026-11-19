@@ -1,6 +1,10 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import { getToken } from '@/lib/auth/tokenStorage';
+import { Platform } from 'react-native';
+import { apiClient } from '@/lib/api/client';
+import { notifySession } from '@/lib/auth/sessionEvents';
+import { getToken, clearToken, getSessionVersion } from '@/lib/auth/tokenStorage';
 import { config } from '@/lib/api/config';
+import { resolveBmnMediaUrl } from './bmnMedia';
 import { AssignmentListMode } from '@/features/surat-tugas/types';
 
 export type DownloadStorage = 'cache' | 'document';
@@ -96,15 +100,32 @@ export async function downloadAssignmentFile({
   filename,
   storage = 'cache',
 }: DownloadFileOptions): Promise<DownloadedFile> {
+  return downloadApiFile(getAssignmentDownloadEndpoint(assignmentId, mode), filename, storage, 'surat-tugas');
+}
+
+export async function downloadBmnMediaFile(url: string, filename?: string | null): Promise<DownloadedFile> {
+  const resolved = resolveBmnMediaUrl(url);
+  if (!resolved) throw new FileDownloadError('forbidden', 'Alamat berkas BMN tidak diizinkan.');
+  const target = new URL(resolved);
+  const prefix = new URL(config.apiUrl).pathname.replace(/\/$/, '');
+  return downloadApiFile(target.pathname.slice(prefix.length) + target.search, filename || 'Dokumen_BMN.pdf', 'cache', 'bmn');
+}
+
+async function downloadApiFile(endpoint: string, filename: string | null | undefined, storage: DownloadStorage, folder: string): Promise<DownloadedFile> {
+  const safeFilename = sanitizeFilename(filename);
+  if (Platform.OS === 'web') {
+    const response = await apiClient.get<Blob>(endpoint, { responseType: 'blob' });
+    return { localUri: URL.createObjectURL(response.data), filename: safeFilename, mimeType: response.data.type, status: response.status };
+  }
+  const version = getSessionVersion();
   const token = await getToken();
   if (!token) {
+    if (version === getSessionVersion()) notifySession({ type: 'expired' });
     throw new FileDownloadError('auth', 'Sesi Anda telah berakhir. Silakan login kembali.', 401);
   }
 
-  const safeFilename = sanitizeFilename(filename);
-  const directory = `${getBaseDirectory(storage)}surat-tugas/`;
+  const directory = `${getBaseDirectory(storage)}${folder}/`;
   const localUri = `${directory}${safeFilename}`;
-  const endpoint = getAssignmentDownloadEndpoint(assignmentId, mode);
   const downloadUrl = buildApiUrl(endpoint);
 
   try {
@@ -119,7 +140,11 @@ export async function downloadAssignmentFile({
     });
 
     if (result.status < 200 || result.status >= 300) {
-      await FileSystem.deleteAsync(localUri, { idempotent: true });
+      if (result.status === 401 && version === getSessionVersion()) {
+        try { await clearToken(); } finally { notifySession({ type: 'expired' }); }
+      }
+      try { await FileSystem.deleteAsync(localUri, { idempotent: true }); }
+      catch { /* Cache cleanup must not mask the HTTP error. */ }
       throw getDownloadError(result.status);
     }
 

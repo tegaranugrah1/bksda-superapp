@@ -1,4 +1,7 @@
+import { resolveApiUrl } from "@/lib/api";
+
 export interface AssetPhotoSource {
+  photo_availability?: Partial<Record<"geotag" | "depan" | "belakang" | "kiri" | "kanan" | "lokasi", boolean>>;
   foto_geotag_url?: string | null;
   foto_geotag_path?: string | null;
   foto_depan_url?: string | null;
@@ -18,52 +21,26 @@ export function resolvePhotoUrl(rawUrl?: string | null): string | null {
   if (match) {
     return `https://lh3.googleusercontent.com/d/${match[1]}`;
   }
-  if (rawUrl.startsWith("/")) {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL;
-    if (apiBase && apiBase.startsWith("http")) {
-      try {
-        const origin = new URL(apiBase).origin;
-        return `${origin}${rawUrl}`;
-      } catch {
-        return rawUrl;
-      }
-    }
-  }
-  return rawUrl;
+  return resolveApiUrl(rawUrl);
 }
 
 /**
  * Returns the highest priority documentation photo available
  */
-export function getPrimaryPhoto(asset: AssetPhotoSource): { url: string; label: string } | null {
-  const geotag = asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null);
-  if (geotag) {
-    const url = resolvePhotoUrl(geotag);
-    if (url) return { url, label: "Geotag" };
-  }
-  if (asset.foto_depan_url) {
-    const url = resolvePhotoUrl(asset.foto_depan_url);
-    if (url) return { url, label: "Tampak Depan" };
-  }
-  if (asset.foto_belakang_url) {
-    const url = resolvePhotoUrl(asset.foto_belakang_url);
-    if (url) return { url, label: "Tampak Belakang" };
-  }
-  if (asset.foto_kiri_url) {
-    const url = resolvePhotoUrl(asset.foto_kiri_url);
-    if (url) return { url, label: "Tampak Kiri" };
-  }
-  if (asset.foto_kanan_url) {
-    const url = resolvePhotoUrl(asset.foto_kanan_url);
-    if (url) return { url, label: "Tampak Kanan" };
-  }
-  if (asset.foto_lokasi_url) {
-    const url = resolvePhotoUrl(asset.foto_lokasi_url);
-    if (url) return { url, label: "Lokasi" };
-  }
-  if (asset.foto_url) {
-    const url = resolvePhotoUrl(asset.foto_url);
-    if (url) return { url, label: "Dokumentasi" };
+export function getPrimaryPhoto(asset: AssetPhotoSource, failedUrls: readonly string[] = []): { url: string; label: string } | null {
+  const candidates = [
+    [asset.foto_geotag_url || (asset.foto_geotag_path?.startsWith("http") ? asset.foto_geotag_path : null), "Geotag", "geotag"],
+    [asset.foto_depan_url, "Tampak Depan", "depan"],
+    [asset.foto_belakang_url, "Tampak Belakang", "belakang"],
+    [asset.foto_kiri_url, "Tampak Kiri", "kiri"],
+    [asset.foto_kanan_url, "Tampak Kanan", "kanan"],
+    [asset.foto_lokasi_url, "Lokasi", "lokasi"],
+    [asset.foto_url, "Dokumentasi", null],
+  ] as const;
+  for (const [raw, label, type] of candidates) {
+    if (type && asset.photo_availability?.[type] === false) continue;
+    const url = resolvePhotoUrl(raw);
+    if (url && !failedUrls.includes(url)) return {url, label};
   }
   return null;
 }

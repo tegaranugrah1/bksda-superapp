@@ -22,7 +22,7 @@ import { TagFilterCombobox } from "@/app/bmn/_components/TagFilterCombobox";
 import { AssetTagsList } from "@/app/bmn/_components/AssetTagsList";
 import { type IBmnTag, getTagColorClasses } from "@/app/bmn/_lib/tag-utils";
 
-import { getPrimaryPhoto, type AssetPhotoSource } from "@/app/bmn/_lib/asset-photos";
+import { type AssetPhotoSource } from "@/app/bmn/_lib/asset-photos";
 import { useAssetView } from "./use-asset-view";
 import { AssetPhotoPreview } from "./_components/AssetPhotoPreview";
 
@@ -571,7 +571,7 @@ export default function BmnAssetsPage() {
                   return (
                   <article key={asset.id} role="listitem" className="bmn-asset-card" data-selected={selectedIds.has(asset.id)}>
                     <div className="relative">
-                      <AssetPhotoPreview photo={getPrimaryPhoto(asset)} name={asset.nama_barang} nup={asset.nup} />
+                      <AssetPhotoPreview asset={asset} name={asset.nama_barang} nup={asset.nup} />
                       {canWrite && <label className="bmn-card-checkbox"><input type="checkbox" checked={selectedIds.has(asset.id)} onChange={() => toggleSelect(asset.id)} aria-label={`Pilih aset ${asset.nama_barang} NUP ${asset.nup}`} className="w-4 h-4 accent-[var(--ds-accent-solid)]" /></label>}
                     </div>
                     <div className="bmn-card-body">

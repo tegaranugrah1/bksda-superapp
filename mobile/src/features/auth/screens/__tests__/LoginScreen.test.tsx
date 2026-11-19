@@ -2,6 +2,7 @@ import React from 'react';
 import renderer, { act } from 'react-test-renderer';
 import LoginScreen from '../LoginScreen';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { ThemeProvider } from '@/theme/ThemeContext';
 
 jest.mock('@/features/auth/AuthProvider', () => ({
   useAuth: jest.fn(),
@@ -57,6 +58,22 @@ describe('LoginScreen', () => {
       login,
       isLoading: false,
     });
+  });
+
+  it('toggles the shared theme without clearing entered credentials', () => {
+    let tree!: renderer.ReactTestRenderer;
+    act(() => {
+      tree = renderer.create(<ThemeProvider><LoginScreen /></ThemeProvider>);
+    });
+    act(() => {
+      tree.root.findByProps({ accessibilityLabel: 'Username' }).props.onChangeText('dummy-login');
+      tree.root.findByProps({ accessibilityLabel: 'Password' }).props.onChangeText('dummy-password');
+      tree.root.findByProps({ accessibilityLabel: 'Aktifkan tema gelap' }).props.onPress();
+    });
+    expect(tree.root.findByProps({ accessibilityLabel: 'Aktifkan tema terang' })).toBeTruthy();
+    expect(tree.root.findByProps({ accessibilityLabel: 'Username' }).props.value).toBe('dummy-login');
+    expect(tree.root.findByProps({ accessibilityLabel: 'Password' }).props.value).toBe('dummy-password');
+    act(() => tree.unmount());
   });
 
   it('renders username, password, and submit controls', () => {

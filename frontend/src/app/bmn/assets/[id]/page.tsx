@@ -1,9 +1,11 @@
 "use client";
 
+import { BmnMediaImage } from "@/components/BmnMediaImage";
+
 import React, { use, useState, useEffect, useRef, useId } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, redirect } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, clearGetCache } from "@/lib/api";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -79,7 +81,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
     queryKey: ["bmn-asset", assetId],
     queryFn: async () => {
       const res = await api.get(`/bmn/assets/${assetId}`);
-      return res.data.data;
+      return { ...res.data.data, geotag_available: res.data.meta?.geotag_available };
     },
     refetchOnWindowFocus: true,
   });
@@ -96,7 +98,8 @@ function AssetDetail({ assetId }: { assetId: string }) {
   const { data: masterLocations = [] } = useMasterLocations(true);
 
   const [activeTab, setActiveTab] = useState("identitas");
-  const [failedHeroUrl, setFailedHeroUrl] = useState<string | null>(null);
+  const [failedHeroUrls, setFailedHeroUrls] = useState<string[]>([]);
+  const [loadedHeroUrl, setLoadedHeroUrl] = useState<string | null>(null);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -296,23 +299,21 @@ function AssetDetail({ assetId }: { assetId: string }) {
 
   // Hero Photo Fallback Hierarchy:
   // 1. Geotag -> 2. Depan -> 3. Belakang -> 4. Kiri -> 5. Kanan
-  const resolvedGeotagUrl = asset.foto_geotag_path || asset.foto_geotag_url;
-  const heroPhotoCandidate = resolvedGeotagUrl
-    ? { url: resolvedGeotagUrl, label: "Foto Utama Geotag", key: "geotag", isGeotag: true }
-    : asset.foto_depan_url
-    ? { url: asset.foto_depan_url, label: "Foto Tampak Depan", key: "depan", isGeotag: false }
-    : asset.foto_belakang_url
-    ? { url: asset.foto_belakang_url, label: "Foto Tampak Belakang", key: "belakang", isGeotag: false }
-    : asset.foto_kiri_url
-    ? { url: asset.foto_kiri_url, label: "Foto Tampak Kiri", key: "kiri", isGeotag: false }
-    : asset.foto_kanan_url
-    ? { url: asset.foto_kanan_url, label: "Foto Tampak Kanan", key: "kanan", isGeotag: false }
-    : null;
+  const geotagKnownMissing = asset.geotag_available === false;
+  const resolvedGeotagUrl = geotagKnownMissing ? null : asset.foto_geotag_path || asset.foto_geotag_url;
+  const heroPhotos = [
+    { url: resolvedGeotagUrl, label: "Foto Utama Geotag", key: "geotag", isGeotag: true },
+    { url: asset.foto_depan_url, label: "Foto Tampak Depan", key: "depan", isGeotag: false },
+    { url: asset.foto_belakang_url, label: "Foto Tampak Belakang", key: "belakang", isGeotag: false },
+    { url: asset.foto_kiri_url, label: "Foto Tampak Kiri", key: "kiri", isGeotag: false },
+    { url: asset.foto_kanan_url, label: "Foto Tampak Kanan", key: "kanan", isGeotag: false },
+  ].map(photo => ({ ...photo, url: photo.url && !asset.foto_geotag_path && photo.isGeotag
+    ? driveToThumbnail(photo.url)?.replace("sz=w400", "sz=w1200") || photo.url : photo.url,
+  }));
+  const heroPhotoCandidate = heroPhotos.find(photo => photo.url && !failedHeroUrls.includes(photo.url));
+  const heroDisplayUrl = heroPhotoCandidate?.url;
+  const geotagDisplayUrl = heroPhotos[0].url;
 
-  const heroDisplayUrl =
-    heroPhotoCandidate?.url && !asset.foto_geotag_path && heroPhotoCandidate.isGeotag
-      ? driveToThumbnail(heroPhotoCandidate.url)?.replace("sz=w400", "sz=w1200") || heroPhotoCandidate.url
-      : heroPhotoCandidate?.url;
 
   const tabs = [
     { key: "identitas", label: "Identitas", icon: <FileText className="w-4 h-4" /> },
@@ -422,13 +423,14 @@ function AssetDetail({ assetId }: { assetId: string }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* TILE 1: Primary Geotag Visual Hero Box (Col 5) */}
           <div className="lg:col-span-5 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl p-4 flex flex-col justify-between shadow-xs">
-            {heroDisplayUrl && failedHeroUrl !== heroDisplayUrl ? (
+            {heroDisplayUrl && !failedHeroUrls.includes(heroDisplayUrl) ? (
               <div className="relative rounded-lg overflow-hidden border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] flex-1 min-h-[360px] flex flex-col justify-between">
                 {/* Asset Hero Image */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <BmnMediaImage
                   src={heroDisplayUrl}
-                  onError={() => setFailedHeroUrl(heroDisplayUrl)}
+                  onError={() => setFailedHeroUrls(previous => [...previous, heroDisplayUrl])}
+                  onLoad={() => setLoadedHeroUrl(heroDisplayUrl)}
                   alt={asset.nama_barang}
                   className="absolute inset-0 w-full h-full object-cover"
                   referrerPolicy={heroDisplayUrl.includes("drive.google.com") ? "no-referrer" : undefined}
@@ -479,9 +481,9 @@ function AssetDetail({ assetId }: { assetId: string }) {
                 <div className="w-14 h-14 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)] flex items-center justify-center mb-3">
                   <Camera className="w-7 h-7" />
                 </div>
-                <h4 className="text-sm font-bold text-[var(--ds-fg)]">{heroDisplayUrl ? "Foto tidak dapat dimuat" : "Belum ada Foto Fisik"}</h4>
+                <h4 className="text-sm font-bold text-[var(--ds-fg)]">{geotagKnownMissing || failedHeroUrls.length ? "Foto tidak dapat dimuat" : "Belum ada Foto Fisik"}</h4>
                 <p className="text-xs text-[var(--ds-fg-muted)] mt-1 max-w-xs leading-relaxed">
-                  {heroDisplayUrl ? "Coba buka preview atau periksa foto pada dokumentasi di bawah." : "Foto fisik dan geotag belum diunggah untuk aset ini. Silakan unggah foto pada seksi dokumentasi di bawah."}
+                  {geotagKnownMissing || failedHeroUrls.length ? "Coba buka preview atau periksa foto pada dokumentasi di bawah." : "Foto fisik dan geotag belum diunggah untuk aset ini. Silakan unggah foto pada seksi dokumentasi di bawah."}
                 </p>
               </div>
             )}
@@ -674,6 +676,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
           nup={asset.nup}
           fotoGeotagUrl={asset.foto_geotag_url}
           fotoGeotagPath={asset.foto_geotag_path}
+          geotagAvailable={asset.geotag_available}
           fotoDepanUrl={asset.foto_depan_url}
           fotoBelakangUrl={asset.foto_belakang_url}
           fotoKiriUrl={asset.foto_kiri_url}
@@ -694,7 +697,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
           isVehicle={asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && !!asset.no_polisi && asset.no_polisi.trim() !== "-"}
           verifiedAt={asset.verified_at}
           verifiedByName={asset.verified_by_name}
-          onRefresh={refetch}
+          onRefresh={() => { clearGetCache(); void refetch(); void queryClient.invalidateQueries({ queryKey: ["bmn-assets"] }); }}
         />
 
         {/* ==================== SECTION 3: TECHNICAL & COMPLIANCE BENTO PANEL ==================== */}
@@ -886,13 +889,13 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   <DetailRow
                     label="Status Foto Geotag"
                     value={
-                      asset.foto_geotag_path || asset.foto_geotag_url
-                        ? "Tersedia (Terverifikasi)"
-                        : currentData.status_foto_geotag || "Belum Ada"
+                      geotagKnownMissing ? "Berkas belum tersedia" : !geotagDisplayUrl ? "Belum Ada"
+                        : failedHeroUrls.includes(geotagDisplayUrl) ? "Belum dapat dimuat"
+                        : loadedHeroUrl === geotagDisplayUrl ? "Tersedia" : "Memuat foto..."
                     }
                   />
                   <DetailRow
-                    label="Jumlah Foto"
+                    label="Foto tercatat"
                     value={
                       Math.max(
                         Number(currentData.jumlah_foto) || 0,

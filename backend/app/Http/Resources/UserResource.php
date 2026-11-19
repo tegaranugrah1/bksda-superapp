@@ -23,6 +23,12 @@ class UserResource extends JsonResource
             'module_roles' => $this->moduleRolesPayload(),
             'permissions' => $this->permissions,
             'is_active' => $this->is_active,
+            'security' => [
+                'must_change_password' => (bool) $this->must_change_password,
+                'must_setup_2fa' => (bool) config('auth.two_factor_enforce', false)
+                    && (in_array($this->role, ['admin', 'super_admin'], true) || in_array('admin', array_values($this->module_roles ?? []), true))
+                    && $this->two_factor_confirmed_at === null,
+            ],
             'created_at' => $this->created_at?->toIso8601String(),
             'employee' => $this->getEmployeeData(),
         ];

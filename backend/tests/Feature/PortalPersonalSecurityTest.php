@@ -951,4 +951,232 @@ class PortalPersonalSecurityTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.summary.assigned_assets_count', 0);
     }
+    public function test_inbox_broadcast_includes_module_admins_and_excludes_revoked_roles(): void
+    {
+        [$moduleAdmin] = $this->actor('Dummy Module Administrator', 'user', ['kepegawaian']);
+        $moduleAdmin->update(['module_roles' => ['kepegawaian' => 'admin']]);
+        $token = $moduleAdmin->createToken('dummy-module-admin')->accessToken;
+        $channels = fn () => array_map(fn ($channel) => $channel->name, (new AdminInboxChanged('surat_tugas'))->broadcastOn());
+        $this->assertContains('private-admin.inbox.surat_tugas.'.$token->id, $channels());
+        $moduleAdmin->update(['module_roles' => ['kepegawaian' => 'user']]);
+        $this->assertNotContains('private-admin.inbox.surat_tugas.'.$token->id, $channels());
+    }
+
+
+    public function test_portal_and_module_asset_photo_urls_do_not_include_the_bearer(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Tokenless Photos', 'admin', ['bmn']);
+        $path = 'audit-fixtures/tokenless-photo.png';
+        Storage::disk('local')->put($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0R0AAAAASUVORK5CYII='));
+        $asset = $this->asset($employee, ['foto_depan_path' => $path, 'foto_geotag_path' => $path]);
+        $asset->update([
+            'foto_url' => "/api/bmn/assets/{$asset->id}/photo/depan/view?token=old-dummy-token&v=9",
+            'foto_geotag_url' => "/api/bmn/assets/{$asset->id}/photo/geotag/view?ToKeN=old-dummy-token&v=9",
+        ]);
+        AssetLoan::create([
+            'asset_id' => $asset->id, 'employee_id' => $employee->id,
+            'tanggal_pinjam' => '2026-11-01', 'due_date' => '2026-12-01', 'status' => 'dipinjam',
+        ]);
+        $token = $user->createToken('dummy-photo-regression')->plainTextToken;
+        foreach ([['/api/me/assets', 'data.0'], ['/api/me/dashboard', 'data.my_assets.0'], ["/api/bmn/assets/{$asset->id}", 'data']] as [$endpoint, $root]) {
+            $this->app['auth']->forgetGuards();
+            $response = $this->getJson($endpoint, ['Authorization' => 'Bearer '.$token])->assertOk();
+            foreach (['foto_depan_url', 'foto_geotag_url', 'foto_url'] as $key) {
+                $url = $response->json($root.'.'.$key);
+                $this->assertIsString($url);
+                $this->assertStringContainsString('/photo/', $url);
+                $this->assertStringNotContainsString('token=', $url);
+                $this->assertStringNotContainsString($token, $url);
+            }
+        }
+    }
+
+    public function test_asset_photos_require_header_or_session_and_keep_the_ownership_boundary(): void
+    {
+        [$owner, $employee] = $this->actor('Dummy Photo Owner');
+        [$other] = $this->actor('Dummy Other Photo Viewer');
+        $path = 'audit-fixtures/header-photo.png';
+        Storage::disk('local')->put($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0R0AAAAASUVORK5CYII='));
+        $asset = $this->asset($employee, ['foto_depan_path' => $path]);
+        $token = $owner->createToken('dummy-photo-owner')->plainTextToken;
+        $otherToken = $other->createToken('dummy-photo-outsider')->plainTextToken;
+        $url = "/api/bmn/assets/{$asset->id}/photo/depan/view";
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url.'?token='.urlencode($token))->assertUnauthorized();
+        $this->app['auth']->forgetGuards();
+        $this->getJson(str_replace('/view', '/download', $url).'?token='.urlencode($token))->assertUnauthorized();
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url, ['Authorization' => 'Bearer '.$token])->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer');
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url, ['Authorization' => 'Bearer '.$otherToken])->assertForbidden();
+        $this->app['auth']->forgetGuards();
+        $this->actingAs($owner, 'web')->getJson($url)->assertOk();
+        $owner->tokens()->delete();
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url, ['Authorization' => 'Bearer '.$token])->assertUnauthorized();
+    }
+
+    public function test_cached_asset_photo_snapshots_strip_legacy_credentials_without_reattaching_them(): void
+    {
+        $payload = ['items' => [[
+            'photo' => '/api/bmn/assets/17/photo/depan/view?ToKeN=old-secret&v=9',
+            'download' => '/api/bmn/assets/17/photo/depan/download/?token=old-secret&v=9',
+        ]]];
+        $result = \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens($payload);
+        $this->assertSame('/api/bmn/assets/17/photo/depan/view?v=9', $result['items'][0]['photo']);
+        $this->assertSame('/api/bmn/assets/17/photo/depan/download/?v=9', $result['items'][0]['download']);
+        $this->assertStringNotContainsString('dummy-current-token', json_encode($result));
+    }
+
+    public function test_bmn_documents_and_ktp_require_header_auth_without_query_credentials(): void
+    {
+        [$admin, $employee] = $this->actor('Dummy BMN Admin', 'admin', ['bmn']);
+        [$other] = $this->actor('Dummy BMN Outsider');
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6l5sAAAAASUVORK5CYII=');
+        Storage::disk('local')->put('audit-fixtures/document-preview.jpg', $png);
+        Storage::disk('local')->put('audit-fixtures/document-preview-page-2.jpg', $png);
+        $asset = $this->asset($employee, ['bpkb_preview_path' => 'audit-fixtures/document-preview.jpg']);
+        $agreement = \App\Modules\Bmn\Models\PowerOfAttorney::create([
+            'employee_id' => $employee->id, 'generated_by' => $admin->id, 'number' => 'DUMMY/2026/001',
+            'document_date' => '2026-11-19', 'first_party_snapshot' => [], 'second_party_snapshot' => [],
+            'assets_snapshot' => [['document' => '/api/bmn/assets/17/document/bpkb/view?%74oken=old&v=9', 'ktp' => '/api/bmn/power-of-attorneys/17/ktp?token%5B%5D=old']],
+            'asset_ids' => [$asset->id], 'ktp_path' => 'audit-fixtures/ktp.png',
+        ]);
+        Storage::disk('local')->put($agreement->ktp_path, $png);
+        $token = $admin->createToken('dummy-document-header')->plainTextToken;
+        $otherToken = $other->createToken('dummy-no-bmn')->plainTextToken;
+        $headers = ['Authorization' => 'Bearer '.$token];
+        $this->app['auth']->forgetGuards();
+        $document = $this->getJson('/api/bmn/assets/'.$asset->id, $headers)->assertOk()->json('data.bpkb_document');
+        $this->app['auth']->forgetGuards();
+        $poa = $this->getJson('/api/bmn/power-of-attorneys/'.$agreement->id, $headers)->assertOk()->json('data');
+        $this->assertSame('/api/bmn/power-of-attorneys/'.$agreement->id.'/ktp', $poa['ktp_url']);
+        $this->assertStringNotContainsString('token', json_encode([$document, $poa['assets_snapshot'], $poa['ktp_url']]));
+        $this->assertStringNotContainsString($token, json_encode([$document, $poa]));
+        $urls = [$document['url'], $document['download_url'], ...$document['preview_urls'], $poa['ktp_url']];
+        $this->assertCount(5, $urls);
+        foreach ($urls as $url) {
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url.(str_contains($url, '?') ? '&' : '?').'token='.urlencode($token))->assertUnauthorized();
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url, $headers)->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff')->assertHeader('Referrer-Policy', 'no-referrer');
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url, ['Authorization' => 'Bearer '.$otherToken])->assertForbidden();
+        }
+        $admin->tokens()->delete();
+        foreach ($urls as $url) {
+            $this->app['auth']->forgetGuards();
+            $this->getJson($url, $headers)->assertUnauthorized();
+        }
+    }
+
+    public function test_cached_document_snapshots_remove_encoded_tokens_without_losing_version_or_fragment(): void
+    {
+        $url = '/api/bmn/assets/17/document/stnk/preview/2?%74oken=old&ToKeN%5Bx%5D=old&v=9&v=10#page=2';
+        $this->assertSame('/api/bmn/assets/17/document/stnk/preview/2?v=9&v=10#page=2', \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens($url));
+        $this->assertSame('plain text', \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens('plain text'));
+    }
+
+    public function test_bmn_photo_uploads_return_authenticated_urls_instead_of_public_storage_urls(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Private Storage Admin', 'admin', ['bmn']);
+        $asset = $this->asset($employee);
+        Sanctum::actingAs($user);
+        foreach (['depan', 'geotag'] as $type) {
+            $endpoint = '/api/bmn/assets/'.$asset->id.($type === 'geotag' ? '/geotag' : '/photo');
+            $upload = fn () => $this->postJson($endpoint, [
+                'type' => $type, 'photo' => \Illuminate\Http\UploadedFile::fake()->image('dummy.png'),
+            ])->assertOk()->assertJsonPath('data.url', '/api/bmn/assets/'.$asset->id.'/photo/'.$type.'/view');
+            $old = $upload()->json('data.path');
+            $new = $upload()->json('data.path');
+            $this->assertNotSame($old, $new);
+            Storage::disk('local')->assertMissing($old);
+            Storage::disk('local')->assertExists($new);
+            $this->assertSame($new, $asset->fresh()->getAttribute('foto_'.$type.'_path'));
+            $this->getJson('/api/bmn/assets/'.$asset->id.'/photo/'.$type.'/view')->assertOk();
+        }
+    }
+
+    public function test_failed_bmn_photo_writes_preserve_the_previous_file_and_database_reference(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Failed Photo Admin', 'admin', ['bmn']);
+        $old = 'audit-fixtures/previous-photo.png';
+        $local = Storage::disk('local');
+        $local->put($old, 'dummy previous photo');
+        $asset = $this->asset($employee, ['foto_depan_path' => $old, 'foto_geotag_path' => $old]);
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('putFileAs')->twice()->andReturnFalse();
+        $disk->shouldNotReceive('delete');
+        Storage::shouldReceive('disk')->andReturn($disk);
+        foreach (['depan', 'geotag'] as $type) {
+            $endpoint = '/api/bmn/assets/'.$asset->id.($type === 'geotag' ? '/geotag' : '/photo');
+            $this->postJson($endpoint, ['type' => $type, 'photo' => \Illuminate\Http\UploadedFile::fake()->image('dummy.png')])->assertStatus(500);
+            $this->assertSame($old, $asset->fresh()->getAttribute('foto_'.$type.'_path'));
+            $this->assertTrue($local->exists($old));
+        }
+    }
+
+    public function test_asset_detail_checks_geotag_storage_without_erasing_missing_references(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Geotag Availability Admin', 'admin', ['bmn']);
+        $path = 'audit-fixtures/geotag-availability.png';
+        $asset = $this->asset($employee, ['foto_geotag_path' => $path]);
+        Sanctum::actingAs($user);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', false);
+        $this->assertSame($path, $asset->fresh()->foto_geotag_path);
+        Storage::disk('local')->put($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6l5sAAAAASUVORK5CYII='));
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', true);
+        Storage::disk('local')->delete($path);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', false);
+        $this->assertSame($path, $asset->fresh()->foto_geotag_path);
+        $asset->update(['foto_geotag_url' => 'https://drive.google.com/file/d/dummy-fallback/view']);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', null);
+    }
+
+    public function test_asset_detail_keeps_availability_unknown_when_storage_cannot_be_checked(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Storage Unreachable Admin', 'admin', ['bmn']);
+        $asset = $this->asset($employee, ['foto_geotag_path' => 'audit-fixtures/unreachable.png']);
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('exists')->once()->andThrow(new \RuntimeException('Dummy storage unavailable'));
+        Storage::shouldReceive('disk')->andReturn($disk);
+        $this->getJson('/api/bmn/assets/'.$asset->id)->assertOk()->assertJsonPath('meta.geotag_available', null);
+    }
+
+    public function test_asset_list_checks_photo_inventory_once_for_a_hundred_assets(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Batch Photo Admin', 'admin', ['bmn']);
+        $present = null;
+        for ($i = 0; $i < 100; $i++) {
+            $asset = $this->asset($employee, [
+                'foto_geotag_path' => 'bmn-photos/dummy-'.$i.'/geotag.jpg',
+                'foto_geotag_url' => $i === 1 ? 'https://drive.google.com/file/d/dummy-external/view' : null,
+            ]);
+            if ($i === 0) $present = $asset->id;
+        }
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('allFiles')->once()->with('bmn-photos')->andReturn(['bmn-photos/dummy-0/geotag.jpg']);
+        $disk->shouldNotReceive('exists');
+        Storage::shouldReceive('disk')->andReturn($disk);
+        $rows = $this->getJson('/api/bmn/assets?per_page=100')->assertOk()->assertJsonCount(100, 'data')->json('data');
+        $this->assertTrue(collect($rows)->firstWhere('id', $present)['photo_availability']['geotag']);
+        $this->assertCount(98, array_filter($rows, fn ($row) => ($row['photo_availability']['geotag'] ?? null) === false));
+        $this->assertCount(1, array_filter($rows, fn ($row) => ! isset($row['photo_availability']['geotag'])));
+    }
+
+    public function test_asset_list_does_not_claim_files_missing_when_inventory_is_unreachable(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Unknown Inventory Admin', 'admin', ['bmn']);
+        $this->asset($employee, ['foto_geotag_path' => 'bmn-photos/dummy/geotag.jpg']);
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('allFiles')->once()->andThrow(new \RuntimeException('Dummy inventory unavailable'));
+        Storage::shouldReceive('disk')->andReturn($disk);
+        $this->getJson('/api/bmn/assets')->assertOk()->assertJsonMissingPath('data.0.photo_availability');
+    }
+
 }

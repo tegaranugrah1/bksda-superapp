@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import { DocumentHtmlView } from "@/components/DocumentHtmlView";
+import { escapeDocumentData } from "@/lib/files/documentHtml";
 import { Ionicons } from "@expo/vector-icons";
 import { downloadAssignmentFile } from "@/lib/files/download";
 import { openFile } from "@/lib/files/share";
@@ -157,6 +158,7 @@ function parseTembusan(value: any): string[] {
 }
 
 function buildSuratTugasHtml(data: PratinjauSuratTugasItem): string {
+  data = escapeDocumentData({ ...data, menimbang: parseItems(data.menimbang), dasar: parseItems(data.dasar), tembusan: parseTembusan(data.tembusan) });
   const nomorSurat = data.nomor_surat || data.nomor || "ST.1/K.18/TU/KSA.05.06/B/07/2026";
   const kegiatanText = data.maksud_tujuan || data.kegiatan || "Melaksanakan Perjalanan Dinas...";
   const tempatText = data.tempat_tujuan || data.tujuan || "Balikpapan";
@@ -475,13 +477,16 @@ export const PratinjauSuratTugasModal: React.FC<PratinjauSuratTugasModalProps> =
   onClose,
 }) => {
   const [isPrinting, setIsPrinting] = React.useState(false);
+  const [printError, setPrintError] = React.useState('');
+  const printLock = React.useRef(false);
 
   if (!data) return null;
 
   const nomorSurat = data.nomor_surat || data.nomor || "ST.1/K.18/TU/KSA.05.06/B/07/2026";
 
   const handlePrint = async () => {
-    setIsPrinting(true);
+    if (printLock.current) return;
+    printLock.current = true; setIsPrinting(true); setPrintError('');
     try {
       const file = await downloadAssignmentFile({
         assignmentId: data.id,
@@ -492,13 +497,14 @@ export const PratinjauSuratTugasModal: React.FC<PratinjauSuratTugasModalProps> =
 
       await openFile({
         localUri: file.localUri,
+        filename: file.filename,
         mimeType: file.mimeType || "application/pdf",
         dialogTitle: "Cetak / Simpan Surat Tugas",
       });
-    } catch {
-      // Fallback
+    } catch (failure) {
+      setPrintError((failure as Error).message || "Surat tugas belum dapat diunduh.");
     } finally {
-      setIsPrinting(false);
+      printLock.current = false; setIsPrinting(false);
     }
   };
 
@@ -538,16 +544,9 @@ export const PratinjauSuratTugasModal: React.FC<PratinjauSuratTugasModalProps> =
         </View>
 
         {/* Scaled A4 Document WebView Presisi Web Responsive */}
+        {!!printError && <Text accessibilityRole="alert" style={{ color: "#ffffff", padding: 12 }}>{printError}</Text>}
         <View style={styles.webViewContainer}>
-          <WebView
-            originWhitelist={["*"]}
-            source={{ html: htmlContent }}
-            style={styles.webView}
-            scalesPageToFit={true}
-            showsVerticalScrollIndicator={true}
-            showsHorizontalScrollIndicator={true}
-            bounces={false}
-          />
+          <DocumentHtmlView html={htmlContent} style={styles.webView} />
         </View>
       </View>
     </Modal>

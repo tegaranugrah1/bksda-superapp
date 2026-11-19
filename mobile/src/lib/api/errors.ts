@@ -8,6 +8,7 @@ export function normalizeError(error: any): ApiError {
   let status: number | undefined = undefined;
   let message = 'Terjadi kesalahan yang tidak diketahui';
   let kind: ApiError['kind'] = 'unknown';
+  let reason: ApiError['reason'];
   let fieldErrors: Record<string, string[]> | undefined = undefined;
 
   // 1. Check if error is an Axios-like or Fetch-like error object
@@ -19,6 +20,7 @@ export function normalizeError(error: any): ApiError {
       const data = response.data;
 
       // Extract user-friendly message and field errors
+      if (['account_inactive', 'must_change_password', 'must_setup_2fa'].includes(data?.reason)) reason = data.reason;
       if (data && typeof data === 'object') {
         // Laravel validation errors are returned in data.errors
         if (data.errors && typeof data.errors === 'object') {
@@ -117,6 +119,7 @@ export function normalizeError(error: any): ApiError {
     message,
     kind,
     ...(fieldErrors ? { fieldErrors } : {}),
+    ...(reason ? { reason } : {}),
   };
 }
 

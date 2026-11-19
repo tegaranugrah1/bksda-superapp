@@ -4,7 +4,7 @@ import { useAuth } from '../../../features/auth/AuthProvider';
 import { useMobileDashboard } from '../useMobileDashboard';
 import { PortalDashboardScreen } from '../PortalDashboardScreen';
 
-export default function DashboardScreen({ navigation }: any) {
+export default function DashboardScreen({ navigation, route }: any) {
   const { user, employee } = useAuth();
   const { data: dashboardApiData } = useMobileDashboard();
 
@@ -28,11 +28,13 @@ export default function DashboardScreen({ navigation }: any) {
     } else if (moduleKey === 'kepegawaian' || moduleKey === 'dashboard-kepegawaian') {
       navigation.navigate('KepegawaianMain');
     } else if (moduleKey === 'profile') {
-      navigation.navigate('Profile');
+      navigation.navigate('Dashboard', { portalTab: 'profile' });
     } else if (moduleKey === 'drive') {
       Alert.alert('BKSDA Drive', 'Akses penyimpanan cloud & manajemen berkas digital terintegrasi RustFS / S3 BKSDA Kaltim.');
     }
   };
+
+  const onTabRequestHandled = React.useCallback(() => navigation.setParams({ portalTab: undefined }), [navigation]);
 
   const displayName = user?.name || employee?.name || user?.username || 'Super Admin System';
   const displayNip = employee?.nip || user?.username || 'superadmin';
@@ -44,6 +46,8 @@ export default function DashboardScreen({ navigation }: any) {
         name: displayName,
         nip: displayNip,
       }}
+      requestedTab={route?.params?.portalTab}
+      onTabRequestHandled={onTabRequestHandled}
       dashboardData={dashboardApiData}
     />
   );

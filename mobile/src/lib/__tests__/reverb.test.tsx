@@ -7,6 +7,7 @@ import {
   disconnectReverb,
   getReverbWsUrl,
   getTokenId,
+  isReverbSubscribed,
   subscribeReverbChannel,
 } from '@/lib/reverb';
 
@@ -103,6 +104,12 @@ describe('reverb client & useReverbRefresh', () => {
     );
   });
 
+  it('does not downgrade a secure API connection when ws is configured', () => {
+    mockConfig.apiUrl = 'https://api.example.test/api';
+    process.env.EXPO_PUBLIC_REVERB_SCHEME = 'ws';
+    expect(getReverbWsUrl('dummy-key')).toMatch(/^wss:/);
+  });
+
   it('authorizes private channel, dispatches events, and respects 403 rejection', async () => {
     (apiClient.post as jest.Mock)
       .mockResolvedValueOnce({ data: { data: { auth: 'key:sig123' } } })
@@ -144,6 +151,12 @@ describe('reverb client & useReverbRefresh', () => {
       })
     );
 
+    expect(isReverbSubscribed('private-App.Models.User.7.12')).toBe(false);
+    sock.emitMessage({ event: 'pusher_internal:subscription_succeeded',
+      channel: 'private-App.Models.User.7.12', data: '{}' });
+    expect(isReverbSubscribed('private-App.Models.User.7.12')).toBe(true);
+    expect(isReverbSubscribed('private-admin.inbox.bmn.12')).toBe(false);
+
     sock.emitMessage({
       event: 'notification.created',
       channel: 'private-App.Models.User.7.12',
@@ -152,6 +165,7 @@ describe('reverb client & useReverbRefresh', () => {
     expect(onEvent).toHaveBeenCalledWith({ id: 99, type: 'cuti' });
 
     unsub1();
+    expect(isReverbSubscribed('private-App.Models.User.7.12')).toBe(false);
     unsub2();
     expect(sock.closed).toBe(true);
   });
@@ -177,6 +191,7 @@ describe('reverb client & useReverbRefresh', () => {
       employee: null,
       token: '77|tokenvalue',
       isLoading: false,
+      twoFactorChallenge: null, securityRequirement: null, verifyTwoFactor: jest.fn(), cancelTwoFactor: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
       refreshUser: jest.fn(),
@@ -204,6 +219,15 @@ describe('reverb client & useReverbRefresh', () => {
 
     await Promise.resolve();
     await Promise.resolve();
+
+    act(() => {
+      tree.update(<AuthContext.Provider value={{ ...authValue, user: { ...authValue.user!, name: 'Updated Name' } }}>
+        <Harness />
+      </AuthContext.Provider>);
+    });
+    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(sock.closed).toBe(false);
+    expect(sock.sent.some(frame => JSON.parse(frame).event === 'pusher:unsubscribe')).toBe(false);
 
     // Non-admin user should only authorize personal channel, not admin:surat_tugas
     expect(apiClient.post).toHaveBeenCalledTimes(1);
@@ -256,6 +280,7 @@ describe('reverb client & useReverbRefresh', () => {
       employee: null,
       token: '88|admintoken',
       isLoading: false,
+      twoFactorChallenge: null, securityRequirement: null, verifyTwoFactor: jest.fn(), cancelTwoFactor: jest.fn(),
       login: jest.fn(),
       logout: jest.fn(),
       refreshUser: jest.fn(),
@@ -289,7 +314,11 @@ describe('reverb client & useReverbRefresh', () => {
     });
 
     // Simulate connection drop and exponential backoff reconnect (2s)
+    firstSock.emitMessage({ event: 'pusher_internal:subscription_succeeded',
+      channel: 'private-admin.inbox.surat_tugas.88', data: '{}' });
+    expect(isReverbSubscribed('private-admin.inbox.surat_tugas.88')).toBe(true);
     firstSock.onclose?.();
+    expect(isReverbSubscribed('private-admin.inbox.surat_tugas.88')).toBe(false);
     act(() => {
       jest.advanceTimersByTime(2000);
     });
@@ -317,6 +346,14 @@ describe('reverb client & useReverbRefresh', () => {
       jest.advanceTimersByTime(150);
     });
     expect(onRefresh).toHaveBeenCalledTimes(2);
+
+    // Revoking access must still remove the corresponding admin subscription.
+    act(() => {
+      tree.update(<AuthContext.Provider value={{ ...authValue, user: { ...authValue.user!, role: 'user' } }}>
+        <Harness />
+      </AuthContext.Provider>);
+    });
+    expect(secondSock.closed).toBe(true);
 
     act(() => {
       tree.unmount();

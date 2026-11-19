@@ -133,20 +133,24 @@ class StActorAcceptanceTest extends TestCase
             'tanggal_selesai' => '2026-11-21', 'jumlah_hari' => 2, 'status' => 'approved',
             'alamat_menjalankan_cuti' => 'Dummy address',
         ]);
+        $this->asBearer(null);
+        $this->postJson('/api/surat-tugas/check-conflicts', $this->payload($onAssignment) + ['exclude_id' => $existing->id])
+            ->assertOk()->assertJsonPath('has_conflict', true)->assertJsonCount(1, 'conflicts');
         $payload = $this->payload($onAssignment, $onLeave);
         foreach ([null, $admin] as $actor) {
             $this->asBearer($actor);
             foreach ([['/api/surat-tugas/check-conflicts', 200], ['/api/surat-tugas/submit', 422]] as [$url, $status]) {
                 $response = $this->postJson($url, $payload)->assertStatus($status);
                 $conflicts = $response->json('conflicts');
-                $this->assertCount(2, $conflicts);
-                $this->assertSame(['surat_tugas', 'cuti'], array_column($conflicts, 'type'));
+                $this->assertCount($actor ? 2 : 1, $conflicts);
+                if ($actor) $this->assertSame(['surat_tugas', 'cuti'], array_column($conflicts, 'type'));
+                else $this->assertSame(['message'], array_keys($conflicts[0]));
                 foreach (['DUMMY_PRIVATE_INTERNAL_PURPOSE', 'DUMMY_PRIVATE_LEAVE_REASON',
                     'DUMMY_PRIVATE_ST_NUMBER', 'DUMMY_PRIVATE_LEAVE_NUMBER'] as $marker) {
                     if ($actor) $this->assertStringContainsString($marker, $response->getContent());
                     else $this->assertStringNotContainsString($marker, $response->getContent());
                 }
-                foreach ($conflicts as $conflict) {
+                foreach ($actor ? $conflicts : [] as $conflict) {
                     $this->assertSame(['employee_id', 'employee_name', 'type', 'reference_id', 'nomor', 'keterangan',
                         'status', 'tanggal_mulai', 'tanggal_selesai', 'range_formatted', 'message'], array_keys($conflict));
                     if (! $actor) {

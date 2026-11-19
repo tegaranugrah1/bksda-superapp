@@ -67,7 +67,8 @@ class PowerOfAttorneyController extends Controller
         return response($disk->get($agreement->ktp_path), 200)
             ->header('Content-Type', $mime)
             ->header('Cache-Control', 'private, no-store, max-age=0')
-            ->header('X-Content-Type-Options', 'nosniff');
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Referrer-Policy', 'no-referrer');
     }
 
     public function destroy(string $id): JsonResponse

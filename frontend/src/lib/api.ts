@@ -132,7 +132,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url ?? "unknown endpoint";
 
-    if (process.env.NODE_ENV === "development" && !url.includes("logout")) {
+    if (process.env.NODE_ENV === "development" && error.code !== "ERR_CANCELED" && !url.includes("logout")) {
       const detail = status ? `HTTP ${status}` : error.message;
       console.warn(`[API] ${url} failed: ${detail}`);
     }
@@ -279,7 +279,7 @@ export function resolveApiUrl(url?: string | null): string | null {
   if (/^https?:\/\//i.test(url)) return url;
   if (!url.startsWith("/")) return url;
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  const apiBase = api.defaults.baseURL;
   if (!apiBase || apiBase === "/api" || !apiBase.startsWith("http")) {
     return url;
   }
