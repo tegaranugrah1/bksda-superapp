@@ -33,6 +33,8 @@ import { openFile } from "../../lib/files/share";
 import { useForegroundRefresh } from "../../hooks/useForegroundRefresh";
 import { useReverbRefresh } from "../../hooks/useReverbRefresh";
 import { PratinjauSuratTugasModal, PratinjauSuratTugasItem } from "../../components/PratinjauSuratTugasModal";
+import { ChangePasswordModal } from "../profile/ChangePasswordModal";
+import { ProfileSettingsModal, type ProfileSetting } from "../profile/ProfileSettingsModal";
 import { FormulirCutiModal } from "./FormulirCutiModal";
 import { FormulirCutiPrintModal, LeaveRequestPrintData } from "../../components/FormulirCutiPrintModal";
 import { DashboardData } from "./types";
@@ -374,7 +376,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 }) => {
   const isScreenFocused = useIsFocused();
   const { isDark, toggleTheme, colors: themeColors } = useTheme();
-  const { user, employee, logout } = useAuth();
+  const { user, employee, logout, refreshUser } = useAuth();
   const r = usePortalResponsive();
   const styles = React.useMemo(() => createPortalStyles(r), [r]);
 
@@ -396,6 +398,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   // Bottom Navigation state: 'dashboard' | 'surattugas' | 'layanan' | 'profile'
   const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [profileSetting, setProfileSetting] = useState<ProfileSetting | null>(null);
+  const [profilePasswordVisible, setProfilePasswordVisible] = useState(false);
+  const [profileNotice, setProfileNotice] = useState("");
+  const [failedProfilePhoto, setFailedProfilePhoto] = useState<string | null>(null);
   const isDashboard = activeTab === "dashboard";
   const colors = React.useMemo(() => ({
     ...themeColors,
@@ -571,12 +577,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     (user as any)?.position ||
     "Polisi Kehutanan Ahli Madya";
 
-  const resolvedUnitKerja =
-    employee?.department ||
-    (employee as any)?.work_unit ||
-    (user as any)?.work_unit ||
-    "Seksi Konservasi Wilayah II Samarinda";
-
   const resolvedSisaCuti =
     leaveBalance?.sisa_cuti_tersedia ??
     leaveBalance?.sisa_cuti_n ??
@@ -591,10 +591,15 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const resolvedSisaCutiLabel =
     user && !employee && !leaveBalance ? "-" : `${resolvedSisaCuti} Hari`;
 
+  const profileEmployee = employee || user?.employee;
+  const profileName = profileEmployee?.name || user?.name || "Pengguna BKSDA";
+  const profilePhoto = resolveMobilePhotoUrl(profileEmployee?.photo);
+  const profileLeaveDays = leaveBalance?.sisa_cuti_tersedia ?? leaveBalance?.sisa_cuti_n;
+  const profileLeaveLabel = !canFetchLeaveBalance ? "Tidak tersedia" : profileLeaveDays == null ? "Belum tersedia" : `${profileLeaveDays} Hari Kerja`;
+
   const greetingMeta = getLiveGreeting();
   const todayIndo = formatTodayIndo();
 
-  const avatarInitial = (resolvedName.charAt(0) || "H").toUpperCase();
   const summary = dashboardData?.summary;
 
   const accessibleModules = MODULES.filter((mod) => hasModule(user, mod.key));
@@ -604,7 +609,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const shadowLg = PORTAL_5_TOKENS.shadow.lg(isDark);
 
   // Mock ST items fallback when empty so user sees realistic state matching FigCraft
-  const displayStList = myStList.length > 0 ? myStList : [
+  const displayStList = myStList.length > 0 ? myStList : user ? [] : [
     {
       id: 1,
       nomor_surat: "ST.042/K.18/TU/KSA/03/2026",
@@ -717,7 +722,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     },
   ];
 
-  const isMockLeaveMode = leaveRequests.length === 0;
+  const isMockLeaveMode = !user && leaveRequests.length === 0;
   const displayLeaveRequests = (isMockLeaveMode ? fallbackLeaveRequests : leaveRequests).filter(
     (req: any) => !isMockLeaveMode || !dismissedMockLeaveIds.includes(req.id)
   );
@@ -2387,20 +2392,21 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             <View style={styles.pageHeaderCol}>
               <Text style={[styles.pageMainTitle, { color: colors.textDark }]}>Profil Pegawai</Text>
               <Text style={[styles.pageMainSubtitle, { color: colors.textMuted }]}>
-                Identitas & Pengaturan Akun ASN Balai KSDA Kaltim
+                Identitas, kontak dan pengaturan akun Balai KSDA Kaltim
               </Text>
             </View>
 
             {/* Profile Hero Card */}
             <GlassCard style={[styles.profileHeroCard, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
-              <View style={[styles.profileAvatarBig, { backgroundColor: colors.accentSolid }]}>
-                <Text style={[styles.profileAvatarText, { color: colors.accentOnSolid }]}>{avatarInitial}</Text>
-              </View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Ubah foto profil" disabled={!profileEmployee} onPress={() => setProfileSetting("photo")} style={[styles.profileAvatarBig, { backgroundColor: colors.accentSolid }]}>
+                {profilePhoto && failedProfilePhoto !== profilePhoto ? <Image source={{uri:profilePhoto}} style={styles.profilePhoto} accessibilityLabel={`Foto ${profileName}`} onError={() => setFailedProfilePhoto(profilePhoto)} /> : <Text style={[styles.profileAvatarText, { color: colors.accentOnSolid }]}>{profileName.charAt(0).toUpperCase()}</Text>}
+                {!!profileEmployee && <View style={[styles.profileCamera, {backgroundColor:colors.cardBg,borderColor:colors.glassBorder}]}><Ionicons name="camera-outline" size={16} color={colors.accentFg} /></View>}
+              </TouchableOpacity>
               <View style={styles.profileHeroMain}>
-                <Text style={[styles.profileHeroName, { color: colors.textDark }]}>{resolvedName}</Text>
-                <Text style={[styles.profileHeroNip, { color: colors.textMuted }]}>NIP: {resolvedNip}</Text>
-                <Text style={[styles.profileHeroJabatan, { color: colors.accentFg }]}>{resolvedJabatan}</Text>
-                <Text style={[styles.profileHeroUnit, { color: colors.textMuted }]}>{resolvedUnitKerja}</Text>
+                <Text style={[styles.profileHeroName, { color: colors.textDark }]}>{profileName}</Text>
+                <Text selectable style={[styles.profileHeroNip, { color: colors.textMuted }]}>{profileEmployee?.nip ? `NIP: ${profileEmployee.nip}` : `Username: ${user?.username || "—"}`}</Text>
+                <Text style={[styles.profileHeroJabatan, { color: colors.accentFg }]}>{profileEmployee?.position || "Jabatan belum diisi"}</Text>
+                <Text style={[styles.profileHeroUnit, { color: colors.textMuted }]}>{profileEmployee?.department || (profileEmployee ? "Unit kerja belum diisi" : "Akun belum terhubung dengan data pegawai")}</Text>
               </View>
             </GlassCard>
 
@@ -2408,7 +2414,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             <View style={styles.profileMetricsRow}>
               <GlassCard style={[styles.profileMetricBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
                 <Text style={[styles.profileMetricLabel, { color: colors.textMuted }]}>SISA CUTI TAHUNAN</Text>
-                <Text style={[styles.profileMetricValue, { color: colors.warningFg }]}>{`${resolvedSisaCuti} Hari Kerja`}</Text>
+                <Text style={[styles.profileMetricValue, { color: colors.warningFg }]}>{profileLeaveLabel}</Text>
               </GlassCard>
               <GlassCard style={[styles.profileMetricBox, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
                 <Text style={[styles.profileMetricLabel, { color: colors.textMuted }]}>TOTAL ASET DIPEGANG</Text>
@@ -2418,14 +2424,20 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               </GlassCard>
             </View>
 
+            {!!profileNotice && <Text accessibilityLiveRegion="polite" style={[styles.profileContactValue,{color:colors.accentFg,marginBottom:12}]}>{profileNotice}</Text>}
+            <GlassCard style={[styles.profileContactCard,{backgroundColor:colors.cardBg,borderColor:colors.glassBorder},shadowXs]}>
+              <View style={styles.profileContactHeading}><Text style={[styles.profileContactTitle,{color:colors.textDark}]}>Informasi kontak</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit informasi kontak" onPress={() => {setProfileNotice("");setProfileSetting("contact");}} style={styles.profileEditButton}><Ionicons name="create-outline" size={21} color={colors.accentFg}/></TouchableOpacity></View>
+              {[["Email",profileEmployee?.email || user?.email],["Telepon",profileEmployee?.phone],["Username",user?.username]].map(([label,value])=><View key={label} style={styles.profileContactRow}><Text style={[styles.profileContactLabel,{color:colors.textMuted}]}>{label}</Text><Text selectable style={[styles.profileContactValue,{color:colors.textDark}]}>{value || "Belum diisi"}</Text></View>)}
+            </GlassCard>
+
             {/* Profile Menu Actions List */}
             <View style={styles.profileMenuStack}>
               {[
                 {
-                  label: "Informasi Riwayat Pangkat & Jabatan",
+                  label: "Data Pangkat, Jabatan & Unit Kerja",
                   icon: "ribbon-outline",
                   color: colors.infoFg,
-                  action: () => Alert.alert("Pangkat & Jabatan", `Pangkat: ${resolvedPangkat}\nJabatan: ${resolvedJabatan}\nUnit: ${resolvedUnitKerja}`),
+                  action: () => setProfileSetting("employment"),
                 },
                 {
                   label: "Riwayat Surat Tugas & SPPD",
@@ -2437,24 +2449,26 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   label: "Riwayat Pengajuan Cuti Online",
                   icon: "calendar-outline",
                   color: colors.warningFg,
-                  action: () => setCutiModalVisible(true),
+                  action: () => {setActiveTab("layanan");setLayananSubScreen("cuti");},
                 },
                 {
                   label: "Keamanan Akun & Ubah Kata Sandi",
                   icon: "shield-checkmark-outline",
                   color: colors.textSecondary,
-                  action: () => Alert.alert("Keamanan Akun", "Fitur reset sandi terhubung dengan IAM Portal BKSDA."),
+                  action: () => setProfilePasswordVisible(true),
                 },
                 {
-                  label: "Hubungi Subbag Tata Usaha (TU)",
-                  icon: "mail-outline",
+                  label: "Perbarui Data Profil",
+                  icon: "refresh-outline",
                   color: colors.accentFg,
-                  action: () => Alert.alert("Helpdesk TU", "Email: tu.bksdakaltim@ksdae.go.id\nWhatsApp TU: 0812-3456-7890"),
+                  action: async () => {await refreshUser();refreshAllPortalData();setProfileNotice("Data profil diperbarui.");},
                 },
               ].map((item, idx) => (
                 <TouchableOpacity
                   key={idx}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.label}
                   onPress={item.action}
                 >
                   <GlassCard style={[styles.profileMenuItem, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowXs]}>
@@ -2554,6 +2568,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           </Text>
         </TouchableOpacity>
       </View>
+
+      {profileSetting && <ProfileSettingsModal mode={profileSetting} onClose={() => setProfileSetting(null)} onSaved={message => {setProfileSetting(null);setProfileNotice(message);}} />}
+      <ChangePasswordModal visible={profilePasswordVisible} onClose={() => setProfilePasswordVisible(false)} onSuccessLogout={() => {void logout();}} />
 
       {/* ========================================================================= */}
       {/* QUICK ACTION MODAL BOTTOM SHEET (CENTER FAB)                              */}
@@ -3872,6 +3889,13 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       fontSize: T.xl,
       fontWeight: "800",
     },
+    profilePhoto: {width:"100%",height:"100%",borderRadius:R.pill},
+    profileCamera: {position:"absolute",bottom:0,right:0,width:26,height:26,borderRadius:13,borderWidth:1,alignItems:"center",justifyContent:"center"},
+    profileContactCard: {padding:S.x4,borderWidth:1,borderRadius:R.card,marginBottom:S.x4,gap:S.x3},
+    profileContactHeading: {flexDirection:"row",alignItems:"center",gap:S.x2},
+    profileContactTitle: {fontSize:T.sm,fontWeight:"700",flex:1},
+    profileEditButton: {width:44,height:44,alignItems:"center",justifyContent:"center"},
+    profileContactRow: {gap:4},profileContactLabel: {fontSize:T.xs},profileContactValue: {fontSize:T.sm,lineHeight:20},
     profileHeroMain: {
       flex: 1,
     },

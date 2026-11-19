@@ -150,3 +150,6 @@ A state-of-the-art dark theme inspired by lush forestry conservation, featuring 
 1. **Zero Placeholder Rule**: Use real BKSDA data (NIP, Plat Kendaraan, No Agenda, Surat BKSDA).
 2. **High Contrast & Readability**: White text on dark glass cards ensures 100% legibility in field operations.
 3. **Smooth Micro-Animations**: Subtle hover/press scale effects on cards and floating navigation.
+
+
+**Employee profile in the mobile portal (19 November 2026):** Preserve the portal header, forest/mint accents, card surfaces and established spacing. Show the linked employee identity and photo; use real account/empty states when no employee, contact value or leave balance is available. Contact fields are grouped in one card, with a visible edit action; the avatar camera opens a confirmed upload preview. Employment details are read-only current data, and history actions open the existing personal lists. Contact/photo/password forms share a themed, scrollable sheet with 44px icon controls and 48px fields/actions. A changed email requires current-password confirmation, and successful password reset requires signing in again. Do not invent HR history, helpdesk contacts, leave balances or personal activity to fill empty states.
