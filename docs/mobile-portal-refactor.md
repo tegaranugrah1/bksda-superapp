@@ -66,3 +66,32 @@ Verifikasi statis setelah perubahan:
 Pemisahan render Profil dan Layanan BMN/cuti tetap merupakan kandidat tahap berikutnya. Pengguna menyetujui checkpoint tahap 2; perubahan disimpan sebagai commit lokal dan belum di-push. Hasil pemeriksaan statis serta status runtime yang belum tervalidasi tetap dicatat di atas.
 
 Graph kode tahap 2 diperbarui: 15.753 node, 29.640 edge dan 1.059 komunitas, melalui AST tanpa LLM.
+
+
+## Tahap 3 — Profil dan Layanan (19 November 2026)
+
+Basis checkpoint `fc27961d`. Memisahkan render Profil dan Layanan tanpa mengubah desain yang sudah disetujui.
+
+| Berkas | Tanggung jawab |
+| --- | --- |
+| `PortalProfileTab.tsx` | Identitas, foto, kontak, ringkasan dan menu profil. Resolusi identitas/foto/saldo yang hanya dipakai profil berada di komponen ini. |
+| `PortalServicesMenu.tsx` | Kartu layanan aset, pinjaman, cuti dan kalkulator, beserta alur membuka subhalaman yang sama. |
+| `PortalAssetsView.tsx` | Daftar BMN aset/pinjaman, pencarian, kategori, pilihan grid/list, foto dan keterangan status. Perhitungan hasil pencarian/kategori yang hanya dipakai daftar berada di komponen ini. |
+| `PortalLeaveView.tsx` | Ringkasan saldo, pilihan tahun, daftar pengajuan dan aksi cuti yang sama. Perhitungan ringkasan dan daftar tahun berada di komponen ini. |
+| `portalAssetHelpers.ts` | Helper foto, kategori, kondisi dan merk/tipe yang dipakai bersama Beranda dan BMN/Profil; isi fungsi sama dengan sebelumnya. |
+| `portalViewTypes.ts` | Tipe props tampilan bersama dan tujuan subhalaman layanan; tanpa state/store baru. |
+
+State pencarian, kategori, mode grid/list, tahun cuti, kegagalan foto, notifikasi profil, pilihan tab dan visibilitas modal tetap dimiliki portal. Tampilan hasil ekstraksi menerima nilai dan setter yang sama, sehingga pelepasan komponen saat berpindah tab tidak menghapus pilihan. Modal kontak/foto/pangkat, kata sandi, logout, pengajuan/pembatalan cuti dan pratinjau tetap berada di lokasi serta alur yang sama. Komponen baru memakai fragment tanpa menambah container layout, hooks atau pemuat data.
+
+Halaman utama berkurang dari 2,595 menjadi 1,594 baris. `portalStyles.ts`, `PortalTasksTab.tsx`, `usePortalData.ts`, endpoint, backend, hak akses, session/auth, header, warna, bentuk kartu, spacing dan animasi dipertahankan. `getLeaveStatusMeta` dipindah ke helper bersama tanpa mengubah isi fungsi. Tidak menambah dependensi.
+
+Verifikasi:
+
+- Compiler TypeScript mobile tanpa emit: **0 diagnostik**.
+- Perbandingan AST terhadap checkpoint: seluruh JSX portal sama setelah empat komponen diekspansi, termasuk props, atribut, teks, style inline dan handler. Semua state/handler di induk, modal/refresh, perhitungan yang dipindah serta helper foto/kategori/kondisi/merk/status identik. File stylesheet, hook data dan tab Tugas tetap identik; konstanta header, tema light/dark dan modul sama.
+- Sintaks dua fixture Playwright yang diperluas valid. Kasus tambahan memeriksa pencarian/kategori/mode BMN sesudah Profil → Layanan → Aset, notifikasi/foto profil sesudah berpindah tab, serta filter tahun cuti setelah Profil → Riwayat Cuti.
+- **Jest, browser E2E, pengukuran render/piksel dan perangkat fisik belum dijalankan.** Batas sandbox OS skill security-audit dari tahap sebelumnya tetap berlaku; kesetaraan AST/style adalah bukti statis, bukan hasil uji runtime. Rencana regresi tahap 1/2 tetap berlaku ditambah skenario persistensi baru di atas.
+
+Atas instruksi pengguna tahap ini dilanjutkan tanpa menganggap validasi runtime tahap sebelumnya sudah selesai. Pengguna menyetujui checkpoint tahap 3; perubahan disimpan sebagai commit lokal, belum di-push. Hasil pemeriksaan statis dan status runtime yang belum tervalidasi tetap dicatat di atas.
+
+- Graph kode tahap 3 diperbarui setelah perubahan akhir: 15.772 node, 29.740 edge dan 1.048 komunitas melalui AST tanpa LLM.

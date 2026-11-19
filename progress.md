@@ -3487,3 +3487,14 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
 - Pengguna menyetujui checkpoint Bagian 175. Refactor pemuatan data dan tab Tugas disimpan sebagai commit lokal dengan basis 105dca21; belum di-push. Rincian: docs/mobile-portal-refactor.md. Status uji runtime tetap belum tervalidasi.
 
 - Graph kode diperbarui setelah refactor tahap 2: 15.753 node, 29.640 edge, 1.059 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 176 Refactor Profil dan Layanan Mobile
+
+- Memisahkan empat tampilan: PortalProfileTab, PortalServicesMenu, PortalAssetsView dan PortalLeaveView. Helper aset/foto dipindah ke portalAssetHelpers; status cuti ke helper bersama; tipe props/tujuan layanan memakai portalViewTypes. Halaman utama dari 2,595 ke 1,594 baris, tanpa tambahan dependensi.
+- Perhitungan yang hanya dipakai masing-masing tampilan ikut dipindah. State pencarian, kategori, grid/list, tahun cuti, foto, notifikasi profil dan modal tetap di induk agar bertahan saat navigasi. Alur kontak/foto/pangkat, kata sandi/logout, cuti/cetak serta pemisahan aset/pinjaman sama. Tidak mengubah backend, endpoint, session/auth atau hak akses.
+- Perbandingan AST memverifikasi seluruh struktur UI setelah ekspansi empat komponen, props, state/handler induk, perhitungan/helper, modal, header dan tema terhadap fc27961d. Stylesheet, hook data dan tab Tugas identik; desain, warna, bentuk kartu, spacing dan animasi dipertahankan.
+- TypeScript mobile 0 diagnostik dan sintaks dua fixture browser valid. Regresi diperluas untuk persistensi pencarian/kategori/grid-list BMN, notifikasi/foto profil dan filter tahun cuti saat berpindah tab. Browser/Jest/perangkat belum dijalankan karena batas sandbox security-audit tetap berlaku; tidak mengklaim hasil render/runtime lulus. Rincian: docs/mobile-portal-refactor.md.
+- Pengguna menyetujui checkpoint Bagian 176. Refactor Profil dan Layanan disimpan sebagai commit lokal dengan basis fc27961d; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi.
+
+- Graph kode tahap 3 diperbarui setelah perubahan akhir: 15.772 node, 29.740 edge dan 1.048 komunitas melalui AST tanpa LLM.

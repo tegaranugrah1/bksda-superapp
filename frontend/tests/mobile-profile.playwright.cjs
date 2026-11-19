@@ -15,6 +15,7 @@ async function main() {
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0R0AAAAASUVORK5CYII=', 'base64');
     const contactPosts = [], photoPosts = [], passwordPosts = [], errors = [];
     let rejectContact = true, rejectPassword = true, meCalls = 0;
+    let fixtureLeaves = [];
     let logoutCalls = 0, failLogout = false;
     await context.routeWebSocket('**/*', ws => {
       if (!new URL(ws.url()).pathname.startsWith('/app/')) { ws.close(); return; }
@@ -36,6 +37,7 @@ async function main() {
       }
       else if (endpoint.endsWith('/broadcasting/auth')) body = { auth: 'fixture:signature' };
       else if (endpoint.endsWith('/mobile/dashboard')) body = { data: { profile: user, summary: {}, notifications: [], urgent_tax_vehicles: [] } };
+      else if (endpoint.endsWith('/me/leave-requests')) body = {data:fixtureLeaves};
       else if (endpoint.endsWith('/me/leave-balance')) body = { data: { sisa_cuti_tersedia: 0 } };
       else if (endpoint.endsWith('/me/dashboard')) body = { data: { my_assets: [] } };
       else if (endpoint.endsWith('/me/update-profile')) {
@@ -107,8 +109,26 @@ async function main() {
     await button('Simpan foto profil').click(); await text('Foto profil berhasil diperbarui.').waitFor();
     assert.equal(photoPosts.length, 1); assert.ok(photoPosts[0].includes(Buffer.from('name="foto"; filename="profile.png"'))); assert.ok(photoPosts[0].includes(png));
     await page.getByLabel(`Foto ${person.name}`, { exact: true }).waitFor();
+    await button('Riwayat Surat Tugas & SPPD').click(); await text('Belum Ada Surat Tugas').waitFor();
+    await text('Profil').click();
+    await text('Foto profil berhasil diperbarui.').waitFor();
+    await page.getByLabel(`Foto ${person.name}`, {exact:true}).waitFor();
     await button('Riwayat Pengajuan Cuti Online').click();
     assert.equal(await text('Formulir Pengajuan Cuti').count(), 0); await text('Tidak Ada Pengajuan Cuti').waitFor(); await text('Profil').click();
+    // The leave year filter must survive switching between the profile and services views.
+    fixtureLeaves = [
+      {id:999991, jenis_cuti:'Cuti Tahunan', tanggal_mulai:'2025-11-03', tanggal_selesai:'2025-11-03', jumlah_hari:1, status:'PENGAJUAN', alasan_cuti:'Dummy archive 2025'},
+      {id:999992, jenis_cuti:'Cuti Sakit', tanggal_mulai:'2026-11-03', tanggal_selesai:'2026-11-03', jumlah_hari:1, status:'PENGAJUAN', alasan_cuti:'Dummy archive 2026'},
+    ];
+    await button('Perbarui Data Profil').click();
+    await button('Riwayat Pengajuan Cuti Online').click();
+    await text('2025 (1)').click();
+    await text('Cuti Tahunan').waitFor(); assert.equal(await text('Cuti Sakit').count(), 0);
+    const selectedYearColor = await text('2025 (1)').evaluate(node => getComputedStyle(node).color);
+    await text('Profil').click(); await button('Riwayat Pengajuan Cuti Online').click();
+    await text('Cuti Tahunan').waitFor(); assert.equal(await text('Cuti Sakit').count(), 0);
+    assert.equal(await text('2025 (1)').evaluate(node => getComputedStyle(node).color), selectedYearColor);
+    await text('Profil').click(); fixtureLeaves = [];
     user.employee = null; const before = meCalls; await button('Perbarui Data Profil').click();
     await text('Akun belum terhubung dengan data pegawai').waitFor(); assert.ok(meCalls > before);
     await text('Tidak tersedia').waitFor(); assert.equal(await button('Ubah foto profil').isDisabled(), true);

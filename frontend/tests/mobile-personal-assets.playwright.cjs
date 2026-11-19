@@ -81,6 +81,22 @@ async function main() {
     await visible('Pinjaman Berjalan (1)');
     await visible(assigned.nama_barang);
     assert.equal(await text(borrowed.nama_barang).count(), 0);
+    // Filters and layout belong to the portal and must survive extracted-view unmounts.
+    await page.getByLabel('Tampilan List', {exact:true}).click();
+    await page.getByPlaceholder('Cari nama barang, merk, atau NUP...').fill(assigned.nama_barang);
+    const category = text('IT & PC (1)');
+    const inactiveCategoryColor = await category.evaluate(node => getComputedStyle(node).color);
+    await category.click();
+    const activeCategoryColor = await category.evaluate(node => getComputedStyle(node).color);
+    assert.notEqual(activeCategoryColor, inactiveCategoryColor);
+    await text('Profil').click(); await visible('1 Aset (1 Pinjaman)');
+    await text('Layanan').click(); await text('Aset Saya').click();
+    assert.equal(await page.getByPlaceholder('Cari nama barang, merk, atau NUP...').inputValue(), assigned.nama_barang);
+    assert.equal(await text('IT & PC (1)').evaluate(node => getComputedStyle(node).color), activeCategoryColor);
+    await visible(`${assigned.kode_barang} • NUP: ${assigned.nup}`);
+    await page.getByPlaceholder('Cari nama barang, merk, atau NUP...').fill('');
+    await text('Semua (1)').click();
+    await page.getByLabel('Tampilan Grid', {exact:true}).click();
     await text('Pinjaman Berjalan (1)').click();
     await visible(borrowed.nama_barang);
     assert.equal(await text(assigned.nama_barang).count(), 0);
@@ -117,7 +133,7 @@ async function main() {
     await visible('0 Barang');
     assert.equal(await text('Pinjaman Aktif').count(), 0);
     assert.deepEqual(errors, []);
-    console.log('PASS: permanent/borrowed counts, numeric/string IDs, shared views, realtime return, empty state and reload.');
+    console.log('PASS: permanent/borrowed counts, numeric/string IDs, shared views, search/category/layout persistence, realtime return, empty state and reload.');
   } finally {
     await browser.close();
   }

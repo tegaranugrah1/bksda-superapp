@@ -77,3 +77,29 @@ export const isRunningSt = (item?: { status?: string | null; kategori?: string |
 
 export const isCompletedSt = (item?: { status?: string | null; kategori?: string | null } | null) =>
   item?.status === "completed" || item?.kategori === "completed";
+
+export function getLeaveStatusMeta(req: any): {
+  kind: "rejected" | "approved" | "verified" | "pending";
+  label: string;
+  tone: ToneKey;
+  canCancel: boolean;
+} {
+  const status = String(req?.status || "PENGAJUAN").toUpperCase().trim();
+  const atasan = String(req?.status_pertimbangan_atasan || "").toUpperCase().trim();
+
+  if (status === "DITOLAK" || status === "REJECTED" || atasan === "DITOLAK" || atasan === "REJECTED") {
+    return { kind: "rejected", label: "Ditolak", tone: "danger", canCancel: false };
+  }
+  if (status === "DISETUJUI" || status === "APPROVED") {
+    return { kind: "approved", label: "Disetujui", tone: "success", canCancel: false };
+  }
+  if (atasan === "DISETUJUI" || atasan === "APPROVED") {
+    return {
+      kind: "verified",
+      label: "Verifikasi Atasan",
+      tone: "info",
+      canCancel: status === "PENGAJUAN" || status === "PENDING",
+    };
+  }
+  return { kind: "pending", label: "Pengajuan", tone: "warning", canCancel: true };
+}
