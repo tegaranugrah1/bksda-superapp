@@ -3095,8 +3095,8 @@
     "semantic_hash": "884ba488af090edad1d092438d120b72"
   },
   "mobile/src/features/surat-tugas/screens/AssignmentFormScreen.tsx": {
-    "mtime": 1787550881.2678335,
-    "ast_hash": "1e88a46cc64ff2f2da0539c23ab54f66",
+    "mtime": 1795054063.333701,
+    "ast_hash": "a451970d3b1e7d393282b8b14b6c99f0",
     "semantic_hash": ""
   },
   "mobile/src/features/surat-tugas/screens/SuratTugasListScreen.tsx": {
@@ -3110,8 +3110,8 @@
     "semantic_hash": "5f288fc500effaf875c50352fd9811c8"
   },
   "mobile/src/features/surat-tugas/screens/__tests__/AssignmentFormScreen.test.tsx": {
-    "mtime": 1787548979.4058568,
-    "ast_hash": "70e7541cd4d3d64cc18edf1ee835cf21",
+    "mtime": 1795052813.490795,
+    "ast_hash": "421abe1a6eca9f9f54e7ba9e322e560f",
     "semantic_hash": ""
   },
   "mobile/src/features/surat-tugas/screens/__tests__/SuratTugasListScreen.test.tsx": {
@@ -3320,8 +3320,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalDashboardScreen.tsx": {
-    "mtime": 1795049991.7698371,
-    "ast_hash": "ac21e15e0bbf2de80bbc702a433e66ec",
+    "mtime": 1795052852.5949829,
+    "ast_hash": "493114c7e28f70ddecce871b9ace9f7c",
     "semantic_hash": ""
   },
   "mobile/src/features/inventory/InventoryStockScreen.tsx": {
@@ -3370,8 +3370,8 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1795050069.8582046,
-    "ast_hash": "8e0a6845ca0bd383ba3709dd37b3a46e",
+    "mtime": 1795054127.2235312,
+    "ast_hash": "8c26c4ed92032105f50f5661cd45bc35",
     "semantic_hash": ""
   },
   "ONBOARDING.md": {
@@ -3425,8 +3425,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1795050069.8631885,
-    "ast_hash": "016d11eb1ae2ed31c338a841a7be0c36",
+    "mtime": 1795054154.961926,
+    "ast_hash": "2687a095e911416288c89eeec4470843",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1795050069.8611882,
-    "ast_hash": "47706fbf12d05ebf91de256cfe5b01b0",
+    "mtime": 1795054154.9499269,
+    "ast_hash": "b0c40083c5cccc2a7d0a70affc669212",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -9097,6 +9097,31 @@
   "frontend/tests/mobile-personal-assets.playwright.cjs": {
     "mtime": 1795047961.853702,
     "ast_hash": "d60188f07b5f7269a53dc49155c562ac",
+    "semantic_hash": ""
+  },
+  "frontend/tests/mobile-spt-wording-parity.cjs": {
+    "mtime": 1795051935.1488557,
+    "ast_hash": "a44278b36e6462eaceac86ad11e492cf",
+    "semantic_hash": ""
+  },
+  "frontend/tests/mobile-surat-tugas.playwright.cjs": {
+    "mtime": 1795054063.3347034,
+    "ast_hash": "f597b01220bf159a2b6b8cce912a65d8",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/surat-tugas/__tests__/assignmentPortalForm.test.ts": {
+    "mtime": 1795051386.6592245,
+    "ast_hash": "f98950123e28d04cc0a1a0c305469cdf",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/surat-tugas/assignmentPortalForm.ts": {
+    "mtime": 1795051573.2851968,
+    "ast_hash": "326bbbaa3eee6d8f594033b4d81fb127",
+    "semantic_hash": ""
+  },
+  "docs/mobile-surat-tugas-parity.md": {
+    "mtime": 1795054127.224533,
+    "ast_hash": "9302f58b7a7180d1a5cbe7981a3dbc68",
     "semantic_hash": ""
   }
 }

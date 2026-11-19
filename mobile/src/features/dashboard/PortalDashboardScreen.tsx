@@ -404,6 +404,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   // Center FAB Quick Action Modal
   const [fabModalVisible, setFabModalVisible] = useState(false);
+  const pendingAssignmentNavigation = React.useRef(false);
 
   // SBM Calculator Modal
   const [sbmModalVisible, setSbmModalVisible] = useState(false);
@@ -2516,6 +2517,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
           <TouchableOpacity
             style={[styles.fabButton, { backgroundColor: colors.accentSolid, borderColor: colors.cardBg }, shadowLg]}
             onPress={() => setFabModalVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Buka aksi cepat"
             activeOpacity={0.9}
           >
             <Ionicons name="add" size={r.size.iconXl} color={colors.accentOnSolid} />
@@ -2559,6 +2562,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         visible={fabModalVisible}
         transparent={true}
         animationType="slide"
+        onDismiss={() => {
+          if (!pendingAssignmentNavigation.current) return;
+          pendingAssignmentNavigation.current = false;
+          // Let the web modal restore focus before the portal tab is hidden.
+          if (Platform.OS === "web") (document.activeElement as HTMLElement | null)?.blur();
+          onNavigateToModule?.("buat-surat-tugas");
+        }}
         onRequestClose={() => setFabModalVisible(false)}
       >
         <TouchableOpacity
@@ -2589,8 +2599,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
               style={[styles.modalOptionCard, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}
               activeOpacity={0.8}
               onPress={() => {
+                pendingAssignmentNavigation.current = Platform.OS === "web";
                 setFabModalVisible(false);
-                if (onNavigateToModule) onNavigateToModule("buat-surat-tugas");
+                if (Platform.OS !== "web") onNavigateToModule?.("buat-surat-tugas");
               }}
             >
               <View style={[styles.modalOptionIconBg, { backgroundColor: colors.accentSolid }]}>

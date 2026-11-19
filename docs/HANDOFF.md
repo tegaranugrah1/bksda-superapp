@@ -3477,3 +3477,41 @@ Setelah semua command clean:
 - Browser fixture light/dark pada 360/440 membandingkan ukuran, posisi dan padding dengan baseline sebelum perubahan. Geometri seluruh kartu Tugas identik; lebar/tinggi/padding kartu Layanan/Profil juga tetap. Semua gap yang disepakati lulus pemeriksaan dan hasil render ditinjau, tanpa error JS. Typecheck/ESLint mobile lulus.
 - Pengguna mengonfirmasi hasil spacing sudah bagus dan menyetujui checkpoint.
 - Checkpoint sebelumnya eddf8003; Bagian 165–167 disimpan sebagai checkpoint lokal perbaikan BMN dan spacing mobile yang telah disetujui pengguna; belum di-push. Perangkat fisik belum diuji.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 168 Form SPT Mobile dan Penyelarasan Web
+
+- Form Buat SPT Baru mengikuti komposisi portal mobile: identitas Kemenhut, app bar tetap, bidang konten membulat, kartu terkelompok dan tema global. Aksen memakai role Surat Tugas web #0369a1 light / #38bdf8 dark; kanvas/kartu mengikuti surface netral modul web. Fokus/seleksi input bertema dan kontrol 44–48px.
+- Melengkapi master jenis tugas/sumber dana publik, mode lokasi dan pola kalimat kustom, tanggal tunggal/jadwal per pegawai, PM, PLH, persetujuan Kepala Seksi, aturan laporan per jenis, pratinjau serta payload seperti form pribadi web. Kota asal mendahulukan flag wilayah dan mengenali III sebelum II/I, termasuk asal gabungan.
+- Unggahan sekarang mendukung PDF/JPG/PNG/WebP 10 MB. Web mengirim berkas/Blob asli dengan boundary multipart, native tetap URI. Validasi file/tanggal/jadwal/jumlah dilakukan sebelum mengirim. Pesan ApiError.fieldErrors dan data konflik ter-normalisasi ditangani dengan benar; isian tidak hilang saat retry.
+- Endpoint tetap /surat-tugas/submit; backend/otorisasi/nomor/status penerbitan tidak diubah. Lock pengiriman mencegah duplikasi. Pengajuan berhasil dapat kembali ke portal dan memulai form kosong, walaupun tab navigation mempertahankan screen.
+- Rincian sebelum/sesudah dan perintah uji ada di docs/mobile-surat-tugas-parity.md. Typecheck/lint bersih, 30 tes form/schema/API lulus, delapan kasus kalimat cocok dengan helper web aktual. E2E fixture menguji alur lengkap, custom master, jadwal, PLH/Seksi, PM, berkas, retry, konflik dan reset; input tidak overflow pada 360/440/landscape 800. Warna dibandingkan dengan halaman web aktual. Bundle Android HTTP 200 JavaScript. Perangkat fisik belum diuji; tidak ada SPT nyata dibuat.
+- Checkpoint sebelumnya b4f505c4; Bagian 168 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 169 Penyempurnaan Form SPT Mobile
+
+- Indikator Pilih pegawai / Detail tugas / Terkirim ditengahkan dalam tiga kolom seimbang. Pratinjau kalimat surat dipindah ke bagian bawah kartu Detail Surat Tugas, sebelum Jadwal penugasan.
+- Memisahkan jenis isi picker dari status visibilitasnya. Menutup Jenis Tugas kini mempertahankan konten tugas selama animasi keluar; tidak berubah menjadi Sumber Dana di tengah transisi.
+- Mereproduksi fokus tertinggal di portal tersembunyi ketika pengguna menunggu modal aksi cepat terbuka penuh sebelum memilih SPT. Pada web, navigasi kini berjalan setelah modal selesai ditutup dan fokus dipulihkan/dilepas. Kembali ke portal juga melepas fokus tombol sebelum tab form disembunyikan. Alur native tetap memakai navigasi semula.
+- Pengaturan jenis tugas dan pembebanan biaya berasal dari endpoint publik Kepegawaian yang sama dengan web. Loader kini berjalan setiap form memperoleh fokus, sehingga penambahan dari pengaturan muncul ketika form dibuka kembali; pilihan jenis yang masih tersedia dan draf dipertahankan. Tidak mengklaim push/realtime untuk master yang berubah saat form sedang terbuka.
+- Typecheck/lint lulus, 30 tes form/schema/API serta delapan kasus parity kalimat tetap lulus. Regresi Chrome memeriksa pusat tiap indikator, posisi pratinjau dalam kartu, tutup picker lewat tombol/Escape tanpa konten Sumber Dana, pemulihan fokus dan ketiadaan fokus pada tab tersembunyi, penambahan master pada form yang dipertahankan navigasi, dan draf tetap ada. Alur pengajuan sebelumnya tetap lulus; semua API/pengiriman browser diisolasi dan tidak membuat SPT nyata. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya b4f505c4; Bagian 168–169 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 170 Kartu Bentrok dan Batas Tanggal SPT Mobile
+
+- Pesan bentrok tugas/cuti kini berada pada kartu tersendiri sesudah Jadwal penugasan, dengan ikon, judul Jadwal Tugas / Cuti Bentrok, isi pesan server dan arahan memperbaiki tanggal/pegawai. Warna status warning mengikuti web: light #fffbeb/#92400e/#fde68a, dark #451a03/#fcd34d/#92400e. Kartu memiliki role alert/live region dan hilang ketika bentrok teratasi. Pesan status pegawai tanpa message menggunakan keterangan server.
+- Validasi submit sebelumnya sudah menolak jadwal per personel di luar periode utama, tetapi kalender belum membatasi pilihan. Kalender kini menonaktifkan tanggal sebelum/sesudah periode utama untuk jadwal per pegawai; tanggal selesai utama/per pegawai tidak boleh mendahului tanggal mulai yang sesuai. Pintasan Hari Ini/Besok/+3/+7 Hari memakai batas dan guard pemilihan yang sama.
+- Jadwal berbeda hari hanya dapat diaktifkan setelah periode utama lengkap. Memajukan tanggal mulai melewati tanggal selesai ikut menyesuaikan selesai; mengubah periode utama membatasi kembali jadwal personel yang sudah diisi. Memilih mulai personel sesudah selesai lamanya ikut menyesuaikan selesai agar tidak terbalik. Tanggal utama tidak dibatasi harus setelah hari ini karena tugas dengan tanggal lampau di luar scope permintaan.
+- Typecheck dan lint mobile/skrip browser lulus; 30 tes form/API/schema lulus. Regresi browser menguji periode hari ini–besok untuk kedua pegawai dan kedua field, tanggal sebelum/sesudah periode, pintasan, urutan mulai/selesai, penyempitan/pemindahan periode utama, kartu warning light/dark dan kartu hilang setelah bentrok selesai. Seluruh alur pengajuan sebelumnya tetap lulus dengan API/pengiriman fixture terisolasi; tidak membuat SPT nyata. Hasil render light/dark ditinjau. Perangkat fisik belum diuji.
+- Checkpoint sebelumnya b4f505c4; Bagian 168–170 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 171 Penekanan Pesan Bentrok dan Garis Progres SPT
+
+- Kartu bentrok mempertahankan objek konflik dari API agar nama pegawai serta rentang tanggal dirender terpisah. Nama dan tanggal ditebalkan; tanggal diberi garis bawah amber seperti web. Konflik tugas/cuti memakai redaksi web, sementara pesan/status lain tetap memakai message/keterangan server.
+- Indikator tahap kini memiliki garis penghubung netral dengan bagian biru mengikuti progres: belum terisi pada tahap 1, setengah pada tahap 2 dan penuh pada tahap 3. Garis mengikuti aksen modul dalam light/dark, tetap tepat di tengah lingkaran dan menjaga label setiap kolom tetap di tengah.
+- Menangani log lampiran Unexpected text node dari kondisi kalender berbasis string kosong: kondisi kini boolean, sehingga tidak menghasilkan text node langsung dalam View saat kalender tidak memiliki batas tanggal.
+- Regresi browser memeriksa font-weight nama/tanggal, garis bawah tanggal, lebar/warna progres tahap 1/2/3, serta menangkap peringatan aria-hidden dan text node. Pemeriksaan tanggal termasuk memilih tanggal selesai utama sebelum mulai; periode diinisialisasi valid. Pemeriksaan sebelumnya dipertahankan. E2E browser lulus tanpa peringatan fokus/text node; hasil render light/dark ditinjau. Typecheck/lint serta 30 tes form/API/schema lulus. Bundle Android HTTP 200 JavaScript; perangkat fisik belum diuji.
+- Checkpoint sebelumnya b4f505c4; Bagian 168–171 disimpan sebagai checkpoint lokal penyelarasan dan penyempurnaan form SPT mobile yang telah disetujui pengguna; belum di-push.

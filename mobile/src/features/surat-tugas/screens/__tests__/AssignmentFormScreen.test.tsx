@@ -1,8 +1,7 @@
 import React from 'react';
-import { Alert, Text, TextInput } from 'react-native';
+import { Text, TextInput } from 'react-native';
 import renderer, { act } from 'react-test-renderer';
 import AssignmentFormScreen from '../AssignmentFormScreen';
-import { apiClient } from '@/lib/api/client';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -13,6 +12,11 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
   }),
+  useIsFocused: () => true,
+  useFocusEffect: (callback: () => void) => {
+    const React = jest.requireActual("react");
+    React.useEffect(callback, [callback]);
+  },
   useRoute: () => ({
     params: mockRouteParams,
   }),
@@ -129,6 +133,6 @@ describe('AssignmentFormScreen', () => {
 
     const texts = getTextValues(tree!.root);
     expect(texts).toContain('Detail Surat Tugas');
-    expect(texts).toContain('DARI ( KOTA / LOKASI ASAL ) *');
+    expect(texts).toContain('Kota / lokasi asal *');
   });
 });
