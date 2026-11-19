@@ -46,25 +46,15 @@ class StorageSetupCommand extends Command
                 $policyJson = (string) $policyRes->get('Policy');
                 $decoded = json_decode($policyJson, true);
 
-                $hasGetObject = false;
-                $hasListBucket = false;
-                foreach ($decoded['Statement'] ?? [] as $stmt) {
-                    $actions = (array) ($stmt['Action'] ?? []);
-                    if (in_array('s3:GetObject', $actions, true)) $hasGetObject = true;
-                    if (in_array('s3:ListBucket', $actions, true)) $hasListBucket = true;
-                }
-
-                $this->line("  - Anonymous GetObject: ".($hasGetObject ? 'ALLOWED [OK]' : 'NOT FOUND'));
-                $this->line("  - Anonymous ListBucket: ".($hasListBucket ? 'WARNING (Bucket can be enumerated)' : 'DENIED [SECURE]'));
-
-                if ($hasGetObject && ! $hasListBucket) {
-                    $this->info("✓ Audit PASSED: Bucket '{$bucket}' allows anonymous GetObject and forbids ListBucket.");
+                if ($decoded == self::publicMediaPolicy($bucket)) {
+                    $this->info("✓ Audit PASSED: public media allowlist matches; BMN/documents and bucket listing require authentication.");
                     return self::SUCCESS;
                 }
+                $this->error('Bucket policy differs from the managed public-media allowlist. Review it before applying storage:setup.');
             } catch (\Throwable $e) {
                 $this->warn("Policy check note: {$e->getMessage()}");
             }
-            return self::SUCCESS;
+            return self::FAILURE;
         }
 
         // Create bucket
@@ -80,27 +70,35 @@ class StorageSetupCommand extends Command
             }
         }
 
-        // Set public-read policy (GetObject ONLY, NO ListBucket)
-        $policy = json_encode([
-            'Version' => '2012-10-17',
-            'Statement' => [[
-                'Effect' => 'Allow',
-                'Principal' => '*',
-                'Action' => ['s3:GetObject'],
-                'Resource' => ["arn:aws:s3:::{$bucket}/*"],
-            ]],
-        ]);
+        // Keep BMN and documents private even when their object key is known.
+        $policy = json_encode(self::publicMediaPolicy($bucket));
 
         try {
             $client->putBucketPolicy(['Bucket' => $bucket, 'Policy' => $policy]);
-            $this->info("✓ Bucket policy set to public-read (GetObject allowed, ListBucket denied).");
+            $this->info('✓ Public-media allowlist applied; BMN/documents and bucket listing require authentication.');
         } catch (\Throwable $e) {
             $this->warn("⚠ Could not set bucket policy: " . $e->getMessage());
+            return self::FAILURE;
         }
 
         $this->newLine();
         $this->info("Done! Storage is ready.");
         return self::SUCCESS;
+    }
+
+    public static function publicMediaPolicy(string $bucket): array
+    {
+        return [
+            'Version' => '2012-10-17',
+            'Statement' => [[
+                'Effect' => 'Allow',
+                'Principal' => '*',
+                'Action' => ['s3:GetObject'],
+                'Resource' => array_map(fn (string $path) => "arn:aws:s3:::{$bucket}/{$path}", [
+                    'cms/*', 'public/*', 'employees/*/*_profil.*', 'employees/emp-*/foto-profil/*',
+                ]),
+            ]],
+        ];
     }
 
     protected function setupDriveBucket(): int

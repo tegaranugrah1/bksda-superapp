@@ -1078,4 +1078,44 @@ class PortalPersonalSecurityTest extends TestCase
         $this->assertSame('plain text', \App\Modules\Bmn\Resources\AssetResource::stripQueryTokens('plain text'));
     }
 
+    public function test_bmn_photo_uploads_return_authenticated_urls_instead_of_public_storage_urls(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Private Storage Admin', 'admin', ['bmn']);
+        $asset = $this->asset($employee);
+        Sanctum::actingAs($user);
+        foreach (['depan', 'geotag'] as $type) {
+            $endpoint = '/api/bmn/assets/'.$asset->id.($type === 'geotag' ? '/geotag' : '/photo');
+            $upload = fn () => $this->postJson($endpoint, [
+                'type' => $type, 'photo' => \Illuminate\Http\UploadedFile::fake()->image('dummy.png'),
+            ])->assertOk()->assertJsonPath('data.url', '/api/bmn/assets/'.$asset->id.'/photo/'.$type.'/view');
+            $old = $upload()->json('data.path');
+            $new = $upload()->json('data.path');
+            $this->assertNotSame($old, $new);
+            Storage::disk('local')->assertMissing($old);
+            Storage::disk('local')->assertExists($new);
+            $this->assertSame($new, $asset->fresh()->getAttribute('foto_'.$type.'_path'));
+            $this->getJson('/api/bmn/assets/'.$asset->id.'/photo/'.$type.'/view')->assertOk();
+        }
+    }
+
+    public function test_failed_bmn_photo_writes_preserve_the_previous_file_and_database_reference(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Failed Photo Admin', 'admin', ['bmn']);
+        $old = 'audit-fixtures/previous-photo.png';
+        $local = Storage::disk('local');
+        $local->put($old, 'dummy previous photo');
+        $asset = $this->asset($employee, ['foto_depan_path' => $old, 'foto_geotag_path' => $old]);
+        Sanctum::actingAs($user);
+        $disk = \Mockery::mock(\Illuminate\Filesystem\FilesystemAdapter::class);
+        $disk->shouldReceive('putFileAs')->twice()->andReturnFalse();
+        $disk->shouldNotReceive('delete');
+        Storage::shouldReceive('disk')->andReturn($disk);
+        foreach (['depan', 'geotag'] as $type) {
+            $endpoint = '/api/bmn/assets/'.$asset->id.($type === 'geotag' ? '/geotag' : '/photo');
+            $this->postJson($endpoint, ['type' => $type, 'photo' => \Illuminate\Http\UploadedFile::fake()->image('dummy.png')])->assertStatus(500);
+            $this->assertSame($old, $asset->fresh()->getAttribute('foto_'.$type.'_path'));
+            $this->assertTrue($local->exists($old));
+        }
+    }
+
 }

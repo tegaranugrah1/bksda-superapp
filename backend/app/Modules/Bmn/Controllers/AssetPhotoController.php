@@ -34,17 +34,13 @@ class AssetPhotoController extends Controller
         $column = "foto_{$type}_path";
         $oldPath = $asset->$column;
 
-        // Delete old photo if exists
-        if ($oldPath && Storage::disk()->exists($oldPath)) {
-            Storage::disk()->delete($oldPath);
-        }
-
         // Store new photo — organized per asset folder
         $isPrivate = in_array($type, ['bpkb_1', 'bpkb_2', 'bpkb_3', 'bpkb_4', 'stnk_1', 'stnk_2']);
         $prefix = $isPrivate ? 'private/bmn-documents/' : 'bmn-photos/';
         $folder = $prefix . Str::slug($asset->nama_barang) . '-' . $asset->nup;
-        $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}." . $request->file('photo')->extension();
+        $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_{$type}_" . Str::uuid() . '.' . $request->file('photo')->extension();
         $path = $request->file('photo')->storeAs($folder, $filename);
+        abort_if($path === false, 500, 'Foto gagal disimpan. Foto sebelumnya tetap dipertahankan.');
 
         $assetUpdate = [$column => $path];
         if ($request->filled('latitude')) {
@@ -69,9 +65,11 @@ class AssetPhotoController extends Controller
             'alasan_perubahan' => 'Upload foto ' . $type,
         ]);
 
-        $url = $isPrivate 
-            ? "/api/bmn/assets/{$asset->id}/photo/{$type}/view" 
-            : Storage::disk()->url($path);
+        if ($oldPath && $oldPath !== $path) {
+            Storage::disk()->delete($oldPath);
+        }
+
+        $url = "/api/bmn/assets/{$asset->id}/photo/{$type}/view";
 
         $payload = [
             'path' => $path,
@@ -118,14 +116,10 @@ class AssetPhotoController extends Controller
         $oldPath = $asset->foto_geotag_path;
 
         if ($request->hasFile('photo')) {
-            // Delete old local file if exists
-            if ($oldPath && Storage::disk()->exists($oldPath)) {
-                Storage::disk()->delete($oldPath);
-            }
-
             $folder = 'bmn-photos/' . Str::slug($asset->nama_barang) . '-' . $asset->nup;
-            $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag." . $request->file('photo')->extension();
+            $filename = Str::slug($asset->nama_barang) . "_{$asset->nup}_geotag_" . Str::uuid() . '.' . $request->file('photo')->extension();
             $path = $request->file('photo')->storeAs($folder, $filename);
+            abort_if($path === false, 500, 'Foto gagal disimpan. Foto sebelumnya tetap dipertahankan.');
 
             $asset->update([
                 'foto_geotag_path' => $path,
@@ -144,10 +138,14 @@ class AssetPhotoController extends Controller
                 'alasan_perubahan' => 'Upload foto geotag langsung',
             ]);
 
+            if ($oldPath && $oldPath !== $path) {
+                Storage::disk()->delete($oldPath);
+            }
+
             $payload = [
                 'source' => 'upload',
                 'path' => $path,
-                'url' => Storage::disk()->url($path),
+                'url' => "/api/bmn/assets/{$asset->id}/photo/geotag/view",
                 'latitude' => $asset->fresh()->foto_geotag_latitude !== null ? (float) $asset->fresh()->foto_geotag_latitude : null,
                 'longitude' => $asset->fresh()->foto_geotag_longitude !== null ? (float) $asset->fresh()->foto_geotag_longitude : null,
                 'location_note' => $asset->fresh()->foto_geotag_location_note,

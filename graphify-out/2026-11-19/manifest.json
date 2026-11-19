@@ -1660,8 +1660,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1795075925.803591,
-    "ast_hash": "6fcd61003da9e88c75e0bd12094ca1e6",
+    "mtime": 1795076942.0770621,
+    "ast_hash": "fb1905f25ca1c5a8ee1affe25d93f5e9",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -8775,8 +8775,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/bmn-detail-ui.cjs": {
-    "mtime": 1795076526.0034094,
-    "ast_hash": "b56f8e47b7d26cb994f97f2413de80ba",
+    "mtime": 1795076942.077584,
+    "ast_hash": "bc0fbece5aa5be40f6dde16bab9ed393",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-sidebar-ui.cjs": {
@@ -9300,8 +9300,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/BmnMediaImage.tsx": {
-    "mtime": 1795075925.7885916,
-    "ast_hash": "7788e03bdfbb73f675e681ed4bfb4282",
+    "mtime": 1795077024.1259117,
+    "ast_hash": "34294405eea1ac2f87e96962725dcf4f",
     "semantic_hash": ""
   },
   "frontend/src/lib/bmn-media.ts": {

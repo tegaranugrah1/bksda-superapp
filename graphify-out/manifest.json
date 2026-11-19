@@ -1,7 +1,7 @@
 {
   "backend/app/Console/Commands/StorageSetupCommand.php": {
-    "mtime": 1794654544.6191375,
-    "ast_hash": "761781392275b6d3a40b0f438499c7c4",
+    "mtime": 1795078222.5811546,
+    "ast_hash": "131d08975dde80d8a0300728a5943d7e",
     "semantic_hash": ""
   },
   "backend/app/Http/Controllers/Api/AuthController.php": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetPhotoController.php": {
-    "mtime": 1795074062.4245455,
-    "ast_hash": "b8b450f16e4f88f215fadb0233c5c68c",
+    "mtime": 1795078753.975811,
+    "ast_hash": "baad6ef90fce275acbfb6b933f409cd2",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AuctionBatchController.php": {
@@ -3405,23 +3405,23 @@
     "semantic_hash": ""
   },
   "docker-compose.dokploy.yml": {
-    "mtime": 1794981260.6458025,
-    "ast_hash": "8ed59fcfcb52ea36ae338cf7685dd51a",
+    "mtime": 1795079674.8104844,
+    "ast_hash": "72ec24cd06bfea6554c942e3650cde21",
     "semantic_hash": ""
   },
   "docker-compose.prod.yml": {
-    "mtime": 1794817654.5902126,
+    "mtime": 1795079674.8224852,
     "ast_hash": "f55ce3ebe1bea4744146dec4867d0900",
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1778988405.0350204,
-    "ast_hash": "279fd71543ae4e2310ed0f8947bc5a5d",
+    "mtime": 1795079190.9453664,
+    "ast_hash": "45aa900c38591f39b8cb4555af7d943c",
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1795074904.915445,
-    "ast_hash": "bbcdc4cf907a4af30e882036dbf402e1",
+    "mtime": 1795077312.2010891,
+    "ast_hash": "705b9b5e069aae00878a53f4f26ec920",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4085,8 +4085,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1795074904.9184167,
-    "ast_hash": "eb8cd5a7d0e3493a547c29e76901850d",
+    "mtime": 1795077312.2050917,
+    "ast_hash": "bfe6ddc9251fdca961509ff0cd4b8fdd",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5840,8 +5840,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1795074904.9174402,
-    "ast_hash": "5c06c3afe0696b520716cac76ec222bb",
+    "mtime": 1795077312.2030923,
+    "ast_hash": "7b9e3e4d9d5e9f02d6378d39f0d89485",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -7085,8 +7085,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalPersonalSecurityTest.php": {
-    "mtime": 1795076365.772583,
-    "ast_hash": "49778ad608fb6bdf9120623262037b7c",
+    "mtime": 1795078820.5995286,
+    "ast_hash": "2d8d25153033c5255e28094c64a5ccda",
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalUploadSecurityTest.php": {
@@ -9180,8 +9180,8 @@
     "semantic_hash": ""
   },
   "docs/mobile-portal-refactor.md": {
-    "mtime": 1795074904.9285357,
-    "ast_hash": "d952f9dc83930a64cdcfff54e064cf1c",
+    "mtime": 1795077312.207096,
+    "ast_hash": "094c58045668abfbffa1fd5193ce8ba1",
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalTasksTab.tsx": {
@@ -9317,6 +9317,11 @@
   "mobile/src/lib/files/bmnMedia.ts": {
     "mtime": 1795076023.8785214,
     "ast_hash": "ce4ffbea6267f1c8c125b38dbc6f519c",
+    "semantic_hash": ""
+  },
+  "backend/tests/Unit/StorageBucketPolicyTest.php": {
+    "mtime": 1795078346.5515077,
+    "ast_hash": "7eab9d2c83cf044f7a2b2cd5170ff7b6",
     "semantic_hash": ""
   }
 }
