@@ -16,10 +16,10 @@ export function getBmnMediaUrl(raw?: string | null): string | null {
   } catch { return null; }
 }
 
-export async function fetchBmnMedia(raw: string): Promise<Blob> {
+export async function fetchBmnMedia(raw: string, signal?: AbortSignal): Promise<Blob> {
   const url = getBmnMediaUrl(raw);
   if (!url) throw new Error("Alamat berkas BMN tidak diizinkan.");
-  const response = await api.get<Blob>(url, { responseType: "blob" });
+  const response = await api.get<Blob>(url, { responseType: "blob", signal });
   if (!/^(application\/pdf|image\/(jpeg|png|webp|gif))$/i.test(response.data.type.split(";")[0].trim())) throw new Error("Format berkas BMN tidak didukung.");
   return response.data;
 }

@@ -132,7 +132,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url ?? "unknown endpoint";
 
-    if (process.env.NODE_ENV === "development" && !url.includes("logout")) {
+    if (process.env.NODE_ENV === "development" && error.code !== "ERR_CANCELED" && !url.includes("logout")) {
       const detail = status ? `HTTP ${status}` : error.message;
       console.warn(`[API] ${url} failed: ${detail}`);
     }
