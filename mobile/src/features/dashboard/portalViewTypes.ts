@@ -10,3 +10,18 @@ export interface PortalViewProps {
 }
 
 export type PortalServiceScreen = "menu" | "bmn" | "cuti";
+
+export interface PortalModalViewProps extends Omit<PortalViewProps, "shadowXs"> {
+  shadowLg: ViewStyle;
+}
+
+export interface PortalLeaveScanState {
+  visible: boolean;
+  title: string;
+  fileName?: string | null;
+  mimeType?: string;
+  dataUrl?: string | null;
+  blobUrl?: string | null;
+  loading: boolean;
+  error?: string | null;
+}

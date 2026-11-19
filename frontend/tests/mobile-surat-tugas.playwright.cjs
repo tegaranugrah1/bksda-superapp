@@ -75,6 +75,17 @@ async function main() {
     await page.getByPlaceholder('••••••••••••').fill('fixture-password');
     await page.getByLabel('Masuk', { exact: true }).click();
     const form = page.getByTestId('assignment-form');
+    // Dismissing the extracted quick-action modal must not leave pending navigation.
+    for (const dismissWithEscape of [false, true]) {
+      await page.getByLabel('Buka aksi cepat', {exact:true}).click();
+      const quickDialog = page.getByRole('dialog');
+      await quickDialog.getByText('Buat Pengajuan Baru', {exact:true}).waitFor();
+      await page.waitForTimeout(350);
+      if (dismissWithEscape) await page.keyboard.press('Escape');
+      else await quickDialog.getByText('Tutup Menu', {exact:true}).click();
+      await quickDialog.waitFor({state:'hidden'});
+      assert.equal(await form.isVisible(), false, 'Cancelling quick actions must stay in the portal');
+    }
     const assertProgress = async step => {
       const track = await form.getByTestId('assignment-step-track').boundingBox();
       const progress = await form.getByTestId('assignment-step-progress').boundingBox();

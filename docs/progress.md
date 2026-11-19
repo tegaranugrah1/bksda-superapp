@@ -9691,3 +9691,14 @@ ightarrow$\rightarrow$ `PD`, status `draft`/`submitted` menampilkan warning advi
 - Pengguna menyetujui checkpoint Bagian 176. Refactor Profil dan Layanan disimpan sebagai commit lokal dengan basis fc27961d; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi.
 
 - Graph kode tahap 3 diperbarui setelah perubahan akhir: 15.772 node, 29.740 edge dan 1.048 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 177 Refactor Beranda dan Modal Mobile
+
+- Memisahkan PortalHomeTab, PortalQuickActionsModal, PortalLoansModal, PortalSbmModal, serta PortalLeaveModals (pembatalan dan scan). Perhitungan/daftar modul yang hanya dipakai Beranda ikut dipindah. Halaman utama dari 1,594 ke 683 baris, tanpa dependency baru.
+- State/ref/handler serta pengambilan data tetap di portal. Hitungan tugas/aset yang juga dipakai bottom nav tetap di induk. Urutan tutup modal → pemulihan fokus → navigasi SPT web, pembersihan blob URL, validasi berkas, aksi native, refresh dan modal yang sudah berupa komponen dipertahankan.
+- Perbandingan AST memverifikasi keseluruhan JSX Beranda/lima Modal, props, state/ref, handler, urutan modal, perhitungan/modul/ACL dan state scan terhadap d03c2081. Stylesheet, data hook serta tampilan tahap 2/3 identik; desain, warna, bentuk kartu, spacing, header/nav dan animasi tetap.
+- TypeScript mobile 0 diagnostik; sintaks tiga fixture browser valid. Regresi diperluas untuk Beranda → Profil, pinjaman/SBM, tutup aksi cepat tombol/Escape, kembali dari konfirmasi cuti, dan pratinjau scan dengan pelepasan blob URL. Browser/Jest/perangkat belum dijalankan karena batas sandbox security-audit tetap berlaku; tidak mengklaim hasil runtime/piksel lulus. Rincian: docs/mobile-portal-refactor.md.
+- Pengguna menyetujui checkpoint Bagian 177. Refactor Beranda dan modal portal disimpan sebagai commit lokal dengan basis d03c2081; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi.
+
+- Graph kode tahap 4 diperbarui setelah perubahan akhir: 15.794 node, 29.807 edge dan 1.050 komunitas melalui AST tanpa LLM. Ponytail diterapkan dengan ekstraksi blok yang sudah ada, helper/dependency yang dipakai ulang, serta state/ref tetap di induk tanpa store atau lapisan baru.

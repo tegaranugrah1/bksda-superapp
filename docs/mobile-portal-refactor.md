@@ -95,3 +95,30 @@ Verifikasi:
 Atas instruksi pengguna tahap ini dilanjutkan tanpa menganggap validasi runtime tahap sebelumnya sudah selesai. Pengguna menyetujui checkpoint tahap 3; perubahan disimpan sebagai commit lokal, belum di-push. Hasil pemeriksaan statis dan status runtime yang belum tervalidasi tetap dicatat di atas.
 
 - Graph kode tahap 3 diperbarui setelah perubahan akhir: 15.772 node, 29.740 edge dan 1.048 komunitas melalui AST tanpa LLM.
+
+
+## Tahap 4 — Beranda dan modal portal (19 November 2026)
+
+Basis checkpoint `d03c2081`. Memisahkan sisa tampilan Beranda dan lima Modal inline sambil mempertahankan desain serta perilaku yang ada.
+
+- `PortalHomeTab.tsx`: kartu sambutan/identitas, ringkasan pegawai, modul berotorisasi, tugas berjalan dan pinjaman utama. Resolusi nama/NIP/jabatan/pangkat, tanggal/sapaan, daftar modul, ringkasan dan pemilihan aktivitas yang hanya dipakai Beranda ikut dipindah tanpa mengubah isi perhitungannya.
+- `PortalQuickActionsModal.tsx`: aksi SPT dan cuti. Ref `pendingAssignmentNavigation` tetap dimiliki portal dan diteruskan dengan identitas yang sama. Web tetap menunggu `onDismiss`, melepas fokus, lalu berpindah ke form; native tetap mengikuti urutan semula.
+- `PortalLoansModal.tsx`: daftar pinjaman aktif dengan data, status, tanggal dan tombol tutup yang sama.
+- `PortalSbmModal.tsx`: tampilan kalkulator/estimasi yang sudah ada, tanpa mengubah nilai atau logika fitur.
+- `PortalLeaveModals.tsx`: dua komponen, konfirmasi pembatalan cuti dan pratinjau scan. Status sibuk, aksi batal/konfirmasi, format berkas, iframe/gambar, unduhan browser dan pembukaan berkas native sama. Validasi isi scan dan pembersihan blob URL tetap berada pada handler portal.
+- `portalViewTypes.ts`: tipe props modal bersama dan bentuk state scan yang sama; tanpa state/store atau dependency baru.
+
+State, ref, pengambilan data, handler modal/cuti/berkas dan navigasi tetap di portal. Hitungan tugas dan aset yang dipakai bottom nav tetap di induk dan juga diteruskan ke Beranda. Modal yang sebelumnya sudah berupa komponen (profil, kata sandi, logout, pengajuan/cetak cuti dan surat tugas) tetap dipanggil di tempat yang sama. Lima Modal inline tetap memiliki urutan, props, animasi, tombol dan node native Modal yang sama; tidak memakai wrapper tampilan tambahan.
+
+Halaman utama berkurang dari 1,594 menjadi 683 baris. Header, bottom nav, stylesheet, warna, bentuk kartu, spacing, animasi, endpoint, backend, autentikasi/otorisasi dan komponen hasil tahap 2/3 dipertahankan.
+
+Verifikasi:
+
+- TypeScript mobile tanpa emit: **0 diagnostik**. Sintaks tiga fixture Playwright yang diubah valid.
+- Perbandingan AST terhadap checkpoint: seluruh JSX portal setelah ekspansi Beranda/lima modal sama, termasuk handler `onDismiss`, fokus/navigasi SPT, aksi berkas native, props dan urutan modal. State/ref, callback refresh/cleanup, hitungan nav, daftar modul dan perhitungan Beranda identik. Bentuk state scan tidak berubah. `portalStyles.ts`, `usePortalData.ts` dan seluruh tampilan tahap 2/3 tetap identik.
+- Fixture diperluas untuk membuka Profil dari Beranda, membuka/menutup pinjaman dan SBM, membatalkan aksi cepat dengan tombol/Escape tanpa navigasi tertinggal, kembali dari konfirmasi pembatalan cuti, serta membuka pratinjau gambar scan dan memverifikasi pelepasan blob URL ketika ditutup. Alur SPT lama tetap memeriksa fokus pada tab tersembunyi.
+- **Jest/browser E2E/perangkat fisik dan pemeriksaan piksel belum dijalankan.** Persyaratan sandbox OS skill security-audit dari tahap sebelumnya tetap berlaku. Kesetaraan AST/style dan validitas sintaks adalah bukti statis; tidak mengklaim regresi runtime lulus.
+
+Pengguna menyetujui checkpoint tahap 4; perubahan disimpan sebagai commit lokal, belum di-push. Hasil pemeriksaan statis dan status runtime yang belum tervalidasi tetap dicatat di atas. Rencana validasi runtime tahap sebelumnya tetap berlaku beserta skenario modal tambahan ini.
+
+- Graph kode tahap 4 diperbarui setelah perubahan akhir: 15.794 node, 29.807 edge dan 1.050 komunitas melalui AST tanpa LLM. Ponytail diterapkan dengan ekstraksi blok yang sudah ada, helper/dependency yang dipakai ulang, serta state/ref tetap di induk tanpa store atau lapisan baru.

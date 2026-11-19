@@ -38,6 +38,7 @@ async function main() {
       else if (endpoint.endsWith('/broadcasting/auth')) body = { auth: 'fixture:signature' };
       else if (endpoint.endsWith('/mobile/dashboard')) body = { data: { profile: user, summary: {}, notifications: [], urgent_tax_vehicles: [] } };
       else if (endpoint.endsWith('/me/leave-requests')) body = {data:fixtureLeaves};
+      else if (endpoint.endsWith('/scan-surat-izin')) body = {data_url:`data:image/png;base64,${png.toString('base64')}`,mime_type:'image/png',file_name:'fixture-cuti.png'};
       else if (endpoint.endsWith('/me/leave-balance')) body = { data: { sisa_cuti_tersedia: 0 } };
       else if (endpoint.endsWith('/me/dashboard')) body = { data: { my_assets: [] } };
       else if (endpoint.endsWith('/me/update-profile')) {
@@ -118,7 +119,7 @@ async function main() {
     // The leave year filter must survive switching between the profile and services views.
     fixtureLeaves = [
       {id:999991, jenis_cuti:'Cuti Tahunan', tanggal_mulai:'2025-11-03', tanggal_selesai:'2025-11-03', jumlah_hari:1, status:'PENGAJUAN', alasan_cuti:'Dummy archive 2025'},
-      {id:999992, jenis_cuti:'Cuti Sakit', tanggal_mulai:'2026-11-03', tanggal_selesai:'2026-11-03', jumlah_hari:1, status:'PENGAJUAN', alasan_cuti:'Dummy archive 2026'},
+      {id:999992, jenis_cuti:'Cuti Sakit', tanggal_mulai:'2026-11-03', tanggal_selesai:'2026-11-03', jumlah_hari:1, status:'DISETUJUI', alasan_cuti:'Dummy archive 2026', scan_surat_izin_path:'fixture-cuti.png', scan_surat_izin_nama:'fixture-cuti.png'},
     ];
     await button('Perbarui Data Profil').click();
     await button('Riwayat Pengajuan Cuti Online').click();
@@ -128,6 +129,26 @@ async function main() {
     await text('Profil').click(); await button('Riwayat Pengajuan Cuti Online').click();
     await text('Cuti Tahunan').waitFor(); assert.equal(await text('Cuti Sakit').count(), 0);
     assert.equal(await text('2025 (1)').evaluate(node => getComputedStyle(node).color), selectedYearColor);
+    await text('Batalkan').click();
+    const cancelDialog = page.getByRole('dialog');
+    await cancelDialog.getByText('Batalkan Pengajuan Cuti?', {exact:true}).waitFor();
+    await cancelDialog.getByText('Kembali', {exact:true}).click();
+    await cancelDialog.waitFor({state:'hidden'});
+    await text('Cuti Tahunan').waitFor();
+    await text('2026 (1)').click(); await text('Cuti Sakit').waitFor();
+    await page.evaluate(() => {
+      window.__originalScanRevoke = URL.revokeObjectURL;
+      window.__scanRevocations = 0;
+      URL.revokeObjectURL = function(uri) { window.__scanRevocations++; return window.__originalScanRevoke.call(URL, uri); };
+    });
+    await text('Surat Izin (Fisik/TTE)').click();
+    const scanDialog = page.getByRole('dialog');
+    await scanDialog.getByText('fixture-cuti.png', {exact:true}).waitFor();
+    await scanDialog.locator('img[src^="data:image/png;base64,"]').first().waitFor({state:'attached'});
+    await page.getByLabel('Tutup pratinjau berkas cuti', {exact:true}).click();
+    await scanDialog.waitFor({state:'hidden'});
+    assert.ok(await page.evaluate(() => window.__scanRevocations > 0), 'Closing scan preview must release its blob URL');
+    await page.evaluate(() => { URL.revokeObjectURL = window.__originalScanRevoke; delete window.__originalScanRevoke; delete window.__scanRevocations; });
     await text('Profil').click(); fixtureLeaves = [];
     user.employee = null; const before = meCalls; await button('Perbarui Data Profil').click();
     await text('Akun belum terhubung dengan data pegawai').waitFor(); assert.ok(meCalls > before);
