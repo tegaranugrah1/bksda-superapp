@@ -3509,3 +3509,14 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
 - Pengguna menyetujui checkpoint Bagian 177. Refactor Beranda dan modal portal disimpan sebagai commit lokal dengan basis d03c2081; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi.
 
 - Graph kode tahap 4 diperbarui setelah perubahan akhir: 15.794 node, 29.807 edge dan 1.050 komunitas melalui AST tanpa LLM. Ponytail diterapkan dengan ekstraksi blok yang sudah ada, helper/dependency yang dipakai ulang, serta state/ref tetap di induk tanpa store atau lapisan baru.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 178 Refactor Header dan Bottom Nav Mobile
+
+- Memisahkan PortalHeader dan PortalBottomNav dari halaman utama; dari 683 menjadi 568 baris. Logo/nama instansi, kontrol tema/notifikasi, empat tab, FAB dan badge memakai JSX/style/handler yang sama. Konstanta hijau BKSDA dipakai bersama header dan backing portal agar perbaikan garis putih tetap terjaga. Tidak menambah dependency, store, wrapper layout atau pemuat data.
+- State tab/subhalaman/modal, model notifikasi, ref navigasi SPT, hitungan badge, hook data dan tema tetap dimiliki induk. Tombol Layanan tetap membuka menu utama; FAB dan alur tutup modal/fokus/navigasi tetap sama. Desain, warna, bentuk kartu, spacing, animasi dan StatusBar tidak diubah.
+- Verifikasi statis terhadap 989e2d8b: seluruh JSX setelah ekspansi dua komponen, props serta semua state/ref/effect/handler/perhitungan induk identik. Konstanta forest/surface sama, dua komponen baru tanpa hooks; stylesheet dan 34 file dashboard lama selain halaman utama tidak berubah. TypeScript mobile tanpa emit 0 diagnostik; sintaks fixture browser yang diperluas valid.
+- Regresi browser yang sudah ada diperluas untuk pergantian tema dan header hijau tetap, logo/instansi serta tema saat berpindah tab, warna tab aktif, refresh/tutup notifikasi, dan tombol Layanan kembali dari BMN ke menu. Browser/Jest/perangkat fisik serta pemeriksaan piksel belum dijalankan karena sandbox OS yang diwajibkan security-audit belum tersedia; tidak mengklaim runtime lulus.
+- Pengguna menyetujui checkpoint Bagian 178. Refactor header dan bottom nav portal mobile disimpan sebagai commit lokal dengan basis 989e2d8b; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi. Ponytail diterapkan dengan pemisahan blok yang sudah ada dan penggunaan ulang tipe/style; rincian dan rencana verifikasi: docs/mobile-portal-refactor.md.
+
+- Graph kode tahap 5 diperbarui setelah perubahan source/fixture akhir: 15.800 node, 29.824 edge dan 1.031 komunitas melalui AST tanpa LLM.

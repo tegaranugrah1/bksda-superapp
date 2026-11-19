@@ -6,7 +6,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
   Platform,
 } from "react-native";
@@ -29,6 +28,8 @@ import { FormulirCutiPrintModal, LeaveRequestPrintData } from "../../components/
 import { PortalNotifications, usePortalNotifications } from "./PortalNotifications";
 import { createPortalStyles } from "./portalStyles";
 import { DashboardData } from "./types";
+import { PortalHeader, BKSDA_FOREST } from "./PortalHeader";
+import { PortalBottomNav } from "./PortalBottomNav";
 import { PortalHomeTab } from "./PortalHomeTab";
 import { PortalQuickActionsModal } from "./PortalQuickActionsModal";
 import { PortalLoansModal } from "./PortalLoansModal";
@@ -55,8 +56,6 @@ interface PortalDashboardScreenProps {
   requestedTab?: "profile";
   onTabRequestHandled?: () => void;
 }
-
-const BKSDA_FOREST = "#1e5433";
 
 // Shared portal surfaces keep Beranda, Tugas, Layanan and Profil consistent.
 const PORTAL_SURFACES = {
@@ -406,57 +405,9 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     <View testID="portal-surface" style={[styles.container, { backgroundColor: BKSDA_FOREST }]}>
       {isScreenFocused && <StatusBar style="light" />}
       {/* All portal tabs share the official ministry brand bar. */}
-      <View
-        testID="portal-header"
-        style={[
-          styles.header,
-          styles.portalHeader,
-          { backgroundColor: BKSDA_FOREST },
-        ]}
-      >
-        <View style={[styles.headerInner, styles.portalHeaderInner]}>
-          <View style={[styles.headerLeft, styles.portalHeaderLeft]}>
-            <View style={styles.headerLogoBadge}>
-              <Image
-                source={require("../../../assets/kemenhutlogo.png")}
-                style={[styles.logoImage, styles.portalLogoImage]}
-                resizeMode="contain"
-                accessibilityLabel="Logo Kementerian Kehutanan"
-              />
-            </View>
-            <View testID="portal-brand-identity" style={styles.portalBrandText}>
-              <Text style={styles.portalMinistry}>Kementerian Kehutanan</Text>
-              <Text style={styles.portalInstitution}>Balai KSDA Kalimantan Timur</Text>
-            </View>
-          </View>
-
-          <View style={[styles.headerRight, styles.portalHeaderRight]}>
-            {/* Active Light / Dark Mode Toggle Button */}
-            <TouchableOpacity
-              style={[styles.headerIconBtn, styles.portalHeaderControl]}
-              accessibilityLabel={isDark ? "Aktifkan tema terang" : "Aktifkan tema gelap"}
-              activeOpacity={0.7}
-              onPress={toggleTheme}
-            >
-              <Ionicons
-                name={isDark ? "sunny" : "moon-outline"}
-                size={r.size.iconMd}
-                color="#ffffff"
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.headerIconBtn, styles.portalHeaderControl]}
-              activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Buka notifikasi"
-              onPress={() => {setNotificationsVisible(true);void notifications.refresh();}}
-            >
-              <Ionicons name="notifications-outline" size={r.size.iconMd} color="#ffffff" />
-              {notifications.unread > 0 && <View style={[styles.notifDot, { backgroundColor: colors.dangerSolid }]} />}
-            </TouchableOpacity>
-
-          </View>
-        </View>
-      </View>
+      <PortalHeader
+        styles={styles} colors={colors} r={r} isDark={isDark} toggleTheme={toggleTheme}
+        notifications={notifications} setNotificationsVisible={setNotificationsVisible} />
 
       <View testID="portal-body" style={[styles.portalBody, { backgroundColor: colors.bgDark }]}>
       <ScrollView
@@ -538,76 +489,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       {/* ========================================================================= */}
       {/* FLOATING BOTTOM NAVIGATION (EXACT 5 ITEMS: BERANDA, TUGAS, FAB, LAYANAN, PROFIL) */}
       {/* ========================================================================= */}
-      <View style={[styles.bottomNavContainer, { backgroundColor: colors.cardBg, borderColor: colors.glassBorder }, shadowLg]}>
-        {/* 1. Beranda */}
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("dashboard")}>
-          <Ionicons
-            name="home-outline"
-            size={r.size.iconLg}
-            color={activeTab === "dashboard" ? colors.accentFg : colors.textMuted}
-          />
-          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "dashboard" ? colors.accentFg : colors.textMuted }]}>
-            Beranda
-          </Text>
-        </TouchableOpacity>
-
-        {/* 2. Tugas */}
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("surattugas")}>
-          <View style={styles.navIconWrapper}>
-            <Ionicons
-              name="document-text-outline"
-              size={r.size.iconLg}
-              color={activeTab === "surattugas" ? colors.accentFg : colors.textMuted}
-            />
-            {stBadgeCount > 0 && <View style={[styles.navBadge, { backgroundColor: colors.dangerSolid }]} />}
-          </View>
-          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "surattugas" ? colors.accentFg : colors.textMuted }]}>
-            Tugas
-          </Text>
-        </TouchableOpacity>
-
-        {/* 3. Center Elevated FAB (+) -> Opens Modal */}
-        <View style={styles.fabWrapper}>
-          <TouchableOpacity
-            style={[styles.fabButton, { backgroundColor: colors.accentSolid, borderColor: colors.cardBg }, shadowLg]}
-            onPress={() => setFabModalVisible(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Buka aksi cepat"
-            activeOpacity={0.9}
-          >
-            <Ionicons name="add" size={r.size.iconXl} color={colors.accentOnSolid} />
-          </TouchableOpacity>
-        </View>
-
-        {/* 4. Layanan Terpadu ASN */}
-        <TouchableOpacity style={styles.navItem} onPress={() => { setActiveTab("layanan"); setLayananSubScreen("menu"); }}>
-          <View style={styles.navIconWrapper}>
-            <Ionicons
-              name="grid-outline"
-              size={r.size.iconLg}
-              color={activeTab === "layanan" ? colors.accentFg : colors.textMuted}
-            />
-            {assetsBadgeCount > 0 && <View style={[styles.navBadge, { backgroundColor: colors.dangerSolid }]} />}
-          </View>
-          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "layanan" ? colors.accentFg : colors.textMuted }]}>
-            Layanan
-          </Text>
-        </TouchableOpacity>
-
-        {/* 5. Profil Pegawai */}
-        <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab("profile")}>
-          <View style={styles.navIconWrapper}>
-            <Ionicons
-              name="person-outline"
-              size={r.size.iconLg}
-              color={activeTab === "profile" ? colors.accentFg : colors.textMuted}
-            />
-          </View>
-          <Text numberOfLines={1} style={[styles.navText, { color: activeTab === "profile" ? colors.accentFg : colors.textMuted }]}>
-            Profil
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <PortalBottomNav
+        styles={styles} colors={colors} r={r} shadowLg={shadowLg}
+        activeTab={activeTab} stBadgeCount={stBadgeCount} assetsBadgeCount={assetsBadgeCount}
+        setActiveTab={setActiveTab} setLayananSubScreen={setLayananSubScreen} setFabModalVisible={setFabModalVisible} />
 
       <PortalNotifications visible={notificationsVisible} model={notifications} onClose={() => setNotificationsVisible(false)} onSelect={type => {
         if(type === "surat_tugas") setActiveTab("surattugas");

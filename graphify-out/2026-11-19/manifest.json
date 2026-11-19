@@ -3320,8 +3320,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalDashboardScreen.tsx": {
-    "mtime": 1795067282.6101673,
-    "ast_hash": "0204bef9eab2a1a5a86eb9089551f159",
+    "mtime": 1795068826.096599,
+    "ast_hash": "9fd70b5682652e9d71f2d957afda0b5b",
     "semantic_hash": ""
   },
   "mobile/src/features/inventory/InventoryStockScreen.tsx": {
@@ -3420,8 +3420,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1795067679.9903572,
-    "ast_hash": "e52c5c296c47597aaee2e39443b830f2",
+    "mtime": 1795069108.2569497,
+    "ast_hash": "d19170b6259b5defb0ee8f1fbc302824",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4085,8 +4085,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1795067680.0089364,
-    "ast_hash": "4a447a69744d6f80baa063b10603d8df",
+    "mtime": 1795069108.2724946,
+    "ast_hash": "ea9b9dd16c5440998337843b197bdf2f",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5845,8 +5845,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1795067680.000875,
-    "ast_hash": "929f41a8ac10a3ee8601a058989468da",
+    "mtime": 1795069108.264494,
+    "ast_hash": "251584140a0dd405eb0f23f61bc7ddbb",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -9090,8 +9090,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/mobile-personal-assets.playwright.cjs": {
-    "mtime": 1795067511.700223,
-    "ast_hash": "c176c1f0b745b3978f5511759fc5018a",
+    "mtime": 1795068927.0654297,
+    "ast_hash": "2e155d378ff1649419d41b36383185be",
     "semantic_hash": ""
   },
   "frontend/tests/mobile-spt-wording-parity.cjs": {
@@ -9100,8 +9100,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/mobile-surat-tugas.playwright.cjs": {
-    "mtime": 1795059735.881439,
-    "ast_hash": "e4308b9137715dc1632cebfb796206f1",
+    "mtime": 1795068927.0664308,
+    "ast_hash": "ff8df88625b3fe5b65efcf1f8225753c",
     "semantic_hash": ""
   },
   "mobile/src/features/surat-tugas/__tests__/assignmentPortalForm.test.ts": {
@@ -9120,8 +9120,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/mobile-profile.playwright.cjs": {
-    "mtime": 1795067511.7012234,
-    "ast_hash": "455e9961021f578fc78de954961194c3",
+    "mtime": 1795068927.0779746,
+    "ast_hash": "e5429e1af82bd9b0205af4c216a5cc47",
     "semantic_hash": ""
   },
   "mobile/src/features/profile/ProfileSettingsModal.tsx": {
@@ -9185,8 +9185,8 @@
     "semantic_hash": ""
   },
   "docs/mobile-portal-refactor.md": {
-    "mtime": 1795067679.9893572,
-    "ast_hash": "65627b54160bb2b95c1dcc83243e030e",
+    "mtime": 1795069108.255947,
+    "ast_hash": "efd91464618736a10bc130028aff5266",
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalTasksTab.tsx": {
@@ -9235,8 +9235,33 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/portalViewTypes.ts": {
-    "mtime": 1795067223.7570808,
-    "ast_hash": "34df3b6d6cbc4c90890182f7da79722c",
+    "mtime": 1795068704.912617,
+    "ast_hash": "dc7608b901aa59e12d3cde11c81ee577",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/PortalHomeTab.tsx": {
+    "mtime": 1795068826.0796006,
+    "ast_hash": "c377d800aa43908667bd36f626af63e2",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/PortalLeaveModals.tsx": {
+    "mtime": 1795068704.9286208,
+    "ast_hash": "38e8d8e6a6cb3c4502b2a753ea8166f7",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/PortalLoansModal.tsx": {
+    "mtime": 1795068704.9266188,
+    "ast_hash": "256b8eef16b4a68ab862a628bc5b29c8",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/PortalQuickActionsModal.tsx": {
+    "mtime": 1795068704.9256184,
+    "ast_hash": "ed1981de3ad2e62eee1c1da0fc0cfd38",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/PortalSbmModal.tsx": {
+    "mtime": 1795068704.9276204,
+    "ast_hash": "fc97fb277e5085af82a457600c2821c1",
     "semantic_hash": ""
   }
 }

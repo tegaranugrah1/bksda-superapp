@@ -122,3 +122,27 @@ Verifikasi:
 Pengguna menyetujui checkpoint tahap 4; perubahan disimpan sebagai commit lokal, belum di-push. Hasil pemeriksaan statis dan status runtime yang belum tervalidasi tetap dicatat di atas. Rencana validasi runtime tahap sebelumnya tetap berlaku beserta skenario modal tambahan ini.
 
 - Graph kode tahap 4 diperbarui setelah perubahan akhir: 15.794 node, 29.807 edge dan 1.050 komunitas melalui AST tanpa LLM. Ponytail diterapkan dengan ekstraksi blok yang sudah ada, helper/dependency yang dipakai ulang, serta state/ref tetap di induk tanpa store atau lapisan baru.
+
+
+## Tahap 5 — Header dan bottom nav portal (19 November 2026)
+
+Basis checkpoint `989e2d8b`. Memisahkan dua bagian navigasi yang tersisa tanpa mengganti desain atau perilakunya.
+
+- `PortalHeader.tsx`: logo Kemenhut, identitas instansi, tombol tema dan notifikasi beserta indikator unread. Konstanta `BKSDA_FOREST` diekspor dari header dan dipakai juga oleh backing halaman; satu nilai hijau yang sama menjaga perbaikan garis putih pada lengkungan. Handler tema tetap menerima event agar asal animasi tidak berubah.
+- `PortalBottomNav.tsx`: Beranda, Tugas, FAB, Layanan dan Profil, dengan ikon, warna aktif, badge tugas/aset, shadow, ukuran dan spacing yang sama. Tombol Layanan tetap mengatur tab sekaligus subhalaman menu; FAB tetap membuka modal aksi cepat yang ada.
+- `PortalDashboardScreen.tsx`: menggunakan dua komponen tersebut tanpa menambah node View. State tab/subhalaman/modal, ref SPT, hook/model notifikasi, hitungan badge dan tema tetap di induk. StatusBar, backing hijau, permukaan melengkung di luar ScrollView, urutan modal, cleanup berkas dan navigasi tetap sama.
+
+Halaman utama berkurang dari 683 menjadi 568 baris. Kedua komponen menerima props/state/setter yang sudah ada, tanpa hook, dependency, store atau lapisan abstraksi baru. Stylesheet, desain, warna, bentuk kartu, spacing, endpoint, backend dan hak akses tidak berubah. Ponytail diterapkan untuk menjaga perubahan terbatas pada pemisahan blok.
+
+Verifikasi:
+
+- TypeScript mobile tanpa emit: **0 diagnostik**. Sintaks fixture `frontend/tests/mobile-personal-assets.playwright.cjs` valid.
+- Perbandingan AST terhadap checkpoint: seluruh JSX portal sama setelah dua komponen diekspansi, termasuk props, atribut, style inline, teks dan handler. Semua state/ref/effect/handler serta perhitungan induk identik. Konstanta forest/surface sama; tidak ada hooks dalam dua komponen baru. Seluruh 34 file dashboard lama selain halaman utama, termasuk stylesheet, hook data dan hasil refactor tahap sebelumnya, tidak berubah.
+- Fixture yang sudah ada diperluas untuk tema gelap/terang dengan header hijau tetap, logo dan identitas bersama saat membuka Profil, persistensi tema antartab, warna tab aktif, refresh/tutup notifikasi, serta penekanan Layanan dari daftar BMN kembali ke menu. Alur FAB, penutupan dan fokus/navigasi SPT tetap dicakup fixture tahap sebelumnya.
+- **Browser E2E, Jest, perangkat fisik dan pemeriksaan piksel belum dijalankan.** Skill security-audit mewajibkan proses target hanya berjalan dalam sandbox OS dengan jaringan terisolasi, environment allowlist, target/toolchain read-only dan batas resource; kontrol tersebut belum tersedia. AST/style/typecheck adalah bukti statis, bukan kelulusan runtime.
+
+Rencana verifikasi runtime di lingkungan sandbox yang memenuhi syarat: jalankan fixture aset pribadi, profil dan surat tugas menggunakan akun/data dummy; periksa header dan bottom nav pada lebar 360/390/440 serta landscape, light/dark, badge nol/berisi, perpindahan tab/menu, notifikasi dan FAB → tutup/fokus → form SPT. Periksa juga status bar/safe area perangkat serta lengkungan header saat menggulir pada semua tab. Rencana tahap sebelumnya tetap berlaku.
+
+Pengguna menyetujui checkpoint tahap 5; refactor header dan bottom nav portal mobile disimpan sebagai commit lokal, belum di-push. Validasi runtime tetap dicatat belum selesai; tidak mengklaim hasil render/piksel lulus.
+
+- Graph kode tahap 5 diperbarui setelah perubahan source/fixture akhir: 15.800 node, 29.824 edge dan 1.031 komunitas melalui AST tanpa LLM.

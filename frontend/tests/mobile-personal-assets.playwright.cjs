@@ -23,6 +23,7 @@ async function main() {
     let socket;
     let assetsRequests = 0;
     let loansRequests = 0;
+    let notificationsRequests = 0;
     const errors = [];
     await context.routeWebSocket('**/*', ws => {
       if (!new URL(ws.url()).pathname.startsWith('/app/')) { ws.close(); return; }
@@ -49,6 +50,7 @@ async function main() {
         // A stale nonzero summary must never replace a valid empty personal list.
         summary: { assigned_assets_count: 2, active_loans_count: 1 }, notifications: [], urgent_tax_vehicles: [],
       } };
+      else if (pathname.endsWith('/portal/notifications')) { notificationsRequests++; body = { data: [], meta: { unread_count: 0 } }; }
       else if (pathname.endsWith('/me/assets')) { assetsRequests++; body = { data: assets }; }
       else if (pathname.endsWith('/me/dashboard')) { loansRequests++; body = { data: { my_assets: loans } }; }
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
@@ -74,8 +76,33 @@ async function main() {
     await page.getByPlaceholder('••••••••••••').fill('fixture-password');
     await page.getByLabel('Masuk', { exact: true }).click();
     await visible('1 Barang');
+    const header = page.getByTestId('portal-header');
+    const body = page.getByTestId('portal-body');
+    const headerColor = await header.evaluate(node => getComputedStyle(node).backgroundColor);
+    const lightBodyColor = await body.evaluate(node => getComputedStyle(node).backgroundColor);
+    const logo = await header.locator('img[alt="Logo Kementerian Kehutanan"]').getAttribute('src');
+    assert.ok(logo, 'Official ministry logo must be loaded');
+    await header.getByLabel('Aktifkan tema gelap', {exact:true}).click();
+    await header.getByLabel('Aktifkan tema terang', {exact:true}).waitFor();
+    assert.notEqual(await body.evaluate(node => getComputedStyle(node).backgroundColor), lightBodyColor);
+    assert.equal(await header.evaluate(node => getComputedStyle(node).backgroundColor), headerColor);
+    assert.notEqual(await text('Beranda').evaluate(node => getComputedStyle(node).color),
+      await text('Profil').evaluate(node => getComputedStyle(node).color));
     await page.getByLabel('Lihat profil pegawai', {exact:true}).click();
-    await visible('1 Aset (1 Pinjaman)'); await text('Beranda').click();
+    await visible('1 Aset (1 Pinjaman)');
+    await header.getByText('Kementerian Kehutanan', {exact:true}).waitFor();
+    await header.getByText('Balai KSDA Kalimantan Timur', {exact:true}).waitFor();
+    assert.equal(await header.locator('img[alt="Logo Kementerian Kehutanan"]').getAttribute('src'), logo);
+    await header.getByLabel('Aktifkan tema terang', {exact:true}).click();
+    await header.getByLabel('Aktifkan tema gelap', {exact:true}).waitFor();
+    assert.equal(await body.evaluate(node => getComputedStyle(node).backgroundColor), lightBodyColor);
+    const beforeNotifications = notificationsRequests;
+    await header.getByLabel('Buka notifikasi', {exact:true}).click();
+    await visible('Belum ada notifikasi.');
+    assert.ok(notificationsRequests > beforeNotifications, 'Opening notifications must refresh the shared model');
+    await page.getByLabel('Tutup Notifikasi', {exact:true}).click();
+    await page.getByLabel('Tutup Notifikasi', {exact:true}).waitFor({state:'hidden'});
+    await text('Beranda').click();
     await visible('1 Barang');
     await text('Detail Pinjaman').click();
     const loanDialog = page.getByRole('dialog');
@@ -95,6 +122,9 @@ async function main() {
     await visible('Pinjaman Berjalan (1)');
     await visible(assigned.nama_barang);
     assert.equal(await text(borrowed.nama_barang).count(), 0);
+    // Reselecting Layanan returns to its menu without resetting the portal state.
+    await text('Layanan').click(); await visible('Kalkulator Dinas (SBM)');
+    await text('Aset Saya').click(); await visible('Aset Tetap (1)');
     // Filters and layout belong to the portal and must survive extracted-view unmounts.
     await page.getByLabel('Tampilan List', {exact:true}).click();
     await page.getByPlaceholder('Cari nama barang, merk, atau NUP...').fill(assigned.nama_barang);
@@ -147,7 +177,7 @@ async function main() {
     await visible('0 Barang');
     assert.equal(await text('Pinjaman Aktif').count(), 0);
     assert.deepEqual(errors, []);
-    console.log('PASS: permanent/borrowed counts, numeric/string IDs, shared views, search/category/layout persistence, realtime return, empty state and reload.');
+    console.log('PASS: permanent/borrowed counts, numeric/string IDs, shared views, header/theme/notifications, navigation reset, search/category/layout persistence, realtime return, empty state and reload.');
   } finally {
     await browser.close();
   }
