@@ -15,7 +15,7 @@ class AssetResource extends JsonResource
             return array_map([self::class, 'stripQueryTokens'], $value);
         }
 
-        if (! is_string($value) || ! str_contains($value, 'token=')) {
+        if (! is_string($value) || stripos($value, 'token=') === false) {
             return $value;
         }
 
@@ -37,7 +37,8 @@ class AssetResource extends JsonResource
             return array_map(fn ($item) => self::attachViewerQueryToken($item, $token), $clean);
         }
 
-        if (! is_string($clean) || ! str_starts_with($clean, '/api/bmn/')) {
+        if (! is_string($clean) || ! str_starts_with($clean, '/api/bmn/')
+            || preg_match('~^/api/bmn/assets/[^/]+/photo/~', $clean)) {
             return $clean;
         }
 
@@ -48,8 +49,6 @@ class AssetResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        $token = $request->bearerToken() ?: $request->query('token');
-        $tokenParam = $token ? "&token=" . urlencode($token) : "";
         $v = $this->updated_at?->timestamp ?: time();
 
         return [
@@ -139,29 +138,29 @@ class AssetResource extends JsonResource
             'employee_id' => $this->employee_id,
             'status_pmk' => $this->status_pmk,
             'status_foto_geotag' => $this->status_foto_geotag,
-            'foto_geotag_url' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}{$tokenParam}" : $this->foto_geotag_url,
-            'foto_geotag_path' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}{$tokenParam}" : null,
+            'foto_geotag_url' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}" : self::stripQueryTokens($this->foto_geotag_url),
+            'foto_geotag_path' => $this->foto_geotag_path ? "/api/bmn/assets/{$this->id}/photo/geotag/view?v={$v}" : null,
             'foto_geotag_latitude' => $this->foto_geotag_latitude !== null ? (float) $this->foto_geotag_latitude : null,
             'foto_geotag_longitude' => $this->foto_geotag_longitude !== null ? (float) $this->foto_geotag_longitude : null,
             'foto_geotag_location_note' => $this->foto_geotag_location_note,
-            'foto_depan_url' => $this->foto_depan_path ? "/api/bmn/assets/{$this->id}/photo/depan/view?v={$v}{$tokenParam}" : null,
-            'foto_belakang_url' => $this->foto_belakang_path ? "/api/bmn/assets/{$this->id}/photo/belakang/view?v={$v}{$tokenParam}" : null,
-            'foto_kiri_url' => $this->foto_kiri_path ? "/api/bmn/assets/{$this->id}/photo/kiri/view?v={$v}{$tokenParam}" : null,
-            'foto_kanan_url' => $this->foto_kanan_path ? "/api/bmn/assets/{$this->id}/photo/kanan/view?v={$v}{$tokenParam}" : null,
-            'foto_lokasi_url' => $this->foto_lokasi_path ? "/api/bmn/assets/{$this->id}/photo/lokasi/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_1_url' => $this->foto_bpkb_1_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_1/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_2_url' => $this->foto_bpkb_2_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_2/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_3_url' => $this->foto_bpkb_3_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_3/view?v={$v}{$tokenParam}" : null,
-            'foto_bpkb_4_url' => $this->foto_bpkb_4_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_4/view?v={$v}{$tokenParam}" : null,
-            'foto_stnk_1_url' => $this->foto_stnk_1_path ? "/api/bmn/assets/{$this->id}/photo/stnk_1/view?v={$v}{$tokenParam}" : null,
-            'foto_stnk_2_url' => $this->foto_stnk_2_path ? "/api/bmn/assets/{$this->id}/photo/stnk_2/view?v={$v}{$tokenParam}" : null,
+            'foto_depan_url' => $this->foto_depan_path ? "/api/bmn/assets/{$this->id}/photo/depan/view?v={$v}" : null,
+            'foto_belakang_url' => $this->foto_belakang_path ? "/api/bmn/assets/{$this->id}/photo/belakang/view?v={$v}" : null,
+            'foto_kiri_url' => $this->foto_kiri_path ? "/api/bmn/assets/{$this->id}/photo/kiri/view?v={$v}" : null,
+            'foto_kanan_url' => $this->foto_kanan_path ? "/api/bmn/assets/{$this->id}/photo/kanan/view?v={$v}" : null,
+            'foto_lokasi_url' => $this->foto_lokasi_path ? "/api/bmn/assets/{$this->id}/photo/lokasi/view?v={$v}" : null,
+            'foto_bpkb_1_url' => $this->foto_bpkb_1_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_1/view?v={$v}" : null,
+            'foto_bpkb_2_url' => $this->foto_bpkb_2_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_2/view?v={$v}" : null,
+            'foto_bpkb_3_url' => $this->foto_bpkb_3_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_3/view?v={$v}" : null,
+            'foto_bpkb_4_url' => $this->foto_bpkb_4_path ? "/api/bmn/assets/{$this->id}/photo/bpkb_4/view?v={$v}" : null,
+            'foto_stnk_1_url' => $this->foto_stnk_1_path ? "/api/bmn/assets/{$this->id}/photo/stnk_1/view?v={$v}" : null,
+            'foto_stnk_2_url' => $this->foto_stnk_2_path ? "/api/bmn/assets/{$this->id}/photo/stnk_2/view?v={$v}" : null,
             'bpkb_document' => $this->vehicleDocumentPayload('bpkb'),
             'stnk_document' => $this->vehicleDocumentPayload('stnk'),
             'verified_at' => $this->verified_at?->toIso8601String(),
             'verified_by_name' => $this->verified_by ? User::find($this->verified_by)?->name : null,
             'tahun_perolehan' => $this->tahun_perolehan,
             'lokasi_spesifik' => $this->lokasi_spesifik,
-            'foto_url' => $this->foto_url,
+            'foto_url' => self::stripQueryTokens($this->foto_url),
             'keterangan' => $this->keterangan,
             'penanggung_jawab' => $this->whenLoaded('penanggungJawab', fn () => [
                 'id' => $this->penanggungJawab->id,

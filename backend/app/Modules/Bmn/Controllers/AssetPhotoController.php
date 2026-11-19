@@ -380,11 +380,15 @@ class AssetPhotoController extends Controller
                 $mime = in_array($rawMime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true) ? $rawMime : 'image/jpeg';
                 return response($file, 200)
                     ->header('Content-Type', $mime)
-                    ->header('X-Content-Type-Options', 'nosniff');
+                    ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, no-store')
+            ->header('Referrer-Policy', 'no-referrer');
             }
 
             if ($asset->foto_geotag_url && (str_starts_with($asset->foto_geotag_url, 'http://') || str_starts_with($asset->foto_geotag_url, 'https://')) && self::isSafeExternalGeotagUrl($asset->foto_geotag_url)) {
-                return redirect()->away($asset->foto_geotag_url);
+                return redirect()->away($asset->foto_geotag_url)
+                    ->header('Cache-Control', 'private, no-store')
+                    ->header('Referrer-Policy', 'no-referrer');
             }
 
             return response()->json(['message' => 'Foto geotag tidak tersedia.'], 404);
@@ -407,7 +411,9 @@ class AssetPhotoController extends Controller
 
         return response($file, 200)
             ->header('Content-Type', $mime)
-            ->header('X-Content-Type-Options', 'nosniff');
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, no-store')
+            ->header('Referrer-Policy', 'no-referrer');
     }
 
     private static function isSafeExternalGeotagUrl(?string $url): bool

@@ -1,5 +1,6 @@
+import { BmnPhotoImage } from "@/components/BmnPhotoImage";
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlassCard } from "@/components/ui/GlassCard";
 import type { PortalViewProps, PortalServiceScreen } from "./portalViewTypes";
@@ -248,7 +249,7 @@ export function PortalAssetsView({
                   {/* Top Photo / Placeholder Container */}
                   <View style={[styles.bmnGridPhotoWrap, { backgroundColor: colors.surfaceMuted, borderBottomColor: colors.glassBorder }]}>
                     {showPhoto ? (
-                      <Image
+                      <BmnPhotoImage
                         source={{ uri: photo!.url }}
                         style={styles.bmnGridPhoto}
                         resizeMode="cover"
@@ -423,7 +424,7 @@ export function PortalAssetsView({
                     ]}
                   >
                     {showPhoto ? (
-                      <Image
+                      <BmnPhotoImage
                         source={{ uri: photo!.url }}
                         style={styles.bmnThumbImg}
                         resizeMode="cover"

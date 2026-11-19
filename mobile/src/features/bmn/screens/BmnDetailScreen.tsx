@@ -1,3 +1,4 @@
+import { BmnPhotoImage } from "@/components/BmnPhotoImage";
 import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
@@ -8,7 +9,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
-  Image,
   RefreshControl,
   Linking,
   TextInput,
@@ -29,7 +29,6 @@ import { NotificationModal } from '../../../components/ui/NotificationModal';
 import { usePermissions } from '../../../lib/permissions';
 
 import { config } from '../../../lib/api/config';
-import { getToken } from '../../../lib/auth/tokenStorage';
 
 function driveToThumbnail(url: string): string | null {
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -81,7 +80,6 @@ export default function BmnDetailScreen() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isReturning, setIsReturning] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
 
   // Multi-page & Multi-photo Lightbox modal state
   const [lightboxState, setLightboxState] = useState<{
@@ -282,10 +280,6 @@ export default function BmnDetailScreen() {
       });
     }
   };
-
-  React.useEffect(() => {
-    getToken().then((token) => setAuthToken(token));
-  }, []);
 
   const formatCurrency = (val?: number | string | null) => {
     if (!val) return '-';
@@ -527,7 +521,7 @@ export default function BmnDetailScreen() {
           accessibilityLabel={featuredPhoto?.url ? `Lihat ${featuredPhoto.label}` : 'Belum ada foto aset'}
         >
           {featuredPhoto?.url ? (
-            <Image source={{ uri: featuredPhoto.url }} style={styles.featuredPhoto} resizeMode="cover" />
+            <BmnPhotoImage source={{ uri: featuredPhoto.url }} style={styles.featuredPhoto} resizeMode="cover" />
           ) : (
             <View style={styles.featuredPhotoEmpty}>
               <Ionicons name="images-outline" size={34} color="#94a3b8" />
@@ -846,7 +840,7 @@ export default function BmnDetailScreen() {
                     <View key={slot.key} style={[styles.photoSlotCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc' }]}>
                       {hasUrl ? (
                         <TouchableOpacity activeOpacity={0.85} onPress={() => handleViewPhysicalPhoto(slot.key, photoSlots)}>
-                          <Image source={{ uri: slot.url! }} style={styles.photoImg} resizeMode="cover" />
+                          <BmnPhotoImage source={{ uri: slot.url! }} style={styles.photoImg} resizeMode="cover" />
                         </TouchableOpacity>
                       ) : (
                         <View style={styles.photoPlaceholder}>
@@ -999,7 +993,7 @@ export default function BmnDetailScreen() {
             )}
 
             {lightboxState && (
-              <Image
+              <BmnPhotoImage
                 key={lightboxState.images[lightboxState.index]}
                 source={{ uri: lightboxState.images[lightboxState.index] }}
                 style={styles.lightboxImg}

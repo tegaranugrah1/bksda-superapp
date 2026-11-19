@@ -9,8 +9,8 @@ class AuthenticateQueryToken
 {
     /**
      * Handle an incoming request.
-     * If request contains ?token= query parameter and no Authorization header,
-     * inject it into Authorization header as Bearer token for Sanctum authentication.
+     * Legacy document/KTP URLs still support query credentials.
+     * Asset photos require a session cookie or Authorization header.
      */
     public function handle(Request $request, Closure $next)
     {
@@ -29,8 +29,6 @@ class AuthenticateQueryToken
         }
 
         return $request->is(
-            'api/bmn/assets/*/photo/*/view',
-            'api/bmn/assets/*/photo/*/download',
             'api/bmn/assets/*/document/*/view',
             'api/bmn/assets/*/document/*/preview',
             'api/bmn/assets/*/document/*/preview/*',

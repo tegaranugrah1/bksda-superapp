@@ -3615,3 +3615,14 @@ Setelah semua command clean:
 - Pengguna meminta langsung commit. Basis e79f5efa; perbaikan disimpan sebagai checkpoint lokal, belum di-push. Rincian reproduksi dan batas validasi: docs/mobile-portal-refactor.md. Risiko token pada URL foto BMN serta penyederhanaan style/filter dari review tetap di luar tahap ini.
 
 - Graph kode tahap 7 diperbarui setelah perubahan source/tes akhir: 15.827 node, 29.894 edge dan 1.052 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 181 Token pada URL Foto BMN
+
+- Menghapus bearer dari URL foto API aset pribadi, pinjaman dan AssetResource, termasuk foto BPKB/STNK pada endpoint photo. Snapshot tidak memasang ulang token pada URL foto; query token lama dibersihkan. Middleware tidak lagi menerima token query untuk view/download foto. Izin/pemilik/peminjam dan penolakan token yang dicabut tetap diperiksa oleh middleware yang ada.
+- BmnPhotoImage menggunakan Authorization header pada native dan API client berautentikasi -> blob URL pada web. Hanya foto pada origin/path API yang dikenal menerima kredensial; foto eksternal/lokal memakai source semula. URL lama dibersihkan, blob dibuang saat foto/sesi berubah/unmount dan respons usang diabaikan. Handler gagal dan props Image diteruskan; foto API memakai private/no-store serta no-referrer.
+- Ketiga render tree konsumen identik setelah penggantian Image -> BmnPhotoImage; tidak ada View/wrapper layout tambahan. Stylesheet portal dan seluruh style/spacing/card/warna tetap. State/effect getToken yang tidak digunakan pada detail BMN dihapus; tanpa dependency atau mekanisme signed-token baru. Ponytail Review pada diff akhir: Lean already. Ship.
+- Pengujian final di Docker sandbox: 11/11 tes mobile (2 suite) dan 5/5 tes HTTP backend dengan 59 assertion lolos; TypeScript mobile 0 diagnostik. Mencakup URL tokenless, query-only 401, header/session guard sah, pembaca asing 403, token dicabut 401, borrower/private-photo/return boundary, snapshot lama, host eksternal, respons usang dan cleanup blob. Browser E2E/perangkat/piksel belum diuji. Reproduksi/limit sandbox: docs/mobile-portal-refactor.md.
+- Pengguna meminta langsung commit. Basis 378329db; perubahan disimpan sebagai checkpoint lokal, belum di-push. Tahap ini khusus endpoint foto; URL dokumen/preview PDF dan KTP masih memakai mekanisme lama dan perlu tindak lanjut terpisah. Tidak mengklaim kebocoran log produksi terbukti atau seluruh audit/deployment selesai.
+
+- Graph kode tahap 8 diperbarui setelah perubahan source/tes akhir: 15.841 node, 29.924 edge dan 1.037 komunitas melalui AST tanpa LLM.

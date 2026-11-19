@@ -962,4 +962,71 @@ class PortalPersonalSecurityTest extends TestCase
         $this->assertNotContains('private-admin.inbox.surat_tugas.'.$token->id, $channels());
     }
 
+
+    public function test_portal_and_module_asset_photo_urls_do_not_include_the_bearer(): void
+    {
+        [$user, $employee] = $this->actor('Dummy Tokenless Photos', 'admin', ['bmn']);
+        $path = 'audit-fixtures/tokenless-photo.png';
+        Storage::disk('local')->put($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0R0AAAAASUVORK5CYII='));
+        $asset = $this->asset($employee, ['foto_depan_path' => $path, 'foto_geotag_path' => $path]);
+        $asset->update([
+            'foto_url' => "/api/bmn/assets/{$asset->id}/photo/depan/view?token=old-dummy-token&v=9",
+            'foto_geotag_url' => "/api/bmn/assets/{$asset->id}/photo/geotag/view?ToKeN=old-dummy-token&v=9",
+        ]);
+        AssetLoan::create([
+            'asset_id' => $asset->id, 'employee_id' => $employee->id,
+            'tanggal_pinjam' => '2026-11-01', 'due_date' => '2026-12-01', 'status' => 'dipinjam',
+        ]);
+        $token = $user->createToken('dummy-photo-regression')->plainTextToken;
+        foreach ([['/api/me/assets', 'data.0'], ['/api/me/dashboard', 'data.my_assets.0'], ["/api/bmn/assets/{$asset->id}", 'data']] as [$endpoint, $root]) {
+            $this->app['auth']->forgetGuards();
+            $response = $this->getJson($endpoint, ['Authorization' => 'Bearer '.$token])->assertOk();
+            foreach (['foto_depan_url', 'foto_geotag_url', 'foto_url'] as $key) {
+                $url = $response->json($root.'.'.$key);
+                $this->assertIsString($url);
+                $this->assertStringContainsString('/photo/', $url);
+                $this->assertStringNotContainsString('token=', $url);
+                $this->assertStringNotContainsString($token, $url);
+            }
+        }
+    }
+
+    public function test_asset_photos_require_header_or_session_and_keep_the_ownership_boundary(): void
+    {
+        [$owner, $employee] = $this->actor('Dummy Photo Owner');
+        [$other] = $this->actor('Dummy Other Photo Viewer');
+        $path = 'audit-fixtures/header-photo.png';
+        Storage::disk('local')->put($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0R0AAAAASUVORK5CYII='));
+        $asset = $this->asset($employee, ['foto_depan_path' => $path]);
+        $token = $owner->createToken('dummy-photo-owner')->plainTextToken;
+        $otherToken = $other->createToken('dummy-photo-outsider')->plainTextToken;
+        $url = "/api/bmn/assets/{$asset->id}/photo/depan/view";
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url.'?token='.urlencode($token))->assertUnauthorized();
+        $this->app['auth']->forgetGuards();
+        $this->getJson(str_replace('/view', '/download', $url).'?token='.urlencode($token))->assertUnauthorized();
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url, ['Authorization' => 'Bearer '.$token])->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer');
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url, ['Authorization' => 'Bearer '.$otherToken])->assertForbidden();
+        $this->app['auth']->forgetGuards();
+        $this->actingAs($owner, 'web')->getJson($url)->assertOk();
+        $owner->tokens()->delete();
+        $this->app['auth']->forgetGuards();
+        $this->getJson($url, ['Authorization' => 'Bearer '.$token])->assertUnauthorized();
+    }
+
+    public function test_cached_asset_photo_snapshots_strip_legacy_credentials_without_reattaching_them(): void
+    {
+        $payload = ['items' => [[
+            'photo' => '/api/bmn/assets/17/photo/depan/view?ToKeN=old-secret&v=9',
+            'download' => '/api/bmn/assets/17/photo/depan/download/?token=old-secret&v=9',
+        ]]];
+        $result = \App\Modules\Bmn\Resources\AssetResource::attachViewerQueryToken($payload, '42|dummy-current-token');
+        $this->assertSame('/api/bmn/assets/17/photo/depan/view?v=9', $result['items'][0]['photo']);
+        $this->assertSame('/api/bmn/assets/17/photo/depan/download/?v=9', $result['items'][0]['download']);
+        $this->assertStringNotContainsString('dummy-current-token', json_encode($result));
+    }
+
 }

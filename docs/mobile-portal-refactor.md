@@ -206,3 +206,53 @@ Rencana pemeriksaan UI berikutnya: buka/tutup scan sebelum respons, pindah scan 
 Atas instruksi pengguna, perubahan disimpan sebagai checkpoint lokal, belum di-push. Progress dan handoff diperbarui dengan hasil uji terfokus serta batas cakupan di atas.
 
 - Graph kode tahap 7 diperbarui setelah perubahan source/tes akhir: 15.827 node, 29.894 edge dan 1.052 komunitas melalui AST tanpa LLM.
+
+
+## Tahap 8 — Menghapus bearer dari URL foto BMN (19 November 2026)
+
+Basis checkpoint `378329db`. Skill Ponytail Review, Security Audit (pemeriksaan temuan terfokus) dan Security Review digunakan. Pengguna mengizinkan perbaikan dan langsung commit, dengan desain/warna/bentuk kartu/spacing tetap.
+
+Perubahan:
+
+- `AuthController`: URL foto pada /me/assets dan /me/dashboard tidak menyisipkan bearer. Helper assetQueryTokenParam serta capture request yang tidak lagi diperlukan dihapus; field foto tersimpan dibersihkan dari query token lama memakai helper yang sudah ada.
+- `AssetResource`: seluruh foto endpoint /photo/, termasuk slot BPKB/STNK, tidak menyisipkan bearer. Helper snapshot membuang query token lama, termasuk variasi huruf besar, dan tidak memasang ulang token pada path foto (termasuk trailing slash). Serialisasi data/izin dan alur dokumen selain foto tetap.
+- `AuthenticateQueryToken`: path view/download foto dikeluarkan dari dukungan query token. Akses foto tetap menggunakan auth:sanctum dan pemeriksaan modul/permission/owner/active loan yang sudah ada. `AssetPhotoController` menambahkan private/no-store dan no-referrer pada respons foto/redirect.
+- `BmnPhotoImage`: satu komponen berbasis Image tanpa wrapper layout, dipakai portal BMN, slot foto dan detail/lightbox BMN. Native mengirim Authorization pada source hanya untuk origin/path foto API yang sah. Web memuat blob melalui apiClient yang sudah mengelola autentikasi; atribut image memakai blob URL tanpa bearer. Source eksternal/lokal diteruskan tanpa menambahkan kredensial. Query token lama dibersihkan sebelum permintaan foto internal.
+- Blob web hanya dibuat untuk respons image JPEG/PNG/WebP/GIF dan untuk request aktif. Respons lama diabaikan; blob dibersihkan ketika sumber/sesi berganti atau komponen dilepas. Props style, ukuran, resizeMode, label dan onError diteruskan. State/authToken beserta pembacaan getToken yang tidak digunakan di BmnDetailScreen dihapus.
+- Tidak membuat endpoint publik, signed token baru, store/cache global, atau dependency baru. Frontend web tetap memakai sesi cookie pada endpoint foto. Kunci bearer tidak lagi ditempatkan di URL foto yang dihasilkan.
+
+Rilis backend perlu disertai pembaruan mobile untuk pemuat foto melalui header/blob; klien foto lama yang hanya mengandalkan query token akan ditolak.
+
+Batas cakupan: endpoint dokumen/preview PDF dan KTP masih menggunakan mekanisme query token lama. Penghapusan mekanisme itu memerlukan migrasi pemuat dokumen tersendiri, bukan mengubah aksesnya diam-diam pada tahap foto. Tidak melakukan revoke massal token akun nyata atau memeriksa/mengubah log produksi. Kebocoran historis di proxy/log tetap needs_validation; sumber membuktikan penempatan bearer pada URL lama, bukan insiden produksi yang telah terkonfirmasi.
+
+Verifikasi final:
+
+- TypeScript mobile tanpa emit: **0 diagnostik**.
+- Jest di sandbox: **2 suite, 11 tes lolos**, exit 0, 35,818 detik. Lima kasus BmnPhotoImage memeriksa request web/atribut tanpa bearer, header native dan origin eksternal/URL userinfo, URL lama terenkode/trailing slash, 403/MIME salah/onError, race pergantian foto/sesi, unmount dan pelepasan blob. Enam kasus slot foto yang sudah ada memastikan perilaku komponen konsumen tetap.
+- PHPUnit di sandbox: **5 tes HTTP, 59 assertion lolos**, exit 0, sekitar 3 detik. Meliputi /me/assets, /me/dashboard, serializer modul, field foto legacy; query-only view/download ditolak 401; header dan session guard sah diterima; pembaca asing ditolak 403; bearer dicabut ditolak 401; borrower tidak mendapat foto dokumen pribadi dan kehilangan akses setelah return; snapshot tidak memasang ulang bearer foto.
+- Pemeriksaan AST: ketiga render tree konsumen berikut props/style sama setelah rename Image -> BmnPhotoImage. portalStyles tetap identik; komponen gambar mengembalikan Image langsung sehingga tidak menambah node layout. Desain, warna, bentuk kartu, ukuran, margin/padding dan spacing dipertahankan.
+- Ponytail Review pada diff final: **Lean already. Ship.** Satu pemuat foto berbasis Image/apiClient dipakai di tiga lokasi; pembacaan/state token yang mati dan helper penyisip token dihapus. Tidak menambah sistem autentikasi alternatif atau dependency.
+- Security Review memeriksa sanitasi URL, pemisahan origin, lifecycle blob, cache/referrer, serta otorisasi yang tetap di backend. Ini perbaikan satu temuan, bukan klaim cakupan audit seluruh repo.
+- **Browser E2E, perangkat fisik dan pengukuran piksel belum dilakukan.** Tes session guard bukan pengujian cookie/proxy produksi. Tidak memakai akun, media, broker atau kredensial nyata.
+
+Sandbox menggunakan image lokal `bksda-security-sandbox:browser`, ID `sha256:34f1faad757152f989d334628096d8f7e1ffd80beb34e4434b70ae84c3597c54`; pull/build/install dinonaktifkan. Kedua eksekusi memakai network/IPC none, root/source/toolchain read-only, UID/GID 65534, semua capability dibuang, no-new-privileges, scratch tmpfs 256 MB, limit file 32 MB dan 1024 fd, serta timeout 90 detik. Container dihapus otomatis; tidak mempromosikan file hasil target. Tidak memasang .env, data storage nyata, home host, atau socket Docker.
+
+Reproduksi Jest memakai perintah sandbox tahap 7 dengan daftar tes diganti menjadi `src/components/__tests__/BmnPhotoImage.test.tsx src/features/bmn/components/detail/__tests__/AssetPhotoSlotsSection.test.tsx`. Limitnya tetap 1 CPU, RAM 1536 MB tanpa swap tambahan dan 128 PID. Environment tetap PATH/HOME/TMPDIR/NODE_ENV/CI/EXPO_NO_TELEMETRY/EXPO_PUBLIC_USE_RN_FETCH yang tercantum pada tahap 7. Seluruh API/foto/credential pada fixture adalah dummy atau mock; source dan node_modules dari mobile dipasang terpisah read-only.
+
+Reproduksi backend berikut adalah skrip Python (jalankan dengan Python 3 pada host Windows). Argumen subprocess merupakan command yang dipakai: source backend dipasang lewat allowlist read-only, vendor/toolchain dari image, DB SQLite :memory:, fake mail/storage/event dalam suite, 1 CPU, RAM 1024 MB tanpa swap tambahan dan 96 PID. Proses target dimulai dengan environment kosong melalui env -i dan hanya nilai dummy yang dituliskan di bawah:
+
+```python
+import subprocess
+from pathlib import Path
+root=Path('E:/bksda-superapp/backend')
+args=['docker','--context','desktop-linux','run','--rm','--pull=never','--network=none','--ipc=none','--read-only','--user=65534:65534','--cap-drop=ALL','--security-opt=no-new-privileges','--cpus=1','--memory=1024m','--memory-swap=1024m','--pids-limit=96','--ulimit','nofile=1024:1024','--ulimit','fsize=33554432:33554432','--tmpfs','/scratch:rw,nosuid,nodev,size=268435456,mode=1777']
+for source in ['app','config','routes','database','tests','bootstrap/app.php','bootstrap/providers.php','composer.json','phpunit.xml']:
+ args+=['--mount',f'type=bind,source={(root/source).as_posix()},target=/app/{source},readonly']
+args+=['--workdir=/app','--entrypoint=/usr/bin/env','bksda-security-sandbox:browser','-i','PATH=/usr/local/bin:/usr/bin:/bin','HOME=/scratch','TMPDIR=/scratch','APP_ENV=testing','APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=','LARAVEL_STORAGE_PATH=/scratch/storage','APP_PACKAGES_CACHE=/scratch/cache/packages.php','APP_SERVICES_CACHE=/scratch/cache/services.php','APP_CONFIG_CACHE=/scratch/cache/config.php','APP_ROUTES_CACHE=/scratch/cache/routes.php','APP_EVENTS_CACHE=/scratch/cache/events.php','VIEW_COMPILED_PATH=/scratch/views','DB_CONNECTION=sqlite','DB_DATABASE=:memory:','CACHE_STORE=array','SESSION_DRIVER=array','MAIL_MAILER=array','QUEUE_CONNECTION=sync','BROADCAST_CONNECTION=log','LOG_CHANNEL=stderr','PULSE_ENABLED=false','TELESCOPE_ENABLED=false','NIGHTWATCH_ENABLED=false','/bin/sh','-c','mkdir -p /scratch/cache /scratch/views /scratch/storage/framework/views /scratch/storage/logs && exec /usr/bin/timeout --signal=KILL 90 /usr/local/bin/php /app/vendor/bin/phpunit --configuration=/app/phpunit.xml --do-not-cache-result --no-coverage --filter="(photo|snapshots)" /app/tests/Feature/PortalPersonalSecurityTest.php']
+result=subprocess.run(args)
+raise SystemExit(result.returncode)
+```
+
+Atas permintaan pengguna, perubahan disimpan sebagai commit lokal, belum di-push. Progress/handoff mencatat hasil terfokus dan tindak lanjut dokumen/KTP di atas.
+
+- Graph kode tahap 8 diperbarui setelah perubahan source/tes akhir: 15.841 node, 29.924 edge dan 1.037 komunitas melalui AST tanpa LLM.
