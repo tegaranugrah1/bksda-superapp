@@ -3550,3 +3550,13 @@ Setelah semua command clean:
 - Pengguna menyetujui checkpoint Bagian 174. Perubahan disimpan sebagai commit lokal perbaikan keamanan dan refactor portal mobile tahap 1, dengan basis b9a2aa59; belum di-push. Desain tetap dipertahankan. Pemisahan render tab/hook data berikutnya menunggu regresi runtime tahap ini.
 
 - Graph kode Graphify diperbarui setelah perubahan akhir: 15.737 node, 29.567 edge, 1.032 komunitas; pembaruan AST tanpa LLM. Normalisasi akhir baris report mengikuti repository.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 175 Refactor Portal Mobile Tahap 2
+
+- Pengguna meminta tahap berikutnya dengan desain, warna, bentuk kartu dan spacing tetap. Memisahkan lima pemuat data personal ke usePortalData, tampilan/hitungan/filter Tugas ke PortalTasksTab, serta helper presentasi yang dipakai bersama ke portalHelpers. Hook dipasang di portal; filter tab tetap disimpan di induk agar bertahan saat berpindah tab.
+- Endpoint, aturan saldo, pengecualian aset pinjaman, fallback data, timestamp dan refresh fokus/foreground/Reverb sama. Tidak menambah request, mengubah autentikasi/backend atau menambah dependensi. Halaman utama dari 2,899 ke 2,595 baris; profil dan layanan belum dipisahkan pada tahap ini.
+- TypeScript mobile 0 diagnostik. Perbandingan AST memverifikasi seluruh JSX portal setelah ekspansi komponen Tugas, binding props, isi loader/helper/filter, registrasi refresh dan konstanta tampilan identik terhadap 105dca21; stylesheet tidak berubah. Regresi hook data disiapkan, belum dijalankan. Uji Jest/browser/perangkat tahap 1/2 tetap menunggu sandbox OS yang disyaratkan security-audit; tidak menganggap runtime sudah lulus.
+- Pengguna menyetujui checkpoint Bagian 175. Refactor pemuatan data dan tab Tugas disimpan sebagai commit lokal dengan basis 105dca21; belum di-push. Rincian: docs/mobile-portal-refactor.md. Status uji runtime tetap belum tervalidasi.
+
+- Graph kode diperbarui setelah refactor tahap 2: 15.753 node, 29.640 edge, 1.059 komunitas melalui AST tanpa LLM.

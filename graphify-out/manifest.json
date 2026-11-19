@@ -3320,8 +3320,8 @@
     "semantic_hash": ""
   },
   "mobile/src/features/dashboard/PortalDashboardScreen.tsx": {
-    "mtime": 1795059735.8784394,
-    "ast_hash": "52a6eb6d98b1541cf92cbc037db85656",
+    "mtime": 1795065752.884768,
+    "ast_hash": "3653f5f4d31ab821ac1e9ad0f6236b02",
     "semantic_hash": ""
   },
   "mobile/src/features/inventory/InventoryStockScreen.tsx": {
@@ -3420,8 +3420,8 @@
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1795059944.2388783,
-    "ast_hash": "9e17631103b0718a3c199b6d7bbe283d",
+    "mtime": 1795066100.7918088,
+    "ast_hash": "387eb1b8f9438d2478172718bead99c5",
     "semantic_hash": ""
   },
   "docs/RUSTFS-GUIDE.md": {
@@ -4085,8 +4085,8 @@
     "semantic_hash": ""
   },
   "docs/progress.md": {
-    "mtime": 1795059944.2438776,
-    "ast_hash": "a4d34370504eb82849081f33896ef68b",
+    "mtime": 1795066100.8193557,
+    "ast_hash": "84b4afa306f01680c5f3351260db822f",
     "semantic_hash": ""
   },
   "docs/security-remediation-plan.md": {
@@ -5845,8 +5845,8 @@
     "semantic_hash": ""
   },
   "progress.md": {
-    "mtime": 1795059944.241878,
-    "ast_hash": "af595e5513585420caa0c2515d0de3c6",
+    "mtime": 1795066100.806808,
+    "ast_hash": "5746a52b17ac10540ad928e0b08ae3b0",
     "semantic_hash": ""
   },
   "frontend/public/assets/header-new.png": {
@@ -9185,8 +9185,28 @@
     "semantic_hash": ""
   },
   "docs/mobile-portal-refactor.md": {
-    "mtime": 1795060297.9226189,
-    "ast_hash": "185dd1f4b5e5b8ddb2da363d96a4c6c1",
+    "mtime": 1795066100.7898078,
+    "ast_hash": "5ad6879b63efdda6cfa398dc2a9d077b",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/PortalTasksTab.tsx": {
+    "mtime": 1795065974.7605236,
+    "ast_hash": "e5cab17389a266e3330518639261a577",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/__tests__/usePortalData.test.tsx": {
+    "mtime": 1795065974.76146,
+    "ast_hash": "8c680ead42c1d3d3f1be9cd4802419e4",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/portalHelpers.ts": {
+    "mtime": 1795065752.8807647,
+    "ast_hash": "aacd04330ba28e5e3a2077eec4e795ef",
+    "semantic_hash": ""
+  },
+  "mobile/src/features/dashboard/usePortalData.ts": {
+    "mtime": 1795065752.8807647,
+    "ast_hash": "363a6700cab1ba250ee0c676a62b8632",
     "semantic_hash": ""
   }
 }

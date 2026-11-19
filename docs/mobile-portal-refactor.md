@@ -45,3 +45,24 @@ Di lingkungan sandbox yang memenuhi syarat, jalankan suite auth/API/storage/file
 ## Tahap refactor berikutnya
 
 Pemisahan render setiap tab dan hook pengambilan data dapat dilanjutkan setelah regresi runtime tahap 1 lulus. Stylesheet yang dipindah sengaja belum dirombak agar perubahan perilaku dan tampilan dapat dinilai terpisah. Pengguna menyetujui checkpoint tahap 1; disimpan sebagai commit lokal, belum di-push. Status pengujian tetap sesuai batas bukti di atas.
+
+
+## Tahap 2 — Pemuatan data dan tab Tugas (19 November 2026)
+
+Basis checkpoint `105dca21`. Atas instruksi pengguna, tahap berikutnya dilanjutkan sebagai pemisahan kode mekanis; status validasi runtime tahap 1 tetap belum selesai.
+
+- `usePortalData.ts` menampung state dan lima loader personal: surat tugas, pengajuan cuti, saldo cuti, aset tetap dan pinjaman. Eligibility saldo, pengecualian aset yang sedang dipinjam, waktu pembaruan pinjaman, urutan request, fallback saat gagal, dan refresh fokus/foreground/Reverb mempertahankan implementasi sebelumnya. Hook tetap dipasang sekali di portal, sehingga perpindahan tab tidak memasang ulang pemuat data.
+- `PortalTasksTab.tsx` menampung JSX tab Tugas, hitungan dan filter Semua/Berjalan/Selesai. Filter terpilih dan handler pratinjau tetap dimiliki portal agar pilihan bertahan saat berpindah tab. Komponen memakai fragment dan styles/warna/metrik/shadow yang sama, tanpa penambahan container tampilan.
+- `portalHelpers.ts` menampung helper yang kini dipakai Beranda dan Tugas: palette status, ringkasan judul, sumber dana, tanggal dan predikat status. Isi fungsi dipertahankan. Export `extractSuratTugasDalamRangka` dari modul portal lama tetap tersedia untuk kompatibilitas.
+- Halaman utama berkurang dari 2,899 menjadi 2,595 baris. Tahap ini tidak mengubah endpoint, backend, session/auth, hak akses, desain, warna, bentuk kartu, spacing atau animasi.
+
+Verifikasi statis setelah perubahan:
+
+- Compiler TypeScript mobile, tanpa emit: **0 diagnostik**.
+- Perbandingan AST terhadap checkpoint: keseluruhan JSX portal sama setelah komponen Tugas diekspansi; binding props, style inline, teks dan urutan elemen sama. Seluruh isi lima loader, callback refresh, registrasi fokus/foreground/Reverb, pemisahan aset, timestamp dan helper/filter yang dipindah sama.
+- Berkas `portalStyles.ts` tetap identik setelah normalisasi akhir baris; konstanta header, surfaces light/dark dan daftar modul identik.
+- Regresi `usePortalData.test.tsx` disiapkan untuk lima endpoint tanpa request tambahan saat rerender, saldo nol, pemisahan aset/pinjaman lintas tipe ID, refresh Reverb/foreground, refresh cuti saja, eligibility akun tanpa pegawai/MMP dan fallback kegagalan. **Jest/browser/perangkat belum dijalankan**; persyaratan sandbox OS skill security-audit masih berlaku sebagaimana bagian batas bukti tahap 1.
+
+Pemisahan render Profil dan Layanan BMN/cuti tetap merupakan kandidat tahap berikutnya. Pengguna menyetujui checkpoint tahap 2; perubahan disimpan sebagai commit lokal dan belum di-push. Hasil pemeriksaan statis serta status runtime yang belum tervalidasi tetap dicatat di atas.
+
+Graph kode tahap 2 diperbarui: 15.753 node, 29.640 edge dan 1.059 komunitas, melalui AST tanpa LLM.
