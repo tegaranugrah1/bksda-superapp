@@ -1,6 +1,6 @@
 # Progress Development - BKSDA SuperApp
 
-**Status terbaru (19 November 2026):** Bagian 172 disimpan sebagai checkpoint lokal Profil Pegawai portal mobile yang telah disetujui pengguna: identitas/kontak aktual, foto profil, edit kontak dengan konfirmasi perubahan email, keamanan dan ubah kata sandi, data kepegawaian serta navigasi riwayat tugas/cuti yang benar. Typecheck/lint, E2E profil/BMN/SPT dan bundle Android lulus. Checkpoint sebelumnya d9318cd2; checkpoint ini belum di-push.
+**Status terbaru (19 November 2026):** Bagian 173 disimpan sebagai checkpoint lokal perbaikan logout portal mobile yang telah dikonfirmasi pengguna. Konfirmasi memakai dialog aplikasi; Batal/Escape mempertahankan sesi; konfirmasi menghapus token dan kembali ke login termasuk ketika API gagal. Typecheck/lint, regresi profil/logout, 11 tes auth/API dan bundle Android lulus. Checkpoint sebelumnya 7bd2db30; checkpoint ini belum di-push.
 
 ## Status Update: 2 November 2026
 
@@ -3454,3 +3454,13 @@ Implementasi bagian 90–95 sudah selesai dan tercatat pada commit lokal `8e3d0a
 - Menghapus kontak TU/nomor WhatsApp contoh pada tab Profil, menggantinya dengan aksi Perbarui Data Profil. Tidak membuat alamat kontak pengganti atau endpoint baru; backend/otorisasi tidak diubah.
 - Typecheck dan lint file berubah lulus. Regresi Chrome fixture frontend/tests/mobile-profile.playwright.cjs menguji identitas/angka nol/light-dark 360/440/landscape 800, data pangkat, daftar tugas/cuti kosong, validasi dan retry 422 kontak, konfirmasi email, pencegahan kirim ganda, unggahan multipart PNG dan penolakan SVG, akun tanpa pegawai, serta validasi/retry/sukses kata sandi dan logout lewat Escape. Uji BMN sebelumnya tetap lulus untuk pemisahan aset/pinjaman dan refresh realtime; E2E form SPT sebelumnya juga tetap lulus. Hasil render profil dan sheet light/dark ditinjau; bundle Android HTTP 200 JavaScript. Semua API/pengiriman browser terisolasi, tanpa mengubah akun, email, foto atau kata sandi nyata. Perangkat fisik belum diuji.
 - Pengguna mengonfirmasi hasil sudah bagus dan menyetujui checkpoint. Checkpoint sebelumnya d9318cd2; Bagian 172 disimpan sebagai checkpoint lokal penyempurnaan Profil Pegawai portal mobile; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 173 Logout Portal Mobile di Browser
+
+- Menangani laporan tombol Keluar Akun (Logout) tidak bereaksi. Root cause: PortalDashboardScreen memakai Alert.alert untuk konfirmasi; implementasi React Native Web Alert.alert kosong sehingga callback logout tidak pernah berjalan. Tes browser mereproduksi tombol yang tidak menampilkan konfirmasi sebelum perbaikan.
+- Konfirmasi kini memakai ConfirmModal aplikasi yang sudah tersedia, dengan Batal/Ya, Keluar dan handler logout AuthProvider yang sama. Tidak mengubah endpoint atau kebijakan pencabutan token. Tombol logout/konfirmasi/batal memiliki peran dan label aksesibel; Escape/tombol Back menutup konfirmasi tanpa mengakhiri sesi.
+- ConfirmModal memakai surface/token bahaya sesuai tema, lebar maksimal 420px, backdrop tidak menjadi target fokus, dan teks tombol bahaya memakai foreground yang memenuhi kontras pada light/dark.
+- Memperluas regresi frontend/tests/mobile-profile.playwright.cjs untuk alur logout dari tombol Profil: batal, Escape, konfirmasi, satu request, token localStorage terhapus, kembali ke login dan reload tetap login. Kasus respons logout 200 serta 500 lulus; unit AuthProvider juga menguji cleanup ketika jaringan gagal. Pemeriksaan kontras tombol minimal 4.5:1 mencakup kedua tema.
+- Typecheck/lint mobile dan skrip browser lulus. Dua suite auth/API berisi 11 tes lulus. Browser tetap meluluskan seluruh fitur profil sebelumnya. Bundle Android HTTP 200 JavaScript; perangkat fisik belum diuji. Semua request browser diisolasi memakai fixture, bukan mengubah sesi akun nyata.
+- Pengguna mengonfirmasi logout sudah berfungsi dan menyetujui checkpoint. Checkpoint sebelumnya 7bd2db30; Bagian 173 disimpan sebagai checkpoint lokal perbaikan logout portal mobile; belum di-push.

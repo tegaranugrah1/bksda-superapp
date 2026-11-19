@@ -14,6 +14,7 @@ async function main() {
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j0R0AAAAASUVORK5CYII=', 'base64');
     const contactPosts = [], photoPosts = [], passwordPosts = [], errors = [];
     let rejectContact = true, rejectPassword = true, meCalls = 0;
+    let logoutCalls = 0, failLogout = false;
     await context.routeWebSocket('ws://localhost:8080/**', ws => {
       ws.onMessage(raw => { const f = JSON.parse(raw); if (f.event === 'pusher:subscribe') ws.send(JSON.stringify({ event: 'pusher_internal:subscription_succeeded', channel: f.data.channel, data: '{}' })); });
       ws.send(JSON.stringify({ event: 'pusher:connection_established', data: JSON.stringify({ socket_id: '123.456', activity_timeout: 120 }) }));
@@ -24,6 +25,11 @@ async function main() {
       let body = { data: [] };
       if (endpoint.endsWith('/login')) body = { data: user, token: '42|local-profile-fixture' };
       else if (endpoint.endsWith('/me')) { meCalls++; body = { data: user }; }
+      else if (endpoint.endsWith('/logout')) {
+        logoutCalls++;
+        if (failLogout) { await route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({message:'Fixture logout unavailable'})}); return; }
+        body = {message:'Logged out'};
+      }
       else if (endpoint.endsWith('/broadcasting/auth')) body = { auth: 'fixture:signature' };
       else if (endpoint.endsWith('/mobile/dashboard')) body = { data: { profile: user, summary: {}, notifications: [], urgent_tax_vehicles: [] } };
       else if (endpoint.endsWith('/me/leave-balance')) body = { data: { sisa_cuti_tersedia: 0 } };
@@ -120,8 +126,40 @@ async function main() {
     assert.equal(passwordPosts.length, 2);
     await page.keyboard.press('Escape');
     await page.getByLabel('Masuk', { exact: true }).waitFor();
+    // Exercise the actual portal logout button, beyond the password-reset logout.
+    for (const failed of [false, true]) {
+      failLogout = failed;
+      await page.getByPlaceholder('Contoh: 19850412 201012 1 002').fill(user.username);
+      await page.getByPlaceholder('••••••••••••').fill('fixture-password');
+      await page.getByLabel('Masuk', { exact: true }).click(); await text('Profil').click();
+      const logoutButton = text('Keluar Akun (Logout)');
+      const previousCalls = logoutCalls;
+      await logoutButton.click();
+      await text('Konfirmasi Logout').waitFor({ timeout: 3000 });
+      await page.getByRole('dialog').waitFor();
+      await button('Batal').click(); await page.waitForTimeout(300);
+      assert.equal(logoutCalls, previousCalls, 'Cancel does not send logout');
+      assert.equal(await page.evaluate(() => !!localStorage.getItem('auth_token')), true);
+      await logoutButton.click(); await page.getByRole('dialog').waitFor();
+      await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+      assert.equal(await text('Konfirmasi Logout').count(), 0);
+      assert.equal(logoutCalls, previousCalls, 'Escape keeps the current session');
+      await logoutButton.click(); await page.getByRole('dialog').waitFor();
+      await page.screenshot({path:path.join(out,`logout-${failed ? 'failure' : 'success'}.png`)});
+      const contrast = await button('Ya, Keluar').evaluate(el => {
+        const luminance = css => css.match(/\d+/g).slice(0,3).map(Number).map(v => {const s=v/255;return s<=0.04045?s/12.92:Math.pow((s+0.055)/1.055,2.4);}).reduce((sum,v,i)=>sum+v*[0.2126,0.7152,0.0722][i],0);
+        const foreground=luminance(getComputedStyle(el.firstElementChild).color), background=luminance(getComputedStyle(el).backgroundColor);
+        return (Math.max(foreground,background)+0.05)/(Math.min(foreground,background)+0.05);
+      });
+      assert.ok(contrast >= 4.5, 'The logout button text must remain readable in both themes');
+      await button('Ya, Keluar').click(); await page.getByLabel('Masuk', { exact: true }).waitFor();
+      assert.equal(logoutCalls, previousCalls + 1);
+      assert.equal(await page.evaluate(() => localStorage.getItem('auth_token') === null), true, 'Logout always clears the stored token');
+      await page.reload({waitUntil:'networkidle'}); await page.getByLabel('Masuk', { exact: true }).waitFor();
+      assert.equal(await text('Profil Pegawai').count(), 0, 'Reload cannot restore a logged-out session');
+    }
     assert.deepEqual(errors, []);
-    console.log('PASS: profile identity/empty states, themes, employment data, contact validation/retry/double submit, password confirmation, multipart photo, leave history, non-employee account and password reset/logout.');
+    console.log('PASS: profile identity/empty states, themes, employment data, contact validation/retry/double submit, password confirmation, multipart photo, leave history, non-employee account and password reset/logout, portal logout/cancel/Escape and cleanup/reload after API failure.');
   } finally { await browser.close(); }
 }
 main().catch(e => { console.error(e); process.exitCode = 1; });

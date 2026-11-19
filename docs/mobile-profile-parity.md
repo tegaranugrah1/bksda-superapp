@@ -21,3 +21,8 @@
 - node frontend/tests/mobile-personal-assets.playwright.cjs: pemisahan aset/pinjaman, angka nol, realtime dan reload tetap lulus.
 - Bundle Android HTTP 200 JavaScript; perangkat fisik belum diuji.
 - Seluruh request dan pengiriman browser memakai fixture terisolasi. Tidak mengubah profil atau mengirim email verifikasi ke akun nyata.
+
+
+## Perbaikan logout (Bagian 173)
+
+Konfirmasi logout portal memakai ConfirmModal lintas platform. Alert.alert React Native Web tidak menampilkan konfirmasi, sehingga sebelumnya klik tombol tidak memanggil logout. Batal/Escape/Back tetap di profil; Ya, Keluar memanggil alur AuthProvider dengan pembersihan token yang tetap berjalan saat API gagal. Reload setelah keluar tetap pada login. Regresi browser mencakup respons 200/500 dan kontras tombol light/dark minimal 4.5:1; 11 tes auth/API lulus termasuk kegagalan jaringan. Backend tidak diubah.

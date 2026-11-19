@@ -33,6 +33,7 @@ import { openFile } from "../../lib/files/share";
 import { useForegroundRefresh } from "../../hooks/useForegroundRefresh";
 import { useReverbRefresh } from "../../hooks/useReverbRefresh";
 import { PratinjauSuratTugasModal, PratinjauSuratTugasItem } from "../../components/PratinjauSuratTugasModal";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { ChangePasswordModal } from "../profile/ChangePasswordModal";
 import { ProfileSettingsModal, type ProfileSetting } from "../profile/ProfileSettingsModal";
 import { FormulirCutiModal } from "./FormulirCutiModal";
@@ -400,6 +401,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [profileSetting, setProfileSetting] = useState<ProfileSetting | null>(null);
   const [profilePasswordVisible, setProfilePasswordVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [profileNotice, setProfileNotice] = useState("");
   const [failedProfilePhoto, setFailedProfilePhoto] = useState<string | null>(null);
   const isDashboard = activeTab === "dashboard";
@@ -1064,24 +1066,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     return true;
   });
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Konfirmasi Logout",
-      "Apakah Anda yakin ingin keluar dari SuperApp BKSDA Kaltim?",
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Keluar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              if (logout) await logout();
-            } catch {}
-          },
-        },
-      ]
-    );
-  };
+  const handleLogout = () => setLogoutModalVisible(true);
 
   // Match the app-bar backing so fractional web pixels cannot expose a pale seam.
   return (
@@ -2484,6 +2469,8 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             <TouchableOpacity
               style={[styles.logoutBtn, { backgroundColor: colors.dangerBg, borderColor: colors.dangerBorder }, shadowXs]}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Keluar Akun (Logout)"
               onPress={handleLogout}
             >
               <Ionicons name="log-out-outline" size={r.size.iconMd} color={colors.dangerFg} style={styles.btnIcon} />
@@ -2569,6 +2556,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
         </TouchableOpacity>
       </View>
 
+      <ConfirmModal visible={logoutModalVisible} title="Konfirmasi Logout"
+        message="Apakah Anda yakin ingin keluar dari SuperApp BKSDA Kaltim?"
+        confirmText="Ya, Keluar" cancelText="Batal" variant="danger"
+        onCancel={() => setLogoutModalVisible(false)}
+        onConfirm={() => {setLogoutModalVisible(false);void logout();}} />
       {profileSetting && <ProfileSettingsModal mode={profileSetting} onClose={() => setProfileSetting(null)} onSaved={message => {setProfileSetting(null);setProfileNotice(message);}} />}
       <ChangePasswordModal visible={profilePasswordVisible} onClose={() => setProfilePasswordVisible(false)} onSuccessLogout={() => {void logout();}} />
 
