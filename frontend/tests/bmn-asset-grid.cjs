@@ -92,6 +92,8 @@ nodes.find(node => node.type === 'img' && !node.props.loading).props.onError();
 assert(render(photo).some(node => node.props.role === 'status' && node.props.children === 'Foto tidak dapat dimuat'));
 nodes = render(photo); nodes.find(node => node.type === 'img' && node.props.loading).props.onError();
 assert(!render(photo).some(node => node.type === 'DialogTrigger'), 'Failed thumbnail must not offer an unusable preview');
+assert(render(photo).some(node => node.props.children === 'Foto tidak dapat dimuat'), 'A failed request must have an error label');
+assert(render(null).some(node => node.props.children === 'Belum ada foto'), 'Old failed requests must not label an asset without photos as an error');
 assert(render({ ...photo, url: `${photo.url}2` }).some(node => node.type === 'DialogTrigger'), 'A changed photo URL may load again');
 state = [];
 const fallbackAsset = { foto_geotag_url: '/api/bmn/assets/fixture/photo/geotag/view?v=9', foto_depan_url: photo.url };
@@ -105,5 +107,6 @@ assert.equal(photos.getPrimaryPhoto({...known,photo_availability:{geotag:false,d
 state=[];cursor=0;
 nodes=flatten(preview.AssetPhotoPreview({asset:{...known,photo_availability:{geotag:false,depan:false}},name:'Dummy missing',nup:'1'}));
 assert(!nodes.some(n=>n.type==='img'),'Known missing files must render a placeholder without mounting an image loader');
-assert(nodes.some(n=>n.props.children==='Foto tidak dapat dimuat'));
-console.log('PASS: server-known missing photos never mount image loaders, missing-geotag fallback, photo priority/URLs and document exclusion, responsive defaults, independent saved preferences, blocked storage/SSR/cleanup, preview loading/error states.');
+assert(nodes.some(n=>n.props.children==='Berkas foto tidak ditemukan'));
+assert(!nodes.some(n=>n.props.children==='Foto tidak dapat dimuat'));
+console.log('PASS: distinct no-photo, missing-file and request-failure labels; server-known missing photos never mount image loaders, missing-geotag fallback, photo priority/URLs and document exclusion, responsive defaults, independent saved preferences, blocked storage/SSR/cleanup, preview loading/error states.');

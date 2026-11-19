@@ -17,10 +17,13 @@ export function AssetPhotoPreview({ asset, name, nup }: {
   const [failedPreview, setFailedPreview] = useState<string | null>(null);
 
   if (!photo) {
+    const message = getPrimaryPhoto(asset) ? "Foto tidak dapat dimuat"
+      : Object.values(asset.photo_availability || {}).includes(false) ? "Berkas foto tidak ditemukan"
+      : "Belum ada foto";
     return (
       <div className="bmn-asset-photo bmn-photo-placeholder">
         <Camera className="w-7 h-7" aria-hidden="true" />
-        <span>{failedThumbnails.length || Object.values(asset.photo_availability || {}).includes(false) ? "Foto tidak dapat dimuat" : "Belum ada foto"}</span>
+        <span>{message}</span>
       </div>
     );
   }

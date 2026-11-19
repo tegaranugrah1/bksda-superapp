@@ -75,8 +75,8 @@
     "semantic_hash": "e911315a1d8be9e2b66b7ce045aaed35"
   },
   "backend/app/Modules/Bmn/Controllers/AssetController.php": {
-    "mtime": 1795082356.8467863,
-    "ast_hash": "8837cf7e26a1b8753224956656ed0601",
+    "mtime": 1795083732.8007789,
+    "ast_hash": "cc77654281177d93c882ee9b477ff0dc",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Controllers/AssetDocumentController.php": {
@@ -430,8 +430,8 @@
     "semantic_hash": "0faa4990c6dd5618c3a5ea5e3c374494"
   },
   "backend/app/Modules/Bmn/Resources/AssetResource.php": {
-    "mtime": 1795075789.9623625,
-    "ast_hash": "3edeea6708ca794ad145350139eed283",
+    "mtime": 1795083732.8007789,
+    "ast_hash": "d22a40ffc04693cd85e8357a2f3c8a67",
     "semantic_hash": ""
   },
   "backend/app/Modules/Bmn/Resources/AuctionBatchAssetResource.php": {
@@ -1660,8 +1660,8 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/[id]/page.tsx": {
-    "mtime": 1795082756.5180986,
-    "ast_hash": "ed61eac44220e70d2d0c16d22ef93f61",
+    "mtime": 1795083732.8037822,
+    "ast_hash": "dc65e84f956be3c594650066b36947df",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/loading.tsx": {
@@ -7085,8 +7085,8 @@
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalPersonalSecurityTest.php": {
-    "mtime": 1795082595.5706513,
-    "ast_hash": "432b6a6bd15eef6c2674b1c1db64ed83",
+    "mtime": 1795083978.1480832,
+    "ast_hash": "b9820045fe8b8165c7ecc5eda2b79bf6",
     "semantic_hash": ""
   },
   "backend/tests/Feature/PortalUploadSecurityTest.php": {
@@ -8720,13 +8720,13 @@
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/_lib/asset-photos.ts": {
-    "mtime": 1795076698.2838702,
-    "ast_hash": "3aa3a71b4dbcdd0b111c8dab5f4cc3ab",
+    "mtime": 1795083732.8017795,
+    "ast_hash": "96cd63bae2f39e4274d0264b805c457d",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/_components/AssetPhotoPreview.tsx": {
-    "mtime": 1795076662.6404176,
-    "ast_hash": "39b15cb1c58ba7c95a7b553bc5533b62",
+    "mtime": 1795083732.8017795,
+    "ast_hash": "c7f29e0418b38a1e4b0c336cfdb2be77",
     "semantic_hash": ""
   },
   "frontend/src/app/bmn/assets/use-asset-view.ts": {
@@ -8760,8 +8760,8 @@
     "semantic_hash": ""
   },
   "frontend/tests/bmn-asset-grid.cjs": {
-    "mtime": 1795076662.6423993,
-    "ast_hash": "9947d9e1cd5f1c1c866850b87a1baa16",
+    "mtime": 1795083978.149083,
+    "ast_hash": "240e0d241b06b84e4d0c048632033948",
     "semantic_hash": ""
   },
   "frontend/tests/bmn-assets-ui.cjs": {
