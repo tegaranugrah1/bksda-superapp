@@ -146,3 +146,30 @@ Rencana verifikasi runtime di lingkungan sandbox yang memenuhi syarat: jalankan 
 Pengguna menyetujui checkpoint tahap 5; refactor header dan bottom nav portal mobile disimpan sebagai commit lokal, belum di-push. Validasi runtime tetap dicatat belum selesai; tidak mengklaim hasil render/piksel lulus.
 
 - Graph kode tahap 5 diperbarui setelah perubahan source/fixture akhir: 15.800 node, 29.824 edge dan 1.031 komunitas melalui AST tanpa LLM.
+
+
+## Tahap 6 — Aksi dan pratinjau berkas cuti (19 November 2026)
+
+Basis checkpoint `bcceb026`. Memisahkan sisa aksi riwayat cuti dari halaman utama tanpa mengganti tampilan atau aturan operasionalnya.
+
+- `usePortalLeaveActions.ts`: lima state untuk data/visibilitas cetak, target pembatalan, status sibuk dan scan; callback buka/tutup scan serta konfirmasi pembatalan; helper konversi data URL ke blob URL. Isi deklarasi state, callback, dependency callback dan helper sama dengan checkpoint. Hook dipanggil sekali tanpa kondisi pada tingkat portal sesudah usePortalData, sehingga perpindahan tab tidak mereset state dan pemasangan hook tidak menambah request.
+- `PortalLeaveCardActions.tsx`: JSX aksi status ditolak/disetujui/pengajuan yang sama, termasuk ketersediaan berkas, disabled state, ikon, label dan warna tombol. Menggunakan props style/warna/metrik dan callback yang sama; tidak memiliki state, effect atau wrapper layout tambahan.
+- `PortalDashboardScreen.tsx`: render callback singkat meneruskan binding asli ke komponen aksi; modal cetak, konfirmasi dan scan tetap berada pada lokasi serta urutan yang sama. Pemuat data, tema, tab, header/nav, formulir pengajuan dan seluruh alur selain aksi cuti tetap sama.
+
+Halaman utama berkurang dari 568 menjadi 374 baris. Pemisahan ini menggunakan ulang portalViewTypes, tipe callback data dan modal yang ada, tanpa dependency, store, factory atau controller generik. Tipe data/API portal secara menyeluruh dan pemisahan formulir pengajuan tetap di luar tahap ini.
+
+Validasi isi data URL PDF/JPEG/PNG/WebP sebelum ditampilkan tetap sama; tidak membuka HTML dari respons scan. Request tetap melalui apiClient berotorisasi ke endpoint pribadi yang sama. Helper blob browser dan pelepasan URL ketika menutup scan tidak berubah. Keberhasilan pembatalan tetap menutup konfirmasi dan me-refresh daftar serta saldo cuti saja; kegagalan tetap menampilkan pesan dan mempertahankan target untuk dicoba lagi. Aksi unduh/buka berkas native, export/cetak dan modal tidak diubah.
+
+Verifikasi:
+
+- TypeScript mobile tanpa emit: **0 diagnostik**. Sintaks ketiga berkas baru valid; whitespace diperiksa.
+- Perbandingan AST terhadap checkpoint: seluruh JSX portal, props modal serta urutannya identik. Isi komponen tombol aksi sama dengan render callback lama; props meneruskan binding asli. Kelima deklarasi state, ketiga callback dan helper blob sama, termasuk allowlist format serta cleanup. Hook dipasang di tingkat portal dengan dua callback refresh semula. Sisa state/effect/handler induk dan semua 36 file dashboard lama selain halaman utama, termasuk stylesheet, hook data, modal, header/nav dan tampilan tab, tidak berubah.
+- Empat kasus `__tests__/usePortalLeaveActions.test.tsx` disiapkan untuk persistensi cetak/konfirmasi tanpa pemuatan data, scan melalui endpoint benar beserta penolakan HTML dan kegagalan API, status sibuk sampai pembatalan selesai dengan refresh hanya untuk cuti, serta pembatalan gagal tanpa kehilangan target atau refresh palsu. Semua memakai data/API dummy.
+- Fixture browser yang sudah ada tetap memeriksa tombol scan resmi, pratinjau gambar, pelepasan blob URL saat ditutup, filter tahun yang bertahan antartab serta kembali dari konfirmasi pembatalan. Tidak mengubah hasil tes terdahulu menjadi klaim kelulusan baru.
+- **Jest, browser E2E, perangkat fisik dan perbandingan piksel belum dijalankan.** Skill security-audit mensyaratkan sandbox OS dengan isolasi jaringan, environment allowlist, target/toolchain read-only serta batas resource yang belum tersedia. Kesetaraan kode/style/typecheck merupakan bukti statis; hasil runtime belum tervalidasi.
+
+Rencana validasi runtime di sandbox yang memenuhi syarat: jalankan regresi hook baru dan fixture profil; periksa status cuti pengajuan/disetujui/ditolak, scan tersedia/tidak tersedia, scan gambar/PDF/gagal, cetak/tutup, pembatalan kembali/sukses/gagal dan refresh saldo/daftar, serta state ketika berpindah tab. Bandingkan light/dark dan layar kecil pada tombol/modal; periksa pembukaan berkas native dan cleanup URL browser. Rencana validasi tahap sebelumnya tetap berlaku.
+
+Pengguna menyetujui checkpoint tahap 6; refactor aksi dan pratinjau berkas cuti mobile disimpan sebagai commit lokal, belum di-push. Validasi runtime tetap dicatat belum selesai. Desain, warna, bentuk kartu dan spacing yang disetujui dipertahankan.
+
+- Graph kode tahap 6 diperbarui setelah perubahan source/regresi akhir: 15.813 node, 29.855 edge dan 1.053 komunitas melalui AST tanpa LLM.

@@ -3,13 +3,9 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import {
   View,
-  Text,
   ScrollView,
-  TouchableOpacity,
-  Alert,
   Platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import {
   PORTAL_5_TOKENS,
   usePortalResponsive,
@@ -24,7 +20,7 @@ import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { ChangePasswordModal } from "../profile/ChangePasswordModal";
 import { ProfileSettingsModal, type ProfileSetting } from "../profile/ProfileSettingsModal";
 import { FormulirCutiModal } from "./FormulirCutiModal";
-import { FormulirCutiPrintModal, LeaveRequestPrintData } from "../../components/FormulirCutiPrintModal";
+import { FormulirCutiPrintModal } from "../../components/FormulirCutiPrintModal";
 import { PortalNotifications, usePortalNotifications } from "./PortalNotifications";
 import { createPortalStyles } from "./portalStyles";
 import { DashboardData } from "./types";
@@ -39,10 +35,11 @@ import { PortalProfileTab } from "./PortalProfileTab";
 import { PortalServicesMenu } from "./PortalServicesMenu";
 import { PortalAssetsView } from "./PortalAssetsView";
 import { PortalLeaveView } from "./PortalLeaveView";
-import type { PortalServiceScreen, PortalLeaveScanState } from "./portalViewTypes";
+import type { PortalServiceScreen } from "./portalViewTypes";
 import { usePortalData } from "./usePortalData";
 import { PortalTasksTab, type PortalTaskFilter } from "./PortalTasksTab";
-import { getLeaveStatusMeta } from "./portalHelpers";
+import { PortalLeaveCardActions } from "./PortalLeaveCardActions";
+import { usePortalLeaveActions } from "./usePortalLeaveActions";
 export { extractSuratTugasDalamRangka } from "./portalHelpers";
 
 interface PortalDashboardScreenProps {
@@ -82,26 +79,6 @@ const PORTAL_SURFACES = {
     headerBorder: "#3b5242",
   },
 } satisfies Record<"light" | "dark", Partial<ThemeColors>>;
-
-function base64DataUrlToBlobUrl(dataUrl: string): string | null {
-  try {
-    if (typeof atob !== "function" || typeof URL === "undefined" || typeof Blob === "undefined") {
-      return null;
-    }
-    const parts = dataUrl.split(",");
-    if (parts.length < 2) return null;
-    const mimeMatch = parts[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : "application/pdf";
-    const binary = atob(parts[1]);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i += 1) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return URL.createObjectURL(new Blob([bytes], { type: mime }));
-  } catch {
-    return null;
-  }
-}
 
 export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   onNavigateToModule,
@@ -183,18 +160,18 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   const [cutiYearFilter, setCutiYearFilter] = useState<number | "all">("all");
 
   const [cutiModalVisible, setCutiModalVisible] = useState(false);
-  const [cutiPreviewItem, setCutiPreviewItem] = useState<LeaveRequestPrintData | null>(null);
-  const [cutiPreviewVisible, setCutiPreviewVisible] = useState(false);
-  const [cancelLeaveTarget, setCancelLeaveTarget] = useState<any>(null);
-  const [isCancellingLeave, setIsCancellingLeave] = useState(false);
-  const [leaveScanModal, setLeaveScanModal] = useState<PortalLeaveScanState>({ visible: false, title: "", loading: false });
-
   const [pinjamanModalVisible, setPinjamanModalVisible] = useState(false);
   const {
     myStList, leaveRequests, leaveBalance, canFetchLeaveBalance,
     myAssetsList, activeLoansList, loanCheckNowTs,
     fetchMyLeaveRequests, fetchMyLeaveBalance, refreshAllPortalData,
   } = usePortalData(employee ?? user?.employee);
+
+  const {
+    cutiPreviewItem, setCutiPreviewItem, cutiPreviewVisible, setCutiPreviewVisible,
+    cancelLeaveTarget, setCancelLeaveTarget, isCancellingLeave,
+    leaveScanModal, closeLeaveScanModal, handleOpenLeaveScan, handleConfirmCancelLeave,
+  } = usePortalLeaveActions({ fetchMyLeaveRequests, fetchMyLeaveBalance });
 
   // Dynamic user profile resolution
   const resolvedSisaCuti =
@@ -213,183 +190,12 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   const cutiPendingHari = Number(leaveBalance?.pending_cuti_tahunan ?? 0);
 
-  const closeLeaveScanModal = React.useCallback(() => {
-    setLeaveScanModal((prev) => {
-      if (prev.blobUrl && typeof URL !== "undefined") {
-        URL.revokeObjectURL(prev.blobUrl);
-      }
-      return { visible: false, title: "", loading: false };
-    });
-  }, []);
-
-  const handleOpenLeaveScan = React.useCallback(async (req: any, kind: "surat_izin" | "formulir") => {
-    const isSuratIzin = kind === "surat_izin";
-    const fileName = isSuratIzin
-      ? (req.scan_surat_izin_nama || req.scan_surat_nama || "Surat_Izin_Cuti.pdf")
-      : (req.scan_formulir_nama || "Formulir_Cuti.pdf");
-    const title = isSuratIzin
-      ? "Surat Izin Cuti Resmi (TTE Kepala Balai)"
-      : "Scan Formulir Permohonan Cuti (TTD & Cap Balai)";
-
-    const endpoint = `/me/leave-requests/${req.id}/${isSuratIzin ? "scan-surat-izin" : "scan-formulir"}`;
-    setLeaveScanModal({ visible: true, title, fileName, loading: true });
-    try {
-      const response = await apiClient.get<any>(endpoint, { params: { preview: 1 } });
-      const dataUrl = response.data?.data_url || response.data?.data?.data_url;
-      if (typeof dataUrl !== "string" || !/^data:(application\/pdf|image\/(png|jpeg|webp));base64,[A-Za-z0-9+/=\r\n]+$/.test(dataUrl)) {
-        throw new Error("Format berkas scan tidak didukung.");
-      }
-      const serverName = response.data?.file_name || response.data?.data?.file_name || fileName;
-      const mimeType = String(response.data?.mime_type || response.data?.data?.mime_type || "application/pdf");
-      const blobUrl =
-        Platform.OS === "web" && typeof dataUrl === "string" && dataUrl.startsWith("data:")
-          ? base64DataUrlToBlobUrl(dataUrl)
-          : null;
-
-      setLeaveScanModal({
-        visible: true,
-        title,
-        fileName: serverName,
-        mimeType,
-        dataUrl: dataUrl || null,
-        blobUrl,
-        loading: false,
-      });
-    } catch (err: any) {
-      const msg = err?.message || "Berkas scan belum diunggah atau tidak ditemukan.";
-      setLeaveScanModal({
-        visible: true,
-        title,
-        fileName,
-        loading: false,
-        error: msg,
-      });
-    }
-  }, []);
-
-  const handleConfirmCancelLeave = React.useCallback(async () => {
-    if (!cancelLeaveTarget) return;
-    setIsCancellingLeave(true);
-    try {
-      await apiClient.delete(`/me/leave-requests/${cancelLeaveTarget.id}`);
-      setCancelLeaveTarget(null);
-      fetchMyLeaveRequests();
-      fetchMyLeaveBalance();
-    } catch (err: any) {
-      const msg = err?.message || "Gagal membatalkan permohonan cuti.";
-      if (Platform.OS === "web" && typeof window !== "undefined") {
-        window.alert(msg);
-      } else {
-        Alert.alert("Gagal", msg);
-      }
-    } finally {
-      setIsCancellingLeave(false);
-    }
-  }, [cancelLeaveTarget, fetchMyLeaveRequests, fetchMyLeaveBalance]);
-
-  const renderLeaveCardActions = (req: any, beforeModalOpen?: () => void) => {
-    const statusMeta = getLeaveStatusMeta(req);
-    if (statusMeta.kind === "rejected") {
-      return null;
-    }
-
-    if (statusMeta.kind === "approved") {
-      const hasSuratIzin = Boolean(req.scan_surat_izin_path || req.scan_surat_path);
-      const hasFormulir = Boolean(req.scan_formulir_path);
-
-      return (
-        <>
-          <View style={[styles.leaveCardActions]}>
-            <TouchableOpacity
-              disabled={!hasSuratIzin}
-              style={[
-                styles.leavePrintOfficialBtn,
-                { backgroundColor: hasSuratIzin ? colors.cardBg : colors.surfaceMuted, borderColor: hasSuratIzin ? colors.borderControl : colors.glassBorder },
-              ]}
-              onPress={() => {
-                beforeModalOpen?.();
-                void handleOpenLeaveScan(req, "surat_izin");
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name="checkmark-done-outline"
-                size={r.size.iconSm}
-                color={hasSuratIzin ? colors.textDark : colors.textMuted}
-                style={[styles.inlineIcon]}
-              />
-              <Text
-                style={[
-                  styles.leavePrintOfficialText,
-                  { color: hasSuratIzin ? colors.textDark : colors.textMuted },
-                ]}
-              >
-                Surat Izin (Fisik/TTE)
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              disabled={!hasFormulir}
-              style={[
-                styles.leavePrintOfficialBtn,
-                { backgroundColor: hasFormulir ? colors.cardBg : colors.surfaceMuted, borderColor: hasFormulir ? colors.borderControl : colors.glassBorder },
-              ]}
-              onPress={() => {
-                beforeModalOpen?.();
-                void handleOpenLeaveScan(req, "formulir");
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={r.size.iconSm}
-                color={hasFormulir ? colors.textDark : colors.textMuted}
-                style={[styles.inlineIcon]}
-              />
-              <Text
-                style={[
-                  styles.leavePrintOfficialText,
-                  { color: hasFormulir ? colors.textDark : colors.textMuted },
-                ]}
-              >
-                Formulir Scan
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      );
-    }
-
-    return (
-      <View style={[styles.leaveCardActions]}>
-        {statusMeta.canCancel && Boolean(req.id) && (
-          <TouchableOpacity
-            style={[styles.leavePrintOfficialBtn, { backgroundColor: colors.dangerBg, borderColor: colors.dangerBorder }]}
-            onPress={() => {
-              beforeModalOpen?.();
-              setCancelLeaveTarget(req);
-            }}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="close-circle-outline" size={r.size.iconSm} color={colors.dangerFg} style={[styles.inlineIcon]} />
-            <Text style={[styles.leavePrintOfficialText, { color: colors.dangerFg }]}>Batalkan</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={[styles.leavePrintOfficialBtn, { backgroundColor: colors.cardBg, borderColor: colors.borderControl }]}
-          onPress={() => {
-            beforeModalOpen?.();
-            setCutiPreviewItem(req);
-            setCutiPreviewVisible(true);
-          }}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="print-outline" size={r.size.iconSm} color={colors.textDark} style={[styles.inlineIcon]} />
-          <Text style={[styles.leavePrintOfficialText, { color: colors.textDark }]}>Cetak Formulir Cuti</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const renderLeaveCardActions = (req: any, beforeModalOpen?: () => void) => (
+    <PortalLeaveCardActions
+      styles={styles} colors={colors} r={r} req={req} beforeModalOpen={beforeModalOpen}
+      handleOpenLeaveScan={handleOpenLeaveScan} setCancelLeaveTarget={setCancelLeaveTarget}
+      setCutiPreviewItem={setCutiPreviewItem} setCutiPreviewVisible={setCutiPreviewVisible} />
+  );
 
   const isLoanOverdue = (loan: any) => {
     const st = String(loan?.status || "").toLowerCase();

@@ -3593,3 +3593,14 @@ Setelah semua command clean:
 - Pengguna menyetujui checkpoint Bagian 178. Refactor header dan bottom nav portal mobile disimpan sebagai commit lokal dengan basis 989e2d8b; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi. Ponytail diterapkan dengan pemisahan blok yang sudah ada dan penggunaan ulang tipe/style; rincian dan rencana verifikasi: docs/mobile-portal-refactor.md.
 
 - Graph kode tahap 5 diperbarui setelah perubahan source/fixture akhir: 15.800 node, 29.824 edge dan 1.031 komunitas melalui AST tanpa LLM.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 179 Refactor Aksi dan Pratinjau Berkas Cuti Mobile
+
+- Memisahkan usePortalLeaveActions (state cetak/konfirmasi/scan, pemuatan scan, pembatalan dan pembersihan blob URL) serta PortalLeaveCardActions (tombol cetak/scan/batal). Halaman utama berkurang dari 568 menjadi 374 baris. Hook dipasang sekali tanpa kondisi di portal; state tetap hidup saat berpindah tab dan tidak menambah pemuatan data.
+- Status tombol, label, ikon, disabled state, callback sebelum modal dibuka, format scan PDF/JPEG/PNG/WebP, endpoint berotorisasi, fallback nama/MIME, penanganan gagal, urutan modal dan refresh daftar/saldo setelah pembatalan dipertahankan. Desain, warna, bentuk kartu, spacing, tema dan animasi tetap; stylesheet serta modal yang ada tidak diubah. Tidak menambah dependency, store atau abstraksi generik.
+- Verifikasi statis terhadap bcceb026: JSX portal/urutan modal identik; seluruh isi tombol aksi, lima deklarasi state, tiga callback dan helper blob yang dipindah sama. Props memakai binding semula dan hook dipasang di tingkat portal. Sisa state/effect/handler induk serta 36 file dashboard lama selain halaman utama identik. TypeScript mobile tanpa emit 0 diagnostik; tiga berkas baru termasuk regresi valid secara sintaks dan bebas whitespace tambahan.
+- Empat kasus regresi hook ditambahkan untuk persistensi state tanpa request tambahan, endpoint scan/formulir dan penolakan HTML/gagal API, status sibuk serta refresh pembatalan sukses, dan kegagalan pembatalan yang mempertahankan target. Fixture browser tahap sebelumnya tetap mencakup scan gambar, pelepasan blob URL dan kembali dari konfirmasi. Jest/browser/perangkat dan pemeriksaan piksel belum dijalankan karena persyaratan sandbox OS security-audit belum terpenuhi; tidak mengklaim runtime lulus.
+- Pengguna menyetujui checkpoint Bagian 179. Refactor aksi dan pratinjau berkas cuti mobile disimpan sebagai commit lokal dengan basis bcceb026; belum di-push. Desain tetap dipertahankan dan status uji runtime tetap belum tervalidasi. Ponytail diterapkan dengan memindahkan kode yang ada, menggunakan ulang tipe/komponen/style dan mempertahankan perilaku. Rincian: docs/mobile-portal-refactor.md.
+
+- Graph kode tahap 6 diperbarui setelah perubahan source/regresi akhir: 15.813 node, 29.855 edge dan 1.053 komunitas melalui AST tanpa LLM.
