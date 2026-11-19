@@ -488,21 +488,26 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   }, [canFetchLeaveBalance]);
 
   // 3. Employee Assigned Assets (GET /me/assets - correct endpoint for personal BMN)
-  const [myAssetsList, setMyAssetsList] = useState<any[]>([]);
+  const [assignedAssetsList, setAssignedAssetsList] = useState<any[]>([]);
   const [asetModalVisible, setAsetModalVisible] = useState(false);
 
   const fetchMyAssets = React.useCallback(async () => {
     try {
       const response = await apiClient.get<any>("/me/assets");
       const list = Array.isArray(response.data?.data) ? response.data.data : response.data || [];
-      setMyAssetsList(list);
+      setAssignedAssetsList(list);
     } catch {
-      setMyAssetsList([]);
+      setAssignedAssetsList([]);
     }
   }, []);
 
   // 4. Employee Active Loans (GET /me/dashboard -> my_assets)
   const [activeLoansList, setActiveLoansList] = useState<any[]>([]);
+  // Match the web portal: a currently borrowed asset belongs only in the loan list.
+  const myAssetsList = React.useMemo(() => {
+    const borrowedIds = new Set(activeLoansList.map((loan) => String(loan.id)));
+    return assignedAssetsList.filter((asset) => !borrowedIds.has(String(asset.id)));
+  }, [assignedAssetsList, activeLoansList]);
   const [loanCheckNowTs, setLoanCheckNowTs] = useState(() => Date.now());
   const [pinjamanModalVisible, setPinjamanModalVisible] = useState(false);
 
@@ -593,7 +598,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
 
   const accessibleModules = MODULES.filter((mod) => hasModule(user, mod.key));
   const stBadgeCount = summary?.active_my_letters_count || summary?.pending_my_letters_count || myStList.length || 0;
-  const assetsBadgeCount = myAssetsList.length || summary?.assigned_assets_count || 0;
+  const assetsBadgeCount = myAssetsList.length;
   const shadowXs = PORTAL_5_TOKENS.shadow.xs(isDark);
   const shadowLg = PORTAL_5_TOKENS.shadow.lg(isDark);
 
@@ -631,110 +636,6 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
       tanggal_selesai: "2026-01-15",
       status: "completed",
       kategori: "completed",
-    },
-  ];
-
-  // Fallback realistic BMN assets matching FigCraft Screen 06
-  const fallbackAssets = [
-    {
-      id: "a1",
-      nama_barang: "Toyota Hilux Double Cabin 4x4",
-      kode_barang: "3.01.01.01.002",
-      nup: "00012",
-      merk_tipe: "Toyota Hilux 2.4 G (4x4) M/T",
-      kondisi: "B",
-      no_polisi: "KT 1248 BZ",
-      jenis_bmn: "Kendaraan Bermotor",
-      kategori: "kendaraan",
-      lokasi: "Seksi Wilayah II Samarinda",
-    },
-    {
-      id: "a2",
-      nama_barang: "Laptop Lenovo ThinkPad T14 Gen 3",
-      kode_barang: "3.10.01.02.001",
-      nup: "00045",
-      merk_tipe: "Lenovo ThinkPad T14 Gen 3 Intel i7",
-      kondisi: "B",
-      jenis_bmn: "Peralatan TI & Komputer",
-      kategori: "it",
-      lokasi: "Ruang Staf Balai KSDA",
-    },
-    {
-      id: "a3",
-      nama_barang: "GPS Handheld Garmin Montana 680",
-      kode_barang: "3.05.01.04.008",
-      nup: "00088",
-      merk_tipe: "Garmin Montana 680 Glonass",
-      kondisi: "RR",
-      jenis_bmn: "Alat Navigasi & Pemetaan",
-      kategori: "peralatan",
-      lokasi: "Resor KSDA Muara Siran",
-    },
-    {
-      id: "a4",
-      nama_barang: "Drone DJI Mavic 3 Enterprise Thermal",
-      kode_barang: "3.05.02.01.003",
-      nup: "00092",
-      merk_tipe: "DJI Mavic 3E RTK & Thermal",
-      kondisi: "B",
-      jenis_bmn: "Peralatan Pemantauan Udara",
-      kategori: "peralatan",
-      lokasi: "Gudang BMN Kantor Balai",
-    },
-    {
-      id: "a5",
-      nama_barang: "Kamera Trap Bushnell Trophy Cam HD",
-      kode_barang: "3.05.01.05.002",
-      nup: "00115",
-      merk_tipe: "Bushnell Trophy Cam Aggressor HD",
-      kondisi: "B",
-      jenis_bmn: "Peralatan Lapangan Satwa",
-      kategori: "peralatan",
-      lokasi: "Resor Muara Siran",
-    },
-    {
-      id: "a6",
-      nama_barang: "Meja Kerja Kayu Pejabat Eselon IV",
-      kode_barang: "3.05.02.01.001",
-      nup: "00003",
-      merk_tipe: "Meja Kayu Jati Minimalis 160cm",
-      kondisi: "B",
-      jenis_bmn: "Mebel & Inventaris Kantor",
-      kategori: "inventaris",
-      lokasi: "Subbag Tata Usaha",
-    },
-  ];
-
-  const fallbackLoans = [
-    {
-      id: "l1",
-      nama_barang: "GPS Handheld Garmin Montana 680",
-      kode_barang: "3.05.01.04.008",
-      nup: "00088",
-      merk: "Garmin Montana 680",
-      loan_date: "2026-11-16",
-      due_date: "2026-11-25",
-      status: "dipinjam",
-    },
-    {
-      id: "l2",
-      nama_barang: "Teropong Binokular Bushnell 10x42",
-      kode_barang: "3.05.01.05.012",
-      nup: "00104",
-      merk: "Bushnell Legend Ultra HD",
-      loan_date: "2026-11-14",
-      due_date: "2026-11-24",
-      status: "dipinjam",
-    },
-    {
-      id: "l3",
-      nama_barang: "Handy Talky Icom IC-V80",
-      kode_barang: "3.05.01.03.004",
-      nup: "00073",
-      merk: "Icom IC-V80 VHF Transceiver",
-      loan_date: "2026-10-20",
-      due_date: "2026-11-01",
-      status: "terlambat",
     },
   ];
 
@@ -816,13 +717,11 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   ];
 
   const isMockLeaveMode = leaveRequests.length === 0;
-  const displayAssetsList = myAssetsList.length > 0 ? myAssetsList : fallbackAssets;
-  const displayLoansList = activeLoansList.length > 0 ? activeLoansList : fallbackLoans;
   const displayLeaveRequests = (isMockLeaveMode ? fallbackLeaveRequests : leaveRequests).filter(
     (req: any) => !isMockLeaveMode || !dismissedMockLeaveIds.includes(req.id)
   );
 
-  const filteredBmnAssets = displayAssetsList.filter((item: any) => {
+  const filteredBmnAssets = myAssetsList.filter((item: any) => {
     const q = bmnSearchQuery.toLowerCase().trim();
     const matchQuery =
       !q ||
@@ -834,7 +733,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     return matchQuery && matchesAssetCategory(item, bmnCategoryFilter);
   });
 
-  const filteredBmnLoans = displayLoansList.filter((loan: any) => {
+  const filteredBmnLoans = activeLoansList.filter((loan: any) => {
     const q = bmnSearchQuery.toLowerCase().trim();
     return (
       !q ||
@@ -847,10 +746,10 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
   });
 
   const bmnCategoryCounts = {
-    all: displayAssetsList.length,
-    kendaraan: displayAssetsList.filter((item: any) => matchesAssetCategory(item, "kendaraan")).length,
-    it: displayAssetsList.filter((item: any) => matchesAssetCategory(item, "it")).length,
-    peralatan: displayAssetsList.filter((item: any) => matchesAssetCategory(item, "peralatan")).length,
+    all: myAssetsList.length,
+    kendaraan: myAssetsList.filter((item: any) => matchesAssetCategory(item, "kendaraan")).length,
+    it: myAssetsList.filter((item: any) => matchesAssetCategory(item, "it")).length,
+    peralatan: myAssetsList.filter((item: any) => matchesAssetCategory(item, "peralatan")).length,
   };
   const activeBmnItems = bmnActiveTab === "aset" ? filteredBmnAssets : filteredBmnLoans;
 
@@ -1092,8 +991,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
     const dueTs = dueRaw ? new Date(dueRaw).getTime() : NaN;
     return isBorrowed && (st === "terlambat" || (!Number.isNaN(dueTs) && dueTs < loanCheckNowTs));
   };
-  // ponytail: uses displayLoansList (includes fallbackLoans) so Pinjaman Aktif preview renders when API loans are empty; switch to activeLoansList for strict live-only gating
-  const homeBorrowedLoans = displayLoansList.filter((loan: any) => !isReturnedLoan(loan));
+  const homeBorrowedLoans = activeLoansList.filter((loan: any) => !isReturnedLoan(loan));
   const primaryLoan = homeBorrowedLoans[0];
   const isPrimaryLoanLate = primaryLoan ? isLoanOverdue(primaryLoan) : false;
 
@@ -1726,7 +1624,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                 </View>
 
                 {/* 4 Core Service Cards - Aset Saya di Paling Atas */}
-                <View style={styles.listStack}>
+                <View style={styles.serviceStack}>
                   {/* 1. Aset Saya (Paling Atas) -> Opens BMN Sub-screen on Aset tab */}
                   <TouchableOpacity
                     activeOpacity={0.8}
@@ -1742,13 +1640,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       <View style={styles.serviceMain}>
                         <Text style={[styles.serviceTitle, { color: colors.textDark }]}>Aset Saya</Text>
                         <Text style={[styles.serviceSubtitle, { color: colors.textMuted }]}>
-                          {displayAssetsList.length > 0
-                            ? `${displayAssetsList.length} Barang Milik Negara terdaftar atas nama Anda`
+                          {myAssetsList.length > 0
+                            ? `${myAssetsList.length} Barang Milik Negara terdaftar atas nama Anda`
                             : "Belum ada BMN tetap yang ditugaskan"}
                         </Text>
                         <View style={[styles.serviceBadge, { backgroundColor: colors.accentSoft, borderColor: colors.accentSoftBorder }]}>
                           <Text style={[styles.serviceBadgeText, { color: colors.accentFg }]}>
-                            {displayAssetsList.length > 0 ? `Buka Daftar (${displayAssetsList.length}) ›` : "Lihat Rincian"}
+                            {myAssetsList.length > 0 ? `Buka Daftar (${myAssetsList.length}) ›` : "Lihat Rincian"}
                           </Text>
                         </View>
                       </View>
@@ -1771,13 +1669,13 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                       <View style={styles.serviceMain}>
                         <Text style={[styles.serviceTitle, { color: colors.textDark }]}>Pinjaman BMN Aktif</Text>
                         <Text style={[styles.serviceSubtitle, { color: colors.textMuted }]}>
-                          {displayLoansList.length > 0
-                            ? `${displayLoansList.length} Unit Dipinjam: ${displayLoansList.map((l: any) => l.nama_barang).slice(0, 2).join(", ")}`
+                          {activeLoansList.length > 0
+                            ? `${activeLoansList.length} Unit Dipinjam: ${activeLoansList.map((l: any) => l.nama_barang).slice(0, 2).join(", ")}`
                             : "Tidak ada pinjaman BMN yang sedang berjalan"}
                         </Text>
                         <View style={[styles.serviceBadge, { backgroundColor: colors.infoBg, borderColor: colors.infoBorder }]}>
                           <Text style={[styles.serviceBadgeText, { color: colors.infoFg }]}>
-                            {displayLoansList.length > 0 ? `${displayLoansList.length} Unit Berjalan ›` : "Status: Bersih"}
+                            {activeLoansList.length > 0 ? `${activeLoansList.length} Unit Berjalan ›` : "Status: Bersih"}
                           </Text>
                         </View>
                       </View>
@@ -1872,7 +1770,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.bmnSegmentText, { color: bmnActiveTab === "aset" ? colors.accentFg : colors.textMuted }, bmnActiveTab === "aset" && styles.bmnSegmentTextActive]}>
-                      Aset Tetap ({displayAssetsList.length})
+                      Aset Tetap ({myAssetsList.length})
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -1881,7 +1779,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.bmnSegmentText, { color: bmnActiveTab === "pinjaman" ? colors.accentFg : colors.textMuted }, bmnActiveTab === "pinjaman" && styles.bmnSegmentTextActive]}>
-                      Pinjaman Berjalan ({displayLoansList.length})
+                      Pinjaman Berjalan ({activeLoansList.length})
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -2115,15 +2013,15 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                                     </>
                                   ) : (
                                     <>
-                                      <View style={styles.bmnGridMetaRow}>
-                                        <Text style={[styles.bmnGridMetaKey, { color: colors.textMuted }]}>Jenis</Text>
-                                        <Text style={[styles.bmnGridMetaVal, { color: colors.textDark }]} numberOfLines={1}>
+                                      <View style={styles.bmnGridMetaRow} accessible accessibilityLabel={`Jenis aset: ${item.jenis_bmn || "BMN"}`}>
+                                        <Ionicons name="cube-outline" size={r.size.iconSm} color={colors.textMuted} accessible={false} />
+                                        <Text style={[styles.bmnGridMetaVal, { color: colors.textDark, textAlign: "left" }]} numberOfLines={1}>
                                           {item.jenis_bmn || "BMN"}
                                         </Text>
                                       </View>
-                                      <View style={styles.bmnGridMetaRow}>
-                                        <Text style={[styles.bmnGridMetaKey, { color: colors.textMuted }]}>Lokasi</Text>
-                                        <Text style={[styles.bmnGridMetaVal, { color: colors.textDark }]} numberOfLines={1}>
+                                      <View style={styles.bmnGridMetaRow} accessible accessibilityLabel={`Lokasi aset: ${assetLokasi}`}>
+                                        <Ionicons name="location-outline" size={r.size.iconSm} color={colors.textMuted} accessible={false} />
+                                        <Text style={[styles.bmnGridMetaVal, { color: colors.textDark, textAlign: "left" }]} numberOfLines={1}>
                                           {assetLokasi}
                                         </Text>
                                       </View>
@@ -2520,7 +2418,7 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
             </View>
 
             {/* Profile Menu Actions List */}
-            <View style={styles.listStack}>
+            <View style={styles.profileMenuStack}>
               {[
                 {
                   label: "Informasi Riwayat Pangkat & Jabatan",
@@ -2565,17 +2463,17 @@ export const PortalDashboardScreen: React.FC<PortalDashboardScreenProps> = ({
                   </GlassCard>
                 </TouchableOpacity>
               ))}
-
-              {/* Logout Button */}
-              <TouchableOpacity
-                style={[styles.logoutBtn, { backgroundColor: colors.dangerBg, borderColor: colors.dangerBorder }, shadowXs]}
-                activeOpacity={0.8}
-                onPress={handleLogout}
-              >
-                <Ionicons name="log-out-outline" size={r.size.iconMd} color={colors.dangerFg} style={styles.btnIcon} />
-                <Text style={[styles.logoutBtnText, { color: colors.dangerFg }]}>Keluar Akun (Logout)</Text>
-              </TouchableOpacity>
             </View>
+
+            {/* Logout Button */}
+            <TouchableOpacity
+              style={[styles.logoutBtn, { backgroundColor: colors.dangerBg, borderColor: colors.dangerBorder }, shadowXs]}
+              activeOpacity={0.8}
+              onPress={handleLogout}
+            >
+              <Ionicons name="log-out-outline" size={r.size.iconMd} color={colors.dangerFg} style={styles.btnIcon} />
+              <Text style={[styles.logoutBtnText, { color: colors.dangerFg }]}>Keluar Akun (Logout)</Text>
+            </TouchableOpacity>
           </>
         )}
         </AnimateUiScreen>
@@ -3899,6 +3797,9 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
     },
 
     // Layanan Service Cards
+    serviceStack: {
+      gap: Math.min(16, S.x4),
+    },
     serviceCard: {
       flexDirection: "row",
       alignItems: "center",
@@ -3984,7 +3885,7 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
     profileMetricsRow: {
       flexDirection: "row",
       gap: S.x3,
-      marginBottom: S.x3,
+      marginBottom: Math.min(20, S.x6),
     },
     profileMetricBox: {
       flex: 1,
@@ -4002,6 +3903,9 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       fontVariant: ["tabular-nums"],
       marginTop: S.x1,
     },
+    profileMenuStack: {
+      gap: Math.min(12, S.x3),
+    },
     profileMenuItem: {
       flexDirection: "row",
       alignItems: "center",
@@ -4015,6 +3919,7 @@ function createPortalStyles(r: ResponsivePortalMetrics) {
       flex: 1,
     },
     logoutBtn: {
+      marginTop: 24,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",

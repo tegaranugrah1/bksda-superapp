@@ -88,6 +88,12 @@ A state-of-the-art dark theme inspired by lush forestry conservation, featuring 
 
 **Personal leave history (19 November 2026, web/mobile):** Use neutral card surfaces, plain tabular document numbers, quiet status labels and matching outlined document actions. Keep amber/red reserved for pending/rejected status and green BKSDA for the application CTA. Approval notes use a muted neutral surface. Web cards retain their responsive two-column layout with content-sized heights; mobile quota is one quiet grouped summary instead of a large green panel. Preserve the mobile date-row layout. Remove the presentation-only `SI:` prefix while retaining the actual official number, and omit the mobile scan-upload waiting helper. Availability, filtering, cancellation, printing and scan access retain their existing behavior.
 
+
+**Personal BMN counts (19 November 2026):** Mobile follows the web portal's separation: remove every active loan asset ID from `/me/assets` before calculating the permanent list/count. Normalize numeric/string asset IDs; the loan record ID is not the asset ID. Reuse this filtered list in dashboard, service entry, categories/search, profile and detail lists. Personal BMN lists use live data only: empty is zero, with no sample assets/loans or fallback to a stale dashboard summary. Returning a loan lets the latest API ownership list determine whether the asset becomes permanent again. Permanent asset grid cards show category and location values directly after cube/location icons, without visible Jenis/Lokasi labels; screen-reader descriptions retain those meanings.
+
+
+**Mobile service/profile spacing (19 November 2026):** Keep Tugas and the shared listStack rhythm unchanged. Layanan's main service stack uses the responsive x4 gap capped at 16px, while the helpdesk retains its more generous separation. Profile menus use x3 capped at 12px; separate the metrics from menus with x6 capped at 20px, and keep logout outside the menu group with a 24px top margin. Card dimensions, interior padding, shape, typography and colors stay unchanged.
+
 ### Screen 2: BMN Asset Catalog & Loan Tracker
 - **Search & Filter Bar**:
   - Glass search field: "Cari Nama Aset, NUP, atau Plat Nomor...".

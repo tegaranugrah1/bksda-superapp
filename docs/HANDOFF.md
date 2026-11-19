@@ -3449,3 +3449,31 @@ Setelah semua command clean:
 - Browser responsif 360/440/landscape 800 light/dark lulus tanpa error JS, termasuk akses modul realtime 3→2, reload sesi, navigasi profil dan formulir cuti. Pemeriksaan header setelah resize menunggu layout responsif selesai agar tidak membandingkan dua frame berbeda.
 - Pengguna mengonfirmasi garis putih sudah hilang pada sesi Chrome akun Tegar. Pengujian otomatis memakai fixture terisolasi tanpa mengubah akun/data nyata. Perangkat fisik belum diuji.
 - Checkpoint sebelumnya c2e23883; Bagian 164 disimpan sebagai checkpoint lokal perbaikan sambungan lengkung portal mobile; belum di-push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 165 Pemisahan Aset Tetap dan Pinjaman Mobile
+
+- Menangani laporan akun Tegar: satu aset tetap dan satu pinjaman sebelumnya sama-sama masuk Aset Tetap sehingga berjumlah dua. Endpoint /me/assets memang dapat menyertakan aset yang sedang dipinjam; web sudah mengecualikan ID dari /me/dashboard.my_assets, tetapi mobile belum.
+- Mobile kini memisahkan raw assignedAssetsList dan myAssetsList terfilter dengan Set ID aset pinjaman aktif, menormalkan ID number/string. loan_id tidak dipakai sebagai identitas aset. Semua konsumen tetap memakai daftar terfilter yang sama: Ringkasan Pegawai, Layanan, tab Aset Tetap, kategori/pencarian, Profil dan modal daftar aset.
+- Menghapus data contoh BMN (aset/pinjaman) pada daftar kosong dan fallback angka ringkasan nonzero. Nol dari data live tetap nol; pinjaman tidak muncul kembali sebagai aset contoh atau kartu Pinjaman Aktif. Fallback surat tugas/cuti di luar scope tidak diubah.
+- Regresi browser tersimpan di frontend/tests/mobile-personal-assets.playwright.cjs. Jalankan node frontend/tests/mobile-personal-assets.playwright.cjs dengan Expo web port 8081; seluruh API/realtime diisolasi tanpa mengubah data nyata.
+- Verifikasi lulus: kasus 1 tetap + 1 pinjam pada Beranda/Layanan/BMN/Profil; ID number/string dan loan_id yang sengaja berbenturan; kasus 0 tetap + 1 pinjam; pengembalian pinjaman melalui refresh Reverb tanpa login ulang; kedua daftar kosong dengan summary lama nonzero; serta reload sesi. Tidak ada error JS. Typecheck/lint mobile dan lint skrip regresi lulus.
+- Backend dan source aplikasi web tidak diubah. Pengujian memakai fixture setara kasus pengguna, bukan perubahan data akun Tegar nyata. Perangkat fisik belum diuji. Checkpoint sebelumnya eddf8003; Bagian 165 belum di-commit/push.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 166 Ikon Jenis dan Lokasi Aset Tetap Mobile
+
+- Pada kartu grid Aset Tetap, label Jenis dan Lokasi diganti ikon cube-outline dan location-outline dari Ionicons yang sudah dipakai aplikasi. Nilai jenis/lokasi tetap ditampilkan langsung dan diratakan kiri agar dekat dengan ikon.
+- Deskripsi aksesibilitas tetap menyebut Jenis aset/Lokasi aset dengan nilai lengkap. Tampilan pinjaman, mode list, warna, data dan perhitungan Bagian 165 tidak diubah.
+- Typecheck/ESLint mobile lulus. Browser fixture 360/440 light/dark memeriksa label visual hilang, nilai tetap ada, deskripsi aksesibel dan tanpa error JS; hasil render diperiksa. Kasus contoh tetap menunjukkan 1 aset tetap dan 1 pinjaman.
+- Checkpoint sebelumnya eddf8003; Bagian 165–166 belum di-commit/push. Perangkat fisik belum diuji.
+
+
+## Pembaruan Sesi 19 November 2026 — Bagian 167 Spacing Layanan dan Profil Mobile
+
+- Sesuai persetujuan pengguna, hanya spacing Layanan dan Profil yang dirapikan. Tugas, warna, bentuk kartu, padding di dalam kartu dan ukuran target sentuh tetap.
+- Layanan memakai serviceStack dengan gap x4 maksimum 16px (terukur 14px pada 360 dan 16px pada 440). Kartu bantuan mempertahankan pemisah yang lebih besar, 21/25px.
+- Profil memakai profileMenuStack dengan gap x3 maksimum 12px (terukur 10/12px). Jarak ringkasan ke menu memakai x6 maksimum 20px (terukur 20px); logout dipisahkan dari kelompok menu dengan margin atas 24px. Hero/dua kartu ringkasan tidak diubah.
+- Browser fixture light/dark pada 360/440 membandingkan ukuran, posisi dan padding dengan baseline sebelum perubahan. Geometri seluruh kartu Tugas identik; lebar/tinggi/padding kartu Layanan/Profil juga tetap. Semua gap yang disepakati lulus pemeriksaan dan hasil render ditinjau, tanpa error JS. Typecheck/ESLint mobile lulus.
+- Pengguna mengonfirmasi hasil spacing sudah bagus dan menyetujui checkpoint.
+- Checkpoint sebelumnya eddf8003; Bagian 165–167 disimpan sebagai checkpoint lokal perbaikan BMN dan spacing mobile yang telah disetujui pengguna; belum di-push. Perangkat fisik belum diuji.
