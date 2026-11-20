@@ -9,6 +9,7 @@ use App\Modules\Bmn\Models\AssetLoan;
 use App\Modules\Bmn\Models\AssetMaintenance;
 use App\Modules\Bmn\Models\AuctionBatch;
 use App\Modules\Bmn\Models\ImportBatch;
+use App\Modules\Bmn\Models\ImportStaging;
 use App\Modules\Bmn\Models\Tag;
 use App\Modules\Bmn\Models\UsageAgreement;
 use App\Modules\Kepegawaian\Models\Employee;
@@ -574,6 +575,108 @@ class BmnLayoutAndSecurityRegressionTest extends TestCase
 
         // Controller looks for where('status', 'pending')->findOrFail(), so it returns 404
         $response->assertStatus(404);
+    }
+
+    public function test_import_review_field_selection_updates_summary_and_applies_only_checked_columns(): void
+    {
+        $asset = $this->createAsset([
+            'kode_barang' => '4040104001',
+            'nup' => '2',
+            'nama_barang' => 'Pagar Permanen',
+            'umur_aset' => 99,
+            'no_dokumen' => '05/OLD/2020',
+            'no_sertifikat' => '05/CERT/2020',
+        ]);
+
+        $batch = ImportBatch::create([
+            'uploaded_by' => $this->superAdminUser->id,
+            'filename' => 'pagar_update.xlsx',
+            'status' => 'pending',
+            'total_rows' => 2,
+            'new_rows' => 1,
+            'updated_rows' => 1,
+            'unchanged_rows' => 0,
+        ]);
+
+        $newRow = ImportStaging::create([
+            'batch_id' => $batch->id,
+            'diff_status' => 'new',
+            'selected' => true,
+            'imported_data' => [
+                'kode_barang' => '3010312999',
+                'nup' => '1',
+                'nama_barang' => 'Aset Baru Uji',
+                'kondisi' => 'Baik',
+            ],
+        ]);
+
+        $updatedRow = ImportStaging::create([
+            'batch_id' => $batch->id,
+            'existing_asset_id' => $asset->id,
+            'diff_status' => 'updated',
+            'selected' => true,
+            'imported_data' => [
+                'kode_barang' => '4040104001',
+                'nup' => '2',
+                'nama_barang' => 'Pagar Permanen',
+            ],
+            'changed_fields' => [
+                'umur_aset' => ['old' => 99, 'new' => 98],
+                'no_dokumen' => ['old' => '05/OLD/2020', 'new' => 'SPTJM.536/DOC'],
+                'no_sertifikat' => ['old' => '05/CERT/2020', 'new' => 'SPTJM.536/CERT'],
+            ],
+        ]);
+
+        Sanctum::actingAs($this->superAdminUser);
+
+        $this->getJson("/api/bmn/import-review/{$batch->id}")
+            ->assertOk()
+            ->assertJsonPath('selection_summary.selected_total', 2)
+            ->assertJsonPath('selection_summary.selected_new', 1)
+            ->assertJsonPath('selection_summary.selected_updated', 1);
+
+        $this->postJson('/api/bmn/import-review/bulk-selection', [
+            'batch_id' => $batch->id,
+            'action' => 'select_new_only',
+        ])
+            ->assertOk()
+            ->assertJsonPath('selection_summary.selected_total', 1)
+            ->assertJsonPath('selection_summary.selected_new', 1)
+            ->assertJsonPath('selection_summary.selected_updated', 0);
+
+        $this->postJson('/api/bmn/import-review/toggle-field-selection', [
+            'row_id' => $updatedRow->id,
+            'field' => 'no_dokumen',
+            'selected' => true,
+        ])
+            ->assertOk()
+            ->assertJsonPath('row.selected', true)
+            ->assertJsonPath('row.changed_fields.no_dokumen.selected', true)
+            ->assertJsonPath('selection_summary.selected_total', 2)
+            ->assertJsonPath('selection_summary.selected_updated', 1);
+
+        $this->postJson('/api/bmn/import-review/toggle-field-selection', [
+            'row_id' => $updatedRow->id,
+            'field' => 'no_sertifikat',
+            'selected' => true,
+        ])
+            ->assertOk()
+            ->assertJsonPath('row.changed_fields.no_dokumen.selected', true)
+            ->assertJsonPath('row.changed_fields.no_sertifikat.selected', true)
+            ->assertJsonPath('row.changed_fields.umur_aset.selected', false)
+            ->assertJsonPath('selection_summary.selected_updated', 1);
+
+        $this->postJson("/api/bmn/import-review/{$batch->id}/approve")
+            ->assertOk()
+            ->assertJsonPath('inserted', 1)
+            ->assertJsonPath('updated', 1);
+
+        $freshAsset = $asset->fresh();
+        $this->assertEquals(99, (int) $freshAsset->umur_aset);
+        $this->assertSame('SPTJM.536/DOC', $freshAsset->no_dokumen);
+        $this->assertSame('SPTJM.536/CERT', $freshAsset->no_sertifikat);
+        $this->assertDatabaseHas('bmn_assets', ['kode_barang' => '3010312999', 'nup' => '1']);
+        $this->assertTrue($newRow->fresh()->selected);
     }
 
     public function test_maintenance_index_returns_paginated_resources_for_view_only_users(): void

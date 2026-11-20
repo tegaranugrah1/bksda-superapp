@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { TagBadge } from "@/app/bmn/_components/TagBadge";
 import { TagAssignmentDialog } from "@/app/bmn/_components/TagAssignmentDialog";
 import { type IBmnTag } from "@/app/bmn/_lib/tag-utils";
+import { deduplicateMerkTipe } from "@/app/bmn/_lib/asset-utils";
 import {
   SIMAN_LOKASI_RUANG_OPTIONS,
   STRUKTUR_LOKASI_OPTIONS,
@@ -795,7 +796,7 @@ function AssetDetail({ assetId }: { assetId: string }) {
                   />
                   <FormInputRow
                     label="Nama"
-                    value={currentData.nama}
+                    value={isEditMode ? currentData.nama : deduplicateMerkTipe(currentData.nama)}
                     onChange={(val) => updateField("nama", val)}
                     isEditMode={isEditMode}
                   />

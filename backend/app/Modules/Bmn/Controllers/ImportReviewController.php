@@ -86,28 +86,12 @@ class ImportReviewController extends Controller
         $batch = ImportBatch::findOrFail($batchId);
 
         $query = $this->buildFilteredRowsQuery($batch, $request);
-        $selectionQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
+        $selectionSummary = $this->computeSelectionSummary($batch, $request);
 
-        $selectionSummary = [
-            'selected_total' => (clone $selectionQuery)
-                ->where('selected', true)
-                ->whereIn('diff_status', ['new', 'updated'])
-                ->count(),
-            'selected_new' => (clone $selectionQuery)
-                ->where('selected', true)
-                ->where('diff_status', 'new')
-                ->count(),
-            'selected_updated' => (clone $selectionQuery)
-                ->where('selected', true)
-                ->where('diff_status', 'updated')
-                ->count(),
-            'filtered_new' => (clone $selectionQuery)->where('diff_status', 'new')->count(),
-            'filtered_updated' => (clone $selectionQuery)->where('diff_status', 'updated')->count(),
-        ];
-
-        // Paginate
+        // Paginate with deterministic tie-breaker so Postgres row updates never shift page order
         $perPage = max(1, min($request->integer('per_page', 50), 200));
         $rows = $query->orderByRaw("CASE diff_status WHEN 'new' THEN 1 WHEN 'updated' THEN 2 WHEN 'unchanged' THEN 3 END")
+            ->orderBy('id')
             ->paginate($perPage);
 
         // For updated rows, include existing asset data for comparison
@@ -149,25 +133,38 @@ class ImportReviewController extends Controller
             'ids' => 'required|array|min:1',
             'ids.*' => 'string',
             'selected' => 'required|boolean',
+            'kode_barang' => 'nullable|string|max:255',
+            'nup' => 'nullable|string|max:255',
+            'nama_barang' => 'nullable|string|max:255',
         ]);
 
-        $rows = ImportStaging::whereIn('id', $request->ids)
-            ->whereIn('diff_status', ['new', 'updated'])
-            ->whereHas('batch', fn ($query) => $query->where('status', 'pending'))
-            ->get();
+        $batch = DB::transaction(function () use ($request) {
+            $rows = ImportStaging::whereIn('id', $request->ids)
+                ->whereIn('diff_status', ['new', 'updated'])
+                ->whereHas('batch', fn ($query) => $query->where('status', 'pending'))
+                ->lockForUpdate()
+                ->get();
 
-        foreach ($rows as $row) {
-            /** @var ImportStaging $row */
-            $updates = ['selected' => $request->selected];
+            $selected = $request->boolean('selected');
+            foreach ($rows as $row) {
+                /** @var ImportStaging $row */
+                $updates = ['selected' => $selected];
 
-            if ($row->diff_status === 'updated') {
-                $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], $request->boolean('selected'));
+                if ($row->diff_status === 'updated') {
+                    $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], $selected);
+                }
+
+                $row->update($updates);
             }
 
-            $row->update($updates);
-        }
+            $batchId = $rows->first()?->batch_id;
+            return $batchId ? ImportBatch::find($batchId) : null;
+        });
 
-        return response()->json(['message' => 'Seleksi diperbarui.']);
+        return response()->json([
+            'message' => 'Seleksi diperbarui.',
+            'selection_summary' => $batch ? $this->computeSelectionSummary($batch, $request) : null,
+        ]);
     }
 
     /**
@@ -179,24 +176,45 @@ class ImportReviewController extends Controller
             'row_id' => 'required|string|exists:bmn_import_staging,id',
             'field' => 'required|string|max:255',
             'selected' => 'required|boolean',
+            'kode_barang' => 'nullable|string|max:255',
+            'nup' => 'nullable|string|max:255',
+            'nama_barang' => 'nullable|string|max:255',
         ]);
 
-        $row = ImportStaging::where('diff_status', 'updated')
-            ->whereHas('batch', fn ($query) => $query->where('status', 'pending'))
-            ->findOrFail($validated['row_id']);
+        $result = DB::transaction(function () use ($validated) {
+            // Lock row so rapid consecutive column toggles on the same row cannot overwrite each other.
+            $row = ImportStaging::where('diff_status', 'updated')
+                ->whereHas('batch', fn ($query) => $query->where('status', 'pending'))
+                ->lockForUpdate()
+                ->findOrFail($validated['row_id']);
 
-        $changedFields = $row->changed_fields ?? [];
-        if (!array_key_exists($validated['field'], $changedFields)) {
+            $changedFields = $row->changed_fields ?? [];
+            if (!array_key_exists($validated['field'], $changedFields)) {
+                return null;
+            }
+
+            $changedFields[$validated['field']]['selected'] = $validated['selected'];
+            $row->update([
+                'changed_fields' => $changedFields,
+                'selected' => $this->hasSelectedChangedField($changedFields),
+            ]);
+
+            return $row->fresh('batch');
+        });
+
+        if ($result === null) {
             return response()->json(['error' => 'Kolom perubahan tidak ditemukan.'], 422);
         }
 
-        $changedFields[$validated['field']]['selected'] = $validated['selected'];
-        $row->update([
-            'changed_fields' => $changedFields,
-            'selected' => $this->hasSelectedChangedField($changedFields),
+        return response()->json([
+            'message' => 'Seleksi kolom diperbarui.',
+            'row' => [
+                'id' => $result->id,
+                'selected' => $result->selected,
+                'changed_fields' => $result->changed_fields,
+            ],
+            'selection_summary' => $result->batch ? $this->computeSelectionSummary($result->batch, $request) : null,
         ]);
-
-        return response()->json(['message' => 'Seleksi kolom diperbarui.']);
     }
 
     /**
@@ -213,71 +231,72 @@ class ImportReviewController extends Controller
         ]);
 
         $batch = ImportBatch::where('status', 'pending')->findOrFail($validated['batch_id']);
-        $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
 
-        if ($validated['action'] === 'select_changed') {
-            // Select ALL changed rows (new + updated)
-            $rows = (clone $baseQuery)
-                ->whereIn('diff_status', ['new', 'updated'])
-                ->get();
+        $count = DB::transaction(function () use ($batch, $request, $validated) {
+            $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
 
-            $selected = 0;
-            foreach ($rows as $row) {
-                $updates = ['selected' => true];
-                if ($row->diff_status === 'updated') {
-                    $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], true);
+            if ($validated['action'] === 'select_changed') {
+                (clone $baseQuery)->where('diff_status', 'new')->where('selected', false)->update(['selected' => true]);
+
+                $updatedRows = (clone $baseQuery)->where('diff_status', 'updated')->lockForUpdate()->get();
+                foreach ($updatedRows as $row) {
+                    $nextFields = $this->setAllFieldSelection($row->changed_fields ?? [], true);
+                    if (!$row->selected || $nextFields !== $row->changed_fields) {
+                        $row->update(['selected' => true, 'changed_fields' => $nextFields]);
+                    }
                 }
-                $row->update($updates);
-                $selected++;
+
+                return (clone $baseQuery)->whereIn('diff_status', ['new', 'updated'])->count();
             }
 
+            if ($validated['action'] === 'select_new_only') {
+                $selectedUpdatedRows = (clone $baseQuery)->where('diff_status', 'updated')->where('selected', true)->lockForUpdate()->get();
+                foreach ($selectedUpdatedRows as $row) {
+                    $row->update([
+                        'selected' => false,
+                        'changed_fields' => $this->setAllFieldSelection($row->changed_fields ?? [], false),
+                    ]);
+                }
+
+                (clone $baseQuery)->where('diff_status', 'new')->where('selected', false)->update(['selected' => true]);
+
+                return (clone $baseQuery)->where('diff_status', 'new')->count();
+            }
+
+            (clone $baseQuery)->where('diff_status', 'new')->where('selected', true)->update(['selected' => false]);
+            $selectedUpdatedRows = (clone $baseQuery)->where('diff_status', 'updated')->where('selected', true)->lockForUpdate()->get();
+            foreach ($selectedUpdatedRows as $row) {
+                $row->update([
+                    'selected' => false,
+                    'changed_fields' => $this->setAllFieldSelection($row->changed_fields ?? [], false),
+                ]);
+            }
+
+            return (clone $baseQuery)->whereIn('diff_status', ['new', 'updated'])->count();
+        });
+
+        $summary = $this->computeSelectionSummary($batch, $request);
+
+        if ($validated['action'] === 'select_changed') {
             return response()->json([
-                'message' => "{$selected} baris (baru + update) dipilih.",
-                'selected' => $selected,
+                'message' => "{$count} baris (baru + update) dipilih.",
+                'selected' => $count,
+                'selection_summary' => $summary,
             ]);
         }
 
         if ($validated['action'] === 'select_new_only') {
-            // Clear all, then select only new rows
-            $changedRows = (clone $baseQuery)
-                ->where('diff_status', '!=', 'unchanged')
-                ->get();
-
-            foreach ($changedRows as $row) {
-                $updates = ['selected' => false];
-                if ($row->diff_status === 'updated') {
-                    $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], false);
-                }
-                $row->update($updates);
-            }
-
-            $selected = (clone $baseQuery)
-                ->where('diff_status', 'new')
-                ->update(['selected' => true]);
-
             return response()->json([
-                'message' => "{$selected} aset baru dipilih.",
-                'selected' => $selected,
+                'message' => "{$count} aset baru dipilih.",
+                'selected' => $count,
+                'selection_summary' => $summary,
             ]);
-        }
-
-        $rows = $baseQuery
-            ->where('diff_status', '!=', 'unchanged')
-            ->get();
-
-        $affected = 0;
-        foreach ($rows as $row) {
-            $updates = ['selected' => false];
-            if ($row->diff_status === 'updated') {
-                $updates['changed_fields'] = $this->setAllFieldSelection($row->changed_fields ?? [], false);
-            }
-            $row->update($updates);
-            $affected++;
         }
 
         return response()->json([
             'message' => 'Seleksi massal diperbarui.',
-            'affected' => $affected,
+            'affected' => $count,
+            'selection_summary' => $summary,
         ]);
     }
 
@@ -470,6 +489,27 @@ class ImportReviewController extends Controller
         }
 
         return (string) $value;
+    }
+
+    private function computeSelectionSummary(ImportBatch $batch, Request $request): array
+    {
+        $row = $this->applyIdentityFilters($batch->stagingRows(), $request)
+            ->selectRaw("
+                COALESCE(SUM(CASE WHEN selected AND diff_status IN ('new', 'updated') THEN 1 ELSE 0 END), 0) AS selected_total,
+                COALESCE(SUM(CASE WHEN selected AND diff_status = 'new' THEN 1 ELSE 0 END), 0) AS selected_new,
+                COALESCE(SUM(CASE WHEN selected AND diff_status = 'updated' THEN 1 ELSE 0 END), 0) AS selected_updated,
+                COALESCE(SUM(CASE WHEN diff_status = 'new' THEN 1 ELSE 0 END), 0) AS filtered_new,
+                COALESCE(SUM(CASE WHEN diff_status = 'updated' THEN 1 ELSE 0 END), 0) AS filtered_updated
+            ")
+            ->first();
+
+        return [
+            'selected_total' => (int) ($row?->selected_total ?? 0),
+            'selected_new' => (int) ($row?->selected_new ?? 0),
+            'selected_updated' => (int) ($row?->selected_updated ?? 0),
+            'filtered_new' => (int) ($row?->filtered_new ?? 0),
+            'filtered_updated' => (int) ($row?->filtered_updated ?? 0),
+        ];
     }
 
     private function buildFilteredRowsQuery(ImportBatch $batch, Request $request)
