@@ -121,6 +121,7 @@ class ImportReviewController extends Controller
             ],
             'rows' => $rows,
             'selection_summary' => $selectionSummary,
+            'field_summary' => $this->computeFieldSummary($batch, $request),
         ]);
     }
 
@@ -224,7 +225,8 @@ class ImportReviewController extends Controller
     {
         $validated = $request->validate([
             'batch_id' => 'required|string|exists:bmn_import_batches,id',
-            'action' => 'required|string|in:select_changed,clear_changed,select_new_only',
+            'action' => 'required|string|in:select_changed,clear_changed,select_new_only,select_updated,clear_updated,select_field,clear_field',
+            'field' => ['required_if:action,select_field,clear_field', 'nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9_]+$/'],
             'kode_barang' => 'nullable|string|max:255',
             'nup' => 'nullable|string|max:255',
             'nama_barang' => 'nullable|string|max:255',
@@ -234,6 +236,90 @@ class ImportReviewController extends Controller
 
         $count = DB::transaction(function () use ($batch, $request, $validated) {
             $baseQuery = $this->applyIdentityFilters($batch->stagingRows(), $request);
+
+            if ($validated['action'] === 'select_updated' || $validated['action'] === 'clear_updated') {
+                $selectFlag = $validated['action'] === 'select_updated';
+                $boolLiteral = $selectFlag ? 'true' : 'false';
+
+                if (DB::connection()->getDriverName() === 'pgsql') {
+                    $targetQuery = (clone $baseQuery)
+                        ->where('diff_status', 'updated')
+                        ->whereNotNull('changed_fields')
+                        ->select('id');
+
+                    return DB::update(
+                        "UPDATE bmn_import_staging
+                         SET changed_fields = COALESCE(
+                             (SELECT jsonb_object_agg(kv.key, jsonb_set(kv.value, '{selected}', '{$boolLiteral}'::jsonb, true))
+                              FROM jsonb_each(changed_fields::jsonb) AS kv),
+                             '{}'::jsonb
+                         )::json,
+                         selected = {$boolLiteral},
+                         updated_at = NOW()
+                         WHERE id IN ({$targetQuery->toSql()})",
+                        $targetQuery->getBindings()
+                    );
+                }
+
+                $rows = (clone $baseQuery)
+                    ->where('diff_status', 'updated')
+                    ->whereNotNull('changed_fields')
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($rows as $row) {
+                    $nextFields = $this->setAllFieldSelection($row->changed_fields ?? [], $selectFlag);
+                    if ($row->selected !== $selectFlag || $nextFields !== $row->changed_fields) {
+                        $row->update(['selected' => $selectFlag, 'changed_fields' => $nextFields]);
+                    }
+                }
+
+                return $rows->count();
+            }
+
+            if ($validated['action'] === 'select_field' || $validated['action'] === 'clear_field') {
+                $field = (string) $validated['field'];
+                $selectFlag = $validated['action'] === 'select_field';
+
+                if (DB::connection()->getDriverName() === 'pgsql') {
+                    $targetQuery = (clone $baseQuery)
+                        ->where('diff_status', 'updated')
+                        ->whereNotNull('changed_fields')
+                        ->whereRaw('jsonb_exists(changed_fields::jsonb, ?)', [$field])
+                        ->select('id');
+                    $boolLiteral = $selectFlag ? 'true' : 'false';
+                    $selectedSql = $selectFlag
+                        ? 'true'
+                        : "EXISTS (SELECT 1 FROM jsonb_each(jsonb_set(changed_fields::jsonb, ARRAY['{$field}', 'selected'], 'false'::jsonb, true)) AS kv WHERE COALESCE((kv.value->>'selected')::boolean, true))";
+
+                    return DB::update(
+                        "UPDATE bmn_import_staging SET changed_fields = jsonb_set(changed_fields::jsonb, ARRAY['{$field}', 'selected'], '{$boolLiteral}'::jsonb, true)::json, selected = {$selectedSql}, updated_at = NOW() WHERE id IN ({$targetQuery->toSql()})",
+                        $targetQuery->getBindings()
+                    );
+                }
+
+                $rows = (clone $baseQuery)
+                    ->where('diff_status', 'updated')
+                    ->whereNotNull('changed_fields')
+                    ->lockForUpdate()
+                    ->get();
+
+                $affected = 0;
+                foreach ($rows as $row) {
+                    $changedFields = $row->changed_fields ?? [];
+                    if (!array_key_exists($field, $changedFields)) {
+                        continue;
+                    }
+                    $changedFields[$field]['selected'] = $selectFlag;
+                    $row->update([
+                        'changed_fields' => $changedFields,
+                        'selected' => $this->hasSelectedChangedField($changedFields),
+                    ]);
+                    $affected++;
+                }
+
+                return $affected;
+            }
 
             if ($validated['action'] === 'select_changed') {
                 (clone $baseQuery)->where('diff_status', 'new')->where('selected', false)->update(['selected' => true]);
@@ -276,12 +362,34 @@ class ImportReviewController extends Controller
         });
 
         $summary = $this->computeSelectionSummary($batch, $request);
+        $fieldSummary = $this->computeFieldSummary($batch, $request);
+
+        if ($validated['action'] === 'select_updated' || $validated['action'] === 'clear_updated') {
+            $verb = $validated['action'] === 'select_updated' ? 'dipilih' : 'dilepas';
+            return response()->json([
+                'message' => "Semua kolom pada {$count} baris update {$verb}.",
+                'affected' => $count,
+                'selection_summary' => $summary,
+                'field_summary' => $fieldSummary,
+            ]);
+        }
+
+        if ($validated['action'] === 'select_field' || $validated['action'] === 'clear_field') {
+            $verb = $validated['action'] === 'select_field' ? 'dipilih' : 'dibatalkan';
+            return response()->json([
+                'message' => "{$count} baris update kolom {$validated['field']} {$verb}.",
+                'affected' => $count,
+                'selection_summary' => $summary,
+                'field_summary' => $fieldSummary,
+            ]);
+        }
 
         if ($validated['action'] === 'select_changed') {
             return response()->json([
                 'message' => "{$count} baris (baru + update) dipilih.",
                 'selected' => $count,
                 'selection_summary' => $summary,
+                'field_summary' => $fieldSummary,
             ]);
         }
 
@@ -290,6 +398,7 @@ class ImportReviewController extends Controller
                 'message' => "{$count} aset baru dipilih.",
                 'selected' => $count,
                 'selection_summary' => $summary,
+                'field_summary' => $fieldSummary,
             ]);
         }
 
@@ -297,6 +406,7 @@ class ImportReviewController extends Controller
             'message' => 'Seleksi massal diperbarui.',
             'affected' => $count,
             'selection_summary' => $summary,
+            'field_summary' => $fieldSummary,
         ]);
     }
 
@@ -305,12 +415,19 @@ class ImportReviewController extends Controller
      */
     public function approve(string $batchId, Request $request): JsonResponse
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(180);
+        }
+
         try {
             $result = DB::transaction(function () use ($batchId, $request) {
                 $batch = ImportBatch::where('status', 'pending')->lockForUpdate()->findOrFail($batchId);
                 $inserted = 0;
                 $updated = 0;
                 $bulkAssigned = [];
+                $historyRows = [];
+                $now = now();
+                $userId = $request->user()->id;
                 $assetService = app(\App\Modules\Bmn\Services\AssetService::class);
 
                 // Get all selected rows (new + updated)
@@ -319,37 +436,57 @@ class ImportReviewController extends Controller
                     ->whereIn('diff_status', ['new', 'updated'])
                     ->get();
 
+                $existingAssetIds = $selectedRows
+                    ->where('diff_status', 'updated')
+                    ->pluck('existing_asset_id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+                $assetsById = !empty($existingAssetIds)
+                    ? Asset::withTrashed()->whereIn('id', $existingAssetIds)->get()->keyBy('id')
+                    : collect();
+
+                $newKodeList = $selectedRows
+                    ->where('diff_status', 'new')
+                    ->map(fn ($r) => $r->imported_data['kode_barang'] ?? null)
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+                $existingByKodeNup = !empty($newKodeList)
+                    ? Asset::withTrashed()
+                        ->whereIn('kode_barang', $newKodeList)
+                        ->get()
+                        ->keyBy(fn ($a) => $a->kode_barang . '|' . (string) $a->nup)
+                    : collect();
+
                 foreach ($selectedRows as $row) {
                     $data = $row->imported_data;
 
                     if ($row->diff_status === 'new') {
-                        // Insert new asset — use updateOrCreate to handle edge cases
+                        // Insert new asset — check preloaded kode_barang + nup first to handle re-imports cleanly
                         $kodeBarang = $data['kode_barang'] ?? null;
                         $nup = $data['nup'] ?? null;
 
                         if ($kodeBarang && $nup) {
-                            // Check if asset exists (including soft-deleted)
-                            $existing = Asset::withTrashed()
-                                ->where('kode_barang', $kodeBarang)
-                                ->where('nup', (string) $nup)
-                                ->first();
+                            $existing = $existingByKodeNup->get($kodeBarang . '|' . (string) $nup);
 
                             if ($existing) {
                                 $wasTrashed = $existing->trashed();
                                 $oldEmp = $existing->employee_id;
                                 $oldKondisi = $existing->kondisi;
-                                // Restore if soft-deleted, then update
                                 if ($wasTrashed) {
                                     $existing->restore();
                                 }
                                 $existing->update($data);
-                                $fresh = $existing->fresh();
-                                $assetService->notifyOwnershipChange($fresh, $oldEmp, $fresh->employee_id, $wasTrashed);
-                                $assetService->notifyConditionCritical($fresh, $oldKondisi, $fresh->kondisi);
+                                $assetService->notifyOwnershipChange($existing, $oldEmp, $existing->employee_id, $wasTrashed);
+                                $assetService->notifyConditionCritical($existing, $oldKondisi, $existing->kondisi);
                                 $updated++;
                             } else {
                                 $data['id'] = (string) Str::uuid();
                                 $created = Asset::create($data);
+                                $existingByKodeNup->put($kodeBarang . '|' . (string) $nup, $created);
                                 if ($created->employee_id) {
                                     $bulkAssigned[(int) $created->employee_id][] = $created;
                                 }
@@ -366,8 +503,7 @@ class ImportReviewController extends Controller
                             $inserted++;
                         }
                     } elseif ($row->diff_status === 'updated' && $row->existing_asset_id) {
-                        // Update existing asset (only changed fields)
-                        $asset = Asset::withTrashed()->find($row->existing_asset_id);
+                        $asset = $assetsById->get($row->existing_asset_id);
                         if ($asset) {
                             $wasTrashed = $asset->trashed();
                             $oldEmp = $asset->employee_id;
@@ -385,26 +521,32 @@ class ImportReviewController extends Controller
                             }
                             if (!empty($updateData)) {
                                 foreach ($updateData as $field => $newValue) {
-                                    AssetUpdate::create([
+                                    $historyRows[] = [
+                                        'id' => (string) Str::uuid(),
                                         'asset_id' => $asset->id,
-                                        'user_id' => $request->user()->id,
+                                        'user_id' => $userId,
                                         'field_changed' => $field,
                                         'old_value' => $this->historyValue($changedFields[$field]['old'] ?? $asset->{$field}),
                                         'new_value' => $this->historyValue($newValue),
                                         'alasan_perubahan' => "Import review: {$batch->filename}",
-                                    ]);
+                                        'created_at' => $now,
+                                        'updated_at' => $now,
+                                    ];
                                 }
 
                                 $asset->update($updateData);
                                 $updated++;
                             }
                             if ($wasTrashed || !empty($updateData)) {
-                                $fresh = $asset->fresh();
-                                $assetService->notifyOwnershipChange($fresh, $oldEmp, $fresh->employee_id, $wasTrashed);
-                                $assetService->notifyConditionCritical($fresh, $oldKondisi, $fresh->kondisi);
+                                $assetService->notifyOwnershipChange($asset, $oldEmp, $asset->employee_id, $wasTrashed);
+                                $assetService->notifyConditionCritical($asset, $oldKondisi, $asset->kondisi);
                             }
                         }
                     }
+                }
+
+                foreach (array_chunk($historyRows, 100) as $chunk) {
+                    AssetUpdate::insert($chunk);
                 }
 
                 $assetService->notifyBulkAssigned($bulkAssigned);
@@ -512,6 +654,54 @@ class ImportReviewController extends Controller
         ];
     }
 
+    /**
+     * Aggregate changed column counts across all matching updated rows for bulk column selection.
+     */
+    private function computeFieldSummary(ImportBatch $batch, Request $request): array
+    {
+        $filteredUpdatedQuery = (clone $this->applyIdentityFilters($batch->stagingRows(), $request))
+            ->where('diff_status', 'updated')
+            ->whereNotNull('changed_fields');
+
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            $idsQuery = (clone $filteredUpdatedQuery)->select('id');
+            $rows = DB::select(
+                "
+                SELECT kv.key AS field,
+                       COUNT(*)::int AS total,
+                       SUM(CASE WHEN COALESCE((kv.value->>'selected')::boolean, true) THEN 1 ELSE 0 END)::int AS selected
+                FROM bmn_import_staging,
+                     LATERAL jsonb_each(changed_fields::jsonb) AS kv(key, value)
+                WHERE id IN ({$idsQuery->toSql()})
+                GROUP BY kv.key
+                ORDER BY total DESC, kv.key ASC
+                ",
+                $idsQuery->getBindings()
+            );
+
+            return array_map(fn ($r) => [
+                'field' => (string) $r->field,
+                'total' => (int) $r->total,
+                'selected' => (int) $r->selected,
+            ], $rows);
+        }
+
+        $counts = [];
+        foreach ($filteredUpdatedQuery->get(['changed_fields']) as $row) {
+            foreach ($row->changed_fields ?? [] as $field => $meta) {
+                $counts[$field] ??= ['field' => (string) $field, 'total' => 0, 'selected' => 0];
+                $counts[$field]['total']++;
+                if (($meta['selected'] ?? true) !== false) {
+                    $counts[$field]['selected']++;
+                }
+            }
+        }
+
+        usort($counts, fn ($a, $b) => $b['total'] <=> $a['total'] ?: strcmp($a['field'], $b['field']));
+
+        return array_values($counts);
+    }
+
     private function buildFilteredRowsQuery(ImportBatch $batch, Request $request)
     {
         $query = $this->applyIdentityFilters($batch->stagingRows(), $request);
@@ -520,19 +710,50 @@ class ImportReviewController extends Controller
             $query->where('diff_status', $request->status);
         }
 
+        $changedField = trim((string) $request->input('changed_field', ''));
+        if ($changedField === '__selected__') {
+            $query->whereIn('diff_status', ['new', 'updated'])->where('selected', true);
+        } elseif ($changedField !== '' && preg_match('/^[A-Za-z0-9_]+$/', $changedField)) {
+            $query->where('diff_status', 'updated')->whereNotNull('changed_fields');
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                $query->whereRaw('jsonb_exists(changed_fields::jsonb, ?)', [$changedField]);
+            } else {
+                $query->whereRaw('json_extract(changed_fields, ?) IS NOT NULL', ['$.' . $changedField]);
+            }
+        }
+
         return $query;
     }
 
     private function applyIdentityFilters($query, Request $request)
     {
-        foreach (['kode_barang', 'nup', 'nama_barang'] as $field) {
-            $value = addcslashes(trim((string) $request->input($field, '')), '%_');
+        $isPgSql = DB::connection()->getDriverName() === 'pgsql';
+        $escapeLike = static fn (string $raw): string => addcslashes(trim($raw), '\\%_');
 
+        foreach (['kode_barang', 'nup'] as $field) {
+            $value = $escapeLike((string) $request->input($field, ''));
             if ($value !== '') {
-                $query->whereRaw("imported_data->>'{$field}' ILIKE ?", ["%{$value}%"]);
+                $query->whereRaw($this->jsonLikeSql($field, $isPgSql), ["%{$value}%"]);
             }
         }
 
+        $namaOrMerk = $escapeLike((string) $request->input('nama_barang', ''));
+        if ($namaOrMerk !== '') {
+            $pattern = "%{$namaOrMerk}%";
+            $query->where(function ($nested) use ($pattern, $isPgSql) {
+                foreach (['nama_barang', 'merk', 'tipe', 'merk_tipe', 'nama'] as $col) {
+                    $nested->orWhereRaw($this->jsonLikeSql($col, $isPgSql), [$pattern]);
+                }
+            });
+        }
+
         return $query;
+    }
+
+    private function jsonLikeSql(string $column, bool $isPgSql): string
+    {
+        return $isPgSql
+            ? "COALESCE(imported_data->>'{$column}', '') ILIKE ?"
+            : "LOWER(COALESCE(json_extract(imported_data, '$.{$column}'), '')) LIKE LOWER(?)";
     }
 }

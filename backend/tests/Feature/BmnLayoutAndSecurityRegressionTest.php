@@ -679,6 +679,135 @@ class BmnLayoutAndSecurityRegressionTest extends TestCase
         $this->assertTrue($newRow->fresh()->selected);
     }
 
+    public function test_import_review_bulk_field_selection_and_merk_search_filter(): void
+    {
+        $chairA = $this->createAsset(['kode_barang' => '3050201003', 'nup' => '105', 'nama_barang' => 'Kursi Besi/Metal']);
+        $chairB = $this->createAsset(['kode_barang' => '3050204004', 'nup' => '36', 'nama_barang' => 'A.C. Split']);
+
+        $batch = ImportBatch::create([
+            'uploaded_by' => $this->superAdminUser->id,
+            'filename' => 'bulk_field_test.xlsx',
+            'status' => 'pending',
+            'total_rows' => 3,
+            'new_rows' => 1,
+            'updated_rows' => 2,
+            'unchanged_rows' => 0,
+        ]);
+
+        $rowNew = ImportStaging::create([
+            'batch_id' => $batch->id,
+            'diff_status' => 'new',
+            'selected' => true,
+            'imported_data' => [
+                'kode_barang' => '3050209999',
+                'nup' => '1',
+                'nama_barang' => 'Laptop Baru',
+            ],
+        ]);
+
+        $rowA = ImportStaging::create([
+            'batch_id' => $batch->id,
+            'existing_asset_id' => $chairA->id,
+            'diff_status' => 'updated',
+            'selected' => false,
+            'imported_data' => [
+                'kode_barang' => '3050201003',
+                'nup' => '105',
+                'nama_barang' => 'Kursi Besi/Metal',
+                'merk' => 'Chitose',
+                'tipe' => 'Chitose Cosmo 54',
+                'merk_tipe' => 'Chitose Chitose Cosmo 54',
+            ],
+            'changed_fields' => [
+                'tipe' => ['old' => null, 'new' => 'Chitose Cosmo 54', 'selected' => false],
+                'umur_aset' => ['old' => 5, 'new' => 0, 'selected' => false],
+            ],
+        ]);
+
+        $rowB = ImportStaging::create([
+            'batch_id' => $batch->id,
+            'existing_asset_id' => $chairB->id,
+            'diff_status' => 'updated',
+            'selected' => false,
+            'imported_data' => [
+                'kode_barang' => '3050204004',
+                'nup' => '36',
+                'nama_barang' => 'A.C. Split',
+                'merk' => 'Daikin',
+                'tipe' => 'FTKQ25',
+            ],
+            'changed_fields' => [
+                'umur_aset' => ['old' => 10, 'new' => 9, 'selected' => false],
+            ],
+        ]);
+
+        Sanctum::actingAs($this->superAdminUser);
+
+        $this->getJson("/api/bmn/import-review/{$batch->id}?nama_barang=Chitose")
+            ->assertOk()
+            ->assertJsonCount(1, 'rows.data')
+            ->assertJsonPath('rows.data.0.id', $rowA->id)
+            ->assertJsonPath('selection_summary.filtered_updated', 1)
+            ->assertJsonFragment(['field' => 'tipe', 'total' => 1, 'selected' => 0]);
+
+        $this->postJson('/api/bmn/import-review/bulk-selection', [
+            'batch_id' => $batch->id,
+            'action' => 'select_field',
+            'field' => 'umur_aset',
+        ])
+            ->assertOk()
+            ->assertJsonPath('selection_summary.selected_updated', 2)
+            ->assertJsonFragment(['field' => 'umur_aset', 'total' => 2, 'selected' => 2]);
+
+        $this->assertTrue($rowA->fresh()->selected);
+        $this->assertFalse($rowA->fresh()->changed_fields['tipe']['selected']);
+        $this->assertTrue($rowB->fresh()->selected);
+
+        $this->postJson('/api/bmn/import-review/bulk-selection', [
+            'batch_id' => $batch->id,
+            'action' => 'clear_field',
+            'field' => 'umur_aset',
+            'nama_barang' => 'Chitose',
+        ])
+            ->assertOk()
+            ->assertJsonPath('selection_summary.selected_updated', 0);
+
+        $this->assertFalse($rowA->fresh()->selected);
+        $this->assertTrue($rowB->fresh()->selected);
+
+        $this->getJson("/api/bmn/import-review/{$batch->id}?changed_field=tipe")
+            ->assertOk()
+            ->assertJsonCount(1, 'rows.data')
+            ->assertJsonPath('rows.data.0.id', $rowA->id);
+
+        $this->getJson("/api/bmn/import-review/{$batch->id}?changed_field=__selected__")
+            ->assertOk()
+            ->assertJsonCount(2, 'rows.data');
+
+        $this->postJson('/api/bmn/import-review/bulk-selection', [
+            'batch_id' => $batch->id,
+            'action' => 'select_updated',
+        ])
+            ->assertOk()
+            ->assertJsonPath('selection_summary.selected_updated', 2)
+            ->assertJsonFragment(['field' => 'tipe', 'total' => 1, 'selected' => 1]);
+
+        $this->assertTrue($rowA->fresh()->selected);
+        $this->assertTrue($rowA->fresh()->changed_fields['tipe']['selected']);
+
+        $this->postJson('/api/bmn/import-review/bulk-selection', [
+            'batch_id' => $batch->id,
+            'action' => 'clear_updated',
+        ])
+            ->assertOk()
+            ->assertJsonPath('selection_summary.selected_updated', 0)
+            ->assertJsonPath('selection_summary.selected_new', 1);
+
+        $this->assertFalse($rowA->fresh()->selected);
+        $this->assertFalse($rowB->fresh()->selected);
+        $this->assertTrue($rowNew->fresh()->selected);
+    }
+
     public function test_maintenance_index_returns_paginated_resources_for_view_only_users(): void
     {
         Sanctum::actingAs($this->viewOnlyUser);
