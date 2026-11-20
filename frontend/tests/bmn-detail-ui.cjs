@@ -38,7 +38,9 @@ const imports = {
   'framer-motion': { motion: { span: 'motion.span', div: 'motion.div' }, AnimatePresence: 'presence', useReducedMotion: () => reducedMotion },
   '@/app/bmn/_components/TagBadge': { TagBadge: 'tag' },
   '@/app/bmn/_components/TagAssignmentDialog': { TagAssignmentDialog: 'tag-dialog' },
-  '@/app/bmn/_lib/location-options': { ALL_LOKASI_RUANG_OPTIONS: [] },
+  '@/app/bmn/_lib/location-options': { SIMAN_LOKASI_RUANG_OPTIONS: [], STRUKTUR_LOKASI_OPTIONS: [], mergeLokasiOptions: () => [] },
+  '@/app/bmn/_lib/asset-utils': load('../../_lib/asset-utils.ts'),
+  '@/lib/locations': { useMasterLocations: () => ({data:[]}) },
   '../assets.css': {}, './detail.css': {},
 };
 function load(file, extra = '') {
@@ -179,4 +181,13 @@ assert(!nodes.some(n => n.type === 'img'));
 assert(nodes.some(n => n.props.role === 'status' && text(n) === 'Foto tidak dapat dimuat'));
 nodes.find(n => n.type === 'DialogContent').props.onKeyDown({ key: 'ArrowRight' });
 assert(render(gallery.Lightbox, { ...preview, url: '/good.jpg' }).some(n => n.type === 'img'));
+writable = true; reset();
+const rawDupNama = 'DJI Mini 3 Pro With DJI RC Remote DJI Mini 3 Pro With DJI RC Remote';
+asset={...asset,nama:rawDupNama};
+nodes=render(page.default,{});
+assert(nodes.some(n=>text(n)==='DJI Mini 3 Pro With DJI RC Remote'));
+assert(!nodes.some(n=>text(n)===rawDupNama));
+find(nodes,'button','Edit Aset').props.onClick();
+nodes=render(page.default,{});
+assert.equal(find(nodes,'input','Nama').props.value, rawDupNama);
 console.log('BMN detail: forms, statuses, tabs, edit/cancel, read-only/loading/error, photo/document navigation, focus return and image fallback PASS');

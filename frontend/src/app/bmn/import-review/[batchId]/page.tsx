@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -24,7 +24,6 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
 import { useRole } from "@/hooks/useRole";
 
 interface ChangedField {
@@ -69,6 +68,42 @@ interface RowsPagination {
   per_page: number;
   to: number | null;
   total: number;
+}
+
+interface BatchQueryData {
+  batch: BatchInfo;
+  rows: RowsPagination;
+  selection_summary: SelectionSummary;
+}
+
+function getIdentityFilterParamsFrom(filters: {
+  kode_barang: string;
+  nup: string;
+  nama_barang: string;
+}): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(filters)
+      .map(([key, value]) => [key, value.trim()])
+      .filter(([, value]) => value !== "")
+  );
+}
+
+function updateSummaryDelta(
+  summary: SelectionSummary,
+  diffStatus: StagingRow["diff_status"],
+  delta: number
+): SelectionSummary {
+  if (delta === 0) return summary;
+  return {
+    ...summary,
+    selected_total: Math.max(0, summary.selected_total + delta),
+    selected_new:
+      diffStatus === "new" ? Math.max(0, summary.selected_new + delta) : summary.selected_new,
+    selected_updated:
+      diffStatus === "updated"
+        ? Math.max(0, summary.selected_updated + delta)
+        : summary.selected_updated,
+  };
 }
 
 // Human-readable field labels
@@ -133,7 +168,9 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [bulkAction, setBulkAction] = useState<"select_changed" | "clear_changed" | "select_new_only" | null>(null);
-  const [fieldAction, setFieldAction] = useState<string | null>(null);
+  const [pendingToggleCount, setPendingToggleCount] = useState(0);
+  const mutationQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const mutationSeqRef = useRef(0);
 
   const handleStatusFilterChange = (nextFilter: "all" | "new" | "updated" | "unchanged") => {
     setPage(1);
@@ -145,17 +182,29 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     setIdentityFilters((current) => ({ ...current, [field]: value }));
   };
 
-  const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ["bmn-import-batch", batchId, filter, identityFilters, page],
+  const activeQueryKey = useMemo(
+    () => ["bmn-import-batch", batchId, filter, identityFilters, page] as const,
+    [batchId, filter, identityFilters, page]
+  );
+  const activeQueryKeyRef = useRef(activeQueryKey);
+  const identityFiltersRef = useRef(identityFilters);
+
+  useEffect(() => {
+    activeQueryKeyRef.current = activeQueryKey;
+    identityFiltersRef.current = identityFilters;
+  }, [activeQueryKey, identityFilters]);
+
+  const { data, isLoading, isFetching, isError, refetch } = useQuery<BatchQueryData>({
+    queryKey: activeQueryKey,
     placeholderData: (previous) => previous,
-    queryFn: async () => {
-      const params: Record<string, string> = { page: String(page), per_page: "200" };
+    refetchOnWindowFocus: false,
+    queryFn: async ({ signal }) => {
+      // Wait for queued checkbox toggles so filter/page switches read committed DB state.
+      await mutationQueueRef.current;
+      const params: Record<string, string> = { page: String(page), per_page: "50" };
       if (filter !== "all") params.status = filter;
-      Object.entries(identityFilters).forEach(([key, value]) => {
-        const trimmedValue = value.trim();
-        if (trimmedValue) params[key] = trimmedValue;
-      });
-      const res = await api.get(`/bmn/import-review/${batchId}`, { params });
+      Object.assign(params, getIdentityFilterParamsFrom(identityFilters));
+      const res = await api.get(`/bmn/import-review/${batchId}`, { params, signal });
       return res.data;
     },
   });
@@ -171,52 +220,131 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     filtered_updated: 0,
   };
 
-  const handleToggleRow = async (rowId: string, selected: boolean) => {
-    if (!canReview) return;
-    try {
-      await api.post("/bmn/import-review/toggle-selection", {
-        ids: [rowId],
-        selected,
-      });
-      queryClient.invalidateQueries({ queryKey: ["bmn-import-batch", batchId] });
-    } catch {
-      toast.error("Gagal mengubah seleksi.");
-    }
-  };
+  const enqueueSelectionMutation = useCallback(
+    (
+      applyOptimistic: (prev: BatchQueryData) => BatchQueryData,
+      sendRequest: (
+        filterParams: Record<string, string>
+      ) => Promise<{ data?: { selection_summary?: SelectionSummary | null } }>,
+      errorMessage: string
+    ) => {
+      const queryKey = activeQueryKeyRef.current;
+      const filterParams = getIdentityFilterParamsFrom(identityFiltersRef.current);
+      const seq = ++mutationSeqRef.current;
 
-  const handleToggleField = async (rowId: string, field: string, selected: boolean) => {
-    if (!canReview) return;
-    const actionKey = `${rowId}:${field}`;
-    setFieldAction(actionKey);
-    try {
-      await api.post("/bmn/import-review/toggle-field-selection", {
-        row_id: rowId,
-        field,
-        selected,
-      });
-      queryClient.invalidateQueries({ queryKey: ["bmn-import-batch", batchId] });
-    } catch {
-      toast.error("Gagal mengubah seleksi kolom.");
-    } finally {
-      setFieldAction(null);
-    }
-  };
+      void queryClient.cancelQueries({ queryKey: ["bmn-import-batch", batchId] });
+      queryClient.setQueryData<BatchQueryData>(queryKey, (prev) =>
+        prev ? applyOptimistic(prev) : prev
+      );
+      setPendingToggleCount((count) => count + 1);
 
-  const getIdentityFilterParams = () =>
-    Object.fromEntries(
-      Object.entries(identityFilters)
-        .map(([key, value]) => [key, value.trim()])
-        .filter(([, value]) => value !== "")
-    );
+      const run = async () => {
+        try {
+          const res = await sendRequest(filterParams);
+          const serverSummary = res?.data?.selection_summary;
+          if (serverSummary && seq === mutationSeqRef.current) {
+            queryClient.setQueryData<BatchQueryData>(queryKey, (prev) =>
+              prev ? { ...prev, selection_summary: serverSummary } : prev
+            );
+          }
+        } catch {
+          toast.error(errorMessage);
+          queryClient.invalidateQueries({ queryKey: ["bmn-import-batch", batchId] });
+        } finally {
+          setPendingToggleCount((count) => Math.max(0, count - 1));
+        }
+      };
+
+      mutationQueueRef.current = mutationQueueRef.current.then(run, run);
+    },
+    [batchId, queryClient]
+  );
+
+  const handleToggleRow = useCallback(
+    (rowId: string, selected: boolean) => {
+      if (!canReview) return;
+      enqueueSelectionMutation(
+        (prev) => {
+          let nextSummary = prev.selection_summary;
+          const nextRows = prev.rows.data.map((row) => {
+            if (row.id !== rowId) return row;
+            const delta = (selected ? 1 : 0) - (row.selected ? 1 : 0);
+            nextSummary = updateSummaryDelta(nextSummary, row.diff_status, delta);
+            const nextChangedFields = row.changed_fields
+              ? Object.fromEntries(
+                  Object.entries(row.changed_fields).map(([key, value]) => [
+                    key,
+                    { ...value, selected },
+                  ])
+                )
+              : null;
+            return { ...row, selected, changed_fields: nextChangedFields };
+          });
+          return {
+            ...prev,
+            rows: { ...prev.rows, data: nextRows },
+            selection_summary: nextSummary,
+          };
+        },
+        (filterParams) =>
+          api.post("/bmn/import-review/toggle-selection", {
+            ids: [rowId],
+            selected,
+            ...filterParams,
+          }),
+        "Gagal mengubah seleksi."
+      );
+    },
+    [canReview, enqueueSelectionMutation]
+  );
+
+  const handleToggleField = useCallback(
+    (rowId: string, field: string, selected: boolean) => {
+      if (!canReview) return;
+      enqueueSelectionMutation(
+        (prev) => {
+          let nextSummary = prev.selection_summary;
+          const nextRows = prev.rows.data.map((row) => {
+            if (row.id !== rowId || !row.changed_fields?.[field]) return row;
+            const nextChangedFields: Record<string, ChangedField> = {
+              ...row.changed_fields,
+              [field]: { ...row.changed_fields[field], selected },
+            };
+            const nextSelected = Object.values(nextChangedFields).some(
+              (value) => value.selected !== false
+            );
+            const delta = (nextSelected ? 1 : 0) - (row.selected ? 1 : 0);
+            nextSummary = updateSummaryDelta(nextSummary, row.diff_status, delta);
+            return { ...row, selected: nextSelected, changed_fields: nextChangedFields };
+          });
+          return {
+            ...prev,
+            rows: { ...prev.rows, data: nextRows },
+            selection_summary: nextSummary,
+          };
+        },
+        (filterParams) =>
+          api.post("/bmn/import-review/toggle-field-selection", {
+            row_id: rowId,
+            field,
+            selected,
+            ...filterParams,
+          }),
+        "Gagal mengubah seleksi kolom."
+      );
+    },
+    [canReview, enqueueSelectionMutation]
+  );
 
   const handleBulkSelection = async (action: "select_changed" | "clear_changed" | "select_new_only") => {
     if (!canReview) return;
     setBulkAction(action);
     try {
+      await mutationQueueRef.current;
       const res = await api.post("/bmn/import-review/bulk-selection", {
         batch_id: batchId,
         action,
-        ...getIdentityFilterParams(),
+        ...getIdentityFilterParamsFrom(identityFilters),
       });
       toast.success(res.data.message || "Seleksi diperbarui.");
       queryClient.invalidateQueries({ queryKey: ["bmn-import-batch", batchId] });
@@ -234,6 +362,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     }
     setIsApproving(true);
     try {
+      await mutationQueueRef.current;
       const res = await api.post(`/bmn/import-review/${batchId}/approve`, {}, { timeout: 120000 });
       toast.success(res.data.message);
       await queryClient.invalidateQueries({ queryKey: ["bmn-assets"] });
@@ -327,7 +456,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
             </Button>
             <Button
               onClick={handleApprove}
-              disabled={isApproving || isRejecting || isFetching || totalActionable === 0}
+              disabled={isApproving || isRejecting || isFetching || pendingToggleCount > 0 || totalActionable === 0}
               className="rounded-lg bg-[var(--ds-accent-solid)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-on-solid)] font-semibold tabular-nums"
             >
               {isApproving ? (
@@ -451,6 +580,9 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
         <div className="flex flex-col gap-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl px-4 py-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
           <span className="text-sm text-[var(--ds-fg-secondary)] tabular-nums">
             Dipilih: <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_new}</strong> baru, <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_updated}</strong> update
+            {pendingToggleCount > 0 && (
+              <span className="ml-2 text-xs text-[var(--ds-fg-muted)]">(Menyimpan...)</span>
+            )}
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -496,7 +628,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                         if (selected.length > 0) return "indeterminate" as const;
                         return false;
                       })()}
-                      disabled={isFetching || bulkAction !== null}
+                      disabled={bulkAction !== null || isApproving || isRejecting}
                       onCheckedChange={(checked) => {
                         handleBulkSelection(checked ? "select_changed" : "clear_changed");
                       }}
@@ -521,6 +653,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                 rows.map((row) => {
                   const isSelectableRow = row.diff_status === "new" || row.diff_status === "updated";
                   const isSelected = isSelectableRow && row.selected;
+                  const isSelectionDisabled = bulkAction !== null || isApproving || isRejecting;
 
                   return (
                     <tr
@@ -534,7 +667,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                           <Checkbox
                             aria-label={`Pilih ${String(row.imported_data.nama_barang)} NUP ${String(row.imported_data.nup)}`}
                             checked={isSelected}
-                            disabled={isFetching}
+                            disabled={isSelectionDisabled}
                             onCheckedChange={(checked) => handleToggleRow(row.id, !!checked)}
                           />
                         )}
@@ -564,8 +697,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                           fields={row.changed_fields}
                           rowId={row.id}
                           isPending={canWrite && isPending}
-                          fieldAction={fieldAction}
-                          isFetching={isFetching}
+                          isDisabled={isSelectionDisabled}
                           onToggleField={handleToggleField}
                         />
                       )}
@@ -640,19 +772,17 @@ function DiffStatusBadge({ status }: { status: string }) {
   }
 }
 
-function DiffFields({
+const DiffFields = React.memo(function DiffFields({
   fields,
   rowId,
   isPending,
-  fieldAction,
-  isFetching,
+  isDisabled,
   onToggleField,
 }: {
   fields: Record<string, ChangedField>;
   rowId: string;
   isPending: boolean;
-  fieldAction: string | null;
-  isFetching?: boolean;
+  isDisabled: boolean;
   onToggleField: (rowId: string, field: string, selected: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -680,7 +810,7 @@ function DiffFields({
             <Checkbox
               aria-label={`Setujui kolom ${FIELD_LABELS[field] || field}`}
               checked={values.selected !== false}
-              disabled={isFetching || fieldAction === `${rowId}:${field}`}
+              disabled={isDisabled}
               onCheckedChange={(checked) => onToggleField(rowId, field, checked === true)}
               className="size-4 shrink-0"
             />
@@ -709,7 +839,7 @@ function DiffFields({
       )}
     </div>
   );
-}
+});
 
 function SummaryCard({
   label,
