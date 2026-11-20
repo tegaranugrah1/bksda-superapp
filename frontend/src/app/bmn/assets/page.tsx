@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Loader2, Eye, Trash2, Package, Download, Tag as TagIcon, X, UserRound, Handshake, AlertTriangle, LayoutGrid, Table2 } from "lucide-react";
+import { Search, Loader2, Eye, Trash2, Package, Download, Tag as TagIcon, X, UserRound, Handshake, AlertTriangle, LayoutGrid, Table2, SlidersHorizontal } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { AssetImportDialog } from "@/app/bmn/_components/AssetImportDialog";
 import { useRole } from "@/hooks/useRole";
@@ -47,9 +47,21 @@ interface IAsset extends AssetPhotoSource {
   penanggung_jawab?: { nama_lengkap: string };
   active_loan?: { id: string; borrower_name: string; borrower_nip?: string; loan_date: string; due_date?: string; status: string } | null;
   tags?: IBmnTag[];
+  updated_at?: string;
 }
 
-interface IResponse { data: IAsset[]; meta: { last_page: number; total: number } }
+interface IResponse {
+  data: IAsset[];
+  meta: { last_page: number; total: number };
+  filter_options?: { years?: number[] };
+}
+
+function formatModifiedDate(iso?: string): string | null {
+  if (!iso) return null;
+  const dt = new Date(iso);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+}
 
 const KONDISI_OPTIONS = ["Semua", "Baik", "Rusak Ringan", "Rusak Berat"];
 
@@ -77,6 +89,29 @@ export default function BmnAssetsPage() {
     return initialTagParam.split(",").filter(Boolean);
   }, [initialTagParam]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialTagIds);
+  const [tahunFilter, setTahunFilter] = useState(
+    searchParams.get("tahun") || (searchParams.get("tahun_from") || searchParams.get("tahun_to") ? "range" : "Semua")
+  );
+  const [tahunFrom, setTahunFrom] = useState(searchParams.get("tahun_from") || "");
+  const [tahunTo, setTahunTo] = useState(searchParams.get("tahun_to") || "");
+  const [modifiedPreset, setModifiedPreset] = useState(
+    searchParams.get("modified_preset") || (searchParams.get("modified_from") || searchParams.get("modified_to") ? "custom" : "")
+  );
+  const [modifiedFrom, setModifiedFrom] = useState(searchParams.get("modified_from") || "");
+  const [modifiedTo, setModifiedTo] = useState(searchParams.get("modified_to") || "");
+  const [photoFilter, setPhotoFilter] = useState(searchParams.get("photo_status") || "Semua");
+  const [loanFilter, setLoanFilter] = useState(searchParams.get("loan_status") || "Semua");
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "updated_desc");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(() =>
+    Boolean(
+      searchParams.get("tahun_from") ||
+      searchParams.get("tahun_to") ||
+      searchParams.get("modified_from") ||
+      searchParams.get("modified_to") ||
+      searchParams.get("photo_status") ||
+      searchParams.get("loan_status")
+    )
+  );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkTagDialog, setShowBulkTagDialog] = useState(false);
   const [editingAssetForTags, setEditingAssetForTags] = useState<IAsset | null>(null);
@@ -118,7 +153,26 @@ export default function BmnAssetsPage() {
   const updateUrl = (overrides: Record<string, string | number>) => {
     const params = new URLSearchParams();
     const tagIdsStr = selectedTagIds.join(",");
-    const state = { page, per_page: perPage, kondisi: kondisiFilter, jenis_bmn: jenisFilter, lokasi_ruang: lokasiFilter, tag_ids: tagIdsStr, search: searchTerm, nup: nupTerm, ...overrides };
+    const state = {
+      page,
+      per_page: perPage,
+      kondisi: kondisiFilter,
+      jenis_bmn: jenisFilter,
+      lokasi_ruang: lokasiFilter,
+      tag_ids: tagIdsStr,
+      search: searchTerm,
+      nup: nupTerm,
+      tahun: tahunFilter === "range" ? "Semua" : tahunFilter,
+      tahun_from: tahunFilter === "range" ? tahunFrom : "",
+      tahun_to: tahunFilter === "range" ? tahunTo : "",
+      modified_preset: modifiedPreset === "custom" ? "" : modifiedPreset,
+      modified_from: modifiedPreset === "custom" ? modifiedFrom : "",
+      modified_to: modifiedPreset === "custom" ? modifiedTo : "",
+      photo_status: photoFilter,
+      loan_status: loanFilter,
+      sort: sortBy,
+      ...overrides,
+    };
     if (state.page && state.page !== 1) params.set("page", String(state.page));
     if (state.per_page !== 10) params.set("per_page", String(state.per_page));
     if (state.kondisi && state.kondisi !== "Semua") params.set("kondisi", String(state.kondisi));
@@ -127,6 +181,15 @@ export default function BmnAssetsPage() {
     if (state.tag_ids && state.tag_ids !== "Semua" && state.tag_ids !== "") params.set("tag_ids", String(state.tag_ids));
     if (state.search) params.set("search", String(state.search));
     if (state.nup) params.set("nup", String(state.nup));
+    if (state.tahun && state.tahun !== "Semua" && state.tahun !== "range") params.set("tahun", String(state.tahun));
+    if (state.tahun_from) params.set("tahun_from", String(state.tahun_from));
+    if (state.tahun_to) params.set("tahun_to", String(state.tahun_to));
+    if (state.modified_preset && state.modified_preset !== "custom") params.set("modified_preset", String(state.modified_preset));
+    if (state.modified_from) params.set("modified_from", String(state.modified_from));
+    if (state.modified_to) params.set("modified_to", String(state.modified_to));
+    if (state.photo_status && state.photo_status !== "Semua") params.set("photo_status", String(state.photo_status));
+    if (state.loan_status && state.loan_status !== "Semua") params.set("loan_status", String(state.loan_status));
+    if (state.sort && state.sort !== "updated_desc") params.set("sort", String(state.sort));
     const qs = params.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   };
@@ -143,21 +206,90 @@ export default function BmnAssetsPage() {
     updateUrl({ page: 1, per_page: pp });
   };
 
+  const buildFilterParams = (extra?: Record<string, string | number>) => {
+    const params: Record<string, string | number> = { ...extra };
+    if (debouncedSearch) params.search = debouncedSearch;
+    if (debouncedNup) params.nup = debouncedNup;
+    if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
+    if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
+    if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
+    if (selectedTagIds.length > 0) params.tag_ids = selectedTagIds.join(",");
+    if (tahunFilter === "range") {
+      if (tahunFrom) params.tahun_from = tahunFrom;
+      if (tahunTo) params.tahun_to = tahunTo;
+    } else if (tahunFilter !== "Semua") {
+      params.tahun = tahunFilter;
+    }
+    if (modifiedPreset === "custom") {
+      if (modifiedFrom) params.modified_from = modifiedFrom;
+      if (modifiedTo) params.modified_to = modifiedTo;
+    } else if (modifiedPreset) {
+      params.modified_preset = modifiedPreset;
+    }
+    if (photoFilter !== "Semua") params.photo_status = photoFilter;
+    if (loanFilter !== "Semua") params.loan_status = loanFilter;
+    if (sortBy && sortBy !== "updated_desc") params.sort = sortBy;
+    return params;
+  };
+
+  const hasActiveFilters =
+    jenisFilter !== "Semua" ||
+    lokasiFilter !== "Semua" ||
+    kondisiFilter !== "Semua" ||
+    selectedTagIds.length > 0 ||
+    tahunFilter !== "Semua" ||
+    Boolean(tahunFrom || tahunTo || modifiedPreset || modifiedFrom || modifiedTo) ||
+    photoFilter !== "Semua" ||
+    loanFilter !== "Semua" ||
+    sortBy !== "updated_desc" ||
+    Boolean(searchTerm || nupTerm);
+
+  const advancedActiveCount =
+    (tahunFilter === "range" && (tahunFrom || tahunTo) ? 1 : 0) +
+    (modifiedPreset === "custom" && (modifiedFrom || modifiedTo) ? 1 : 0) +
+    (photoFilter !== "Semua" ? 1 : 0) +
+    (loanFilter !== "Semua" ? 1 : 0);
+
   const { data: response, isLoading, isFetching } = useQuery<IResponse>({
-    queryKey: ["bmn-assets", debouncedSearch, debouncedNup, page, perPage, kondisiFilter, jenisFilter, lokasiFilter, selectedTagIds],
+    queryKey: [
+      "bmn-assets",
+      debouncedSearch,
+      debouncedNup,
+      page,
+      perPage,
+      kondisiFilter,
+      jenisFilter,
+      lokasiFilter,
+      selectedTagIds,
+      tahunFilter,
+      tahunFrom,
+      tahunTo,
+      modifiedPreset,
+      modifiedFrom,
+      modifiedTo,
+      photoFilter,
+      loanFilter,
+      sortBy,
+    ],
     queryFn: async () => {
-      const params: Record<string, string | number | undefined> = { page, per_page: perPage === 0 ? 2000 : perPage };
-      if (debouncedSearch) params.search = debouncedSearch;
-      if (debouncedNup) params.nup = debouncedNup;
-      if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
-      if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
-      if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
-      if (selectedTagIds.length > 0) params.tag_ids = selectedTagIds.join(",");
+      const params: Record<string, string | number | undefined> = {
+        page,
+        per_page: perPage === 0 ? 2000 : perPage,
+        ...buildFilterParams(),
+      };
       const res = await api.get("/bmn/assets", { params });
       return res.data;
     },
     placeholderData: (prev) => prev,
   });
+
+  const availableYears = useMemo(() => {
+    const base = response?.filter_options?.years || [];
+    const extras = [tahunFilter, tahunFrom, tahunTo]
+      .map((y) => Number(y))
+      .filter((y) => Number.isInteger(y) && y > 1900 && !base.includes(y));
+    return [...base, ...extras].sort((a, b) => b - a);
+  }, [response?.filter_options?.years, tahunFilter, tahunFrom, tahunTo]);
 
   const selectedActiveTags = useMemo(() => {
     if (selectedIds.size === 0 || !response?.data) return [];
@@ -179,13 +311,7 @@ export default function BmnAssetsPage() {
 
   const handleExport = async (includeNupLama: boolean) => {
     try {
-      const params: Record<string, string | number> = { include_nup_lama: includeNupLama ? 1 : 0 };
-      if (debouncedSearch) params.search = debouncedSearch;
-      if (debouncedNup) params.nup = debouncedNup;
-      if (kondisiFilter !== "Semua") params.kondisi = kondisiFilter;
-      if (jenisFilter !== "Semua") params.jenis_bmn = jenisFilter;
-      if (lokasiFilter !== "Semua") params.lokasi_ruang = lokasiFilter;
-      if (selectedTagIds.length > 0) params.tag_ids = selectedTagIds.join(",");
+      const params = buildFilterParams({ include_nup_lama: includeNupLama ? 1 : 0 });
       const res = await api.get("/bmn/assets/export", { responseType: "blob", params, timeout: 60000 });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
@@ -282,7 +408,7 @@ export default function BmnAssetsPage() {
               </Button>
             </PopoverTrigger>
             <PopoverContent data-module="bmn" aria-label="Pilihan export aset" align="end" className="bmn-assets-ui bmn-popover w-60 p-1 rounded-3xl border border-slate-200/80 dark:border-zinc-800 shadow-lg">
-              {(kondisiFilter !== "Semua" || jenisFilter !== "Semua" || lokasiFilter !== "Semua" || selectedTagIds.length > 0 || debouncedSearch || debouncedNup) && (
+              {hasActiveFilters && (
                 <p className="px-3 py-2 text-xs text-[var(--ds-accent-fg)]">Export sesuai filter aktif</p>
               )}
               <button onClick={() => { handleExport(true); setShowExportMenu(false); }} className="bmn-button bmn-secondary w-full text-left px-3 py-2 text-xs rounded-lg">
@@ -426,6 +552,86 @@ export default function BmnAssetsPage() {
             updateUrl({ tag_ids: "Semua", page: 1 });
           }}
         />
+        <select
+          aria-label="Filter tahun perolehan"
+          value={tahunFilter}
+          onChange={(e) => {
+            const val = e.target.value;
+            setTahunFilter(val);
+            setPageState(1);
+            if (val === "range") {
+              setShowAdvancedFilters(true);
+              updateUrl({ tahun: "Semua", tahun_from: tahunFrom, tahun_to: tahunTo, page: 1 });
+            } else {
+              setTahunFrom("");
+              setTahunTo("");
+              updateUrl({ tahun: val, tahun_from: "", tahun_to: "", page: 1 });
+            }
+          }}
+          className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)]"
+        >
+          <option value="Semua">Semua Tahun</option>
+          <option value="range">Rentang Tahun...</option>
+          {availableYears.map((y) => (
+            <option key={y} value={String(y)}>{y}</option>
+          ))}
+        </select>
+        <select
+          aria-label="Filter tanggal diubah"
+          value={modifiedPreset}
+          onChange={(e) => {
+            const val = e.target.value;
+            setModifiedPreset(val);
+            setPageState(1);
+            if (val === "custom") {
+              setShowAdvancedFilters(true);
+              updateUrl({ modified_preset: "", modified_from: modifiedFrom, modified_to: modifiedTo, page: 1 });
+            } else {
+              setModifiedFrom("");
+              setModifiedTo("");
+              updateUrl({ modified_preset: val, modified_from: "", modified_to: "", page: 1 });
+            }
+          }}
+          className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)]"
+        >
+          <option value="">Semua Waktu Diubah</option>
+          <option value="today">Diubah Hari Ini</option>
+          <option value="7d">7 Hari Terakhir</option>
+          <option value="30d">30 Hari Terakhir</option>
+          <option value="custom">Rentang Tanggal...</option>
+        </select>
+        <select
+          aria-label="Urutkan daftar aset"
+          value={sortBy}
+          onChange={(e) => {
+            const val = e.target.value;
+            setSortBy(val);
+            setPageState(1);
+            updateUrl({ sort: val, page: 1 });
+          }}
+          className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface)] text-[var(--ds-fg)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-accent-ring)]"
+        >
+          <option value="updated_desc">Urut: Terbaru Diubah</option>
+          <option value="created_desc">Urut: Terbaru Dibuat</option>
+          <option value="year_desc">Tahun Perolehan (Terbaru)</option>
+          <option value="year_asc">Tahun Perolehan (Terlama)</option>
+          <option value="value_desc">Nilai Perolehan Tertinggi</option>
+          <option value="code_asc">Kode Barang &amp; NUP</option>
+        </select>
+        <button
+          type="button"
+          aria-expanded={showAdvancedFilters}
+          onClick={() => setShowAdvancedFilters((prev) => !prev)}
+          className={cn(
+            "bmn-button h-9 px-3 text-xs font-medium rounded-lg inline-flex items-center gap-1.5 border cursor-pointer",
+            showAdvancedFilters || advancedActiveCount > 0
+              ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+              : "bmn-secondary border-slate-200/80 dark:border-zinc-800"
+          )}
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          Filter Lanjutan{advancedActiveCount > 0 ? ` (${advancedActiveCount})` : ""}
+        </button>
         {selectedTagIds.length > 1 &&
           selectedTagIds.map((id) => {
             const t = tagsList.find((x) => x.id === id);
@@ -460,8 +666,9 @@ export default function BmnAssetsPage() {
               </span>
             );
           })}
-        {(jenisFilter !== "Semua" || lokasiFilter !== "Semua" || kondisiFilter !== "Semua" || selectedTagIds.length > 0 || searchTerm || nupTerm) && (
+        {hasActiveFilters && (
           <button
+            type="button"
             onClick={() => {
               setJenisFilter("Semua");
               setLokasiFilter("Semua");
@@ -469,8 +676,34 @@ export default function BmnAssetsPage() {
               setSelectedTagIds([]);
               setSearchTerm("");
               setNupTerm("");
+              setTahunFilter("Semua");
+              setTahunFrom("");
+              setTahunTo("");
+              setModifiedPreset("");
+              setModifiedFrom("");
+              setModifiedTo("");
+              setPhotoFilter("Semua");
+              setLoanFilter("Semua");
+              setSortBy("updated_desc");
               setPageState(1);
-              updateUrl({ jenis_bmn: "Semua", lokasi_ruang: "Semua", kondisi: "Semua", tag_ids: "Semua", search: "", nup: "", page: 1 });
+              updateUrl({
+                jenis_bmn: "Semua",
+                lokasi_ruang: "Semua",
+                kondisi: "Semua",
+                tag_ids: "Semua",
+                search: "",
+                nup: "",
+                tahun: "Semua",
+                tahun_from: "",
+                tahun_to: "",
+                modified_preset: "",
+                modified_from: "",
+                modified_to: "",
+                photo_status: "Semua",
+                loan_status: "Semua",
+                sort: "updated_desc",
+                page: 1,
+              });
             }}
             className="bmn-button bmn-secondary h-9 px-3 text-xs font-medium rounded-lg"
           >
@@ -478,6 +711,123 @@ export default function BmnAssetsPage() {
           </button>
         )}
       </div>
+
+      {showAdvancedFilters && (
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-3 flex flex-wrap items-end gap-3 shadow-xs">
+          <div className="flex items-end gap-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--ds-fg-muted)] mb-1">Tahun Dari</label>
+              <select
+                aria-label="Tahun perolehan dari"
+                value={tahunFrom}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setTahunFilter("range");
+                  setTahunFrom(val);
+                  setPageState(1);
+                  updateUrl({ tahun: "Semua", tahun_from: val, page: 1 });
+                }}
+                className="h-9 px-2.5 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] tabular-nums"
+              >
+                <option value="">Awal</option>
+                {availableYears.map((y) => (
+                  <option key={y} value={String(y)}>{y}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--ds-fg-muted)] mb-1">Tahun Sampai</label>
+              <select
+                aria-label="Tahun perolehan sampai"
+                value={tahunTo}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setTahunFilter("range");
+                  setTahunTo(val);
+                  setPageState(1);
+                  updateUrl({ tahun: "Semua", tahun_to: val, page: 1 });
+                }}
+                className="h-9 px-2.5 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] tabular-nums"
+              >
+                <option value="">Akhir</option>
+                {availableYears.map((y) => (
+                  <option key={y} value={String(y)}>{y}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex items-end gap-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--ds-fg-muted)] mb-1">Diubah Dari</label>
+              <input
+                type="date"
+                aria-label="Tanggal diubah dari"
+                value={modifiedFrom}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setModifiedPreset("custom");
+                  setModifiedFrom(val);
+                  setPageState(1);
+                  updateUrl({ modified_preset: "", modified_from: val, page: 1 });
+                }}
+                className="h-9 px-2.5 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] tabular-nums"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[var(--ds-fg-muted)] mb-1">Diubah Sampai</label>
+              <input
+                type="date"
+                aria-label="Tanggal diubah sampai"
+                value={modifiedTo}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setModifiedPreset("custom");
+                  setModifiedTo(val);
+                  setPageState(1);
+                  updateUrl({ modified_preset: "", modified_to: val, page: 1 });
+                }}
+                className="h-9 px-2.5 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)] tabular-nums"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-[var(--ds-fg-muted)] mb-1">Kelengkapan Foto</label>
+            <select
+              aria-label="Filter kelengkapan foto"
+              value={photoFilter}
+              onChange={(e) => {
+                const val = e.target.value;
+                setPhotoFilter(val);
+                setPageState(1);
+                updateUrl({ photo_status: val, page: 1 });
+              }}
+              className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]"
+            >
+              <option value="Semua">Semua Foto</option>
+              <option value="with_photo">Sudah Ada Foto</option>
+              <option value="without_photo">Belum Ada Foto</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-[var(--ds-fg-muted)] mb-1">Status Peminjaman</label>
+            <select
+              aria-label="Filter status peminjaman"
+              value={loanFilter}
+              onChange={(e) => {
+                const val = e.target.value;
+                setLoanFilter(val);
+                setPageState(1);
+                updateUrl({ loan_status: val, page: 1 });
+              }}
+              className="h-9 px-3 text-xs border border-slate-200/80 dark:border-zinc-800 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]"
+            >
+              <option value="Semua">Semua Status</option>
+              <option value="borrowed">Sedang Dipinjam</option>
+              <option value="available">Tersedia</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Bulk Action Bar */}
       {canWrite && selectedIds.size > 0 && (
@@ -568,6 +918,7 @@ export default function BmnAssetsPage() {
               <div role="list" aria-label="Grid aset BMN" className="bmn-asset-grid">
                 {response?.data?.map(asset => {
                   const pengguna = getAssetUser(asset);
+                  const modifiedLabel = formatModifiedDate(asset.updated_at);
                   return (
                   <article key={asset.id} role="listitem" className="bmn-asset-card" data-selected={selectedIds.has(asset.id)}>
                     <div className="relative">
@@ -582,6 +933,7 @@ export default function BmnAssetsPage() {
                       <div><AssetCondition value={asset.kondisi} /></div>
                       <p className="text-sm font-semibold break-words tabular-nums">{formatRupiah(asset.nilai_perolehan)}</p>
                       <p className="text-xs text-[var(--ds-fg-muted)] line-clamp-2" title={asset.lokasi_ruang || asset.lokasi_spesifik || "-"}>{shortenLokasi(asset.lokasi_ruang || asset.lokasi_spesifik || "-")}</p>
+                      {modifiedLabel && <p className="text-xs text-[var(--ds-fg-muted)] tabular-nums">Diubah: {modifiedLabel}</p>}
                       {pengguna && <p className="text-xs text-[var(--ds-fg-muted)]" title={pengguna}><UserRound className="inline w-3 h-3 mr-1" aria-hidden="true" />Pengguna: {pengguna}</p>}
                       {asset.tags?.length ? <AssetTagsList tags={asset.tags} maxVisible={1} onManageTags={canUpdate ? () => setEditingAssetForTags(asset) : undefined} /> : canUpdate && <button type="button" onClick={() => setEditingAssetForTags(asset)} className="self-start text-xs text-[var(--ds-accent-fg)] inline-flex items-center gap-1"><TagIcon className="w-3 h-3" /> Kelola tag</button>}
                       {asset.active_loan && <span data-status="info" className="text-xs px-2 py-1 rounded-full">Dipinjam: {asset.active_loan.borrower_name}</span>}
@@ -650,6 +1002,11 @@ export default function BmnAssetsPage() {
                         {asset.jenis_bmn === "ALAT ANGKUTAN BERMOTOR" && asset.no_polisi && asset.no_polisi !== "-" ? ` • ${asset.no_polisi}` : ""}
                         {" • "}{asset.tahun_perolehan || "-"}
                       </p>
+                      {formatModifiedDate(asset.updated_at) && (
+                        <p className="text-[11px] text-[var(--ds-fg-muted)] tabular-nums">
+                          Diubah: {formatModifiedDate(asset.updated_at)}
+                        </p>
+                      )}
                       {asset.tags && asset.tags.length > 0 ? (
                         <AssetTagsList
                           tags={asset.tags}
