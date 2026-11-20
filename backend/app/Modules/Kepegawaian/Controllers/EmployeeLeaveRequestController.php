@@ -862,7 +862,7 @@ class EmployeeLeaveRequestController extends Controller
         $jumlahHari = $leaveType->countDays($start, $end);
         if ($jumlahHari < 1) {
             return response()->json([
-                'message' => 'Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan (0 hari kerja). Silakan pilih tanggal hari kerja aktif.',
+                'message' => 'Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan atau hari libur nasional/cuti bersama (0 hari kerja). Silakan pilih tanggal hari kerja aktif.',
             ], 422);
         }
 

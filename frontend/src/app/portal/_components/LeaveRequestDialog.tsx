@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import {
+  calculateLeaveDays,
+  normalizeHolidayDates,
+} from "@/app/kepegawaian/_lib/employee-helpers";
 import { authStore, parseAuthSnapshot } from "@/lib/auth-store";
 import { toast } from "sonner";
 import { Calendar, Send, X, MapPin, Phone, CheckCircle2 } from "lucide-react";
@@ -50,6 +54,9 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
     maks_hari: number | null;
   }>>([]);
 
+  const [holidayDates, setHolidayDates] = useState<Set<string>>(() => new Set());
+  const loadedHolidayRangeRef = useRef<{ min: number; max: number } | null>(null);
+
   const [form, setForm] = useState({
     jenis_cuti: "Cuti Tahunan",
     alasan_cuti: "",
@@ -59,6 +66,14 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
     telepon: "",
   });
 
+  const leaveYear = useMemo(() => {
+    if (form.tanggal_mulai) {
+      const y = parseInt(form.tanggal_mulai.slice(0, 4), 10);
+      if (y >= 2000 && y <= 2100) return y;
+    }
+    return currentYear;
+  }, [form.tanggal_mulai, currentYear]);
+
   useEffect(() => {
     if (open) {
       api.get(`/me/leave-balance?year=${currentYear}`)
@@ -66,16 +81,35 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
           if (res?.data?.data) setLeaveBalance(res.data.data);
         })
         .catch(() => {});
-
-      api.get("/me/leave-types")
-        .then((res) => {
-          if (res?.data?.data && Array.isArray(res.data.data)) {
-            setLeaveTypes(res.data.data);
-          }
-        })
-        .catch(() => {});
+    } else {
+      loadedHolidayRangeRef.current = null;
     }
   }, [open, currentYear]);
+
+  useEffect(() => {
+    if (!open) return;
+    const range = loadedHolidayRangeRef.current;
+    if (range && leaveYear >= range.min && leaveYear <= range.max) {
+      return;
+    }
+    let active = true;
+    api.get("/me/leave-types", { params: leaveYear !== currentYear ? { year: leaveYear } : undefined })
+      .then((res) => {
+        if (!active) return;
+        if (res?.data?.data && Array.isArray(res.data.data)) {
+          setLeaveTypes(res.data.data);
+        }
+        setHolidayDates(normalizeHolidayDates(res?.data?.holiday_dates));
+        loadedHolidayRangeRef.current = {
+          min: Math.max(2000, leaveYear - 1),
+          max: Math.min(2100, leaveYear + 1),
+        };
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [open, leaveYear, currentYear]);
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -121,33 +155,19 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
     return baseList;
   }, [leaveTypes, isPppkUser]);
 
-  const calculatedDays = React.useMemo(() => {
-    if (!form.tanggal_mulai || !form.tanggal_selesai) return 1;
-    const [sy, sm, sd] = form.tanggal_mulai.split("-").map(Number);
-    const [ey, em, ed] = form.tanggal_selesai.split("-").map(Number);
-    const start = new Date(sy, sm - 1, sd, 12, 0, 0);
-    const end = new Date(ey, em - 1, ed, 12, 0, 0);
-    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) return 0;
-
-    const diffTime = end.getTime() - start.getTime();
-    if (Number.isNaN(diffTime) || diffTime < 0) return 0;
-    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-    if (!isHariKerja) {
-      return Math.max(1, diffDays);
-    }
-
-    let workingDays = 0;
-    const curr = new Date(start);
-    while (curr <= end) {
-      const day = curr.getDay();
-      if (day !== 0 && day !== 6) {
-        workingDays++;
-      }
-      curr.setDate(curr.getDate() + 1);
-    }
-    return workingDays;
-  }, [form.tanggal_mulai, form.tanggal_selesai, isHariKerja]);
+  const calculatedDays = useMemo(
+    () =>
+      calculateLeaveDays(
+        form.tanggal_mulai,
+        form.tanggal_selesai,
+        form.jenis_cuti,
+        leaveTypes,
+        holidayDates
+      ),
+    [form.tanggal_mulai, form.tanggal_selesai, form.jenis_cuti, leaveTypes, holidayDates]
+  );
+  const hasInvalidDateRange =
+    !form.tanggal_mulai || !form.tanggal_selesai || form.tanggal_mulai > form.tanggal_selesai;
 
   if (!open) return null;
 
@@ -208,8 +228,14 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
               toast.error("Pegawai PPPK tidak berhak mengajukan Cuti Karena Alasan Penting.");
               return;
             }
-            if (calculatedDays <= 0) {
+            if (hasInvalidDateRange) {
               toast.error("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+              return;
+            }
+            if (calculatedDays <= 0) {
+              toast.error(
+                "Rentang tanggal yang dipilih jatuh pada hari libur akhir pekan atau hari libur nasional/cuti bersama (0 hari kerja)."
+              );
               return;
             }
             if (calculatedDays > 365) {
@@ -314,9 +340,9 @@ export function LeaveRequestDialog({ open, onClose, onSuccess }: LeaveRequestDia
                 Lamanya Cuti ({isHariKerja ? "Hari Kerja" : "Hari Kalender"}):
               </span>
               <span className="font-bold text-[var(--ds-status-info-fg)] tabular-nums">
-                {calculatedDays > 0
-                  ? `${calculatedDays} ${isHariKerja ? "Hari Kerja" : "Hari"}`
-                  : "Tanggal tidak valid"}
+                {hasInvalidDateRange
+                  ? "Tanggal tidak valid"
+                  : `${calculatedDays} ${isHariKerja ? "Hari Kerja" : "Hari"}${isHariKerja && calculatedDays === 0 ? " (hari libur)" : ""}`}
               </span>
             </div>
           </div>

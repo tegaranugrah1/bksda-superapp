@@ -5,6 +5,7 @@ namespace App\Modules\Kepegawaian\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Kepegawaian\Models\EmployeeLeaveRequest;
 use App\Modules\Kepegawaian\Models\LeaveType;
+use App\Modules\Kepegawaian\Services\HolidayCalendarHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -66,8 +67,15 @@ class LeaveTypeController extends Controller
 
         $items = $query->orderBy('urutan', 'asc')->orderBy('id', 'asc')->get();
 
+        $reqYear = (int) $request->integer('year');
+        $baseYear = ($reqYear >= 2000 && $reqYear <= 2100) ? $reqYear : (int) now()->year;
+        $holidayDates = array_keys(
+            HolidayCalendarHelper::getHolidayDateSet(max(2000, $baseYear - 1), min(2100, $baseYear + 1))
+        );
+
         return response()->json([
             'data' => $items,
+            'holiday_dates' => $holidayDates,
         ]);
     }
 

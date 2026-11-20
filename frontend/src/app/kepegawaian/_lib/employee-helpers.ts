@@ -166,11 +166,33 @@ export function parseLocalDate(str: string): Date {
   return new Date(y, m - 1, d, 12, 0, 0);
 }
 
+export function normalizeHolidayDates(raw: unknown): Set<string> {
+  if (!raw || typeof (raw as Iterable<unknown>)[Symbol.iterator] !== "function") {
+    return new Set();
+  }
+  const set = new Set<string>();
+  for (const item of raw as Iterable<unknown>) {
+    const ymd = String(item ?? "").slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+      set.add(ymd);
+    }
+  }
+  return set;
+}
+
+function formatLocalYmd(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function calculateLeaveDays(
   startDateStr: string,
   endDateStr: string,
   jenisCuti: string,
-  leaveTypes: Array<{ nama: string; kode: string | null; hitung_hari: "hari_kerja" | "hari_kalender" }> = []
+  leaveTypes: Array<{ nama: string; kode: string | null; hitung_hari: "hari_kerja" | "hari_kalender" }> = [],
+  holidayDates?: ReadonlySet<string> | Iterable<string>
 ): number {
   if (!startDateStr || !endDateStr) return 0;
   const start = parseLocalDate(startDateStr);
@@ -191,12 +213,17 @@ export function calculateLeaveDays(
     return Math.max(1, diffTime + 1);
   }
 
+  const holidaySet =
+    holidayDates instanceof Set ? holidayDates : holidayDates ? normalizeHolidayDates(holidayDates) : null;
+
   let count = 0;
   const cur = new Date(start);
   while (cur <= end) {
     const day = cur.getDay();
-    if (day !== 0 && day !== 6) count++;
+    if (day !== 0 && day !== 6 && (!holidaySet || !holidaySet.has(formatLocalYmd(cur)))) {
+      count++;
+    }
     cur.setDate(cur.getDate() + 1);
   }
-  return Math.max(1, count);
+  return count;
 }

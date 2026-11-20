@@ -2,7 +2,7 @@
 
 import { useDialogFocusReturn } from "@/components/ui/use-dialog-focus-return";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   AlertCircle,
   Award,
@@ -37,6 +37,7 @@ import {
   isEligibleForAnnualLeave,
   getAnnualLeaveEligibleDate,
   calculateLeaveDays,
+  normalizeHolidayDates,
   parseLocalDate,
 } from "@/app/kepegawaian/_lib/employee-helpers";
 import { toast } from "sonner";
@@ -73,6 +74,9 @@ export function CatatSuratIzinModal({
 }: CatatSuratIzinModalProps) {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [leaveTypes, setLeaveTypes] = useState<DynamicLeaveType[]>([]);
+  const [holidayDates, setHolidayDates] = useState<Set<string>>(() => new Set());
+  const isDurationManualRef = useRef(false);
+  const loadedHolidayRangeRef = useRef<{ min: number; max: number } | null>(null);
 
   // Form State
   const today = new Date().toISOString().split("T")[0];
@@ -138,18 +142,7 @@ export function CatatSuratIzinModal({
     sisa_cuti_tersedia?: number;
   } | null>(null);
 
-  // Fetch Leave Types once on mount/open
-  useEffect(() => {
-    if (!isOpen) return;
-    api
-      .get("/kepegawaian/leave-types")
-      .then((res) => {
-        setLeaveTypes(res.data?.data || []);
-      })
-      .catch(() => setLeaveTypes([]));
-  }, [isOpen]);
-
-  // Determine year for quota lookup from tanggal_mulai
+  // Determine year for quota & holiday lookup from tanggal_mulai
   const leaveYear = useMemo(() => {
     if (form.tanggal_mulai) {
       const y = parseInt(form.tanggal_mulai.slice(0, 4), 10);
@@ -157,6 +150,51 @@ export function CatatSuratIzinModal({
     }
     return new Date().getFullYear();
   }, [form.tanggal_mulai]);
+
+  // Fetch Leave Types & Holiday dates once on open (or when year moves outside loaded +/- 1 window)
+  useEffect(() => {
+    if (!isOpen) {
+      loadedHolidayRangeRef.current = null;
+      return;
+    }
+    const range = loadedHolidayRangeRef.current;
+    if (range && leaveYear >= range.min && leaveYear <= range.max) {
+      return;
+    }
+    let active = true;
+    api
+      .get("/kepegawaian/leave-types", { params: { year: leaveYear } })
+      .then((res) => {
+        if (!active) return;
+        const nextTypes: DynamicLeaveType[] = res.data?.data || [];
+        const nextHolidays = normalizeHolidayDates(res.data?.holiday_dates);
+        loadedHolidayRangeRef.current = {
+          min: Math.max(2000, leaveYear - 1),
+          max: Math.min(2100, leaveYear + 1),
+        };
+        setLeaveTypes(nextTypes);
+        setHolidayDates(nextHolidays);
+        if (!isDurationManualRef.current) {
+          setForm((prev) => {
+            const days = calculateLeaveDays(
+              prev.tanggal_mulai,
+              prev.tanggal_selesai,
+              prev.jenis_cuti,
+              nextTypes,
+              nextHolidays
+            );
+            const nextDays = days > 0 ? days : 1;
+            return prev.jumlah_hari === nextDays ? prev : { ...prev, jumlah_hari: nextDays };
+          });
+        }
+      })
+      .catch(() => {
+        if (active) setLeaveTypes([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isOpen, leaveYear]);
 
   // Load employee leave balance whenever selectedEmployee or leaveYear changes
   useEffect(() => {
@@ -193,6 +231,7 @@ export function CatatSuratIzinModal({
   // Reset form when modal opens or closes
   useEffect(() => {
     if (isOpen) {
+      isDurationManualRef.current = false;
       setSelectedEmployee(null);
       setLeaveBalance(null);
       setFileScanFormulir(null);
@@ -214,7 +253,8 @@ export function CatatSuratIzinModal({
 
   // Auto calculate duration in days
   const handleDateChange = (start: string, end: string, jenis: string) => {
-    const days = calculateLeaveDays(start, end, jenis, leaveTypes);
+    isDurationManualRef.current = false;
+    const days = calculateLeaveDays(start, end, jenis, leaveTypes, holidayDates);
     setForm((prev) => ({
       ...prev,
       tanggal_mulai: start,
@@ -272,6 +312,19 @@ export function CatatSuratIzinModal({
   const isTahunan = matchedLeaveType
     ? matchedLeaveType.potong_kuota_tahunan
     : form.jenis_cuti.toLowerCase().includes("tahunan");
+
+  const isHariKerjaType = matchedLeaveType
+    ? matchedLeaveType.hitung_hari === "hari_kerja"
+    : form.jenis_cuti.toLowerCase().includes("tahunan");
+
+  const excludedHolidayCount = useMemo(() => {
+    if (!isHariKerjaType || holidayDates.size === 0 || !form.tanggal_mulai || !form.tanggal_selesai) {
+      return 0;
+    }
+    const weekdaysOnly = calculateLeaveDays(form.tanggal_mulai, form.tanggal_selesai, form.jenis_cuti, leaveTypes);
+    const actualWorking = calculateLeaveDays(form.tanggal_mulai, form.tanggal_selesai, form.jenis_cuti, leaveTypes, holidayDates);
+    return Math.max(0, weekdaysOnly - actualWorking);
+  }, [isHariKerjaType, holidayDates, form.tanggal_mulai, form.tanggal_selesai, form.jenis_cuti, leaveTypes]);
 
   const isEligibleTahunan = useMemo(() => {
     if (!selectedEmployee || !isTahunan) return true;
@@ -592,7 +645,7 @@ export function CatatSuratIzinModal({
                   <label className="text-xs font-semibold text-[var(--ds-fg)] flex items-center justify-between">
                     <span>Lama Cuti <span className="text-[var(--ds-status-danger-fg)]">*</span></span>
                     <span className="text-xs text-[var(--ds-fg-muted)] font-normal">
-                      {isTahunan ? "Hari Kerja" : "Hari Kalender"}
+                      {isHariKerjaType ? "Hari Kerja" : "Hari Kalender"}
                     </span>
                   </label>
                   <div className="relative mt-1">
@@ -602,7 +655,10 @@ export function CatatSuratIzinModal({
                       max={365}
                       required
                       value={form.jumlah_hari}
-                      onChange={(e) => setForm({ ...form, jumlah_hari: Math.max(1, parseInt(e.target.value, 10) || 1) })}
+                      onChange={(e) => {
+                        isDurationManualRef.current = true;
+                        setForm({ ...form, jumlah_hari: Math.max(1, parseInt(e.target.value, 10) || 1) });
+                      }}
                       className="text-xs font-bold h-9 pr-14 rounded-lg bg-[var(--ds-surface)] transition-colors border-slate-200/80 dark:border-zinc-800"
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-xs font-medium text-[var(--ds-fg-muted)]">
@@ -615,10 +671,12 @@ export function CatatSuratIzinModal({
                   <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
                     <Info className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                     <span>
-                      {isTahunan
-                        ? "Otomatis dihitung hari kerja (Senin - Jumat)."
+                      {isHariKerjaType
+                        ? "Otomatis dihitung hari kerja (Senin - Jumat, tidak termasuk libur nasional & cuti bersama)."
                         : "Otomatis dihitung hari kalender penuh."}
-                      {" Dapat diedit manual jika terdapat libur nasional."}
+                      {excludedHolidayCount > 0
+                        ? ` Melewati ${excludedHolidayCount} hari libur/cuti bersama.`
+                        : " Dapat diedit manual jika diperlukan."}
                     </span>
                   </div>
                 </div>
