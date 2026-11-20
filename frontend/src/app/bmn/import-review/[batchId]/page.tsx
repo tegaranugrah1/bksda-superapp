@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
+  Check,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRole } from "@/hooks/useRole";
+import { deduplicateMerkTipe } from "@/app/bmn/_lib/asset-utils";
 
 interface ChangedField {
   old: string | number | null;
@@ -70,10 +72,17 @@ interface RowsPagination {
   total: number;
 }
 
+interface FieldSummaryItem {
+  field: string;
+  total: number;
+  selected: number;
+}
+
 interface BatchQueryData {
   batch: BatchInfo;
   rows: RowsPagination;
   selection_summary: SelectionSummary;
+  field_summary?: FieldSummaryItem[];
 }
 
 function getIdentityFilterParamsFrom(filters: {
@@ -106,15 +115,32 @@ function updateSummaryDelta(
   };
 }
 
+function updateFieldSummaryDeltas(
+  fieldSummary: FieldSummaryItem[] | undefined,
+  deltas: Record<string, number>
+): FieldSummaryItem[] | undefined {
+  if (!fieldSummary || Object.keys(deltas).length === 0) return fieldSummary;
+  return fieldSummary.map((item) => {
+    const delta = deltas[item.field];
+    if (!delta) return item;
+    return {
+      ...item,
+      selected: Math.max(0, Math.min(item.total, item.selected + delta)),
+    };
+  });
+}
+
 // Human-readable field labels
 const FIELD_LABELS: Record<string, string> = {
   nup_lama: "NUP Lama",
   tanggal_pengapusan: "Tanggal Penghapusan",
   foto_geotag_url: "Foto Geotag URL",
+  jumlah_foto: "Jumlah Foto",
   nama_barang: "Nama Barang",
   jenis_bmn: "Jenis BMN",
   merk: "Merk",
   tipe: "Tipe",
+  merk_tipe: "Merk / Tipe",
   kondisi: "Kondisi",
   status_bmn: "Status BMN",
   nilai_perolehan: "Nilai Perolehan",
@@ -124,10 +150,16 @@ const FIELD_LABELS: Record<string, string> = {
   nilai_perolehan_pertama: "Nilai Perolehan Pertama",
   no_polisi: "No Polisi",
   no_stnk: "No STNK",
+  status_sertifikasi: "Status Sertifikasi",
+  jenis_sertipikat: "Jenis Sertifikat",
   no_sertifikat: "No Sertifikat",
   nama: "Nama",
+  jenis_dokumen: "Jenis Dokumen",
   no_dokumen: "No Dokumen",
   no_bpkp: "No BPKP",
+  no_psp: "No PSP",
+  tanggal_psp: "Tanggal PSP",
+  status_pmk: "Status PMK",
   tanggal_perolehan: "Tanggal Perolehan",
   tanggal_buku_pertama: "Tanggal Buku Pertama",
   luas_tanah_seluruhnya: "Luas Tanah",
@@ -143,6 +175,7 @@ const FIELD_LABELS: Record<string, string> = {
   penghuni: "Penghuni",
   pengguna: "Pengguna",
   nama_pengguna: "Nama Pengguna",
+  nama_e1: "Nama E1",
   _restore: "Status Aset",
   intra_extra: "Intra/Extra",
   henti_guna: "Henti Guna",
@@ -167,7 +200,10 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   });
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
-  const [bulkAction, setBulkAction] = useState<"select_changed" | "clear_changed" | "select_new_only" | null>(null);
+  const [bulkAction, setBulkAction] = useState<string | null>(null);
+  const [changedFieldFilter, setChangedFieldFilter] = useState<string>("");
+  const [showCheckedFieldsOnly, setShowCheckedFieldsOnly] = useState(false);
+  const [showAllBulkFields, setShowAllBulkFields] = useState(false);
   const [pendingToggleCount, setPendingToggleCount] = useState(0);
   const mutationQueueRef = useRef<Promise<void>>(Promise.resolve());
   const mutationSeqRef = useRef(0);
@@ -182,9 +218,17 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     setIdentityFilters((current) => ({ ...current, [field]: value }));
   };
 
+  const handleChangedFieldFilterChange = (nextField: string) => {
+    setPage(1);
+    setChangedFieldFilter(nextField);
+    if (nextField && nextField !== "__selected__" && (filter === "new" || filter === "unchanged")) {
+      setFilter("all");
+    }
+  };
+
   const activeQueryKey = useMemo(
-    () => ["bmn-import-batch", batchId, filter, identityFilters, page] as const,
-    [batchId, filter, identityFilters, page]
+    () => ["bmn-import-batch", batchId, filter, identityFilters, changedFieldFilter, page] as const,
+    [batchId, filter, identityFilters, changedFieldFilter, page]
   );
   const activeQueryKeyRef = useRef(activeQueryKey);
   const identityFiltersRef = useRef(identityFilters);
@@ -203,6 +247,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       await mutationQueueRef.current;
       const params: Record<string, string> = { page: String(page), per_page: "50" };
       if (filter !== "all") params.status = filter;
+      if (changedFieldFilter) params.changed_field = changedFieldFilter;
       Object.assign(params, getIdentityFilterParamsFrom(identityFilters));
       const res = await api.get(`/bmn/import-review/${batchId}`, { params, signal });
       return res.data;
@@ -212,6 +257,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const batch: BatchInfo | null = data?.batch || null;
   const rowsPagination: RowsPagination | null = data?.rows || null;
   const rows: StagingRow[] = rowsPagination?.data || [];
+  const fieldSummary: FieldSummaryItem[] = data?.field_summary || [];
   const selectionSummary: SelectionSummary = data?.selection_summary || {
     selected_total: 0,
     selected_new: 0,
@@ -266,16 +312,19 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       enqueueSelectionMutation(
         (prev) => {
           let nextSummary = prev.selection_summary;
+          const fieldDeltas: Record<string, number> = {};
           const nextRows = prev.rows.data.map((row) => {
             if (row.id !== rowId) return row;
             const delta = (selected ? 1 : 0) - (row.selected ? 1 : 0);
             nextSummary = updateSummaryDelta(nextSummary, row.diff_status, delta);
             const nextChangedFields = row.changed_fields
               ? Object.fromEntries(
-                  Object.entries(row.changed_fields).map(([key, value]) => [
-                    key,
-                    { ...value, selected },
-                  ])
+                  Object.entries(row.changed_fields).map(([key, value]) => {
+                    const wasFieldSelected = value.selected !== false;
+                    const diff = (selected ? 1 : 0) - (wasFieldSelected ? 1 : 0);
+                    if (diff !== 0) fieldDeltas[key] = (fieldDeltas[key] || 0) + diff;
+                    return [key, { ...value, selected }];
+                  })
                 )
               : null;
             return { ...row, selected, changed_fields: nextChangedFields };
@@ -284,6 +333,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
             ...prev,
             rows: { ...prev.rows, data: nextRows },
             selection_summary: nextSummary,
+            field_summary: updateFieldSummaryDeltas(prev.field_summary, fieldDeltas),
           };
         },
         (filterParams) =>
@@ -304,8 +354,12 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
       enqueueSelectionMutation(
         (prev) => {
           let nextSummary = prev.selection_summary;
+          const fieldDeltas: Record<string, number> = {};
           const nextRows = prev.rows.data.map((row) => {
             if (row.id !== rowId || !row.changed_fields?.[field]) return row;
+            const wasFieldSelected = row.changed_fields[field].selected !== false;
+            const fieldDiff = (selected ? 1 : 0) - (wasFieldSelected ? 1 : 0);
+            if (fieldDiff !== 0) fieldDeltas[field] = fieldDiff;
             const nextChangedFields: Record<string, ChangedField> = {
               ...row.changed_fields,
               [field]: { ...row.changed_fields[field], selected },
@@ -321,6 +375,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
             ...prev,
             rows: { ...prev.rows, data: nextRows },
             selection_summary: nextSummary,
+            field_summary: updateFieldSummaryDeltas(prev.field_summary, fieldDeltas),
           };
         },
         (filterParams) =>
@@ -336,14 +391,18 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
     [canReview, enqueueSelectionMutation]
   );
 
-  const handleBulkSelection = async (action: "select_changed" | "clear_changed" | "select_new_only") => {
+  const handleBulkSelection = async (
+    action: "select_changed" | "clear_changed" | "select_new_only" | "select_updated" | "clear_updated" | "select_field" | "clear_field",
+    field?: string
+  ) => {
     if (!canReview) return;
-    setBulkAction(action);
+    setBulkAction(field ? `${action}:${field}` : action);
     try {
       await mutationQueueRef.current;
       const res = await api.post("/bmn/import-review/bulk-selection", {
         batch_id: batchId,
         action,
+        ...(field ? { field } : {}),
         ...getIdentityFilterParamsFrom(identityFilters),
       });
       toast.success(res.data.message || "Seleksi diperbarui.");
@@ -398,7 +457,15 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
   const totalActionable = selectionSummary.selected_total;
   const isPending = batch?.status === "pending";
   const hasIdentityFilters = Object.values(identityFilters).some((value) => value.trim() !== "");
+  const hasAnyFilter = hasIdentityFilters || changedFieldFilter !== "";
   const filteredNewTotal = selectionSummary.filtered_new;
+  const checkedFieldCount = fieldSummary.filter((item) => item.selected > 0).length;
+  const visibleBulkFields = showCheckedFieldsOnly
+    ? fieldSummary.filter((item) => item.selected > 0)
+    : fieldSummary;
+  const displayedBulkFields = showAllBulkFields
+    ? visibleBulkFields
+    : visibleBulkFields.slice(0, 8);
 
   if (isLoading) {
     return (
@@ -546,26 +613,46 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
           </div>
           <div className="min-w-0 flex-1">
             <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
-              Nama Barang
+              Nama / Merk Barang
             </label>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--ds-fg-muted)]" />
               <Input
-                aria-label="Nama Barang"
+                aria-label="Nama atau Merk Barang"
                 value={identityFilters.nama_barang}
                 onChange={(event) => handleIdentityFilterChange("nama_barang", event.target.value)}
-                placeholder="Cari nama barang..."
+                placeholder="Cari nama barang, merk, atau tipe..."
                 className="h-10 pl-9 rounded-lg bg-[var(--ds-surface-muted)] border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg)]"
               />
             </div>
           </div>
+          <div className="min-w-0 lg:w-64">
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-[var(--ds-fg-muted)]">
+              Tampilkan per Kolom
+            </label>
+            <select
+              aria-label="Tampilkan per Kolom"
+              value={changedFieldFilter}
+              onChange={(event) => handleChangedFieldFilterChange(event.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] px-3 text-sm text-[var(--ds-fg)]"
+            >
+              <option value="">Semua kolom</option>
+              <option value="__selected__">Hanya baris yang dicentang</option>
+              {fieldSummary.map((item) => (
+                <option key={item.field} value={item.field}>
+                  {FIELD_LABELS[item.field] || item.field} ({item.selected}/{item.total})
+                </option>
+              ))}
+            </select>
+          </div>
           <Button
             type="button"
             variant="outline"
-            disabled={!hasIdentityFilters}
+            disabled={!hasAnyFilter}
             onClick={() => {
               setPage(1);
               setIdentityFilters({ kode_barang: "", nup: "", nama_barang: "" });
+              setChangedFieldFilter("");
             }}
             className="h-10 shrink-0 rounded-lg border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-secondary)]"
           >
@@ -577,36 +664,156 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
 
       {/* Selection Toolbar */}
       {canWrite && isPending && (filteredNewTotal > 0 || selectionSummary.filtered_updated > 0) && (
-        <div className="flex flex-col gap-3 bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl px-4 py-3 shadow-xs lg:flex-row lg:items-center lg:justify-between">
-          <span className="text-sm text-[var(--ds-fg-secondary)] tabular-nums">
-            Dipilih: <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_new}</strong> baru, <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_updated}</strong> update
-            {pendingToggleCount > 0 && (
-              <span className="ml-2 text-xs text-[var(--ds-fg-muted)]">(Menyimpan...)</span>
-            )}
-          </span>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              size="sm"
-              disabled={isFetching || bulkAction !== null}
-              onClick={() => handleBulkSelection("select_changed")}
-              variant="outline"
-              className="h-8 rounded-lg tabular-nums"
-            >
-              {bulkAction === "select_changed" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1 h-4 w-4" />}
-              Pilih semua ({filteredNewTotal + selectionSummary.filtered_updated})
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={isFetching || bulkAction !== null || filteredNewTotal === 0}
-              onClick={() => handleBulkSelection("select_new_only")}
-              className="h-8 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] tabular-nums"
-            >
-              {bulkAction === "select_new_only" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
-              Pilih hanya aset baru ({filteredNewTotal})
-            </Button>
+        <div className="bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 rounded-3xl px-4 py-3 shadow-xs space-y-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <span className="text-sm text-[var(--ds-fg-secondary)] tabular-nums">
+              Dipilih: <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_new}</strong> baru, <strong className="text-[var(--ds-fg)]">{selectionSummary.selected_updated}</strong> update
+              {pendingToggleCount > 0 && (
+                <span className="ml-2 text-xs text-[var(--ds-fg-muted)]">(Menyimpan...)</span>
+              )}
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                disabled={isFetching || bulkAction !== null}
+                onClick={() => handleBulkSelection("select_changed")}
+                variant="outline"
+                className="h-8 rounded-lg tabular-nums"
+              >
+                {bulkAction === "select_changed" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1 h-4 w-4" />}
+                Pilih semua ({filteredNewTotal + selectionSummary.filtered_updated})
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={isFetching || bulkAction !== null || filteredNewTotal === 0}
+                onClick={() => handleBulkSelection("select_new_only")}
+                className="h-8 rounded-lg bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)] hover:bg-[var(--ds-accent-hover)] tabular-nums"
+              >
+                {bulkAction === "select_new_only" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Plus className="mr-1 h-4 w-4" />}
+                Pilih hanya aset baru ({filteredNewTotal})
+              </Button>
+            </div>
           </div>
+
+          {selectionSummary.filtered_updated > 0 && fieldSummary.length > 0 && (
+            <div className="pt-3 border-t border-slate-200/70 dark:border-zinc-800 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-[var(--ds-fg-muted)]">
+                  Centang massal kolom update {hasIdentityFilters ? "(sesuai filter)" : ""}:
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isFetching || bulkAction !== null || isApproving || isRejecting}
+                    onClick={() => handleBulkSelection("select_updated")}
+                    className="h-7 rounded-lg px-2.5 text-xs"
+                  >
+                    {bulkAction === "select_updated" ? (
+                      <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Check className="mr-1 h-3.5 w-3.5" />
+                    )}
+                    Centang semua kolom
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isFetching || bulkAction !== null || isApproving || isRejecting || checkedFieldCount === 0}
+                    onClick={() => handleBulkSelection("clear_updated")}
+                    className="h-7 rounded-lg px-2.5 text-xs"
+                  >
+                    {bulkAction === "clear_updated" ? (
+                      <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <X className="mr-1 h-3.5 w-3.5" />
+                    )}
+                    Lepas semua kolom
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCheckedFieldsOnly((v) => !v)}
+                    className={cn(
+                      "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer tabular-nums",
+                      showCheckedFieldsOnly
+                        ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                        : "border-slate-200/80 dark:border-zinc-800 text-[var(--ds-fg-secondary)] hover:border-[var(--ds-accent-soft-border)]"
+                    )}
+                  >
+                    Hanya yg dicentang ({checkedFieldCount})
+                  </button>
+                  {visibleBulkFields.length > 8 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllBulkFields((v) => !v)}
+                      className="text-xs font-medium text-[var(--ds-accent-fg)] hover:underline cursor-pointer tabular-nums"
+                    >
+                      {showAllBulkFields ? "Tampilkan lebih sedikit" : `Tampilkan semua (${visibleBulkFields.length} kolom)`}
+                    </button>
+                  )}
+                </div>
+              </div>
+              {displayedBulkFields.length === 0 ? (
+                <p className="text-xs text-[var(--ds-fg-muted)]">Belum ada kolom update yang dicentang.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {displayedBulkFields.map((item) => {
+                    const isAll = item.selected >= item.total && item.total > 0;
+                    const isPartial = item.selected > 0 && item.selected < item.total;
+                    const nextAction = isAll ? "clear_field" : "select_field";
+                    const isBusy = bulkAction === `${nextAction}:${item.field}`;
+
+                    return (
+                      <button
+                        key={item.field}
+                        type="button"
+                        role="checkbox"
+                        aria-checked={isAll ? true : isPartial ? "mixed" : false}
+                        disabled={bulkAction !== null || isApproving || isRejecting}
+                        onClick={() => handleBulkSelection(nextAction, item.field)}
+                        className={cn(
+                          "flex w-full items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed tabular-nums",
+                          isAll
+                            ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent-fg)]"
+                            : isPartial
+                            ? "border-[var(--ds-accent-soft-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-fg)]"
+                            : "border-slate-200/80 dark:border-zinc-800 bg-[var(--ds-surface-muted)] text-[var(--ds-fg-secondary)] hover:border-[var(--ds-accent-soft-border)]"
+                        )}
+                      >
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <span
+                            aria-hidden="true"
+                            className={cn(
+                              "inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors",
+                              isAll || isPartial
+                                ? "border-[var(--ds-accent-solid)] bg-[var(--ds-accent-solid)] text-[var(--ds-accent-on-solid)]"
+                                : "border-slate-300 dark:border-zinc-600 bg-[var(--ds-surface)]"
+                            )}
+                          >
+                            {isBusy ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : isAll ? (
+                              <Check className="h-3 w-3" />
+                            ) : isPartial ? (
+                              <Minus className="h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span className="truncate">{FIELD_LABELS[item.field] || item.field}</span>
+                        </span>
+                        <span className="shrink-0 text-[11px] opacity-75">
+                          ({item.selected}/{item.total})
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -654,6 +861,17 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                   const isSelectableRow = row.diff_status === "new" || row.diff_status === "updated";
                   const isSelected = isSelectableRow && row.selected;
                   const isSelectionDisabled = bulkAction !== null || isApproving || isRejecting;
+                  const namaBarang = String(row.imported_data.nama_barang || "");
+                  const rawMerkTipe = String(
+                    row.imported_data.merk_tipe ||
+                      row.imported_data.merk ||
+                      row.imported_data.tipe ||
+                      ""
+                  ).trim();
+                  const merkTipePreview = deduplicateMerkTipe(rawMerkTipe || null);
+                  const showMerkSubtitle =
+                    merkTipePreview !== "-" &&
+                    merkTipePreview.toLowerCase() !== namaBarang.trim().toLowerCase();
 
                   return (
                     <tr
@@ -665,7 +883,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                       <td className="px-4 py-3">
                         {isSelectableRow && (
                           <Checkbox
-                            aria-label={`Pilih ${String(row.imported_data.nama_barang)} NUP ${String(row.imported_data.nup)}`}
+                            aria-label={`Pilih ${namaBarang} NUP ${String(row.imported_data.nup)}`}
                             checked={isSelected}
                             disabled={isSelectionDisabled}
                             onCheckedChange={(checked) => handleToggleRow(row.id, !!checked)}
@@ -682,8 +900,15 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                     <td className="px-4 py-3 font-mono text-xs text-[var(--ds-fg-secondary)] tabular-nums">
                       {row.imported_data.nup as string}
                     </td>
-                    <td className="px-4 py-3 text-[var(--ds-fg)] font-medium max-w-[200px] truncate">
-                      {row.imported_data.nama_barang as string}
+                    <td className="px-4 py-3 max-w-[240px]">
+                      <div className="text-[var(--ds-fg)] font-medium truncate" title={namaBarang}>
+                        {namaBarang}
+                      </div>
+                      {showMerkSubtitle && (
+                        <div className="text-xs text-[var(--ds-fg-muted)] truncate mt-0.5" title={merkTipePreview}>
+                          {merkTipePreview}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {row.diff_status === "new" && (
@@ -696,6 +921,7 @@ export default function ImportReviewDetailPage({ params }: { params: Promise<{ b
                         <DiffFields
                           fields={row.changed_fields}
                           rowId={row.id}
+                          focusField={changedFieldFilter || undefined}
                           isPending={canWrite && isPending}
                           isDisabled={isSelectionDisabled}
                           onToggleField={handleToggleField}
@@ -775,20 +1001,33 @@ function DiffStatusBadge({ status }: { status: string }) {
 const DiffFields = React.memo(function DiffFields({
   fields,
   rowId,
+  focusField,
   isPending,
   isDisabled,
   onToggleField,
 }: {
   fields: Record<string, ChangedField>;
   rowId: string;
+  focusField?: string;
   isPending: boolean;
   isDisabled: boolean;
   onToggleField: (rowId: string, field: string, selected: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const entries = Object.entries(fields);
-  const visible = expanded ? entries : entries.slice(0, 4);
-  const remaining = entries.length - 4;
+  const orderedEntries = !focusField
+    ? entries
+    : focusField === "__selected__"
+    ? [
+        ...entries.filter(([, values]) => values.selected !== false),
+        ...entries.filter(([, values]) => values.selected === false),
+      ]
+    : [
+        ...entries.filter(([field]) => field === focusField),
+        ...entries.filter(([field]) => field !== focusField),
+      ];
+  const visible = expanded ? orderedEntries : orderedEntries.slice(0, 4);
+  const remaining = orderedEntries.length - 4;
   const selectedCount = entries.filter(([, values]) => values.selected !== false).length;
 
   return (
@@ -815,7 +1054,14 @@ const DiffFields = React.memo(function DiffFields({
               className="size-4 shrink-0"
             />
           )}
-          <span className="text-[var(--ds-fg-muted)] font-medium min-w-[100px]">
+          <span
+            className={cn(
+              "min-w-[100px] font-medium",
+              focusField && focusField === field
+                ? "font-semibold text-[var(--ds-fg)]"
+                : "text-[var(--ds-fg-muted)]"
+            )}
+          >
             {FIELD_LABELS[field] || field}:
           </span>
           <span className="text-[var(--ds-status-danger-fg)] line-through truncate max-w-[120px]">
