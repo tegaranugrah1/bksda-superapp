@@ -415,12 +415,19 @@ class ImportReviewController extends Controller
      */
     public function approve(string $batchId, Request $request): JsonResponse
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(180);
+        }
+
         try {
             $result = DB::transaction(function () use ($batchId, $request) {
                 $batch = ImportBatch::where('status', 'pending')->lockForUpdate()->findOrFail($batchId);
                 $inserted = 0;
                 $updated = 0;
                 $bulkAssigned = [];
+                $historyRows = [];
+                $now = now();
+                $userId = $request->user()->id;
                 $assetService = app(\App\Modules\Bmn\Services\AssetService::class);
 
                 // Get all selected rows (new + updated)
@@ -429,37 +436,57 @@ class ImportReviewController extends Controller
                     ->whereIn('diff_status', ['new', 'updated'])
                     ->get();
 
+                $existingAssetIds = $selectedRows
+                    ->where('diff_status', 'updated')
+                    ->pluck('existing_asset_id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+                $assetsById = !empty($existingAssetIds)
+                    ? Asset::withTrashed()->whereIn('id', $existingAssetIds)->get()->keyBy('id')
+                    : collect();
+
+                $newKodeList = $selectedRows
+                    ->where('diff_status', 'new')
+                    ->map(fn ($r) => $r->imported_data['kode_barang'] ?? null)
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+                $existingByKodeNup = !empty($newKodeList)
+                    ? Asset::withTrashed()
+                        ->whereIn('kode_barang', $newKodeList)
+                        ->get()
+                        ->keyBy(fn ($a) => $a->kode_barang . '|' . (string) $a->nup)
+                    : collect();
+
                 foreach ($selectedRows as $row) {
                     $data = $row->imported_data;
 
                     if ($row->diff_status === 'new') {
-                        // Insert new asset — use updateOrCreate to handle edge cases
+                        // Insert new asset — check preloaded kode_barang + nup first to handle re-imports cleanly
                         $kodeBarang = $data['kode_barang'] ?? null;
                         $nup = $data['nup'] ?? null;
 
                         if ($kodeBarang && $nup) {
-                            // Check if asset exists (including soft-deleted)
-                            $existing = Asset::withTrashed()
-                                ->where('kode_barang', $kodeBarang)
-                                ->where('nup', (string) $nup)
-                                ->first();
+                            $existing = $existingByKodeNup->get($kodeBarang . '|' . (string) $nup);
 
                             if ($existing) {
                                 $wasTrashed = $existing->trashed();
                                 $oldEmp = $existing->employee_id;
                                 $oldKondisi = $existing->kondisi;
-                                // Restore if soft-deleted, then update
                                 if ($wasTrashed) {
                                     $existing->restore();
                                 }
                                 $existing->update($data);
-                                $fresh = $existing->fresh();
-                                $assetService->notifyOwnershipChange($fresh, $oldEmp, $fresh->employee_id, $wasTrashed);
-                                $assetService->notifyConditionCritical($fresh, $oldKondisi, $fresh->kondisi);
+                                $assetService->notifyOwnershipChange($existing, $oldEmp, $existing->employee_id, $wasTrashed);
+                                $assetService->notifyConditionCritical($existing, $oldKondisi, $existing->kondisi);
                                 $updated++;
                             } else {
                                 $data['id'] = (string) Str::uuid();
                                 $created = Asset::create($data);
+                                $existingByKodeNup->put($kodeBarang . '|' . (string) $nup, $created);
                                 if ($created->employee_id) {
                                     $bulkAssigned[(int) $created->employee_id][] = $created;
                                 }
@@ -476,8 +503,7 @@ class ImportReviewController extends Controller
                             $inserted++;
                         }
                     } elseif ($row->diff_status === 'updated' && $row->existing_asset_id) {
-                        // Update existing asset (only changed fields)
-                        $asset = Asset::withTrashed()->find($row->existing_asset_id);
+                        $asset = $assetsById->get($row->existing_asset_id);
                         if ($asset) {
                             $wasTrashed = $asset->trashed();
                             $oldEmp = $asset->employee_id;
@@ -495,26 +521,32 @@ class ImportReviewController extends Controller
                             }
                             if (!empty($updateData)) {
                                 foreach ($updateData as $field => $newValue) {
-                                    AssetUpdate::create([
+                                    $historyRows[] = [
+                                        'id' => (string) Str::uuid(),
                                         'asset_id' => $asset->id,
-                                        'user_id' => $request->user()->id,
+                                        'user_id' => $userId,
                                         'field_changed' => $field,
                                         'old_value' => $this->historyValue($changedFields[$field]['old'] ?? $asset->{$field}),
                                         'new_value' => $this->historyValue($newValue),
                                         'alasan_perubahan' => "Import review: {$batch->filename}",
-                                    ]);
+                                        'created_at' => $now,
+                                        'updated_at' => $now,
+                                    ];
                                 }
 
                                 $asset->update($updateData);
                                 $updated++;
                             }
                             if ($wasTrashed || !empty($updateData)) {
-                                $fresh = $asset->fresh();
-                                $assetService->notifyOwnershipChange($fresh, $oldEmp, $fresh->employee_id, $wasTrashed);
-                                $assetService->notifyConditionCritical($fresh, $oldKondisi, $fresh->kondisi);
+                                $assetService->notifyOwnershipChange($asset, $oldEmp, $asset->employee_id, $wasTrashed);
+                                $assetService->notifyConditionCritical($asset, $oldKondisi, $asset->kondisi);
                             }
                         }
                     }
+                }
+
+                foreach (array_chunk($historyRows, 100) as $chunk) {
+                    AssetUpdate::insert($chunk);
                 }
 
                 $assetService->notifyBulkAssigned($bulkAssigned);
