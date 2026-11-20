@@ -7,7 +7,6 @@ use App\Modules\Bmn\Exports\AssetExport;
 use App\Modules\Bmn\Imports\AssetImport;
 use App\Modules\Bmn\Models\Asset;
 use App\Modules\Bmn\Models\AssetUpdate;
-use App\Modules\Bmn\Models\Tag;
 use App\Modules\Bmn\Requests\DisposeAssetRequest;
 use App\Modules\Bmn\Requests\StoreAssetRequest;
 use App\Modules\Bmn\Requests\UpdateAssetRequest;
@@ -30,90 +29,36 @@ class AssetController extends Controller
     {
         $query = Asset::with(['penanggungJawab', 'tags', 'loans' => function ($q) {
             $q->active()->with('borrower')->latest('tanggal_pinjam');
-        }])->latest();
+        }]);
 
-        if ($request->query('status') === 'disposed') {
+        $isDisposed = $request->query('status') === 'disposed';
+        if ($isDisposed) {
             if (! $request->user()?->hasPermission('bmn.asset.dispose')) {
                 abort(403, 'Anda tidak memiliki hak akses untuk melihat daftar aset dihapus.');
             }
             $query->onlyTrashed();
         }
 
-        if ($request->filled('search')) {
-            $search = trim((string) $request->search);
-            $escapedSearch = addcslashes($search, '%_');
-            $likePattern = "%{$escapedSearch}%";
-            $cleanSearch = ltrim($search, '#');
-            $cleanLikePattern = '%' . addcslashes($cleanSearch, '%_') . '%';
-            $isPgSql = config('database.default') === 'pgsql';
-            $likeOp = $isPgSql ? 'ilike' : 'like';
-
-            $query->where(function ($q) use ($likePattern, $cleanLikePattern, $likeOp) {
-                $q->where('nama_barang', $likeOp, $likePattern)
-                    ->orWhere('kode_barang', $likeOp, $likePattern)
-                    ->orWhere('merk', $likeOp, $likePattern)
-                    ->orWhere('merk_tipe', $likeOp, $likePattern)
-                    ->orWhere('tipe', $likeOp, $likePattern)
-                    ->orWhere('nup', $likeOp, $likePattern)
-                    ->orWhere('no_polisi', $likeOp, $likePattern)
-                    ->orWhere('pengguna', $likeOp, $likePattern)
-                    ->orWhere('nama_pengguna', $likeOp, $likePattern)
-                    ->orWhereHas('penanggungJawab', function ($pq) use ($likePattern, $likeOp) {
-                        $pq->where('nama_lengkap', $likeOp, $likePattern);
-                    })
-                    ->orWhereHas('loans', function ($lq) use ($likePattern, $likeOp) {
-                        $lq->active()->whereHas('borrower', function ($bq) use ($likePattern, $likeOp) {
-                            $bq->where('nama_lengkap', $likeOp, $likePattern);
-                        });
-                    })
-                    ->orWhereHas('tags', function ($tq) use ($cleanLikePattern, $likeOp) {
-                        $tq->where('name', $likeOp, $cleanLikePattern)
-                            ->orWhere('label', $likeOp, $cleanLikePattern);
-                    });
-            });
-        }
-
-        if ($request->filled('nup')) {
-            $nup = $request->nup;
-            $query->where(function ($q) use ($nup) {
-                $q->where('nup', $nup)
-                    ->orWhere('nup_lama', $nup);
-            });
-        }
-
-        if ($request->query->has('employee_id')) {
-            $query->where('employee_id', $request->query('employee_id'));
-        }
-
-        if ($request->filled('borrower_id')) {
-            $query->whereHas('loans', function ($q) use ($request) {
-                $q->active()->where('employee_id', $request->borrower_id);
-            });
-        }
-
-        foreach (['kondisi', 'jenis_bmn', 'lokasi_ruang'] as $field) {
-            if ($request->filled($field)) {
-                $val = addcslashes(mb_strtolower(trim((string) $request->input($field))), '%_');
-                $query->whereRaw("LOWER({$field}) LIKE ?", ["%{$val}%"]);
-            }
-        }
-
-        $rawTags = $request->input('tag_ids', $request->input('tag_id'));
-        if ($rawTags && $rawTags !== 'Semua') {
-            $tagIds = is_array($rawTags) ? $rawTags : explode(',', (string) $rawTags);
-            $cleanTagIds = array_filter($tagIds, fn ($id) => $id !== 'Semua' && !empty($id));
-            if (!empty($cleanTagIds)) {
-                $tagsModels = Tag::with('subTags')->whereIn('id', $cleanTagIds)->get();
-                foreach ($tagsModels as $tModel) {
-                    /** @var Tag $tModel */
-                    $familyIds = $tModel->getFamilyTagIds();
-                    $query->whereHas('tags', fn ($q) => $q->whereIn('bmn_tags.id', $familyIds));
-                }
-            }
-        }
+        $query->applyCatalogFilters($request->all())
+            ->applyCatalogSort($request->input('sort'));
 
         $perPage = $this->resolvePerPage($request, default: 10, mobileMax: 100, webMax: 2000);
-        return AssetResource::collection($query->paginate($perPage));
+        $assets = $query->paginate($perPage);
+        $years = Asset::query()
+            ->when($isDisposed, fn ($q) => $q->onlyTrashed())
+            ->whereNotNull('tahun_perolehan')
+            ->distinct()
+            ->orderByDesc('tahun_perolehan')
+            ->pluck('tahun_perolehan')
+            ->map(fn ($y) => (int) $y)
+            ->values()
+            ->all();
+
+        return AssetResource::collection($assets)->additional([
+            'filter_options' => [
+                'years' => $years,
+            ],
+        ]);
     }
 
     private function resolvePerPage(Request $request, int $default = 10, int $mobileMax = 100, int $webMax = 500): int
@@ -273,9 +218,15 @@ class AssetController extends Controller
         ]);
     }
 
-    public function export(): BinaryFileResponse
+    public function export(Request $request): BinaryFileResponse
     {
-        return Excel::download(new AssetExport, 'Katalog_Aset_BKSDA.xlsx');
+        return Excel::download(
+            new AssetExport(
+                includeNupLama: $request->boolean('include_nup_lama', true),
+                filters: $request->all()
+            ),
+            'Katalog_Aset_BKSDA.xlsx'
+        );
     }
 
     public function import(Request $request): JsonResponse

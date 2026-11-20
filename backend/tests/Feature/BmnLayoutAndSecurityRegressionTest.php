@@ -881,4 +881,80 @@ class BmnLayoutAndSecurityRegressionTest extends TestCase
         $largeRes->assertStatus(422)
             ->assertJsonValidationErrors(['document']);
     }
+
+    public function test_assets_catalog_supports_acquisition_year_date_modified_photo_loan_filters_sort_and_export(): void
+    {
+        $employee = $this->createEmployee();
+        $oldBorrowed = $this->createAsset([
+            'nama_barang' => 'Drone Lama Dipinjam',
+            'tahun_perolehan' => 2021,
+            'nilai_perolehan' => 2000000,
+            'foto_geotag_url' => 'https://drive.google.com/file/d/abc/view',
+        ]);
+        $recentPhoto = $this->createAsset([
+            'nama_barang' => 'Laptop Baru',
+            'tahun_perolehan' => 2025,
+            'nilai_perolehan' => 15000000,
+            'foto_depan_path' => 'bmn-photos/laptop.jpg',
+        ]);
+        $noPhoto = $this->createAsset([
+            'nama_barang' => 'Meja Kerja',
+            'tahun_perolehan' => 2018,
+            'nilai_perolehan' => 500000,
+            'foto_geotag_url' => '-',
+        ]);
+
+        AssetLoan::create([
+            'asset_id' => $oldBorrowed->id,
+            'employee_id' => $employee->id,
+            'tanggal_pinjam' => now()->toDateString(),
+            'status' => 'dipinjam',
+        ]);
+
+        // Set explicit past timestamps directly so Eloquent doesn't overwrite updated_at
+        \Illuminate\Support\Facades\DB::table('bmn_assets')->where('id', $oldBorrowed->id)->update(['updated_at' => now()->subDays(12)]);
+        \Illuminate\Support\Facades\DB::table('bmn_assets')->where('id', $noPhoto->id)->update(['updated_at' => now()->subDays(2)]);
+        \Illuminate\Support\Facades\DB::table('bmn_assets')->where('id', $recentPhoto->id)->update(['updated_at' => now()]);
+
+        Sanctum::actingAs($this->exporterUser);
+
+        // Default order is updated_desc + filter_options.years lists distinct years descending
+        $this->getJson('/api/bmn/assets')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $recentPhoto->id)
+            ->assertJsonPath('data.1.id', $noPhoto->id)
+            ->assertJsonPath('data.2.id', $oldBorrowed->id)
+            ->assertJsonPath('filter_options.years', [2025, 2021, 2018]);
+
+        // Year exact + range filters
+        $this->getJson('/api/bmn/assets?tahun=2021')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $oldBorrowed->id);
+        $this->getJson('/api/bmn/assets?tahun_from=2018&tahun_to=2022')->assertOk()->assertJsonCount(2, 'data');
+
+        // Modified preset + custom range
+        $this->getJson('/api/bmn/assets?modified_preset=today')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $recentPhoto->id);
+        $this->getJson('/api/bmn/assets?modified_preset=7d')->assertOk()->assertJsonCount(2, 'data');
+        $from = now()->subDays(13)->toDateString();
+        $to = now()->subDays(10)->toDateString();
+        $this->getJson("/api/bmn/assets?modified_from={$from}&modified_to={$to}&modified_from_invalid=skip")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $oldBorrowed->id);
+
+        // Photo & loan status filters
+        $this->getJson('/api/bmn/assets?photo_status=with_photo')->assertOk()->assertJsonCount(2, 'data');
+        $this->getJson('/api/bmn/assets?photo_status=without_photo')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $noPhoto->id);
+        $this->getJson('/api/bmn/assets?loan_status=borrowed')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $oldBorrowed->id);
+        $this->getJson('/api/bmn/assets?loan_status=available')->assertOk()->assertJsonCount(2, 'data');
+
+        // Sort year_asc & export passes filters cleanly without error
+        $this->getJson('/api/bmn/assets?sort=year_asc')->assertOk()->assertJsonPath('data.0.id', $noPhoto->id);
+        $exportRows = (new \App\Modules\Bmn\Exports\AssetExport(true, [
+            'tahun_from' => '2020',
+            'photo_status' => 'with_photo',
+            'loan_status' => 'borrowed',
+        ]))->collection();
+        $this->assertCount(1, $exportRows);
+        $this->assertSame($oldBorrowed->id, $exportRows->first()->id);
+        $this->get('/api/bmn/assets/export?tahun=2025&photo_status=with_photo')->assertOk();
+    }
 }

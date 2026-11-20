@@ -55,7 +55,8 @@ const imports = {
   '@/app/bmn/_components/AssetTagsList': { AssetTagsList: 'tag-list' },
   '@/app/bmn/_lib/asset-utils': { formatRupiah: value => `Rp ${value}`, deduplicateMerkTipe: value => value, shortenLokasi: value => value, getAssetUser: asset => asset.pengguna || asset.nama_pengguna || asset.penanggung_jawab?.nama_lengkap || null },
   '@/app/bmn/_lib/tag-utils': { getTagColorClasses: () => ({}) },
-  '@/app/bmn/_lib/location-options': { SIMAN_LOKASI_RUANG_OPTIONS: [] },
+  '@/app/bmn/_lib/location-options': { SIMAN_LOKASI_RUANG_OPTIONS: [], mergeLokasiOptions: () => [] },
+  '@/lib/locations': { useMasterLocations: () => ({ data: [] }) },
   './assets.css': {},
   './use-asset-view': { useAssetView: () => [view, value => { view = value; }] },
   './_components/AssetPhotoPreview': { AssetPhotoPreview: 'photo-preview' },
@@ -182,5 +183,28 @@ for (const tokens of themeBlocks) {
   nodes = render();
   assert(nodes.some(n => n.props.children === 'Tidak ada data ditemukan'));
   assert(button(nodes, 'Berikutnya').props.disabled);
+
+  // New catalog filters: tahun perolehan, date modified preset, photo/loan advanced filters, sort & URL sync
+  writable = true;
+  result = {
+    data: {
+      data: [{ ...assets[0], tahun_perolehan: 2026, updated_at: '2026-11-20T09:00:00+08:00' }],
+      meta: { last_page: 1, total: 1 },
+      filter_options: { years: [2026, 2021] },
+    },
+    isLoading: false,
+    isFetching: false,
+  };
+  nodes = reset('tahun_from=2020&photo_status=without_photo&loan_status=borrowed&sort=year_desc');
+  assert(nodes.some(n => n.props['aria-label'] === 'Tahun perolehan dari'));
+  assert(nodes.some(n => n.props['aria-label'] === 'Filter kelengkapan foto'));
+  assert(nodes.some(n => n.props['aria-label'] === 'Filter status peminjaman'));
+  assert(nodes.some(n => n.type === 'p' && content(n).includes('Diubah:')));
+  await queries.get('bmn-assets').queryFn();
+  assert.equal(lastRequest[1].params.tahun_from, '2020');
+  assert.equal(lastRequest[1].params.photo_status, 'without_photo');
+  assert.equal(lastRequest[1].params.loan_status, 'borrowed');
+  assert.equal(lastRequest[1].params.sort, 'year_desc');
+
   console.log('PASS: solid token contrast, table/grid selection and query continuity, user/legacy NUP, pagination/filter/page cap, read-only/loading/empty/preparation states.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -3,9 +3,11 @@
 namespace App\Modules\Bmn\Models;
 
 use App\Modules\Kepegawaian\Models\Employee;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class Asset extends Model
@@ -136,6 +138,150 @@ class Asset extends Model
         }
 
         return $this->isOwnedByEmployee($employee);
+    }
+
+    /**
+     * Apply shared BMN catalog filters for both paginated listing and Excel export.
+     */
+    public function scopeApplyCatalogFilters(Builder $query, array $filters): Builder
+    {
+        $filled = static fn (string $key): bool => isset($filters[$key]) && trim((string) $filters[$key]) !== '';
+
+        if ($filled('search')) {
+            $search = trim((string) $filters['search']);
+            $likePattern = '%' . addcslashes($search, '%_') . '%';
+            $cleanLikePattern = '%' . addcslashes(ltrim($search, '#'), '%_') . '%';
+            $likeOp = $query->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+
+            $query->where(function (Builder $q) use ($likePattern, $cleanLikePattern, $likeOp) {
+                $q->where('nama_barang', $likeOp, $likePattern)
+                    ->orWhere('kode_barang', $likeOp, $likePattern)
+                    ->orWhere('merk', $likeOp, $likePattern)
+                    ->orWhere('merk_tipe', $likeOp, $likePattern)
+                    ->orWhere('tipe', $likeOp, $likePattern)
+                    ->orWhere('nup', $likeOp, $likePattern)
+                    ->orWhere('no_polisi', $likeOp, $likePattern)
+                    ->orWhere('pengguna', $likeOp, $likePattern)
+                    ->orWhere('nama_pengguna', $likeOp, $likePattern)
+                    ->orWhereHas('penanggungJawab', fn (Builder $pq) => $pq->where('nama_lengkap', $likeOp, $likePattern))
+                    ->orWhereHas('loans', fn (Builder $lq) => $lq->active()->whereHas('borrower', fn (Builder $bq) => $bq->where('nama_lengkap', $likeOp, $likePattern)))
+                    ->orWhereHas('tags', fn (Builder $tq) => $tq->where('name', $likeOp, $cleanLikePattern)->orWhere('label', $likeOp, $cleanLikePattern));
+            });
+        }
+
+        if ($filled('nup')) {
+            $nup = trim((string) $filters['nup']);
+            $query->where(fn (Builder $q) => $q->where('nup', $nup)->orWhere('nup_lama', $nup));
+        }
+
+        if (array_key_exists('employee_id', $filters) && ($filters['employee_id'] !== null && $filters['employee_id'] !== '')) {
+            $query->where('employee_id', $filters['employee_id']);
+        }
+
+        if ($filled('borrower_id')) {
+            $borrowerId = $filters['borrower_id'];
+            $query->whereHas('loans', fn (Builder $q) => $q->active()->where('employee_id', $borrowerId));
+        }
+
+        foreach (['kondisi', 'jenis_bmn', 'lokasi_ruang'] as $field) {
+            if ($filled($field) && $filters[$field] !== 'Semua') {
+                $val = addcslashes(mb_strtolower(trim((string) $filters[$field])), '%_');
+                $query->whereRaw("LOWER({$field}) LIKE ?", ["%{$val}%"]);
+            }
+        }
+
+        if ($filled('tahun') && is_numeric($filters['tahun'])) {
+            $query->where('tahun_perolehan', (int) $filters['tahun']);
+        } else {
+            if ($filled('tahun_from') && is_numeric($filters['tahun_from'])) {
+                $query->where('tahun_perolehan', '>=', (int) $filters['tahun_from']);
+            }
+            if ($filled('tahun_to') && is_numeric($filters['tahun_to'])) {
+                $query->where('tahun_perolehan', '<=', (int) $filters['tahun_to']);
+            }
+        }
+
+        $presetStarts = [
+            'today' => Carbon::today()->startOfDay(),
+            '7d' => Carbon::today()->subDays(6)->startOfDay(),
+            '30d' => Carbon::today()->subDays(29)->startOfDay(),
+        ];
+        $preset = $filled('modified_preset') ? trim((string) $filters['modified_preset']) : '';
+        if (isset($presetStarts[$preset])) {
+            $query->where('updated_at', '>=', $presetStarts[$preset]);
+        } else {
+            foreach (['modified_from' => ['>=', 'startOfDay'], 'modified_to' => ['<=', 'endOfDay']] as $key => [$op, $bound]) {
+                $raw = $filled($key) ? trim((string) $filters[$key]) : '';
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw) === 1) {
+                    $dt = Carbon::createFromFormat('Y-m-d', $raw);
+                    if ($dt && $dt->format('Y-m-d') === $raw) {
+                        $query->where('updated_at', $op, $dt->{$bound}());
+                    }
+                }
+            }
+        }
+
+        $photoStatus = $filters['photo_status'] ?? null;
+        if ($photoStatus === 'with_photo' || $photoStatus === 'without_photo') {
+            $pathCols = ['foto_geotag_path', 'foto_depan_path', 'foto_belakang_path', 'foto_kiri_path', 'foto_kanan_path', 'foto_lokasi_path'];
+            $urlCols = ['foto_geotag_url', 'foto_url'];
+            if ($photoStatus === 'with_photo') {
+                $query->where(function (Builder $q) use ($pathCols, $urlCols) {
+                    foreach ($pathCols as $col) {
+                        $q->orWhere(fn (Builder $sq) => $sq->whereNotNull($col)->where($col, '!=', ''));
+                    }
+                    foreach ($urlCols as $col) {
+                        $q->orWhere(fn (Builder $sq) => $sq->whereNotNull($col)->whereNotIn($col, ['', '-']));
+                    }
+                });
+            } else {
+                $query->where(function (Builder $q) use ($pathCols, $urlCols) {
+                    foreach ($pathCols as $col) {
+                        $q->where(fn (Builder $sq) => $sq->whereNull($col)->orWhere($col, ''));
+                    }
+                    foreach ($urlCols as $col) {
+                        $q->where(fn (Builder $sq) => $sq->whereNull($col)->orWhereIn($col, ['', '-']));
+                    }
+                });
+            }
+        }
+
+        if (($filters['loan_status'] ?? null) === 'borrowed') {
+            $query->whereHas('loans', fn (Builder $q) => $q->active());
+        } elseif (($filters['loan_status'] ?? null) === 'available') {
+            $query->whereDoesntHave('loans', fn (Builder $q) => $q->active());
+        }
+
+        $rawTags = $filters['tag_ids'] ?? ($filters['tag_id'] ?? null);
+        if ($rawTags && $rawTags !== 'Semua') {
+            $tagIds = is_array($rawTags) ? $rawTags : explode(',', (string) $rawTags);
+            $cleanTagIds = array_filter($tagIds, fn ($id) => $id !== 'Semua' && !empty($id));
+            if (!empty($cleanTagIds)) {
+                $tagsModels = Tag::with('subTags')->whereIn('id', $cleanTagIds)->get();
+                foreach ($tagsModels as $tModel) {
+                    /** @var Tag $tModel */
+                    $familyIds = $tModel->getFamilyTagIds();
+                    $query->whereHas('tags', fn (Builder $q) => $q->whereIn('bmn_tags.id', $familyIds));
+                }
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * Apply catalog ordering with deterministic id tie-breaker.
+     */
+    public function scopeApplyCatalogSort(Builder $query, ?string $sort): Builder
+    {
+        return match ($sort) {
+            'created_desc' => $query->orderByDesc('created_at')->orderBy('id'),
+            'year_desc' => $query->orderByRaw('tahun_perolehan IS NULL ASC')->orderByDesc('tahun_perolehan')->orderByDesc('updated_at')->orderBy('id'),
+            'year_asc' => $query->orderByRaw('tahun_perolehan IS NULL ASC')->orderBy('tahun_perolehan')->orderByDesc('updated_at')->orderBy('id'),
+            'value_desc' => $query->orderByDesc('nilai_perolehan')->orderByDesc('updated_at')->orderBy('id'),
+            'code_asc' => $query->orderBy('kode_barang')->orderByRaw('LENGTH(nup) ASC')->orderBy('nup')->orderBy('id'),
+            default => $query->orderByDesc('updated_at')->orderByDesc('created_at')->orderBy('id'),
+        };
     }
 
     protected static function booted()

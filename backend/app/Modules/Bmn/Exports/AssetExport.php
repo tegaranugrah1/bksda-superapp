@@ -21,35 +21,10 @@ class AssetExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        $query = Asset::latest();
-
-        if (!empty($this->filters['search'])) {
-            $search = addcslashes(mb_strtolower(trim((string) $this->filters['search'])), '%_');
-            $query->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(nama_barang) LIKE ?', ["%{$search}%"])
-                    ->orWhereRaw('LOWER(kode_barang) LIKE ?', ["%{$search}%"])
-                    ->orWhereRaw('LOWER(merk) LIKE ?', ["%{$search}%"]);
-            });
-        }
-        if (!empty($this->filters['nup'])) {
-            $nup = $this->filters['nup'];
-            $query->where(function ($q) use ($nup) {
-                $q->where('nup', $nup)
-                    ->orWhere('nup_lama', $nup);
-            });
-        }
-        if (!empty($this->filters['kondisi'])) {
-            $query->where('kondisi', $this->filters['kondisi']);
-        }
-        if (!empty($this->filters['jenis_bmn'])) {
-            $query->where('jenis_bmn', $this->filters['jenis_bmn']);
-        }
-        if (!empty($this->filters['lokasi_ruang'])) {
-            $lokasi = addcslashes(trim((string) $this->filters['lokasi_ruang']), '%_');
-            $query->where('lokasi_ruang', 'LIKE', '%' . $lokasi . '%');
-        }
-
-        return $query->get();
+        return Asset::query()
+            ->applyCatalogFilters($this->filters)
+            ->applyCatalogSort($this->filters['sort'] ?? null)
+            ->get();
     }
 
     public function headings(): array
