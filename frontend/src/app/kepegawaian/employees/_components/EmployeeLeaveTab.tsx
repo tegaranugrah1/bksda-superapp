@@ -10,6 +10,7 @@ import {
   isEligibleForAnnualLeave,
   isMmpEmployee,
   calculateLeaveDays,
+  normalizeHolidayDates,
   parseLocalDate,
 } from "@/app/kepegawaian/_lib/employee-helpers";
 import { toast } from "sonner";
@@ -149,12 +150,16 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
 
   // Fetch dynamic leave types
   const { data: leaveTypes = [] } = useQuery<DynamicLeaveType[]>({
-    queryKey: ["leaveTypes"],
+    queryKey: ["leaveTypes", employeeId],
     queryFn: async () => {
       const res = await api.get(`/api/kepegawaian/leave-types?employee_id=${employeeId}`);
       return res.data?.data || [];
     },
   });
+
+  const [holidayDates, setHolidayDates] = useState<Set<string>>(() => new Set());
+  const isRecordDurationManualRef = useRef(false);
+  const loadedHolidayRangeRef = useRef<{ min: number; max: number } | null>(null);
 
   // Modal dialog states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -465,11 +470,70 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
     },
   });
 
+  const recordYear = useMemo(() => {
+    if (recordForm.tanggal_mulai) {
+      const y = parseInt(recordForm.tanggal_mulai.slice(0, 4), 10);
+      if (y >= 2000 && y <= 2100) return y;
+    }
+    return selectedYear;
+  }, [recordForm.tanggal_mulai, selectedYear]);
+
+  useEffect(() => {
+    if (!isDialogOpen) {
+      loadedHolidayRangeRef.current = null;
+      return;
+    }
+    const range = loadedHolidayRangeRef.current;
+    if (range && recordYear >= range.min && recordYear <= range.max) {
+      return;
+    }
+    let active = true;
+    api
+      .get(`/api/kepegawaian/leave-types?employee_id=${employeeId}&year=${recordYear}`)
+      .then((res) => {
+        if (!active) return;
+        const nextTypes: DynamicLeaveType[] = res.data?.data || [];
+        const nextHolidays = normalizeHolidayDates(res.data?.holiday_dates);
+        loadedHolidayRangeRef.current = {
+          min: Math.max(2000, recordYear - 1),
+          max: Math.min(2100, recordYear + 1),
+        };
+        setHolidayDates(nextHolidays);
+        if (!isRecordDurationManualRef.current) {
+          setRecordForm((prev) => {
+            if (!prev.tanggal_mulai || !prev.tanggal_selesai) return prev;
+            const days = calculateLeaveDays(
+              prev.tanggal_mulai,
+              prev.tanggal_selesai,
+              prev.jenis_cuti,
+              nextTypes.length > 0 ? nextTypes : leaveTypes,
+              nextHolidays
+            );
+            if (days > 0 && days !== prev.jumlah_hari) {
+              return { ...prev, jumlah_hari: days };
+            }
+            return prev;
+          });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [isDialogOpen, recordYear, employeeId, leaveTypes]);
+
   const handleDateChange = (field: "tanggal_mulai" | "tanggal_selesai", val: string) => {
+    isRecordDurationManualRef.current = false;
     setRecordForm((prev) => {
       const next = { ...prev, [field]: val };
       if (next.tanggal_mulai && next.tanggal_selesai) {
-        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, next.jenis_cuti, leaveTypes);
+        const days = calculateLeaveDays(
+          next.tanggal_mulai,
+          next.tanggal_selesai,
+          next.jenis_cuti,
+          leaveTypes,
+          holidayDates
+        );
         if (days > 0) {
           next.jumlah_hari = days;
         }
@@ -479,10 +543,17 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   };
 
   const handleJenisCutiChange = (val: string) => {
+    isRecordDurationManualRef.current = false;
     setRecordForm((prev) => {
       const next = { ...prev, jenis_cuti: val };
       if (next.tanggal_mulai && next.tanggal_selesai) {
-        const days = calculateLeaveDays(next.tanggal_mulai, next.tanggal_selesai, val, leaveTypes);
+        const days = calculateLeaveDays(
+          next.tanggal_mulai,
+          next.tanggal_selesai,
+          val,
+          leaveTypes,
+          holidayDates
+        );
         if (days > 0) {
           next.jumlah_hari = days;
         }
@@ -492,11 +563,12 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   };
 
   const handleOpenCreateDialog = () => {
+    isRecordDurationManualRef.current = false;
     setEditingRecord(null);
     setFileScanFormulir(null);
     setFileScanSuratIzin(null);
     const today = new Date().toISOString().split("T")[0];
-    const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan", leaveTypes);
+    const initialDays = calculateLeaveDays(today, today, "Cuti Tahunan", leaveTypes, holidayDates);
     setRecordForm({
       nomor_pengajuan: "",
       tanggal_pengajuan: today,
@@ -511,6 +583,7 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   };
 
   const handleOpenEditDialog = (record: LeaveRecordItem) => {
+    isRecordDurationManualRef.current = true;
     setEditingRecord(record);
     setFileScanFormulir(null);
     setFileScanSuratIzin(null);
@@ -574,6 +647,17 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
   const isTahunan = selectedLeaveType
     ? selectedLeaveType.potong_kuota_tahunan
     : recordForm.jenis_cuti.toLowerCase().includes("tahunan");
+  const isHariKerjaType = selectedLeaveType
+    ? selectedLeaveType.hitung_hari === "hari_kerja"
+    : recordForm.jenis_cuti.toLowerCase().includes("tahunan");
+  const excludedHolidayCount = useMemo(() => {
+    if (!isHariKerjaType || holidayDates.size === 0 || !recordForm.tanggal_mulai || !recordForm.tanggal_selesai) {
+      return 0;
+    }
+    const weekdaysOnly = calculateLeaveDays(recordForm.tanggal_mulai, recordForm.tanggal_selesai, recordForm.jenis_cuti, leaveTypes);
+    const actualWorking = calculateLeaveDays(recordForm.tanggal_mulai, recordForm.tanggal_selesai, recordForm.jenis_cuti, leaveTypes, holidayDates);
+    return Math.max(0, weekdaysOnly - actualWorking);
+  }, [isHariKerjaType, holidayDates, recordForm.tanggal_mulai, recordForm.tanggal_selesai, recordForm.jenis_cuti, leaveTypes]);
 
   return (
     <div className="space-y-6">
@@ -1287,7 +1371,10 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                     max={365}
                     required
                     value={recordForm.jumlah_hari}
-                    onChange={(e) => setRecordForm({ ...recordForm, jumlah_hari: Number(e.target.value) })}
+                    onChange={(e) => {
+                      isRecordDurationManualRef.current = true;
+                      setRecordForm({ ...recordForm, jumlah_hari: Number(e.target.value) });
+                    }}
                     className="text-xs font-bold h-9 pr-14 bg-[var(--ds-surface)] transition-colors"
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-xs font-medium text-[var(--ds-fg-muted)]">
@@ -1300,12 +1387,12 @@ export function EmployeeLeaveTab({ employeeId }: EmployeeLeaveTabProps) {
                 <div className="p-2 rounded-lg bg-[var(--ds-surface)] border border-slate-200/80 dark:border-zinc-800 text-xs text-[var(--ds-fg-muted)] flex items-center gap-2">
                   <Info className="w-4 h-4 text-[var(--ds-accent-fg)] shrink-0" />
                   <span>
-                    {(selectedLeaveType
-                      ? selectedLeaveType.hitung_hari === "hari_kerja"
-                        : recordForm.jenis_cuti.toLowerCase().includes("tahunan"))
-                      ? "Otomatis dihitung hari kerja (Senin - Jumat)."
+                    {isHariKerjaType
+                      ? "Otomatis dihitung hari kerja (Senin - Jumat, tidak termasuk libur nasional & cuti bersama)."
                       : "Otomatis dihitung hari kalender penuh."}
-                    {" Dapat diedit manual jika terdapat libur nasional."}
+                    {excludedHolidayCount > 0
+                      ? ` Melewati ${excludedHolidayCount} hari libur/cuti bersama.`
+                      : " Dapat diedit manual jika diperlukan."}
                   </span>
                 </div>
               </div>

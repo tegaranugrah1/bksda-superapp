@@ -2,6 +2,7 @@
 
 namespace App\Modules\Kepegawaian\Models;
 
+use App\Modules\Kepegawaian\Services\HolidayCalendarHelper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -54,9 +55,23 @@ class LeaveType extends Model
 
     public function countDays(Carbon $start, Carbon $end): int
     {
-        return $this->hitung_hari === 'hari_kerja'
-            ? (int) $start->diffInWeekdays($end->copy()->addDay())
-            : (int) $start->diffInDays($end) + 1;
+        if ($this->hitung_hari !== 'hari_kerja') {
+            return (int) $start->diffInDays($end) + 1;
+        }
+
+        $holidays = HolidayCalendarHelper::getHolidayDateSet($start->year, $end->year);
+        $count = 0;
+        $cur = $start->copy()->startOfDay();
+        $endDay = $end->copy()->startOfDay();
+
+        while ($cur->lte($endDay)) {
+            if (! $cur->isWeekend() && ! isset($holidays[$cur->format('Y-m-d')])) {
+                $count++;
+            }
+            $cur->addDay();
+        }
+
+        return $count;
     }
 
     public static function forEmployee(string $value, Employee $employee): self

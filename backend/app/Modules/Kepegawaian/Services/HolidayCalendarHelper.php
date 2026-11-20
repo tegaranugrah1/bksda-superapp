@@ -277,4 +277,24 @@ class HolidayCalendarHelper
         ksort($items);
         return array_values($items);
     }
+
+    /**
+     * Ambil himpunan tanggal libur nasional & cuti bersama ('Y-m-d' => true) pada rentang tahun inklusif.
+     *
+     * @return array<string, bool>
+     */
+    public static function getHolidayDateSet(int $startYear, int $endYear): array
+    {
+        $set = [];
+        for ($y = $startYear; $y <= $endYear; $y++) {
+            foreach (self::getAllHolidaysForYear($y) as $item) {
+                $ymd = substr((string) ($item['tanggal'] ?? ''), 0, 10);
+                if ($ymd !== '') {
+                    $set[$ymd] = true;
+                }
+            }
+        }
+
+        return $set;
+    }
 }
